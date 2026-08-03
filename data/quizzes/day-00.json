@@ -1,0 +1,79 @@
+{
+  "id": "day-00",
+  "dia": 0,
+  "titulo": "Demo: motor de quiz (principios de oro)",
+  "preguntas": [
+    {
+      "id": "q1",
+      "objetivo": "enforcement",
+      "escenario": "Un equipo usa Claude Code en un monorepo de producción. La política de la empresa exige que NUNCA se ejecute `git push --force` sobre main, sin excepciones. El tech lead agregó al CLAUDE.md: \"Nunca uses git push --force en main\". Una semana después, durante una sesión larga con mucho contexto, Claude lo ejecutó igual. ¿Cuál es el fix correcto?",
+      "opciones": [
+        "Reescribir la regla en CLAUDE.md en mayúsculas y al principio del archivo, para que el modelo le dé más prioridad",
+        "Agregar una regla deny en los permissions de settings.json que bloquee ese comando",
+        "Repetir la regla al inicio de cada sesión como primer mensaje del usuario",
+        "Bajar la temperatura del modelo para que sea más obediente a las instrucciones del CLAUDE.md"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "CLAUDE.md es guidance: por más mayúsculas que le pongas, el modelo PUEDE ignorarlo (y con contexto largo, más todavía). \"Debe cumplirse siempre\" nunca se resuelve con guidance.",
+        "Correcta. \"Sin excepciones\" = enforcement determinístico. Un deny en permissions (o un hook PreToolUse) se ejecuta fuera del modelo: no importa cuánto contexto haya, el comando se bloquea siempre.",
+        "Sigue siendo guidance, con el mismo problema que CLAUDE.md: es una instrucción que el modelo puede desatender. Además depende de que un humano se acuerde de hacerlo.",
+        "La temperatura no controla la adherencia a instrucciones de un archivo de contexto. Es un distractor plausible porque suena a \"más determinismo\", pero no toca el mecanismo real."
+      ]
+    },
+    {
+      "id": "q2",
+      "objetivo": "mcp-scoping",
+      "escenario": "Una desarrolladora configuró un MCP server de la base de datos interna con su token personal. Al día siguiente, todo el equipo ve ese server en sus sesiones de Claude Code y los requests salen autenticados con el token de ella. ¿Qué pasó y cuál es el fix?",
+      "opciones": [
+        "Lo configuró en scope user; debe moverlo a scope project para que cada uno use su propio token",
+        "Lo configuró en scope project (.mcp.json en el repo); debe moverlo a scope local o user y sacar el archivo del repo",
+        "Es el comportamiento esperado: los MCP servers siempre se comparten con el equipo, debe rotar el token",
+        "Lo configuró en scope local; debe agregar el token a las env vars del CI para que no viaje en el repo"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "Al revés: el scope user es personal (aplica a todos TUS proyectos, pero solo para vos). Si todo el equipo lo ve, el server está en el repo compartido — eso es scope project.",
+        "Correcta. Si el equipo entero lo ve, está en .mcp.json (scope project, versionado en el repo). Config personal con credenciales propias → scope local o user, nunca el archivo compartido.",
+        "Falso: los scopes existen justamente para controlar esto. local y user son privados; solo project se comparte vía el repo.",
+        "Scope local es privado por definición — si fuera local, el equipo no lo vería. El diagnóstico está mal, así que el fix también."
+      ]
+    },
+    {
+      "id": "q3",
+      "objetivo": "api-stateless",
+      "escenario": "Un chatbot de soporte construido sobre la Messages API responde bien la primera pregunta, pero en el segundo turno \"olvida\" todo lo anterior: el código envía solamente el último mensaje del usuario en cada request. ¿Cuál es el fix?",
+      "opciones": [
+        "Incluir el conversation_id que devuelve la API en el primer response para que el servidor recupere el contexto",
+        "Activar el modo session de la Messages API con un header de persistencia",
+        "Acumular y reenviar el historial completo de mensajes (user y assistant) en el array messages de cada request",
+        "Guardar el contexto en un system prompt dinámico que la API actualiza automáticamente entre turnos"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "No existe conversation_id ni recuperación de contexto del lado del servidor. Cualquier opción con memoria server-side en la Messages API es falsa, siempre.",
+        "No existe un \"modo session\" ni headers de persistencia. Mismo principio: la API es stateless, no hay estado que activar.",
+        "Correcta. La Messages API es stateless: el cliente es dueño del historial y lo manda completo (turnos user + assistant) en cada request. Eso ES la gestión de conversación.",
+        "La API no actualiza nada \"automáticamente\": el system prompt lo construye y manda el cliente en cada request, como todo lo demás."
+      ]
+    },
+    {
+      "id": "q4",
+      "objetivo": "tool-choice",
+      "escenario": "Un agente tiene dos tools: `buscar_cliente` (devuelve el ID) y `crear_ticket` (necesita ese ID como input). El dev seteó tool_choice a {\"type\": \"any\"} esperando que el modelo llame las dos en el orden correcto, pero a veces el modelo llama crear_ticket primero con un ID inventado. ¿Cuál es el fix?",
+      "opciones": [
+        "Cambiar a tool_choice {\"type\": \"tool\", \"name\": \"buscar_cliente\"} en el primer request y encadenar: devolver el tool_result y dejar que el siguiente request llame a crear_ticket",
+        "Cambiar a tool_choice {\"type\": \"auto\"} para que el modelo razone mejor el orden de las llamadas",
+        "Marcar el parámetro ID de crear_ticket como required en el JSON schema, para que el modelo no pueda llamarla sin un ID real",
+        "Listar las tools en orden de dependencia en el array tools, porque el modelo las ejecuta en ese orden"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. Dependencia entre tools → requests encadenados: forzás (o dejás que salga naturalmente) la primera tool, devolvés su resultado como tool_result, y recién ahí el modelo tiene el ID real para la segunda. Ningún tool_choice mágico garantiza orden.",
+        "auto reduce la presión de \"tenés que llamar una tool ya\" (que es lo que empuja a inventar), pero no GARANTIZA el orden. Para dependencias duras, la garantía la da el encadenamiento.",
+        "required obliga a que el campo venga, no a que sea verdadero: el modelo puede llenarlo con un ID fabricado, que es exactamente el bug actual.",
+        "El orden del array tools no define orden de ejecución. Es un distractor clásico: suena a configuración razonable pero no existe esa semántica."
+      ]
+    }
+  ]
+}

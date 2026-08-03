@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CCAR-F Retake — War room de Mago</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <canvas id="confetti"></canvas>
+
+  <div class="wrap">
+
+    <!-- HERO -->
+    <header class="hero">
+      <div class="hero-left">
+        <div class="eyebrow">Claude Certified Architect · Foundations · Pearson OnVUE</div>
+        <h1>CCAR-F <span class="thin">Retake</span><br>23 · AGO · 2026</h1>
+        <div class="score-gap">
+          <div class="score-gap-labels">
+            <span>592</span>
+            <span>passing 720</span>
+            <span class="goal">objetivo 780</span>
+          </div>
+          <div class="score-bar">
+            <div class="score-bar-fill" id="score-fill"></div>
+            <div class="score-bar-pass" id="score-pass"></div>
+          </div>
+          <div class="score-gap-note" id="score-note"></div>
+        </div>
+      </div>
+      <div class="countdown">
+        <span class="countdown-num" id="countdown-num">—</span>
+        <span class="countdown-label" id="countdown-label">cargando…</span>
+      </div>
+    </header>
+
+    <!-- TABS -->
+    <nav class="tabs" aria-label="Secciones">
+      <button class="tab is-active" data-view="plan">Plan · 21 días</button>
+      <button class="tab" data-view="quiz">Quizzes</button>
+      <button class="tab" data-view="cards">Flashcards</button>
+      <button class="tab" data-view="semaforo">Semáforo</button>
+    </nav>
+
+    <!-- VISTA: PLAN -->
+    <section class="view is-active" id="view-plan">
+      <div class="global-progress">
+        <span class="label">Progreso</span>
+        <div class="bar"><div class="bar-fill" id="global-fill"></div></div>
+        <span class="pct" id="global-pct">0%</span>
+      </div>
+      <div class="day-grid" id="day-grid"></div>
+    </section>
+
+    <!-- VISTA: QUIZ -->
+    <section class="view" id="view-quiz">
+      <h2 class="section-title">Quizzes de escenario</h2>
+      <p class="section-sub">Estilo examen real: situación rota, 4 opciones plausibles, una correcta.
+        Cada respuesta alimenta el semáforo. Los rationales son la clase — leelos aunque aciertes.</p>
+      <div id="quiz-home"></div>
+      <div id="quiz-stage"></div>
+    </section>
+
+    <!-- VISTA: FLASHCARDS -->
+    <section class="view" id="view-cards">
+      <h2 class="section-title">Flashcards</h2>
+      <p class="section-sub">Repaso espaciado simple: si la fallás vuelve enseguida, si la sabés
+        se aleja. Las matrices clave del examen viven acá.</p>
+      <div id="fc-home"></div>
+      <div id="fc-stage"></div>
+    </section>
+
+    <!-- VISTA: SEMÁFORO -->
+    <section class="view" id="view-semaforo">
+      <h2 class="section-title">Semáforo por objetivo</h2>
+      <p class="section-sub">Arranca con los datos del primer intento y se actualiza solo con
+        cada quiz que hacés. La meta: todo verde antes del 22/8.</p>
+      <div id="sema-root"></div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <span class="hint">localhost:8000 · datos en localStorage de esta máquina</span>
+      <div class="footer-actions">
+        <button class="btn" id="btn-export">↓ Exportar progreso</button>
+        <button class="btn btn-ghost" id="btn-import">↑ Importar</button>
+        <button class="btn btn-ghost" id="btn-reset">Borrar progreso</button>
+        <input type="file" id="import-file" accept="application/json" hidden>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- DIALOG: detalle de día -->
+  <dialog id="day-dialog">
+    <div class="dialog-inner" id="dialog-content"></div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

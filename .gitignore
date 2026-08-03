@@ -1,0 +1,11 @@
+# secretos y config local
+.env
+.env.*
+
+# artefactos de testing y deploy
+.playwright-mcp/
+.vercel/
+
+# sistema
+Thumbs.db
+Desktop.ini

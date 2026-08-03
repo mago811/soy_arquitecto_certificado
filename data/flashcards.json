@@ -1,0 +1,41 @@
+{
+  "mazos": [
+    {
+      "id": "principios-oro",
+      "nombre": "Los 6 principios de oro",
+      "descripcion": "Las reglas que deciden preguntas enteras del examen. Si dudás entre dos opciones, uno de estos desempata.",
+      "cards": [
+        {
+          "id": "oro-1",
+          "front": "El escenario dice \"debe cumplirse SIEMPRE\" o menciona compliance. ¿Dónde va la regla?",
+          "back": "Hooks o permissions (enforcement determinístico). JAMÁS CLAUDE.md — el modelo puede ignorarlo. CLAUDE.md orienta, no garantiza."
+        },
+        {
+          "id": "oro-2",
+          "front": "¿Qué scope de MCP server usás para \"todo el equipo\" vs \"algo personal o experimental\"?",
+          "back": "Equipo/compartido → project (.mcp.json versionado en el repo). Personal/experimental → user o local. Si credenciales personales aparecen en el repo, alguien usó project por error."
+        },
+        {
+          "id": "oro-3",
+          "front": "El modelo inventa datos al extraer de documentos incompletos. ¿Cuál es el combo anti-fabricación?",
+          "back": "Campos nullable + enums para valores cerrados + few-shot que INCLUYA ejemplos con null. El modelo tiene que ver que \"no está\" es una respuesta válida."
+        },
+        {
+          "id": "oro-4",
+          "front": "Una opción del examen menciona memoria server-side, conversation_id o \"la API recuerda el contexto\". ¿Qué hacés?",
+          "back": "La descartás: es FALSA siempre. La Messages API es stateless — el cliente manda el historial completo en cada request. No existe estado del lado del servidor."
+        },
+        {
+          "id": "oro-5",
+          "front": "Tool B necesita el output de tool A. ¿Cómo garantizás el orden?",
+          "back": "Requests encadenados: llamás A, devolvés el tool_result, y en el siguiente request el modelo llama B. Ningún valor de tool_choice garantiza orden entre tools dependientes."
+        },
+        {
+          "id": "oro-6",
+          "front": "En Claude Code, ¿cuál es la diferencia de fondo entre guidance y enforcement?",
+          "back": "Guidance (CLAUDE.md, prompts) ORIENTA: el modelo la sigue casi siempre pero puede fallar. Enforcement (hooks, permissions deny) GARANTIZA: se ejecuta determinísticamente, el modelo no puede saltearlo."
+        }
+      ]
+    }
+  ]
+}

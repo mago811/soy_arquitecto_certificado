@@ -1,0 +1,359 @@
+{
+  "examen": {
+    "nombre": "CCAR-F Retake",
+    "fecha": "2026-08-23",
+    "scoreAnterior": 592,
+    "scorePassing": 720,
+    "scoreObjetivo": 780,
+    "inicio": "2026-08-03"
+  },
+  "objetivos": [
+    { "id": "enforcement", "nombre": "Enforcement vs guidance", "zonaInicial": "roja", "baseline": 0 },
+    { "id": "mcp-scoping", "nombre": "Scoping de MCP servers", "zonaInicial": "roja", "baseline": 0 },
+    { "id": "context-methods", "nombre": "Métodos de contexto (@/CLAUDE.md/inline)", "zonaInicial": "roja", "baseline": 0 },
+    { "id": "api-stateless", "nombre": "API stateless e historial", "zonaInicial": "roja", "baseline": 0 },
+    { "id": "extraction-schemas", "nombre": "Schemas de extracción", "zonaInicial": "roja", "baseline": 0 },
+    { "id": "tool-choice", "nombre": "tool_choice y secuenciación", "zonaInicial": "roja", "baseline": 0 },
+    { "id": "extraction-accuracy", "nombre": "Extraction accuracy patterns", "zonaInicial": "amarilla", "baseline": 25 },
+    { "id": "decomposition", "nombre": "Descomposición dinámica de subtareas", "zonaInicial": "amarilla", "baseline": 50 },
+    { "id": "refinement", "nombre": "Iterative refinement workflows", "zonaInicial": "amarilla", "baseline": 50 },
+    { "id": "exploration", "nombre": "Exploración de codebase", "zonaInicial": "amarilla", "baseline": 50 },
+    { "id": "mcp-advanced", "nombre": "MCP: errores, descriptions, auth", "zonaInicial": "amarilla", "baseline": 50 },
+    { "id": "orchestration", "nombre": "Orquestación agéntica", "zonaInicial": "verde", "baseline": 100 },
+    { "id": "hooks-config", "nombre": "Hooks y slash commands", "zonaInicial": "verde", "baseline": 100 },
+    { "id": "api-batches", "nombre": "Batches API y structured output", "zonaInicial": "verde", "baseline": 100 },
+    { "id": "context-mgmt", "nombre": "Context management", "zonaInicial": "verde", "baseline": 100 },
+    { "id": "review-loops", "nombre": "Human review y feedback loops", "zonaInicial": "verde", "baseline": 100 }
+  ],
+  "dias": [
+    {
+      "id": "d01",
+      "dia": 1,
+      "fecha": "2026-08-03",
+      "fechaCorta": "Lun 3/8",
+      "bloque": "ceros",
+      "bloqueLabel": "🔴 Ceros",
+      "titulo": "Enforcement vs guidance",
+      "horas": 2,
+      "objetivos": ["enforcement"],
+      "tareas": [
+        { "id": "t1", "texto": "Pregunta de apertura + teoría con escenarios: matriz de mecanismos (CLAUDE.md vs permissions vs hooks)" },
+        { "id": "t2", "texto": "Lab: regla en CLAUDE.md y verla fallar, después bloquearla con hook PreToolUse y con settings deny" },
+        { "id": "t3", "texto": "Quiz día 1 en el dashboard (8–10 escenarios)" },
+        { "id": "t4", "texto": "Cierre: flashcards de la matriz + semáforo actualizado" }
+      ]
+    },
+    {
+      "id": "d02",
+      "dia": 2,
+      "fecha": "2026-08-04",
+      "fechaCorta": "Mar 4/8",
+      "bloque": "ceros",
+      "bloqueLabel": "🔴 Ceros",
+      "titulo": "Scoping MCP + métodos de contexto",
+      "horas": 2,
+      "objetivos": ["mcp-scoping", "context-methods"],
+      "tareas": [
+        { "id": "t1", "texto": "Teoría con escenarios: scopes project (.mcp.json) / user / local — quién ve qué y cuándo" },
+        { "id": "t2", "texto": "Lab de scopes: configurar el mismo MCP server en los 3 scopes y verificar visibilidad" },
+        { "id": "t3", "texto": "Teoría con escenarios: @ references vs CLAUDE.md vs descripción inline" },
+        { "id": "t4", "texto": "Quiz día 2 en el dashboard" }
+      ]
+    },
+    {
+      "id": "d03",
+      "dia": 3,
+      "fecha": "2026-08-05",
+      "fechaCorta": "Mié 5/8",
+      "bloque": "ceros",
+      "bloqueLabel": "🔴 Ceros",
+      "titulo": "API stateless: historial multi-turno",
+      "horas": 1.5,
+      "objetivos": ["api-stateless"],
+      "tareas": [
+        { "id": "t1", "texto": "Teoría con escenarios: por qué la Messages API no guarda nada del lado del servidor" },
+        { "id": "t2", "texto": "Lab: script multi-turno que mantiene el historial a mano — romperlo mandando solo el último mensaje" },
+        { "id": "t3", "texto": "Quiz día 3 en el dashboard" }
+      ]
+    },
+    {
+      "id": "d04",
+      "dia": 4,
+      "fecha": "2026-08-06",
+      "fechaCorta": "Jue 6/8",
+      "bloque": "ceros",
+      "bloqueLabel": "🔴 Ceros",
+      "titulo": "tool_choice + secuenciación multi-tool",
+      "horas": 2,
+      "objetivos": ["tool-choice"],
+      "tareas": [
+        { "id": "t1", "texto": "Teoría con escenarios: los 4 valores de tool_choice (auto / any / tool / none) y cuándo cada uno rompe" },
+        { "id": "t2", "texto": "Lab: encadenar 2 tools dependientes con requests encadenados — romperlo a propósito forzando tool_choice" },
+        { "id": "t3", "texto": "Quiz día 4 en el dashboard" }
+      ]
+    },
+    {
+      "id": "d05",
+      "dia": 5,
+      "fecha": "2026-08-07",
+      "fechaCorta": "Vie 7/8",
+      "bloque": "ceros",
+      "bloqueLabel": "🔴 Ceros",
+      "titulo": "Schemas de extracción anti-fabricación",
+      "horas": 1.5,
+      "objetivos": ["extraction-schemas"],
+      "tareas": [
+        { "id": "t1", "texto": "Teoría con escenarios: optional vs nullable vs enums — cómo evitar que el modelo invente valores" },
+        { "id": "t2", "texto": "Lab: extraer de un documento incompleto y lograr que devuelva null en vez de fabricar" },
+        { "id": "t3", "texto": "Quiz día 5 en el dashboard" }
+      ]
+    },
+    {
+      "id": "d06",
+      "dia": 6,
+      "fecha": "2026-08-08",
+      "fechaCorta": "Sáb 8/8",
+      "bloque": "ceros",
+      "bloqueLabel": "🔴 Ceros",
+      "titulo": "Extraction accuracy + quiz consolidado de ceros",
+      "horas": 3,
+      "objetivos": ["extraction-accuracy", "enforcement", "mcp-scoping", "context-methods", "api-stateless", "extraction-schemas", "tool-choice"],
+      "tareas": [
+        { "id": "t1", "texto": "Teoría con escenarios: few-shot con nulls, normalización de formato" },
+        { "id": "t2", "texto": "Mini-lab: mejorar la accuracy del extractor del día 5 con ejemplos few-shot" },
+        { "id": "t3", "texto": "QUIZ CONSOLIDADO: 15–20 escenarios de TODAS las zonas rojas" },
+        { "id": "t4", "texto": "Revisar semáforo: todo lo que siga rojo va al checkpoint de mañana" }
+      ]
+    },
+    {
+      "id": "d07",
+      "dia": 7,
+      "fecha": "2026-08-09",
+      "fechaCorta": "Dom 9/8",
+      "bloque": "checkpoint",
+      "bloqueLabel": "🟠 Checkpoint",
+      "titulo": "Autoexamen escrito de memoria",
+      "horas": 2,
+      "objetivos": ["enforcement", "mcp-scoping", "context-methods", "api-stateless", "extraction-schemas", "tool-choice"],
+      "tareas": [
+        { "id": "t1", "texto": "Escribir de memoria (sin mirar): matriz de mecanismos, valores de tool_choice, scopes MCP, técnicas anti-fabricación" },
+        { "id": "t2", "texto": "Corregir contra las flashcards y anotar los huecos en notes/" },
+        { "id": "t3", "texto": "Repaso dirigido de todo lo que falló" }
+      ]
+    },
+    {
+      "id": "d08",
+      "dia": 8,
+      "fecha": "2026-08-10",
+      "fechaCorta": "Lun 10/8",
+      "bloque": "amarillos",
+      "bloqueLabel": "🟡 Amarillos",
+      "titulo": "MCP profundo: errores, descriptions, auth",
+      "horas": 2,
+      "objetivos": ["mcp-advanced"],
+      "tareas": [
+        { "id": "t1", "texto": "Teoría con escenarios: error handling tipado, tool descriptions con desambiguación, auth por env vars" },
+        { "id": "t2", "texto": "Lab: aplicarlo sobre los agentes de Workforce AI" },
+        { "id": "t3", "texto": "Quiz día 8 en el dashboard" }
+      ]
+    },
+    {
+      "id": "d09",
+      "dia": 9,
+      "fecha": "2026-08-11",
+      "fechaCorta": "Mar 11/8",
+      "bloque": "amarillos",
+      "bloqueLabel": "🟡 Amarillos",
+      "titulo": "Descomposición dinámica + iterative refinement",
+      "horas": 1.5,
+      "objetivos": ["decomposition", "refinement"],
+      "tareas": [
+        { "id": "t1", "texto": "Teoría con escenarios: descomposición dinámica de subtareas" },
+        { "id": "t2", "texto": "Teoría con escenarios: refinement con ejemplos concretos, feedback dirigido, issues batcheados" },
+        { "id": "t3", "texto": "Quiz día 9 en el dashboard" }
+      ]
+    },
+    {
+      "id": "d10",
+      "dia": 10,
+      "fecha": "2026-08-12",
+      "fechaCorta": "Mié 12/8",
+      "bloque": "amarillos",
+      "bloqueLabel": "🟡 Amarillos",
+      "titulo": "Exploración de codebase + session resumption",
+      "horas": 1.5,
+      "objetivos": ["exploration"],
+      "tareas": [
+        { "id": "t1", "texto": "Teoría con escenarios: patrón incremental Glob → Grep → Read" },
+        { "id": "t2", "texto": "Repaso liviano: session resumption" },
+        { "id": "t3", "texto": "Quiz día 10 en el dashboard" }
+      ]
+    },
+    {
+      "id": "d11",
+      "dia": 11,
+      "fecha": "2026-08-13",
+      "fechaCorta": "Jue 13/8",
+      "bloque": "repaso",
+      "bloqueLabel": "🟢 Repaso",
+      "titulo": "Que los 100% sigan siendo 100%",
+      "horas": 1.5,
+      "objetivos": ["orchestration", "hooks-config", "api-batches", "context-mgmt", "review-loops"],
+      "tareas": [
+        { "id": "t1", "texto": "Quiz de fortalezas: orquestación, hooks, Batches, structured output" },
+        { "id": "t2", "texto": "Repasar solo lo que falle — nada de re-estudiar lo que ya está verde" }
+      ]
+    },
+    {
+      "id": "d12",
+      "dia": 12,
+      "fecha": "2026-08-14",
+      "fechaCorta": "Vie 14/8",
+      "bloque": "simulacro",
+      "bloqueLabel": "📝 Simulacro",
+      "titulo": "SIMULACRO COMPLETO #1",
+      "horas": 2.5,
+      "objetivos": [],
+      "tareas": [
+        { "id": "t1", "texto": "60 preguntas, 120 minutos, cronometrado, sin pausas — condiciones reales" },
+        { "id": "t2", "texto": "Marcar las preguntas dudosas para el análisis de mañana" }
+      ]
+    },
+    {
+      "id": "d13",
+      "dia": 13,
+      "fecha": "2026-08-15",
+      "fechaCorta": "Sáb 15/8",
+      "bloque": "analisis",
+      "bloqueLabel": "📝 Análisis",
+      "titulo": "Análisis del simulacro #1",
+      "horas": 3,
+      "objetivos": [],
+      "tareas": [
+        { "id": "t1", "texto": "Rationale escrito de CADA error en notes/ — por qué fallé y qué principio violé" },
+        { "id": "t2", "texto": "Refuerzo dirigido de los objetivos más flojos" },
+        { "id": "t3", "texto": "Actualizar semáforo con los resultados" }
+      ]
+    },
+    {
+      "id": "d14",
+      "dia": 14,
+      "fecha": "2026-08-16",
+      "fechaCorta": "Dom 16/8",
+      "bloque": "contencion",
+      "bloqueLabel": "🔵 Contención",
+      "titulo": "Buffer: recuperar o reforzar",
+      "horas": 2,
+      "objetivos": [],
+      "tareas": [
+        { "id": "t1", "texto": "Recuperar días salteados o reforzar lo más flojo del simulacro (0–2h, sin culpa)" }
+      ]
+    },
+    {
+      "id": "d15",
+      "dia": 15,
+      "fecha": "2026-08-17",
+      "fechaCorta": "Lun 17/8",
+      "bloque": "contencion",
+      "bloqueLabel": "🔵 Contención",
+      "titulo": "Buffer (hoy se habilita el retake)",
+      "horas": 2,
+      "objetivos": [],
+      "tareas": [
+        { "id": "t1", "texto": "Recuperar días salteados o reforzar lo más flojo del simulacro (0–2h, sin culpa)" },
+        { "id": "t2", "texto": "Confirmar que el retake está habilitado en Pearson OnVUE" }
+      ]
+    },
+    {
+      "id": "d16",
+      "dia": 16,
+      "fecha": "2026-08-18",
+      "fechaCorta": "Mar 18/8",
+      "bloque": "contencion",
+      "bloqueLabel": "🔵 Contención",
+      "titulo": "Buffer extra (ganado por arrancar hoy)",
+      "horas": 2,
+      "objetivos": [],
+      "tareas": [
+        { "id": "t1", "texto": "Recuperar días salteados o reforzar lo más flojo del simulacro (0–2h, sin culpa)" }
+      ]
+    },
+    {
+      "id": "d17",
+      "dia": 17,
+      "fecha": "2026-08-19",
+      "fechaCorta": "Mié 19/8",
+      "bloque": "refuerzo",
+      "bloqueLabel": "🟡 Refuerzo",
+      "titulo": "Segunda vuelta a los 2 peores objetivos",
+      "horas": 1.5,
+      "objetivos": [],
+      "tareas": [
+        { "id": "t1", "texto": "Identificar los 2 objetivos peor rankeados del semáforo" },
+        { "id": "t2", "texto": "Segunda vuelta: teoría con escenarios + quiz nuevo de esos 2 objetivos" }
+      ]
+    },
+    {
+      "id": "d18",
+      "dia": 18,
+      "fecha": "2026-08-20",
+      "fechaCorta": "Jue 20/8",
+      "bloque": "simulacro",
+      "bloqueLabel": "📝 Simulacro",
+      "titulo": "SIMULACRO COMPLETO #2 — objetivo 90%+",
+      "horas": 2.5,
+      "objetivos": [],
+      "tareas": [
+        { "id": "t1", "texto": "60 preguntas, 120 minutos, cronometrado — objetivo: 90% o más" },
+        { "id": "t2", "texto": "Marcar dudosas para el análisis de mañana" }
+      ]
+    },
+    {
+      "id": "d19",
+      "dia": 19,
+      "fecha": "2026-08-21",
+      "fechaCorta": "Vie 21/8",
+      "bloque": "analisis",
+      "bloqueLabel": "📝 Análisis",
+      "titulo": "Análisis simulacro #2 + flashcards de cierre",
+      "horas": 2,
+      "objetivos": [],
+      "tareas": [
+        { "id": "t1", "texto": "Rationale escrito de cada error del simulacro #2" },
+        { "id": "t2", "texto": "Armar el mazo de flashcards de cierre con lo que siga flojo" }
+      ]
+    },
+    {
+      "id": "d20",
+      "dia": 20,
+      "fecha": "2026-08-22",
+      "fechaCorta": "Sáb 22/8",
+      "bloque": "descanso",
+      "bloqueLabel": "🧘 Descanso activo",
+      "titulo": "Flashcards + setup OnVUE",
+      "horas": 0.5,
+      "objetivos": [],
+      "tareas": [
+        { "id": "t1", "texto": "Solo flashcards, 30 minutos máximo — nada de contenido nuevo" },
+        { "id": "t2", "texto": "System check de Pearson OnVUE" },
+        { "id": "t3", "texto": "DESACTIVAR OMEN Gaming Hub" },
+        { "id": "t4", "texto": "Documento de identidad a mano, escritorio despejado" }
+      ]
+    },
+    {
+      "id": "d21",
+      "dia": 21,
+      "fecha": "2026-08-23",
+      "fechaCorta": "Dom 23/8",
+      "bloque": "examen",
+      "bloqueLabel": "🎯 EXAMEN",
+      "titulo": "CCAR-F Retake. A romperla.",
+      "horas": 2,
+      "objetivos": [],
+      "tareas": [
+        { "id": "t1", "texto": "Respirar. Leer cada escenario dos veces. Los 6 principios de oro primero." },
+        { "id": "t2", "texto": "Aprobar con 780+" }
+      ]
+    }
+  ]
+}
