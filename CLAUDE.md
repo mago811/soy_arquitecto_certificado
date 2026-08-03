@@ -46,12 +46,9 @@ Misión: que el **23 de agosto de 2026** apruebe con **780+**.
 
 ## Cómo correr el dashboard
 
-```
-python -m http.server 8000
-```
-
-(o `npx serve`) desde la raíz del repo, y abrir http://localhost:8000.
-Necesita servidor: usa fetch para los JSON, no funciona con file://.
+- **Producción:** https://soy-arquitecto-certificado.vercel.app — proyecto Vercel en el scope "mago811's projects", conectado al repo GitHub `mago811/soy_arquitecto_certificado` (auto-deploy en cada push a `main`).
+- **Local:** `python -m http.server 8000` (o `npx serve`) desde la raíz, y abrir http://localhost:8000. Necesita servidor: usa fetch para los JSON, no funciona con file://.
+- El progreso vive en localStorage **por dominio**: localhost y vercel.app no comparten estado — se migra con Exportar/Importar del footer. Sin env vars: la app es 100% estática.
 
 ## Protocolo de sesión diaria ("Coach, hoy es día X")
 
