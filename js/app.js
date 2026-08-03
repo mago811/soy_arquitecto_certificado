@@ -15,7 +15,8 @@ const defaultState = () => ({
   skipped: {},    // dayId -> true
   respuestas: {}, // objetivoId -> [1,0,1,...] (últimas 20)
   historial: [],  // { ts, quizId, titulo, correctas, total }
-  cards: {}       // cardId -> { box, due }
+  cards: {},      // cardId -> { box, due }
+  teoria: {}      // dayId -> { indiceSeccion: true } (secciones del brief leídas)
 });
 
 let state = loadState();
@@ -36,6 +37,7 @@ function loadState() {
 
 function saveState() {
   localStorage.setItem(LS_KEY, JSON.stringify(state));
+  if (window.ccarfSync) window.ccarfSync.notificarCambio();
 }
 
 // ---------- helpers ----------
@@ -131,22 +133,159 @@ function burstDesde(el) {
   confetti.burst(r.left + r.width / 2, r.top + r.height / 2);
 }
 
+// ---------- teoría: briefs del profe (teoria/day-XX.md) ----------
+
+let teoriaCache = {}; // dayId -> { meta, sections: [{ icon, titulo, dur, md }] }
+
+function parseBrief(raw) {
+  const meta = {};
+  let body = raw;
+  const fm = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/);
+  if (fm) {
+    body = raw.slice(fm[0].length);
+    for (const linea of fm[1].split(/\r?\n/)) {
+      const m = linea.match(/^(\w+):\s*(.+?)\s*$/);
+      if (m) meta[m[1]] = m[2].replace(/^["']|["']$/g, "");
+    }
+  }
+  const partes = body.split(/^##\s+/m);
+  partes.shift(); // lo previo a la primera sección (normalmente vacío)
+  const sections = partes.map((chunk) => {
+    const salto = chunk.indexOf("\n");
+    const head = (salto === -1 ? chunk : chunk.slice(0, salto)).trim();
+    const md = salto === -1 ? "" : chunk.slice(salto + 1).trim();
+    const hm = head.match(/^(📱|💻)?\s*(.*?)(?:\s*·\s*([^·]*))?$/);
+    return {
+      icon: (hm && hm[1]) || "",
+      titulo: ((hm && hm[2]) || head).trim(),
+      dur: ((hm && hm[3]) || "").trim(),
+      md
+    };
+  });
+  return { meta, sections };
+}
+
+// parser mínimo de markdown: headers, bold, em, code, listas, tablas, links.
+// Lo que no matchee se renderiza como párrafo plano — nunca rompe.
+function mdToHtml(md) {
+  const inline = (t) =>
+    escapeHTML(t)
+      .replace(/`([^`]+)`/g, "<code>$1</code>")
+      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+      .replace(/(^|[\s(])\*([^*\s][^*]*)\*/g, "$1<em>$2</em>")
+      .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+
+  const lineas = md.split(/\r?\n/);
+  let html = "";
+  let i = 0;
+  while (i < lineas.length) {
+    const l = lineas[i];
+
+    if (/^\s*$/.test(l)) { i++; continue; }
+
+    if (/^```/.test(l)) {
+      const cod = [];
+      i++;
+      while (i < lineas.length && !/^```/.test(lineas[i])) { cod.push(lineas[i]); i++; }
+      i++;
+      html += `<pre><code>${escapeHTML(cod.join("\n"))}</code></pre>`;
+      continue;
+    }
+
+    if (/^#{1,6}\s/.test(l)) {
+      const nivel = l.match(/^#+/)[0].length;
+      const tag = nivel <= 2 ? "h3" : "h4";
+      html += `<${tag}>${inline(l.replace(/^#+\s*/, ""))}</${tag}>`;
+      i++;
+      continue;
+    }
+
+    if (/^\|/.test(l)) {
+      const filas = [];
+      while (i < lineas.length && /^\|/.test(lineas[i])) { filas.push(lineas[i]); i++; }
+      const celdas = (f) => f.replace(/^\||\|\s*$/g, "").split("|").map((c) => inline(c.trim()));
+      const cuerpo = filas.filter((f) => !/^\|[\s:|-]+\|?\s*$/.test(f));
+      if (cuerpo.length) {
+        const [cab, ...resto] = cuerpo;
+        html += `<div class="tbl-wrap"><table><thead><tr>${celdas(cab).map((c) => `<th>${c}</th>`).join("")}</tr></thead><tbody>${resto.map((f) => `<tr>${celdas(f).map((c) => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+      }
+      continue;
+    }
+
+    if (/^\s*[-*]\s+/.test(l)) {
+      const items = [];
+      while (i < lineas.length && /^\s*[-*]\s+/.test(lineas[i])) { items.push(lineas[i].replace(/^\s*[-*]\s+/, "")); i++; }
+      html += `<ul>${items.map((it) => `<li>${inline(it)}</li>`).join("")}</ul>`;
+      continue;
+    }
+
+    if (/^\s*\d+[.)]\s+/.test(l)) {
+      const items = [];
+      while (i < lineas.length && /^\s*\d+[.)]\s+/.test(lineas[i])) { items.push(lineas[i].replace(/^\s*\d+[.)]\s+/, "")); i++; }
+      html += `<ol>${items.map((it) => `<li>${inline(it)}</li>`).join("")}</ol>`;
+      continue;
+    }
+
+    const par = [l];
+    i++;
+    while (i < lineas.length && lineas[i].trim() && !/^(```|#{1,6}\s|\||\s*[-*]\s|\s*\d+[.)]\s)/.test(lineas[i])) {
+      par.push(lineas[i]);
+      i++;
+    }
+    html += `<p>${inline(par.join(" "))}</p>`;
+  }
+  return html;
+}
+
+async function cargarTeoria() {
+  await Promise.all(plan.dias.map(async (dia) => {
+    try {
+      const num = String(dia.dia).padStart(2, "0");
+      const res = await fetch(`teoria/day-${num}.md`, { cache: "no-store" });
+      if (!res.ok) return;
+      const raw = await res.text();
+      if (raw.trim().startsWith("<")) return; // 404 blando en HTML
+      const brief = parseBrief(raw);
+      if (brief.sections.length) teoriaCache[dia.id] = brief;
+    } catch { /* sin brief todavía */ }
+  }));
+}
+
 // ---------- derivaciones ----------
+// "unidades" de un día = tareas tachables + secciones del brief. Todo cuenta
+// para el % del día y para tacharlo.
 
 function tareasHechas(dia) {
   const done = state.tasks[dia.id] || {};
   return dia.tareas.filter((t) => done[t.id]).length;
 }
 
+function seccionesDia(dia) {
+  return teoriaCache[dia.id] ? teoriaCache[dia.id].sections : [];
+}
+
+function seccionesLeidas(dia) {
+  const leidas = state.teoria[dia.id] || {};
+  return seccionesDia(dia).reduce((acc, _s, i) => acc + (leidas[i] ? 1 : 0), 0);
+}
+
+function unidadesDia(dia) {
+  return dia.tareas.length + seccionesDia(dia).length;
+}
+
+function unidadesHechas(dia) {
+  return tareasHechas(dia) + seccionesLeidas(dia);
+}
+
 function diaCompleto(dia) {
-  return tareasHechas(dia) === dia.tareas.length;
+  return unidadesHechas(dia) === unidadesDia(dia);
 }
 
 function progresoGlobal() {
   let total = 0, hechas = 0;
   for (const dia of plan.dias) {
-    total += dia.tareas.length;
-    hechas += tareasHechas(dia);
+    total += unidadesDia(dia);
+    hechas += unidadesHechas(dia);
   }
   return total ? hechas / total : 0;
 }
@@ -190,7 +329,7 @@ function renderHero() {
 function estadoDia(dia) {
   if (diaCompleto(dia)) return "done";
   if (state.skipped[dia.id]) return "skipped";
-  if (tareasHechas(dia) > 0) return "curso";
+  if (unidadesHechas(dia) > 0) return "curso";
   return "pendiente";
 }
 
@@ -226,9 +365,13 @@ function renderGrid() {
 
   for (const dia of plan.dias) {
     const st = estadoDia(dia);
-    const hechas = tareasHechas(dia);
+    const hechas = unidadesHechas(dia);
+    const totales = unidadesDia(dia);
     const esHoy = dia.fecha === hoy;
     const esManana = plan.examen.inicio > hoy && dia.dia === 1;
+    // 💻 si el brief tiene bloques de PC · 📱 si es 100% estudiable desde el celu
+    const teo = teoriaCache[dia.id];
+    const chip = teo ? (teo.sections.some((s) => s.icon === "💻") ? "💻" : "📱") : "";
 
     const btn = document.createElement("button");
     btn.className = "day-card";
@@ -242,7 +385,7 @@ function renderGrid() {
     const estadoTxt = {
       done: `✓ ${FRASES_TACHADO[(dia.dia - 1) % FRASES_TACHADO.length]}`,
       skipped: "⏭ salteado",
-      curso: `${hechas}/${dia.tareas.length} tareas`,
+      curso: `${hechas}/${totales}`,
       pendiente: dia.horas ? `${dia.horas}h` : "—"
     }[st];
 
@@ -253,8 +396,8 @@ function renderGrid() {
       <div class="num">${String(dia.dia).padStart(2, "0")}</div>
       <div class="titulo">${escapeHTML(dia.titulo)}</div>
       <div class="estado">
-        <span>${estadoTxt}</span>
-        <span class="mini-bar"><span class="mini-fill" style="width:${(hechas / dia.tareas.length) * 100}%"></span></span>
+        <span>${estadoTxt}${chip && st !== "done" ? ` <span class="chip-dev">${chip}</span>` : ""}</span>
+        <span class="mini-bar"><span class="mini-fill" style="width:${(hechas / totales) * 100}%"></span></span>
       </div>`;
 
     btn.addEventListener("click", () => abrirDia(dia.id));
@@ -266,11 +409,44 @@ function renderGrid() {
 
 const dayDialog = $("#day-dialog");
 
+// html de una sección del brief + botones reales para las menciones a quiz y lab
+function seccionHTML(dia, sec) {
+  let html = mdToHtml(sec.md);
+  const labMatch = sec.md.match(/labs\/[\w][\w.-]*\.md/);
+  if (labMatch) {
+    html += `<button class="btn btn-mini" data-lab="${labMatch[0]}">🧪 Abrir el lab acá mismo</button><div class="lab-render" hidden></div>`;
+  }
+  if (/quiz/i.test(sec.md)) {
+    const archivo = `day-${String(dia.dia).padStart(2, "0")}.json`;
+    const disponible = quizIndex.disponibles.some((q) => q.archivo === archivo);
+    html += `<button class="btn btn-mini btn-quiz" data-quiz="${archivo}" ${disponible ? "" : "disabled"}>${disponible ? "▶ Hacer el quiz del día" : "Quiz del día: todavía no cargado"}</button>`;
+  }
+  return html;
+}
+
 function abrirDia(diaId) {
   const dia = plan.dias.find((d) => d.id === diaId);
   const done = state.tasks[dia.id] || {};
   const skipped = !!state.skipped[dia.id];
   const completo = diaCompleto(dia);
+  const teo = teoriaCache[dia.id];
+  const leidas = state.teoria[dia.id] || {};
+
+  const briefHTML = teo
+    ? `<div class="brief">
+        <div class="brief-head"><span>📚 Material del día</span><span class="brief-dur">${escapeHTML(teo.meta.duracion || "")}</span></div>
+        ${teo.sections.map((s, i) => `
+          <details class="brief-sec">
+            <summary>
+              <span class="sec-badge ${s.icon === "💻" ? "pc" : "celu"}">${s.icon === "💻" ? "💻 requiere PC" : "📱 celu ok"}</span>
+              <span class="sec-titulo">${escapeHTML(s.titulo)}</span>
+              ${s.dur ? `<span class="sec-dur">${escapeHTML(s.dur)}</span>` : ""}
+              <label class="sec-leido"><input type="checkbox" data-sec="${i}" ${leidas[i] ? "checked" : ""}><span>leída</span></label>
+            </summary>
+            <div class="brief-body">${seccionHTML(dia, s)}</div>
+          </details>`).join("")}
+      </div>`
+    : `<div class="brief brief-empty">📚 Material en preparación — el Profe todavía no cargó este día.</div>`;
 
   $("#dialog-content").innerHTML = `
     <div class="dialog-head">
@@ -288,10 +464,53 @@ function abrirDia(diaId) {
           <span class="task-text">${escapeHTML(t.texto)}</span>
         </label>`).join("")}
     </div>
+    ${briefHTML}
     <div class="dialog-actions">
       <button class="btn ${completo ? "" : "btn-primary"}" data-todo>${completo ? "↩ Destachar (lo tildé por error)" : "Tachar el día completo"}</button>
       <button class="btn btn-ghost" data-skip>${skipped ? "Quitar salteado" : "⏭ Saltear (se reprograma)"}</button>
     </div>`;
+
+  // secciones del brief: checkbox "leída" (sin abrir/cerrar el colapsable)
+  $("#dialog-content").querySelectorAll(".sec-leido").forEach((lab) => {
+    lab.addEventListener("click", (e) => e.stopPropagation());
+  });
+  $("#dialog-content").querySelectorAll("input[data-sec]").forEach((cb) => {
+    cb.addEventListener("change", () => {
+      const antes = diaCompleto(dia);
+      state.teoria[dia.id] = state.teoria[dia.id] || {};
+      if (cb.checked) state.teoria[dia.id][cb.dataset.sec] = true;
+      else delete state.teoria[dia.id][cb.dataset.sec];
+      saveState();
+      renderGrid();
+      renderHero();
+      if (!antes && diaCompleto(dia)) celebrarDia(dia);
+    });
+  });
+
+  // menciones a quiz y lab convertidas en botones reales
+  $("#dialog-content").querySelectorAll("[data-quiz]:not([disabled])").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      dayDialog.close();
+      activarTab("quiz");
+      empezarQuiz(btn.dataset.quiz);
+    });
+  });
+  $("#dialog-content").querySelectorAll("[data-lab]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const panel = btn.nextElementSibling;
+      if (!panel.hidden) { panel.hidden = true; return; }
+      if (!panel.innerHTML) {
+        try {
+          const res = await fetch(btn.dataset.lab, { cache: "no-store" });
+          if (!res.ok) throw new Error();
+          panel.innerHTML = mdToHtml(await res.text());
+        } catch {
+          panel.innerHTML = `<p>No pude cargar <code>${escapeHTML(btn.dataset.lab)}</code>.</p>`;
+        }
+      }
+      panel.hidden = false;
+    });
+  });
 
   $("#dialog-content").querySelector("[data-close]").addEventListener("click", () => dayDialog.close());
 
@@ -311,8 +530,10 @@ function abrirDia(diaId) {
   $("#dialog-content").querySelector("[data-todo]").addEventListener("click", () => {
     const estabaCompleto = diaCompleto(dia);
     state.tasks[dia.id] = {};
+    state.teoria[dia.id] = {};
     if (!estabaCompleto) {
       dia.tareas.forEach((t) => (state.tasks[dia.id][t.id] = true));
+      seccionesDia(dia).forEach((_s, i) => (state.teoria[dia.id][i] = true));
       delete state.skipped[dia.id];
     }
     saveState();
@@ -668,14 +889,15 @@ function renderSemaforo() {
 
 // ---------- tabs ----------
 
+function activarTab(view) {
+  document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("is-active", t.dataset.view === view));
+  document.querySelectorAll(".view").forEach((v) => v.classList.remove("is-active"));
+  $(`#view-${view}`).classList.add("is-active");
+}
+
 function initTabs() {
   document.querySelectorAll(".tab").forEach((tab) => {
-    tab.addEventListener("click", () => {
-      document.querySelectorAll(".tab").forEach((t) => t.classList.remove("is-active"));
-      document.querySelectorAll(".view").forEach((v) => v.classList.remove("is-active"));
-      tab.classList.add("is-active");
-      $(`#view-${tab.dataset.view}`).classList.add("is-active");
-    });
+    tab.addEventListener("click", () => activarTab(tab.dataset.view));
   });
 }
 
@@ -758,6 +980,12 @@ async function init() {
   initTabs();
   initDatos();
   renderTodo();
+
+  // los briefs cargan en paralelo; cuando llegan, la grilla suma badges 📱/💻 y unidades
+  cargarTeoria().then(() => {
+    renderGrid();
+    renderHero();
+  });
 }
 
 init();

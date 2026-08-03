@@ -48,7 +48,16 @@ Misión: que el **23 de agosto de 2026** apruebe con **780+**.
 
 - **Producción:** https://soy-arquitecto-certificado.vercel.app — proyecto Vercel en el scope "mago811's projects", conectado al repo GitHub `mago811/soy_arquitecto_certificado` (auto-deploy en cada push a `main`).
 - **Local:** `python -m http.server 8000` (o `npx serve`) desde la raíz, y abrir http://localhost:8000. Necesita servidor: usa fetch para los JSON, no funciona con file://.
-- El progreso vive en localStorage **por dominio**: localhost y vercel.app no comparten estado — se migra con Exportar/Importar del footer. Sin env vars: la app es 100% estática.
+- El progreso vive en localStorage y se **sincroniza entre dispositivos vía Neon** (ver sección siguiente). Exportar/Importar del footer queda como fallback manual.
+
+## Infraestructura de sync (Neon)
+
+- **Base:** proyecto Neon `ccar-f-retake` de Mago, tabla única `progress (key text PK, data jsonb, updated_at timestamptz)`.
+- **API:** `api/progress.js` (Vercel Function, Web handlers, driver `@neondatabase/serverless`). `GET /api/progress` devuelve todas las filas; `PUT` recibe `[{ key, data, client_updated_at }]` y hace upsert solo si el timestamp del cliente es más nuevo (**last-write-wins por clave**).
+- **Auth:** header `Authorization: Bearer <SYNC_TOKEN>`. Sin token válido → 401 y el dashboard sigue en modo local.
+- **Cliente:** `js/sync.js`. El blob de localStorage (`ccarf-retake-v2`) NO cambia de formato: se descompone en claves lógicas (`tasks`, `skipped`, `respuestas`, `historial`, `cards`, `teoria`) solo para el viaje. Pull al cargar, push con debounce de 3,5s enganchado en `saveState()`, chip de estado en la barra de tabs (✓/⟳/⚠, click = reintentar o reingresar token). El token se pide con prompt la primera vez por dispositivo y queda en localStorage (`ccarf-sync-token`).
+- **Env vars:** `DATABASE_URL` y `SYNC_TOKEN` — en Vercel (Settings → Environment Variables, las carga Mago a mano: el conector no puede) y en `.env.local` para lo local (gitignored). JAMÁS commiteadas ni en el código.
+- **Dev local con sync:** `npm run dev-api` → http://localhost:8787 sirve estático + API contra el Neon real. `npm run init-db` crea la tabla (idempotente). El `python -m http.server 8000` sigue sirviendo pero sin API (chip en ⚠, todo lo demás funciona).
 
 ## Protocolo de sesión diaria ("Coach, hoy es día X")
 

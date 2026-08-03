@@ -36,6 +36,110 @@
           "back": "Guidance (CLAUDE.md, prompts) ORIENTA: el modelo la sigue casi siempre pero puede fallar. Enforcement (hooks, permissions deny) GARANTIZA: se ejecuta determinísticamente, el modelo no puede saltearlo."
         }
       ]
+    },
+    {
+      "id": "mecanismos-config",
+      "nombre": "Matriz de mecanismos de config",
+      "descripcion": "CLAUDE.md vs permissions vs hooks: quién orienta, quién garantiza, dónde vive cada regla.",
+      "cards": [
+        {
+          "id": "mecanismos-config-1",
+          "front": "El escenario pide \"siempre / nunca / sin excepciones / compliance\". ¿Qué familia de mecanismo va?",
+          "back": "Enforcement: permissions (allow/ask/deny) o hooks. Guidance (CLAUDE.md, prompts) solo orienta y puede fallar — sobre todo en sesiones largas."
+        },
+        {
+          "id": "mecanismos-config-2",
+          "front": "¿PreToolUse o PostToolUse para PREVENIR una acción prohibida?",
+          "back": "PreToolUse: corre antes del tool y puede bloquearlo. PostToolUse corre después — sirve para reaccionar (formatear, loguear), nunca para prevenir."
+        },
+        {
+          "id": "mecanismos-config-3",
+          "front": "¿Qué exit code de un hook PreToolUse bloquea el tool, y por dónde viaja el mensaje para Claude?",
+          "back": "Exit 2 bloquea y el stderr se le pasa a Claude como feedback. Exit 0 deja pasar; otros códigos = error no bloqueante."
+        },
+        {
+          "id": "mecanismos-config-4",
+          "front": "Jerarquía de settings de Claude Code, de mayor a menor precedencia",
+          "back": "Enterprise (managed) > argumentos de CLI > .claude/settings.local.json > .claude/settings.json (proyecto) > ~/.claude/settings.json (user)."
+        },
+        {
+          "id": "mecanismos-config-5",
+          "front": "allow vs ask vs deny — ¿y quién gana en conflicto?",
+          "back": "allow ejecuta sin preguntar; ask frena hasta confirmación humana; deny bloquea siempre. En conflicto, deny le gana a allow."
+        },
+        {
+          "id": "mecanismos-config-6",
+          "front": "Regla personal, experimental y SOLO para este proyecto: ¿en qué archivo va?",
+          "back": ".claude/settings.local.json — personal y del proyecto, no se versiona. ~/.claude/settings.json afectaría todos tus proyectos; .claude/settings.json afectaría al equipo."
+        },
+        {
+          "id": "mecanismos-config-7",
+          "front": "¿Cuándo la respuesta correcta SÍ es CLAUDE.md?",
+          "back": "Preferencias y convenciones con excepciones legítimas: estilo de código, arquitectura, comandos del proyecto. Donde un falso positivo de un hook costaría más que un desvío ocasional."
+        },
+        {
+          "id": "mecanismos-config-8",
+          "front": "¿Las reglas de permissions pueden evaluar condiciones (rama actual, contenido de un archivo)?",
+          "back": "No: matchean patrones estáticos Tool(patrón), ej. Bash(git push --force*). Lógica condicional = hook PreToolUse con exit 2."
+        },
+        {
+          "id": "mecanismos-config-9",
+          "front": "Información que Claude necesita en CADA sesión del proyecto: ¿qué método de contexto?",
+          "back": "CLAUDE.md del proyecto: se carga automático al arrancar, para todo el equipo. Convenciones, arquitectura, comandos. Sin humano en el loop."
+        },
+        {
+          "id": "mecanismos-config-10",
+          "front": "Contexto puntual de un solo uso (un stacktrace, un log): ¿qué método?",
+          "back": "Inline en el mensaje: vida útil de un mensaje. Meterlo en CLAUDE.md contamina todas las sesiones futuras."
+        },
+        {
+          "id": "mecanismos-config-11",
+          "front": "Archivo del repo que se necesita solo para ciertas tareas: ¿qué método?",
+          "back": "@ reference al pedirlo (o import @path en CLAUDE.md si debe cargar siempre). Ojo: mencionar el path en prosa NO garantiza que lo lea — @ inyecta el contenido."
+        },
+        {
+          "id": "mecanismos-config-12",
+          "front": "¿Cuál es el costo de un CLAUDE.md gigante?",
+          "back": "Cada token se paga en TODAS las sesiones y diluye las instrucciones críticas (señal/ruido). Fix: adelgazar a lo esencial y sacar lo ocasional a @ references."
+        }
+      ]
+    },
+    {
+      "id": "scopes-mcp",
+      "nombre": "Scopes de MCP servers",
+      "descripcion": "local / user / project: quién ve qué, dónde vive la config y quién gana ante conflicto.",
+      "cards": [
+        {
+          "id": "scopes-mcp-1",
+          "front": "Server MCP para todo el equipo, versionado en el repo: ¿scope y archivo?",
+          "back": "project → .mcp.json en la raíz del repo. Credenciales NUNCA literales: referencias a env vars (${VAR}) que cada dev define en su entorno."
+        },
+        {
+          "id": "scopes-mcp-2",
+          "front": "local y user son personales los dos: ¿cuál es la diferencia?",
+          "back": "local = personal y de ESTE proyecto (es el default de claude mcp add). user = personal pero disponible en TODOS tus proyectos."
+        },
+        {
+          "id": "scopes-mcp-3",
+          "front": "Mismo nombre de server en local, project y user: ¿cuál gana?",
+          "back": "local > project > user. Tu copia local pisa a la del equipo — y solo para vos: al resto le sigue andando la de project."
+        },
+        {
+          "id": "scopes-mcp-4",
+          "front": "Clonás un repo con .mcp.json y Claude Code te pide aprobar los servers. ¿Bug?",
+          "back": "No: seguridad esperada. Un .mcp.json clonado podría traer servers maliciosos; se aprueban explícitamente la primera vez. Re-preguntar: claude mcp reset-project-choices."
+        },
+        {
+          "id": "scopes-mcp-5",
+          "front": "¿Cómo maneja credenciales un .mcp.json compartido?",
+          "back": "Con expansión de env vars: ${API_TOKEN} en la config, y cada dev define la variable en su entorno. El token jamás entra al repo."
+        },
+        {
+          "id": "scopes-mcp-6",
+          "front": "Aparecen credenciales personales o un server experimental en un PR: ¿qué pasó y cuál es el fix?",
+          "back": "Alguien usó scope project (.mcp.json) para algo personal. Fix: revertir el archivo y re-agregar en local (solo este proyecto) o user (todos tus proyectos)."
+        }
+      ]
     }
   ]
 }

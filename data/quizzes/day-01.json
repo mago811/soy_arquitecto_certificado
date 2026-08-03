@@ -1,0 +1,187 @@
+{
+  "id": "day-01",
+  "dia": 1,
+  "titulo": "Día 1: Enforcement vs guidance",
+  "preguntas": [
+    {
+      "id": "q1",
+      "objetivo": "enforcement",
+      "escenario": "La política de seguridad de una empresa prohíbe que Claude Code lea archivos .env, sin excepciones. La regla está en CLAUDE.md desde hace un mes. Durante un debugging de conexión a la base de datos, Claude leyó el .env igual. ¿Cuál es el fix?",
+      "opciones": [
+        "Mover la regla al inicio del CLAUDE.md con la etiqueta IMPORTANT para subirle la prioridad",
+        "Agregar .env al .gitignore para que quede fuera del contexto del repo",
+        "Crear un hook PostToolUse que dispare una alerta cuando se lea un archivo .env",
+        "Agregar una regla deny para la lectura de archivos .env en permissions de settings.json"
+      ],
+      "correcta": 3,
+      "rationales": [
+        "CLAUDE.md es guidance: la posición o el énfasis no lo vuelven determinístico. Un requisito sin excepciones pide enforcement.",
+        ".gitignore controla qué versiona git, no qué puede leer Claude Code del filesystem: el archivo sigue ahí, legible.",
+        "PostToolUse corre DESPUÉS del tool: el secreto ya se leyó. Para prevenir, el bloqueo va antes.",
+        "Correcta. Un deny en permissions se evalúa fuera del modelo, en cada tool call, y bloquea la lectura siempre, sin importar el contexto de la sesión."
+      ]
+    },
+    {
+      "id": "q2",
+      "objetivo": "enforcement",
+      "escenario": "Un equipo exige que cada archivo que Claude Code edite pase por prettier automáticamente, siempre. Hoy CLAUDE.md dice 'corré prettier después de editar' y a veces no ocurre. ¿Cuál es el fix?",
+      "opciones": [
+        "Reforzar CLAUDE.md con el comando exacto de prettier y ejemplos de uso",
+        "Un hook PreToolUse sobre Edit y Write que ejecute prettier",
+        "Un hook PostToolUse sobre Edit y Write que ejecute prettier sobre el archivo tocado",
+        "Una regla allow para Bash(prettier*) en permissions"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "Sigue siendo guidance: mejora la probabilidad, no la garantiza. 'Siempre' pide un mecanismo determinístico.",
+        "PreToolUse corre ANTES de la edición: formatearía el archivo viejo. El timing correcto es después del cambio.",
+        "Correcta. PostToolUse se dispara determinísticamente después de cada Edit/Write y ejecuta prettier sin depender de que el modelo se acuerde.",
+        "allow solo deja ejecutar prettier sin preguntar; no hace que ocurra. Permitir no es garantizar."
+      ]
+    },
+    {
+      "id": "q3",
+      "objetivo": "enforcement",
+      "escenario": "Una empresa quiere bloquear npm publish SALVO que la rama actual sea main y el CHANGELOG tenga una entrada nueva. Con un deny en permissions el comando queda bloqueado siempre, incluso cuando corresponde publicar. ¿Cómo implementás la regla condicional?",
+      "opciones": [
+        "Un hook PreToolUse sobre Bash que inspeccione el comando y el estado del repo, y devuelva exit 2 solo cuando la condición no se cumple",
+        "Mantener el deny y pedirle a Claude en CLAUDE.md que solicite una excepción cuando corresponda publicar",
+        "Dos reglas en permissions: un deny general de npm publish y un allow específico para la rama main",
+        "Un hook PostToolUse que revierta el publish si la condición no se cumplía"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. Las reglas de permissions son patrones estáticos; la lógica condicional (rama, CHANGELOG) vive en un hook PreToolUse que bloquea con exit 2 y explica el motivo por stderr.",
+        "Vuelve a depender del criterio del modelo justo en el caso sensible: la excepción queda sin garantía.",
+        "allow y deny matchean patrones del comando, no el estado del repo: no pueden evaluar en qué rama estás ni si el CHANGELOG cambió.",
+        "Un publish a npm no se revierte limpiamente, y PostToolUse llega tarde por diseño: el daño ya está hecho."
+      ]
+    },
+    {
+      "id": "q4",
+      "objetivo": "enforcement",
+      "escenario": "Un dev tiene una regla allow para Bash(docker *) en ~/.claude/settings.json, pero en un repo del trabajo Claude Code le sigue bloqueando docker. Ese repo tiene un .claude/settings.json con un deny para docker. ¿Qué está pasando?",
+      "opciones": [
+        "El archivo de user settings está corrupto y hay que regenerarlo",
+        "Los settings del proyecto tienen precedencia sobre los user settings, y ante conflicto deny le gana a allow",
+        "Falta reiniciar Claude Code para que tome los user settings",
+        "Los user settings solo aplican a proyectos creados después de configurarlos"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "Nada indica corrupción: el comportamiento es exactamente el esperado por la jerarquía de settings.",
+        "Correcta. La jerarquía es enterprise > CLI > settings.local.json > .claude/settings.json > ~/.claude/settings.json: el deny compartido del proyecto pisa el allow personal, y deny siempre gana el empate.",
+        "Los settings se cargan por sesión; reiniciar no cambia la precedencia entre archivos.",
+        "Esa semántica temporal no existe: los user settings aplican a todos los proyectos, pero por debajo de los del proyecto."
+      ]
+    },
+    {
+      "id": "q5",
+      "objetivo": "enforcement",
+      "escenario": "Un tech lead quiere que Claude Code prefiera el logger interno (lib/logger) en vez de console.log en el código nuevo. No es compliance: hay usos legítimos de console.log en scripts y debugging. ¿Dónde va esta regla?",
+      "opciones": [
+        "Un hook PreToolUse que bloquee cualquier Edit que contenga console.log",
+        "Una regla deny en permissions que matchee ediciones con console.log",
+        "En CLAUDE.md, como convención del proyecto con un ejemplo de uso del logger",
+        "Un hook PostToolUse que reemplace console.log por el logger automáticamente"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "Enforcement para una preferencia con excepciones legítimas genera falsos positivos y bloquea trabajo válido.",
+        "Las reglas de permissions matchean tools y patrones de comandos o paths, no el contenido semántico del código editado.",
+        "Correcta. Convención con excepciones válidas = terreno de guidance: CLAUDE.md orienta el caso común sin frenar los casos legítimos.",
+        "Reescribir código automáticamente sin criterio rompe los usos legítimos. El costo del falso positivo supera el beneficio."
+      ]
+    },
+    {
+      "id": "q6",
+      "objetivo": "enforcement",
+      "escenario": "Por una auditoría, la empresa necesita un registro en archivo de cada comando Bash que Claude Code ejecutó, completo y sin huecos. ¿Cómo lo garantizás?",
+      "opciones": [
+        "Instruir en CLAUDE.md que Claude mantenga un archivo audit.log actualizado con cada comando",
+        "Pedirle a Claude al final de cada sesión un resumen de los comandos que corrió",
+        "Un hook PostToolUse con matcher Bash que appendee cada comando ejecutado al log",
+        "Configurar permissions en modo ask para que cada comando quede registrado al confirmarse"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "El modelo puede olvidarse, resumir o saltearse comandos: un log de compliance no puede depender de guidance.",
+        "Un resumen a posteriori es reconstrucción probabilística, no registro. Y depende de que alguien lo pida.",
+        "Correcta. PostToolUse se dispara determinísticamente después de cada Bash: el hook escribe el log completo fuera del modelo, sin huecos posibles.",
+        "ask agrega confirmación humana, no un registro en archivo. Castiga el flujo sin resolver la auditoría."
+      ]
+    },
+    {
+      "id": "q7",
+      "objetivo": "enforcement",
+      "escenario": "El equipo quiere que Claude Code pueda preparar deploys, pero que ejecutar ./deploy-prod.sh requiera SIEMPRE una confirmación humana en el momento. No quieren bloquearlo del todo. ¿Cuál es el fix?",
+      "opciones": [
+        "Una regla deny para Bash(./deploy-prod.sh*): que el deploy lo ejecute un humano por fuera",
+        "Una instrucción en CLAUDE.md: preguntá siempre antes de deployar a producción",
+        "Un hook PostToolUse que notifique por Slack cada vez que se deployó",
+        "Una regla ask para Bash(./deploy-prod.sh*) en permissions"
+      ],
+      "correcta": 3,
+      "rationales": [
+        "deny bloquea siempre: rompe el flujo que el equipo sí quiere (deploy asistido con confirmación).",
+        "Guidance: el modelo probablemente pregunte, pero SIEMPRE no se garantiza con una instrucción de contexto.",
+        "Notificar después del deploy no es confirmar antes. El requisito es aprobación previa, no aviso posterior.",
+        "Correcta. ask es el mecanismo exacto: la acción se frena determinísticamente hasta que un humano confirma, cada vez."
+      ]
+    },
+    {
+      "id": "q8",
+      "objetivo": "enforcement",
+      "escenario": "Un dev escribió un hook PreToolUse para impedir escrituras en infra/prod/. El hook detecta la violación, imprime BLOQUEADO por stdout y termina con exit 1. Claude Code sigue escribiendo en ese directorio. ¿Por qué?",
+      "opciones": [
+        "Los hooks PreToolUse no pueden bloquear tools, solo observarlos",
+        "Para bloquear, el hook debe terminar con exit 2; exit 1 es un error no bloqueante, y el mensaje para Claude viaja por stderr",
+        "El matcher del hook está mal: PreToolUse no soporta el tool Write",
+        "Falta duplicar la regla en un hook PostToolUse para que el bloqueo tome efecto"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "Falso: bloquear es exactamente el rol de PreToolUse. El problema es el código de salida.",
+        "Correcta. El contrato de exit codes: 0 deja pasar, 2 bloquea el tool y le pasa el stderr a Claude como feedback. Exit 1 se trata como error del hook, no como veto.",
+        "PreToolUse matchea cualquier tool, incluido Write. El matcher no es el problema descripto.",
+        "PostToolUse corre después: no puede impedir nada, y duplicar no arregla el exit code equivocado."
+      ]
+    },
+    {
+      "id": "q9",
+      "objetivo": "enforcement",
+      "escenario": "Una dev quiere bloquear Bash(rm *) mientras experimenta con un agente, pero solo en este proyecto y sin afectar ni a sus compañeros ni a sus otros repos. ¿Dónde pone el deny?",
+      "opciones": [
+        "En .claude/settings.json del proyecto",
+        "En ~/.claude/settings.json",
+        "En .claude/settings.local.json del proyecto",
+        "En el CLAUDE.md del proyecto, que es más rápido"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "Ese archivo se versiona y comparte: la regla experimental le aparecería a todo el equipo.",
+        "Los user settings aplican a TODOS sus proyectos: se pasa de alcance — ella lo quiere solo acá.",
+        "Correcta. settings.local.json es personal Y del proyecto: no se versiona, no toca al equipo ni a sus otros repos. Personal más este proyecto = local.",
+        "Además de ser guidance (no bloquea nada), el CLAUDE.md del proyecto es compartido: doble error."
+      ]
+    },
+    {
+      "id": "q10",
+      "objetivo": "enforcement",
+      "escenario": "El CTO exige que ningún commit con mensaje fuera del formato conventional-commits llegue al repo, nunca. Hoy CLAUDE.md explica el formato con ejemplos y Claude lo respeta casi siempre. ¿Qué agregás para cumplir el nunca?",
+      "opciones": [
+        "Un hook PreToolUse sobre Bash que valide el mensaje de git commit y bloquee con exit 2 si no cumple el formato",
+        "Más ejemplos few-shot de mensajes válidos en CLAUDE.md",
+        "Una regla deny para Bash(git commit*): que los commits los haga siempre un humano",
+        "Un hook PostToolUse que enmiende el mensaje después del commit"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. El hook valida el formato antes de ejecutar el commit y bloquea con exit 2; el stderr le dice a Claude qué corregir. CLAUDE.md sigue sirviendo para que salga bien a la primera.",
+        "Mejora el casi siempre, pero el requisito es nunca: ese margen solo lo cierra enforcement.",
+        "Bloquear todos los commits mata el flujo de trabajo entero para arreglar un caso: enforcement desproporcionado.",
+        "Enmendar después reescribe historia y llega tarde si algo ya se pusheó. Prevenir antes es más simple y seguro."
+      ]
+    }
+  ]
+}

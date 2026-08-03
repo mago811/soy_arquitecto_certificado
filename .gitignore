@@ -2,6 +2,9 @@
 .env
 .env.*
 
+# dependencias
+node_modules/
+
 # artefactos de testing y deploy
 .playwright-mcp/
 .vercel/

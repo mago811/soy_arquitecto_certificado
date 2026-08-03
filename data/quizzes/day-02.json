@@ -1,0 +1,187 @@
+{
+  "id": "day-02",
+  "dia": 2,
+  "titulo": "Día 2: Scoping MCP + métodos de contexto",
+  "preguntas": [
+    {
+      "id": "q1",
+      "objetivo": "mcp-scoping",
+      "escenario": "Un equipo quiere que su MCP server de Postgres esté disponible para todos, versionado en el repo, pero cada dev debe autenticarse con sus propias credenciales. ¿Cómo se configura?",
+      "opciones": [
+        "Scope project con el token del admin hardcodeado en .mcp.json, rotándolo cada mes",
+        "Scope project en .mcp.json, con la credencial como referencia a una env var que cada dev define en su entorno",
+        "Scope user para cada dev, así cada uno tiene su token y no hay archivo compartido",
+        "Scope local para cada dev, documentando la config completa en el wiki del equipo"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "Un token literal en .mcp.json entra al repo: incidente de seguridad, y además todos quedan autenticados como el admin.",
+        "Correcta. project comparte la config vía el repo, y la expansión de env vars hace que cada dev aporte su propio secret sin que jamás toque el archivo versionado.",
+        "Pierde el requisito de config compartida y versionada: cada dev la duplica a mano y las configs divergen.",
+        "Igual que user: la config deja de estar versionada y cada uno la copia a mano del wiki. El repo era el requisito."
+      ]
+    },
+    {
+      "id": "q2",
+      "objetivo": "mcp-scoping",
+      "escenario": "Un dev agregó un MCP server de GitHub con claude mcp add, sin flag de scope, trabajando en el proyecto A. Al otro día abre el proyecto B y el server no aparece. ¿Qué pasó?",
+      "opciones": [
+        "El server se corrompió y hay que reinstalarlo desde el proyecto B",
+        "Los servers MCP requieren un .mcp.json commiteado en cada repo donde se usen",
+        "El scope user es el default y el proyecto B lo está pisando con un local",
+        "Sin flag, claude mcp add usa scope local (personal y de ESE proyecto); para tenerlo en todos sus proyectos debía usar --scope user"
+      ],
+      "correcta": 3,
+      "rationales": [
+        "No hay corrupción: el server sigue funcionando perfecto en el proyecto A. Es una cuestión de alcance, no de instalación.",
+        ".mcp.json es solo para scope project (config de equipo). Un server personal no necesita archivo en el repo.",
+        "Al revés: el default es local, no user. Y nada en B está pisando nada — simplemente ahí no existe.",
+        "Correcta. El default de claude mcp add es local: personal y limitado al proyecto donde se ejecutó. Personal en todos los proyectos = scope user."
+      ]
+    },
+    {
+      "id": "q3",
+      "objetivo": "mcp-scoping",
+      "escenario": "Un dev clonó el server db del equipo para experimentar y lo agregó con el mismo nombre en scope local. Desde entonces sus tools de db se comportan distinto que para el resto, aunque .mcp.json no cambió. ¿Qué está pasando?",
+      "opciones": [
+        "Su copia local tiene precedencia: ante el mismo nombre, local pisa a project (y project a user), y su versión experimental tapa la del equipo solo para él",
+        "El .mcp.json se corrompió en su máquina al clonar el server",
+        "El scope project siempre gana sobre local: el problema está en el server del equipo",
+        "Los nombres de server son únicos globalmente: al agregar db en local lo desregistró del scope project para todo el equipo"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. La precedencia por nombre es local > project > user. Su copia experimental enmascara a la del equipo, y solo en su máquina — por eso al resto le anda normal.",
+        ".mcp.json no cambió y al resto del equipo le funciona: no hay corrupción, hay precedencia de scopes.",
+        "Es exactamente al revés: local gana sobre project. Si project ganara, su copia local no tendría efecto.",
+        "El resto del equipo sigue funcionando normal, así que nada se desregistró globalmente. Los scopes son espacios separados por usuario y proyecto."
+      ]
+    },
+    {
+      "id": "q4",
+      "objetivo": "mcp-scoping",
+      "escenario": "Una dev nueva clona el repo del equipo, que trae un .mcp.json con tres servers. En su primera sesión, Claude Code le pregunta si aprueba usar esos servers. Un compañero le dice que algo configuró mal. ¿Quién tiene razón?",
+      "opciones": [
+        "El compañero: los servers de .mcp.json deben activarse solos al clonar, la instalación falló",
+        "El compañero: le faltó correr claude mcp add --scope project en su máquina",
+        "Ella no configuró nada mal: por seguridad, Claude Code pide aprobación explícita antes de usar servers que vienen de un .mcp.json del repo",
+        "Nadie: el archivo debe moverse a .claude/.mcp.json para que los servers carguen sin preguntar"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "Activar automáticamente código ejecutable que llega por un repo clonado sería un riesgo enorme: por eso existe la aprobación.",
+        "El .mcp.json ya define los servers de scope project: no hay que re-agregarlos a mano en cada máquina.",
+        "Correcta. Un .mcp.json clonado podría contener servers maliciosos: Claude Code exige aprobación explícita la primera vez (y se puede volver a preguntar con claude mcp reset-project-choices).",
+        ".mcp.json vive en la raíz del repo, y moverlo no eliminaría la aprobación: es una medida de seguridad, no un problema de path."
+      ]
+    },
+    {
+      "id": "q5",
+      "objetivo": "mcp-scoping",
+      "escenario": "Un dev está probando un MCP server experimental de scraping que solo tiene sentido en el proyecto X. A los dos días el equipo lo ve en sus sesiones y aparece como cambio en .mcp.json dentro de un PR. ¿Qué scope correspondía y cuál es el fix?",
+      "opciones": [
+        "user: es personal, y de paso lo tiene disponible en todos sus proyectos",
+        "local: personal Y de este proyecto — sacar la entrada de .mcp.json y re-agregar el server con scope local",
+        "project estaba bien, pero marcándolo como experimental en la description del server",
+        "Ninguno: los servers experimentales se declaran en CLAUDE.md hasta que maduran"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "user lo saca del repo, pero se pasa de alcance: aparecería en TODOS sus proyectos y solo tiene sentido en X.",
+        "Correcta. Personal + solo este proyecto = local (además es el default). Revertir el cambio en .mcp.json para que el equipo deje de verlo.",
+        "La description no cambia el alcance: el equipo entero lo sigue viendo y cargando en sus sesiones.",
+        "CLAUDE.md es contexto para el modelo, no un mecanismo de configuración de servers MCP."
+      ]
+    },
+    {
+      "id": "q6",
+      "objetivo": "context-methods",
+      "escenario": "Las convenciones de arquitectura de un equipo deben estar presentes en cada sesión de Claude Code de cada dev. Hoy el tech lead las pega a mano al arrancar cada sesión, y cuando se olvida salen PRs que las violan. ¿Cuál es el fix?",
+      "opciones": [
+        "Seguir pegándolas inline pero armar un snippet de teclado para hacerlo más rápido",
+        "Poner un @ reference al doc de convenciones en el primer mensaje de cada sesión",
+        "CLAUDE.md del proyecto, versionado en el repo: se carga automáticamente en cada sesión de todos",
+        "Un MCP server que exponga las convenciones como resource consultable"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "Sigue dependiendo de que un humano se acuerde: el mismo punto de falla que hoy, apenas más rápido.",
+        "Mismo problema: alguien tiene que escribir esa referencia en cada sesión. La carga sigue siendo manual.",
+        "Correcta. Información necesaria en TODAS las sesiones de TODO el equipo es la definición exacta de CLAUDE.md de proyecto: carga automática, sin humano en el loop.",
+        "Infraestructura de más, y el modelo tendría que decidir consultar el resource — vuelve a ser probabilístico."
+      ]
+    },
+    {
+      "id": "q7",
+      "objetivo": "context-methods",
+      "escenario": "El CLAUDE.md de un proyecto creció a 2000 líneas: convenciones, la spec completa de una API que se usa una vez al mes y docs de deploy. Últimamente Claude ignora convenciones básicas que antes respetaba. ¿Cuál es el fix?",
+      "opciones": [
+        "Adelgazar CLAUDE.md a lo esencial de cada sesión y traer la spec con @ reference solo cuando la tarea la necesita",
+        "Partir CLAUDE.md en dos archivos y cargar ambos con imports para organizarlo mejor",
+        "Cambiar a un modelo con ventana de contexto más grande para que entre todo",
+        "Convertir CLAUDE.md en system prompt custom, que consume menos tokens que un archivo de memoria"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. Cada token de CLAUDE.md se paga en TODAS las sesiones y diluye lo importante. Lo permanente queda; lo ocasional (spec mensual) se referencia cuando hace falta.",
+        "Organiza la lectura humana, pero si ambos se cargan siempre, el contexto total es el mismo: no arregla la dilución.",
+        "Más ventana no evita que 2000 líneas de ruido diluyan las instrucciones críticas. El problema es señal/ruido, no capacidad.",
+        "Falso: el contenido pesa los mismos tokens venga de donde venga. No existe ese descuento."
+      ]
+    },
+    {
+      "id": "q8",
+      "objetivo": "context-methods",
+      "escenario": "Durante un incidente, un dev tiene en el portapapeles el stacktrace de un deploy fallido y necesita que Claude Code lo analice ya, una sola vez. ¿Cuál es el método correcto para darle ese contexto?",
+      "opciones": [
+        "Agregarlo a CLAUDE.md, así queda disponible también en las próximas sesiones",
+        "Crear docs/incidentes.md, commitearlo y referenciarlo con @",
+        "Configurar un MCP server de logs para consultarlo desde Claude",
+        "Pegarlo inline en el mensaje: contexto efímero para un solo uso"
+      ],
+      "correcta": 3,
+      "rationales": [
+        "Contamina todas las sesiones futuras con datos de un incidente puntual: es exactamente el anti-patrón de CLAUDE.md.",
+        "Ceremonia innecesaria para algo de un solo uso, y deja residuo en el repo que nadie va a mantener.",
+        "Infraestructura para una consulta única en medio de un incidente: tiempo que no hay, valor que no aporta.",
+        "Correcta. Vida útil de un mensaje = inline. Se usa, se responde y no deja residuo ni en el repo ni en el contexto futuro."
+      ]
+    },
+    {
+      "id": "q9",
+      "objetivo": "context-methods",
+      "escenario": "Una dev quiere que Claude Code siempre le responda en español y prefiera un estilo funcional — en TODOS sus proyectos, sin imponérselo a sus equipos. ¿Dónde va esa preferencia?",
+      "opciones": [
+        "En el CLAUDE.md de cada proyecto en el que trabaja",
+        "En su CLAUDE.md de usuario (~/.claude/CLAUDE.md): guidance personal que aplica a todas sus sesiones sin tocar ningún repo",
+        "En .claude/settings.local.json de cada proyecto",
+        "En un alias de shell que arranque claude con --append-system-prompt"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "Los CLAUDE.md de proyecto son compartidos: le impondría sus preferencias personales a cada equipo, y tendría que repetirlo en cada repo.",
+        "Correcta. El CLAUDE.md de usuario existe exactamente para esto: memoria personal, cargada en todas tus sesiones, invisible para el resto.",
+        "settings.local.json configura permisos y comportamiento del harness, no es un archivo de instrucciones en prosa para el modelo.",
+        "Funciona mientras se acuerde de usar el alias en cada máquina y terminal: frágil y manual frente al mecanismo diseñado para esto."
+      ]
+    },
+    {
+      "id": "q10",
+      "objetivo": "context-methods",
+      "escenario": "Un CLAUDE.md dice: las convenciones de estilo detalladas están en docs/style.md. Claude las viola seguido: a veces lee el archivo, a veces no. Son 60 líneas críticas para cada PR. ¿Cuál es el fix?",
+      "opciones": [
+        "Reescribir la frase en imperativo: LEÉ SIEMPRE docs/style.md antes de editar",
+        "Copiar las 60 líneas dentro de CLAUDE.md y mantener docs/style.md para los humanos",
+        "Usar la sintaxis de import @docs/style.md en CLAUDE.md: el contenido se carga en cada sesión en vez de depender de que Claude decida leerlo",
+        "Exponer docs/style.md como resource de un MCP server para garantizar el acceso"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "Sigue siendo una instrucción de ir a leer: el modelo puede ejecutarla o no. La prosa nombra el archivo, no lo carga.",
+        "Funcionaría hoy, pero deja dos copias de la misma verdad: al primer cambio en una sola, las convenciones divergen en silencio.",
+        "Correcta. El import @ inyecta el contenido real al cargar CLAUDE.md: determinístico, sin duplicar la fuente y sin depender de una decisión del modelo.",
+        "Un resource igual requiere que el modelo decida consultarlo: es el mismo a veces sí, a veces no con más infraestructura."
+      ]
+    }
+  ]
+}

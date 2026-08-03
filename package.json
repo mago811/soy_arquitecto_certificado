@@ -1,0 +1,12 @@
+{
+  "name": "soy-arquitecto-certificado",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "init-db": "node scripts/init-db.js",
+    "dev-api": "node scripts/dev-api.js"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.1.0"
+  }
+}
