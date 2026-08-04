@@ -651,9 +651,9 @@ dialog::backdrop {
 
 .sec-badge {
   flex: none;
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  padding: 3px 8px;
+  font-size: 13px;
+  line-height: 1;
+  padding: 4px 7px;
   border-radius: 99px;
   white-space: nowrap;
 }

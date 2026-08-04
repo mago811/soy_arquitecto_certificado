@@ -438,7 +438,7 @@ function abrirDia(diaId) {
         ${teo.sections.map((s, i) => `
           <details class="brief-sec">
             <summary>
-              <span class="sec-badge ${s.icon === "💻" ? "pc" : "celu"}">${s.icon === "💻" ? "💻 requiere PC" : "📱 celu ok"}</span>
+              <span class="sec-badge ${s.icon === "💻" ? "pc" : "celu"}" title="${s.icon === "💻" ? "Requiere PC" : "Se puede desde el celu"}">${s.icon === "💻" ? "💻" : "📱"}</span>
               <span class="sec-titulo">${escapeHTML(s.titulo)}</span>
               ${s.dur ? `<span class="sec-dur">${escapeHTML(s.dur)}</span>` : ""}
               <label class="sec-leido"><input type="checkbox" data-sec="${i}" ${leidas[i] ? "checked" : ""}><span>leída</span></label>
