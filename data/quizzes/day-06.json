@@ -1,0 +1,331 @@
+{
+  "id": "day-06",
+  "dia": 6,
+  "titulo": "Día 6: Consolidado de zonas rojas",
+  "preguntas": [
+    {
+      "id": "q1",
+      "objetivo": "extraction-accuracy",
+      "escenario": "Una aseguradora extrae datos de denuncias de siniestros con un schema ya corregido: campos nullable, enum de tipo_siniestro y descriptions que piden null cuando el dato no está. El prompt incluye cuatro ejemplos few-shot, todos con todos los campos completos. Con denuncias que no traen número de póliza, el modelo lo sigue inventando. ¿Cuál es el fix?",
+      "opciones": [
+        "Duplicar la cantidad de ejemplos few-shot manteniendo los outputs completos, para reforzar el patrón",
+        "Forzar tool_choice type tool para que el modelo quede obligado a respetar el schema",
+        "Incluir en el few-shot ejemplos donde el output correcto trae null en los campos que el documento no menciona",
+        "Agregar strict true para que la API rechace los outputs con valores inventados"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "Más ejemplos todos completos refuerzan exactamente el patrón que causa el bug: el modelo aprende que siempre hay valor y rellena ante la ausencia.",
+        "Distractor de otro tema: tool_choice controla si el modelo llama la tool, no la fidelidad de los valores extraídos. La tool ya se está llamando.",
+        "Correcta. El modelo aprende del ejemplo más que de la instrucción: si ningún ejemplo demuestra null, el schema nullable es un permiso que nadie usa. Un ejemplo con null enseña cuándo usarlo.",
+        "strict garantiza que el output valide contra el schema: estructura y tipos. Una póliza inventada con formato válido pasa strict sin problema."
+      ]
+    },
+    {
+      "id": "q2",
+      "objetivo": "enforcement",
+      "escenario": "En una operadora eléctrica, el script maniobras/corte_zona.sh jamás debe ejecutarse desde Claude Code, sin excepciones y con auditoría de por medio. Hoy la prohibición viaja en un --append-system-prompt que el equipo agrega al lanzar la CLI, y en una sesión larga el script se ejecutó igual. ¿Cuál es el fix?",
+      "opciones": [
+        "Una regla deny para Bash(maniobras/corte_zona.sh*) en permissions de settings.json",
+        "Mover la prohibición al CLAUDE.md del proyecto para que cargue en todas las sesiones sin depender del flag",
+        "Una regla ask para ese script, así un humano decide en cada intento",
+        "Un hook PostToolUse que detecte la ejecución y alerte al centro de control"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. Sin excepciones es enforcement puro: el deny se evalúa en el harness en cada tool call y bloquea siempre, sin importar cuánto contexto acumule la sesión.",
+        "Cambia de lugar la guidance, pero sigue siendo contexto: el modelo puede desatenderla igual que al system prompt. Compliance no se resuelve con prosa.",
+        "ask habilita que un humano apruebe, y la política dice jamás: si alguien confirma por error, el corte se ejecuta. Prohibición absoluta = deny, no confirmación.",
+        "PostToolUse llega después: la zona ya quedó sin suministro. Alertar no es impedir."
+      ]
+    },
+    {
+      "id": "q3",
+      "objetivo": "mcp-scoping",
+      "escenario": "El equipo de datos de una cadena de retail quiere el MCP server del ERP disponible para los ocho devs, con la config versionada junto al código. Un dev lo agregó con claude mcp add sin flags y avisó que ya estaba listo, pero al resto no le aparece en sus sesiones. ¿Qué pasó y cuál es el fix?",
+      "opciones": [
+        "Quedó en scope user; los demás deben correr claude mcp add --scope user en sus máquinas",
+        "Faltó la aprobación: cada dev debe aceptarlo corriendo claude mcp reset-project-choices",
+        "El binario del server quedó instalado solo en esa máquina; hay que publicarlo en un registry interno",
+        "Sin flag, el scope es local (personal y de ese proyecto); para compartirlo hay que definirlo en scope project, en el .mcp.json versionado del repo"
+      ],
+      "correcta": 3,
+      "rationales": [
+        "user también es personal: cada dev duplicaría la config a mano y nada queda versionado, que era el requisito.",
+        "La aprobación aplica a servers que llegan por un .mcp.json clonado, y acá no hay .mcp.json: el server nunca entró al repo.",
+        "No hay problema de binarios: el server corre bien en esa máquina. Es una cuestión de alcance de configuración, no de instalación.",
+        "Correcta. El default de claude mcp add es local: solo ese dev, solo ese proyecto. Config de equipo versionada = scope project vía .mcp.json commiteado, con los secrets como env vars."
+      ]
+    },
+    {
+      "id": "q4",
+      "objetivo": "api-stateless",
+      "escenario": "Un asesor agronómico por chat corre en tres instancias detrás de un balanceador. Cuando dos turnos de la misma conversación caen en instancias distintas, el bot pierde el hilo. El equipo propone sticky sessions en el balanceador, convencido de que así la Messages API mantiene el contexto por conexión. ¿Qué respondés como arquitecto?",
+      "opciones": [
+        "Es correcto: manteniendo la misma conexión, la API asocia los requests entre sí y conserva la conversación",
+        "El diagnóstico es otro: cada instancia guarda el historial en su memoria local; hay que persistirlo en un storage compartido y reenviarlo completo en el array messages de cada request",
+        "Conviene sumar prompt caching, que retiene la conversación del lado del servidor entre requests",
+        "Basta con mandar el mismo metadata.user_id en todos los requests para que la API reconstruya el contexto del usuario"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "La API no asocia requests por conexión ni por nada: es stateless. Sticky sessions solo esconde el bug hasta que una instancia se reinicie.",
+        "Correcta. El contexto lo perdían las instancias, no la API. Con el historial en un storage compartido, cualquier instancia arma el request completo y el balanceador deja de importar.",
+        "Prompt caching abarata tokens repetidos que igual viajan en el request: no es memoria server-side. Si el historial no se manda, el modelo no lo ve.",
+        "metadata sirve para trazabilidad y detección de abuso, no para recuperar contexto: la API no guarda conversaciones que reconstruir."
+      ]
+    },
+    {
+      "id": "q5",
+      "objetivo": "extraction-schemas",
+      "escenario": "Un extractor de recibos de sueldo tiene convenio como string libre y fecha_ingreso como string required sin null. En producción aparecen convenios que no existen en el sistema y, en recibos que no informan la fecha de ingreso, fechas plausibles inventadas. ¿Qué combinación lo arregla?",
+      "opciones": [
+        "enum con los convenios válidos del sistema para convenio, y tipo ['string','null'] con description de devolver null para fecha_ingreso",
+        "Un hook PreToolUse que rechace los outputs con convenios desconocidos antes de guardarlos",
+        "Encadenar dos requests: uno que extraiga el convenio y otro que extraiga la fecha con el convenio ya validado",
+        "additionalProperties false y todos los campos required, para que el output quede completamente determinado"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. El enum cierra el espacio de convenios a los que existen, y nullable con description le da al modelo la salida legal cuando el recibo no trae la fecha. El combo del día 5 aplicado.",
+        "Distractor cruzado: los hooks son del harness de Claude Code, no de un pipeline sobre la Messages API. Y filtrar después no evita la fabricación.",
+        "El encadenamiento resuelve dependencias entre tools, no la fidelidad de una extracción: acá no hay ningún dato de un paso que el otro necesite.",
+        "Eso endurece la estructura, no la veracidad: es literalmente la config que produce fechas fabricadas con formato perfecto."
+      ]
+    },
+    {
+      "id": "q6",
+      "objetivo": "tool-choice",
+      "escenario": "Un agente de una aseguradora tiene emitir_endoso, que exige un poliza_id que devuelve buscar_poliza. Para frenar los endosos con ids inventados, el equipo agregó a la description de emitir_endoso: llamá siempre antes a buscar_poliza. Mejoró, pero esta semana volvió a emitirse un endoso con un id inexistente. ¿Cuál es el fix?",
+      "opciones": [
+        "Definir poliza_id con un enum que liste los ids de las pólizas vigentes de la compañía",
+        "Reordenar el array tools para que buscar_poliza quede declarada antes que emitir_endoso",
+        "Encadenar requests: obtener primero el poliza_id real vía buscar_poliza, devolver su tool_result al historial, y recién en el request siguiente emitir el endoso",
+        "Subir la instrucción al system prompt, donde el modelo la pondera con más peso"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "Distractor cruzado de extracción: el enum cierra categorías chicas y estables, no verifica existencia contra un sistema con miles de pólizas que cambian a diario.",
+        "El orden del array tools no define ejecución: es una lista de definiciones disponibles, nunca una secuencia. Distractor clásico.",
+        "Correcta. Las descriptions orientan, no garantizan. El único poliza_id verdadero es el que llega en un tool_result real del historial: la dependencia dura se resuelve encadenando requests.",
+        "Sigue siendo guidance: mover la instrucción de lugar sube la probabilidad, no cierra el margen de error que ya viste en producción."
+      ]
+    },
+    {
+      "id": "q7",
+      "objetivo": "context-methods",
+      "escenario": "El responsable de OT de una energética documentó las convenciones de nombres de señales SCADA en su ~/.claude/CLAUDE.md. Él las respeta siempre, pero los PRs de los otros cuatro devs del repo las siguen violando cuando usan Claude Code. ¿Cuál es el fix?",
+      "opciones": [
+        "Que cada dev copie ese archivo a su propio ~/.claude/CLAUDE.md",
+        "Mover las convenciones al CLAUDE.md del proyecto, versionado en el repo: se cargan automáticamente en las sesiones de todo el equipo",
+        "Un hook PreToolUse que bloquee los Edit que no cumplan la convención de nombres",
+        "Exponer las convenciones como resource de un MCP server del equipo"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "Funciona hasta la primera actualización: cinco copias personales divergen en silencio. La fuente compartida vive en el repo.",
+        "Correcta. ~/.claude/CLAUDE.md es memoria personal: solo la ve él. Contexto que todo el equipo necesita en cada sesión = CLAUDE.md de proyecto, commiteado.",
+        "Distractor cruzado de enforcement: una convención de estilo tiene casos ambiguos y bloquearla genera falsos positivos. Además el problema es de alcance del contexto, no de garantía.",
+        "El modelo tendría que decidir consultar el resource en cada sesión: probabilístico, con infraestructura de más para un archivo de texto."
+      ]
+    },
+    {
+      "id": "q8",
+      "objetivo": "extraction-accuracy",
+      "escenario": "Un pipeline de retail extrae fechas de tickets de compra. El prompt ordena: devolvé la fecha en formato ISO 8601. Sin embargo, al datawarehouse llegan 12/03/2026, 2026-03-12 y hasta 12-mar, mezclados. Los tres ejemplos few-shot del prompt muestran outputs con fechas DD/MM/AAAA. ¿Cuál es el fix?",
+      "opciones": [
+        "Repetir la instrucción de formato al final del prompt, que es la posición de más peso",
+        "Un hook PostToolUse que normalice las fechas a ISO al escribirlas en el warehouse",
+        "Cambiar el campo fecha a type number con timestamp Unix para eliminar la ambigüedad",
+        "Corregir los ejemplos few-shot para que todos los outputs muestren fechas ISO 8601, incluso cuando el input trae formatos sucios"
+      ],
+      "correcta": 3,
+      "rationales": [
+        "Mientras los ejemplos muestren DD/MM, la instrucción pierde: el modelo imita la demostración por encima de la regla. Reubicarla no resuelve el conflicto.",
+        "Distractor cruzado: los hooks pertenecen a Claude Code, no a un pipeline de API. Normalizar en el cliente puede sumar como capa, pero el bug está en el prompt y tiene fix directo.",
+        "Migrar el contrato a timestamps obliga a tocar el warehouse y no ataca el patrón de fondo: los ejemplos seguirían contradiciendo lo pedido.",
+        "Correcta. El ejemplo enseña más que la instrucción: con los outputs del few-shot alineados a ISO 8601, la demostración y la regla dicen lo mismo y la conversión queda enseñada."
+      ]
+    },
+    {
+      "id": "q9",
+      "objetivo": "enforcement",
+      "escenario": "Una cooperativa agro usa Claude Code sobre su repo de contratos de canje de granos. Quieren que Claude pueda editar todo el repo con normalidad, pero que cualquier escritura dentro de contratos/vigentes/ pida confirmación humana en el momento, cada vez, sin prohibirla. ¿Cuál es el fix?",
+      "opciones": [
+        "Una regla deny para Edit y Write sobre contratos/vigentes/, y que esos cambios los haga siempre un humano",
+        "Una regla ask para Edit y Write sobre contratos/vigentes/ en permissions",
+        "Indicar en CLAUDE.md que antes de tocar contratos vigentes hay que pedir permiso",
+        "Un hook PostToolUse sobre Write que avise por mail al apoderado cada cambio en esa carpeta"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "deny prohíbe: rompe el flujo que la cooperativa sí quiere, que es editar con aprobación en el momento.",
+        "Correcta. ask es exactamente confirmación humana determinística por acción: la escritura se frena hasta que alguien apruebe, todas las veces, sin bloquear el trabajo.",
+        "Guidance: casi siempre va a preguntar, pero cada vez sin excepción no se garantiza con contexto.",
+        "Avisar después de escrito no es confirmar antes: cuando llega el mail, el contrato ya cambió."
+      ]
+    },
+    {
+      "id": "q10",
+      "objetivo": "mcp-scoping",
+      "escenario": "Una recruiter técnica usa un MCP server de una API de búsqueda de candidatos en los seis repos personales donde arma pipelines de RRHH. Hoy lo agrega a mano repo por repo, y cuando cambia la config tiene que repetir el cambio seis veces. Nadie más del equipo lo usa. ¿Qué scope corresponde?",
+      "opciones": [
+        "user: config personal disponible en todos sus proyectos, definida una sola vez",
+        "project: un .mcp.json commiteado en cada uno de los seis repos",
+        "local en cada repo, que es el default y el más seguro",
+        "Declararlo en su ~/.claude/CLAUDE.md para que cargue en todas sus sesiones"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. Personal + todos sus proyectos es la definición de scope user: una sola config, sin tocar ningún repo ni repetirla por proyecto.",
+        "project comparte vía el repo: si nadie más lo usa, versionarlo seis veces es la misma burocracia de hoy, con el server expuesto a cualquiera que clone.",
+        "local es justamente lo que tiene hoy: personal pero POR proyecto — seis configs duplicadas que divergen.",
+        "Distractor cruzado: CLAUDE.md es contexto en prosa para el modelo, no un mecanismo de registro de MCP servers."
+      ]
+    },
+    {
+      "id": "q11",
+      "objetivo": "api-stateless",
+      "escenario": "El bot de siniestros de una aseguradora usa tools de tasación. Para achicar el input, el equipo poda del historial los pares tool_use y tool_result de turnos viejos y deja solo el texto. Ahora, ante repreguntas, el bot vuelve a llamar la misma tool de tasación que ya había llamado y a veces contradice montos ya informados. ¿Qué está pasando?",
+      "opciones": [
+        "La API recuerda los tool_results pero les baja el peso con el tiempo; hay que refrescarlos con un request de keep-alive",
+        "Podar el historial es inválido en la Messages API: todo request debe llevar la conversación completa desde el primer turno, sin excepciones",
+        "El modelo solo ve lo que el request trae: al podar los tool_results, esos datos dejaron de existir para él; hay que conservarlos en el historial o destilarlos a un resumen del lado cliente antes de podar",
+        "Falta habilitar prompt caching, que restaura los bloques podados desde el cache del servidor"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "La API no recuerda ni pondera nada entre requests: no hay memoria server-side que refrescar, y ese keep-alive no existe.",
+        "Podar y resumir es una técnica legítima de gestión de contexto del lado cliente: el error no fue podar, fue tirar información que el bot todavía necesitaba.",
+        "Correcta. Stateless significa que el contexto es exactamente lo que el request trae: los montos tasados vivían en esos tool_results. Se conservan, o se destilan a un resumen que sí viaje.",
+        "El cache abarata lo que el request repite; no inyecta contenido ausente. Lo que no viaja no existe para el modelo."
+      ]
+    },
+    {
+      "id": "q12",
+      "objetivo": "extraction-schemas",
+      "escenario": "Un clasificador de reclamos de una cadena de retail usa un enum cerrado: facturacion, entrega, producto-defectuoso. Los reclamos por la atención en el local o por fallas de la app, que no encajan en ninguna, salen forzados como entrega o producto-defectuoso y ensucian los reportes. ¿Cuál es el fix?",
+      "opciones": [
+        "Sacar el enum y dejar categoria como string libre para que el modelo describa mejor cada reclamo",
+        "Bajar la temperatura para que el modelo elija la categoría con menos creatividad",
+        "Setear tool_choice none cuando el reclamo no encaje en ninguna categoría del enum",
+        "Agregar al enum un valor de escape como otros, y revisar periódicamente qué se acumula ahí"
+      ],
+      "correcta": 3,
+      "rationales": [
+        "El string libre reabre la puerta a categorías inventadas que rompen los reportes: es volver al problema que el enum resolvió.",
+        "La temperatura no crea una opción que no existe: si ninguna categoría del enum aplica, cualquier elección es forzada, se muestree como se muestree.",
+        "Distractor cruzado: tool_choice gobierna si el modelo llama tools, no qué valor emite dentro de un campo. Y el cliente no sabe de antemano qué reclamos no van a encajar.",
+        "Correcta. Un enum sin escape obliga a clasificar mal lo inclasificable. Con otros, el espacio sigue cerrado y lo que no encaja queda visible en vez de contaminar categorías reales."
+      ]
+    },
+    {
+      "id": "q13",
+      "objetivo": "tool-choice",
+      "escenario": "Un pipeline de RRHH arma cartas de oferta: los primeros requests consultan tools de banda salarial y beneficios, y el último debe redactar la carta en texto. Un dev seteó tool_choice type none para frenar llamadas de más en el cierre, pero lo dejó fijo para todos los requests del cliente: ahora ningún request llama tools y las cartas salen sin datos. ¿Cuál es el fix?",
+      "opciones": [
+        "tool_choice se define por request: auto o any en los pasos de consulta, y none únicamente en el request final de redacción",
+        "Reemplazar none por disable_parallel_tool_use, que limita las llamadas sin bloquearlas",
+        "Sacar tool_choice y controlar el uso de tools desde el system prompt, paso a paso",
+        "Con none alcanza: falta agregar las bandas salariales al schema de la tool de redacción"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. tool_choice no es config global del cliente: es un parámetro de cada request. El pipeline usa auto o any mientras junta datos y none en el paso final para forzar la respuesta en texto.",
+        "disable_parallel_tool_use acota cuántas tools por respuesta cuando el modelo ya decidió llamar: no reemplaza la semántica de none ni arregla que esté aplicado globalmente.",
+        "El system prompt es guidance: orienta el flujo pero no garantiza ni prohíbe llamadas. El mecanismo determinístico existe y es tool_choice por request.",
+        "No hay tool de redacción: el cierre es texto libre del modelo. El bug es dónde vive el none, no un schema incompleto."
+      ]
+    },
+    {
+      "id": "q14",
+      "objetivo": "extraction-accuracy",
+      "escenario": "Un extractor de remitos de granos ya tiene schema nullable con enums, few-shot con nulls y fechas ISO, y descriptions precisas. Aun así, cada tanto un CUIT mal leído del escaneo llega con formato perfecto hasta la orden de pago. El negocio exige que a pagos no llegue ningún CUIT inválido. ¿Qué capa falta?",
+      "opciones": [
+        "Sumar más ejemplos few-shot con remitos escaneados borrosos",
+        "Migrar a un modelo más grande, que comete menos errores de lectura",
+        "Validación del lado cliente antes de pagar: dígito verificador del CUIT y lookup contra el padrón; lo crítico se verifica con código, fuera del modelo",
+        "Marcar cuit como required para que el modelo quede obligado a extraerlo bien"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "El few-shot mejora hábitos, no garantiza cero errores: ante una exigencia absoluta del negocio, ninguna capa probabilística alcanza por sí sola.",
+        "Reduce la tasa de error, no la lleva a cero: el requisito es ningún CUIT inválido, y eso es una garantía, no una probabilidad.",
+        "Correcta. Las capas del modelo (schema, few-shot, descriptions) maximizan la accuracy; la última capa para lo crítico es determinística: validación client-side que verifica antes de que el dato toque pagos.",
+        "Distractor del día 5: required obliga a que el campo aparezca, no a que el valor sea correcto. No agrega verificación alguna."
+      ]
+    },
+    {
+      "id": "q15",
+      "objetivo": "enforcement",
+      "escenario": "Un equipo de pricing de retail necesita que, después de CADA edición a los CSV de precios, corra validar_precios.py sin excepción. Agregaron una regla allow para Bash(python validar_precios.py*) en permissions y en CLAUDE.md pusieron: validá después de editar precios. A veces la validación no corre. ¿Cuál es el fix?",
+      "opciones": [
+        "Cambiar el allow por ask, para que la validación se confirme en cada edición",
+        "Un hook PreToolUse sobre Edit que ejecute el validador antes de cada cambio",
+        "Reforzar CLAUDE.md con el comando completo y un ejemplo de invocación",
+        "Un hook PostToolUse con matcher sobre Edit y Write que ejecute el validador sobre los CSV tocados"
+      ],
+      "correcta": 3,
+      "rationales": [
+        "ask confirma acciones que el modelo intenta: si el modelo no invoca el validador, no hay nada que confirmar. No genera la ejecución.",
+        "PreToolUse corre antes de la edición: validaría los precios viejos. El requisito es reaccionar al cambio, o sea después.",
+        "Sigue siendo guidance: sube la probabilidad, no cierra el sin excepción.",
+        "Correcta. allow solo permite sin preguntar: permitir no es garantizar. Que algo corra SIEMPRE después de un cambio lo garantiza un hook PostToolUse, disparado por el harness en cada Edit/Write."
+      ]
+    },
+    {
+      "id": "q16",
+      "objetivo": "mcp-scoping",
+      "escenario": "Una auditoría de seguridad en una energética encuentra que el .mcp.json del repo trae hardcodeado el token del historiador de planta en la config del server MCP. El server debe seguir compartido y versionado para los cinco devs del equipo. ¿Cuál es el fix?",
+      "opciones": [
+        "Mover el server a scope user en la máquina de cada dev y borrar el .mcp.json",
+        "Rotar el token comprometido y reemplazarlo en .mcp.json por una referencia de expansión de env var que cada dev define en su entorno",
+        "Cifrar el .mcp.json dentro del repo y compartir la clave por el canal del equipo",
+        "Pasar el server a scope local y documentar la config completa en el wiki para que cada dev la copie"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "Resuelve el secreto matando el requisito: la config deja de estar versionada y cada dev la mantiene a mano.",
+        "Correcta. El patrón de scope project con credenciales: el archivo versionado lleva la referencia a la env var, el secreto vive en el entorno de cada dev, y el token expuesto se rota porque ya quedó en el historial de git.",
+        "Un archivo cifrado no sirve como config legible, y la clave compartida por chat vuelve a ser un secreto circulando fuera de control.",
+        "Igual que user: pierde el versionado y multiplica copias que divergen. El problema era el secreto dentro del archivo, no el scope project."
+      ]
+    },
+    {
+      "id": "q17",
+      "objetivo": "context-methods",
+      "escenario": "Una dev de una aseguradora arranca hoy la migración del módulo de pólizas. Necesita que Claude Code tenga presente la spec del módulo, que vive en docs/spec-polizas.md del repo, durante esta tarea puntual; el resto del equipo no la necesita en sus sesiones. ¿Cómo le da ese contexto?",
+      "opciones": [
+        "Copiar la spec al CLAUDE.md del proyecto mientras dure la migración y sacarla al terminar",
+        "Pegar el contenido completo de la spec en cada mensaje que mande",
+        "Referenciar el archivo con @docs/spec-polizas.md en su mensaje: el contenido entra al contexto de esa conversación, solo cuando hace falta",
+        "Configurar un MCP server de documentación que exponga la spec como resource"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "Impone la spec a las sesiones de todo el equipo que no la necesita, diluye el CLAUDE.md y depende de que alguien se acuerde de sacarla.",
+        "Repetir a mano un archivo que ya vive en el repo: propenso a olvidos y a pegar versiones desactualizadas.",
+        "Correcta. Contexto puntual de una tarea sobre un archivo del repo = @ reference: carga el contenido real en esa conversación sin ensuciar el contexto compartido ni las sesiones futuras.",
+        "Infraestructura de más para un archivo, y consultar el resource vuelve a ser una decisión probabilística del modelo."
+      ]
+    },
+    {
+      "id": "q18",
+      "objetivo": "extraction-schemas",
+      "escenario": "Un extractor procesa partes pluviométricos de campos: mm_lluvia es number, required, sin null. En los partes donde la medición no fue registrada, el modelo devuelve 0, y las estadísticas de sequía ahora mezclan días sin lluvia con días sin medición. ¿Cuál es el fix?",
+      "opciones": [
+        "Tipo ['number','null'] manteniendo el campo en required, con description: null si el parte no registra la medición; 0 solo si se midió cero",
+        "Usar -1 como valor centinela para los partes sin medición",
+        "Sacar mm_lluvia de required para que el modelo pueda omitirlo cuando no hay dato",
+        "Definir mm_lluvia con un enum de rangos: sin-lluvia, moderada, intensa"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. El 0 fabricado nace de un contrato sin salida legal para la ausencia. required + nullable mantiene el campo siempre presente y distingue explícitamente no medido (null) de midió cero (0).",
+        "Un centinela mágico es un contrato implícito: cualquier consumidor que promedie sin filtrar el -1 corrompe las estadísticas. El schema ya tiene un valor semántico para la ausencia: null.",
+        "Optional vuelve la ausencia ambigua: ¿el parte no traía el dato o el modelo lo salteó? Para series auditables eso es peor que el problema original.",
+        "Cambia números por categorías y pierde el dato fino en milímetros; además sigue sin resolver cómo expresar que no hubo medición."
+      ]
+    }
+  ]
+}

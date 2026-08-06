@@ -1,0 +1,151 @@
+{
+  "id": "day-10",
+  "dia": 10,
+  "titulo": "Día 10: Exploración de codebase y session resumption",
+  "preguntas": [
+    {
+      "id": "q1",
+      "objetivo": "exploration",
+      "escenario": "Para responder dónde se define el rate limiting, un agente en Claude Code fue configurado para leer todos los archivos de src antes de contestar. El contexto se llena a mitad de la lectura y la respuesta sale diluida y cara. ¿Cuál es el fix?",
+      "opciones": [
+        "Pegar el codebase entero en el prompt inicial para que no falte contexto",
+        "Explorar incremental: Glob para ubicar archivos candidatos, Grep para buscar rate limit en ellos, Read solo sobre los que matchearon",
+        "Leer los archivos en orden alfabético y frenar cuando aparezca la respuesta",
+        "Usar un modelo con ventana de contexto más grande y seguir leyendo todo"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "Es la misma falla amplificada: el volcado masivo diluye la señal relevante y entierra la pregunta bajo miles de tokens irrelevantes.",
+        "Correcta. De lo amplio a lo específico: Glob acota por nombre sin gastar contexto, Grep confirma por contenido, y Read se paga solo sobre los archivos ya confirmados.",
+        "El orden alfabético no correlaciona con la relevancia: podés llenar el contexto con archivos inútiles antes de llegar al correcto.",
+        "Más ventana no arregla mala exploración: diluye igual, solo que más caro. El fix es acotar qué entra, no agrandar el balde."
+      ]
+    },
+    {
+      "id": "q2",
+      "objetivo": "exploration",
+      "escenario": "En un repo de 300 archivos hay que ubicar dónde se define la función validateSession. Un dev le pide a Claude Code: leé el repo y decime dónde está. ¿Cuál es la estrategia correcta?",
+      "opciones": [
+        "Leer primero package.json y después cada archivo que el proyecto importe",
+        "Pedir que lea todos los archivos de src y anote los que parezcan relevantes",
+        "Glob de todos los .ts y Read de cada resultado hasta encontrarla",
+        "Grep de validateSession sobre el repo para ubicar el archivo exacto, y Read solo de ese archivo"
+      ],
+      "correcta": 3,
+      "rationales": [
+        "package.json lista dependencias, no funciones: seguir imports a ciegas es un recorrido caro sin relación con el objetivo.",
+        "Leer todo para anotar lo relevante invierte el orden: primero se busca barato, después se lee lo confirmado.",
+        "Glob acota por nombre, pero hacer Read de cada .ts hasta encontrarla es fuerza bruta: el paso intermedio barato era Grep.",
+        "Correcta. Un identificador conocido es el caso ideal de Grep: una búsqueda de contenido devuelve el archivo y la línea, y el contexto se gasta solo en leer ese archivo."
+      ]
+    },
+    {
+      "id": "q3",
+      "objetivo": "exploration",
+      "escenario": "Un dev corre Grep de config sobre el repo completo y recibe cientos de matches, casi todos en node_modules y dist. La búsqueda es lenta y el resultado inservible. ¿Cuál es el fix?",
+      "opciones": [
+        "Acotar primero con Glob por patrón de nombre o tipo de archivo, y correr Grep solo sobre ese conjunto",
+        "Grep siempre va antes que Glob: repetir la búsqueda con una regex más estricta",
+        "Leer los primeros 20 matches y descartar el resto",
+        "Borrar node_modules del disco antes de cada búsqueda"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. El orden amplio a específico también ordena las herramientas baratas: primero definir el conjunto de archivos relevante con Glob, después buscar contenido ahí. Menos ruido, más señal.",
+        "Ese orden invertido es justamente el error: buscar contenido sin acotar archivos arrastra dependencias y builds, con cualquier regex.",
+        "Los primeros 20 matches pueden ser todos de node_modules: el orden de aparición no es relevancia. Filtra el azar, no el criterio.",
+        "Destruir el entorno para poder buscar es un parche desproporcionado: el scoping de la búsqueda resuelve lo mismo sin efectos colaterales."
+      ]
+    },
+    {
+      "id": "q4",
+      "objetivo": "exploration",
+      "escenario": "Un dev cerró la terminal a mitad de un refactor con Claude Code. Al día siguiente abre una sesión nueva y re-explica el objetivo en tres párrafos, pero Claude no recuerda las decisiones finas que ya habían tomado. ¿Cuál es el fix?",
+      "opciones": [
+        "Guardar un resumen manual al final de cada sesión y pegarlo al empezar la siguiente",
+        "Pedirle a Claude que reconstruya lo hecho leyendo el diff de git",
+        "Arrancar con claude --continue, que retoma la última sesión del directorio con el historial completo de la conversación",
+        "Arrancar la sesión nueva pegando el codebase como contexto"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "El resumen manual pierde detalle por diseño: las decisiones finas que hoy faltan son exactamente lo que un resumen recorta.",
+        "El diff muestra qué cambió, no por qué ni qué se decidió no hacer: reconstruye código, no conversación.",
+        "Correcta. claude --continue retoma la última sesión del directorio con todo el historial: decisiones, contexto y acuerdos intactos, sin re-explicar nada.",
+        "El codebase no contiene la conversación perdida, y el volcado masivo diluye el contexto: doble error."
+      ]
+    },
+    {
+      "id": "q5",
+      "objetivo": "exploration",
+      "escenario": "En el mismo repo hubo tres sesiones de Claude Code esta semana: una de auth, una de billing y una de tests, en ese orden. El dev necesita retomar la de billing exactamente donde quedó. ¿Qué hace?",
+      "opciones": [
+        "claude --continue, que permite retomar cualquier sesión anterior del directorio",
+        "claude --resume, que lista las sesiones previas del directorio y permite elegir la de billing",
+        "Abrir una sesión nueva y re-explicar lo que recuerda del trabajo de billing",
+        "Buscar el historial de la sesión en CLAUDE.md, donde quedan registradas las conversaciones"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "claude --continue retoma únicamente la última sesión, que acá es la de tests: no permite elegir cuál.",
+        "Correcta. claude --resume es el selector: lista las sesiones previas para elegir una y la retoma con su historial completo de conversación.",
+        "Re-explicar de memoria pierde las decisiones finas que la sesión original sí tiene guardadas: es la alternativa incorrecta que --resume reemplaza.",
+        "CLAUDE.md es memoria de proyecto escrita a mano, no un registro de conversaciones: las sesiones no se guardan ahí."
+      ]
+    },
+    {
+      "id": "q6",
+      "objetivo": "exploration",
+      "escenario": "Para darle contexto completo a Claude, un script concatena el repo entero y lo pega al inicio de cada request. Desde entonces las respuestas son peores y el costo por consulta se multiplicó. ¿Cuál es el fix?",
+      "opciones": [
+        "Sacar el volcado y explorar incremental: ubicar lo relevante con Glob y Grep, y leer solo lo confirmado",
+        "Mantener el volcado pero moverlo al final del prompt, después de la pregunta",
+        "Comprimir el volcado eliminando comentarios y líneas en blanco del código",
+        "Duplicar el volcado al inicio y al final del prompt para reforzar la señal"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. Más contexto no es más precisión: la señal relevante se busca con herramientas baratas y se lee solo lo confirmado. El contexto se cuida, no se inunda.",
+        "Reordenar el volcado no reduce la dilución: los miles de tokens irrelevantes siguen compitiendo con la pregunta.",
+        "Recorta tokens pero conserva el problema de fondo: cientos de archivos irrelevantes siguen diluyendo la consulta.",
+        "Duplica el costo y la dilución: repetir ruido no lo convierte en señal."
+      ]
+    },
+    {
+      "id": "q7",
+      "objetivo": "exploration",
+      "escenario": "Una auditoría interna pide listar todos los comentarios TODO que quedaron en los archivos TypeScript de un monorepo grande. ¿Cuál es la forma correcta de hacerlo en Claude Code?",
+      "opciones": [
+        "Read de cada archivo .ts, uno por uno, para no perder ningún TODO",
+        "Pedirle al modelo que recuerde los TODO que vio en sesiones anteriores",
+        "Glob de todos los .ts y Read completo de cada resultado",
+        "Grep del patrón TODO filtrado a archivos .ts: devuelve las líneas que matchean sin cargar archivos enteros al contexto"
+      ],
+      "correcta": 3,
+      "rationales": [
+        "Leer cada archivo completo para extraer una línea por acá y otra por allá es el uso más caro posible del contexto.",
+        "El modelo no tiene memoria confiable entre sesiones ni vio todos los archivos: una auditoría no puede apoyarse en recuerdos.",
+        "Glob acota bien el conjunto, pero el Read completo de cada archivo sigue quemando contexto: lo que se busca es contenido, y eso es Grep.",
+        "Correcta. Grep con filtro de tipo hace exactamente esto: búsqueda exhaustiva por contenido que devuelve solo las líneas relevantes, con costo mínimo de contexto."
+      ]
+    },
+    {
+      "id": "q8",
+      "objetivo": "exploration",
+      "escenario": "Un dev cae en un repo desconocido y necesita entender cómo se carga la configuración de la app. ¿Cuál es la secuencia de exploración correcta en Claude Code?",
+      "opciones": [
+        "Read completo de app.ts, index.ts y main.ts, y de ahí seguir los imports leyendo cada archivo",
+        "Pedir un resumen del repo entero antes de buscar nada",
+        "Glob de config y .env para ubicar candidatos, Grep de quién referencia esos archivos, Read solo de los confirmados",
+        "Grep de la palabra config sobre todo el disco, incluyendo dependencias, para no perder nada"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "Empieza por lo caro y a ciegas: seguir imports leyendo archivo tras archivo llena el contexto antes de confirmar relevancia.",
+        "Resumir el repo entero exige cargarlo entero: es el anti-patrón de leer todo primero, disfrazado de paso previo prudente.",
+        "Correcta. Amplio a específico: los nombres acotan candidatos gratis, Grep confirma quién los usa, y el contexto se gasta solo en los archivos que importan.",
+        "Sin acotar el conjunto, Grep devuelve ruido de node_modules y builds: el paso de scoping por nombre va primero."
+      ]
+    }
+  ]
+}

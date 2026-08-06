@@ -1,0 +1,169 @@
+{
+  "id": "day-09",
+  "dia": 9,
+  "titulo": "Día 9: Descomposición dinámica e iterative refinement",
+  "preguntas": [
+    {
+      "id": "q1",
+      "objetivo": "decomposition",
+      "escenario": "Un agente analiza repos con un pipeline fijo de 4 pasos: frontend, backend, tests y docs. Con un monorepo de 12 packages el análisis salió incompleto: 8 packages nunca se procesaron. ¿Cuál es el fix?",
+      "opciones": [
+        "Ampliar el pipeline a 8 pasos fijos para cubrir los repos más comunes",
+        "Pedirle al usuario la lista de módulos antes de ejecutar el pipeline",
+        "Un orquestador que liste la estructura del repo en runtime y despache un worker por cada módulo encontrado",
+        "Un único prompt que pida analizar el repo completo en una sola llamada"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "Sigue siendo estático: el próximo repo con una estructura no prevista vuelve a quedar afuera. Perseguir casos conocidos no resuelve input variable.",
+        "Traslada al usuario el trabajo que define al patrón: descubrir la estructura es exactamente lo que el orquestador puede hacer solo, listando el repo.",
+        "Correcta. La cantidad y el tipo de subtareas dependen del repo, no del diseño: descomposición dinámica — el orquestador mira los datos primero y decide qué workers crear.",
+        "Meter 12 packages en un solo contexto diluye el análisis: sale superficial y caro. No descompone, amontona."
+      ]
+    },
+    {
+      "id": "q2",
+      "objetivo": "decomposition",
+      "escenario": "Un sistema extrae cláusulas de 50 contratos y después escribe un resumen comparativo. Para ganar velocidad, un dev lanzó las 51 tareas en paralelo: el resumen salió con datos inventados porque corrió sin las extracciones. ¿Cuál es el fix?",
+      "opciones": [
+        "Extraer los 50 contratos en paralelo y correr el resumen después, en un paso secuencial que reciba los 50 outputs",
+        "Paralelizar también el resumen partiéndolo en secciones para que no demore",
+        "Serializar todo el flujo, incluidas las 50 extracciones, para garantizar el orden",
+        "Reintentar el resumen con más max_tokens hasta que salga consistente"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. Las extracciones son independientes entre sí: paralelo. El resumen depende de los 50 outputs: va después, en secuencia. La dependencia define el orden.",
+        "El problema no es la velocidad del resumen sino que corre sin sus inputs: partirlo en secciones paralelas repite el mismo error.",
+        "Tira a la basura el paralelismo legítimo: las 50 extracciones no dependen entre sí. Solo el resumen necesita esperar.",
+        "max_tokens no le da al resumen los datos que le faltan: seguiría fabricando, solo que más largo."
+      ]
+    },
+    {
+      "id": "q3",
+      "objetivo": "decomposition",
+      "escenario": "Un flujo de facturas hace siempre lo mismo: parsear el PDF, clasificar el gasto y guardarlo en la base. Un arquitecto propone migrarlo a orchestrator-workers con descomposición dinámica para que escale mejor. ¿Qué recomendás?",
+      "opciones": [
+        "Migrar a orchestrator-workers: lo dinámico siempre escala mejor que lo estático",
+        "Migrar solo la clasificación a workers dinámicos y dejar el resto fijo",
+        "Agregar un orquestador que decida en runtime si hace falta parsear o no",
+        "Mantener el pipeline estático: los pasos no varían con el input, y lo dinámico solo agregaría complejidad"
+      ],
+      "correcta": 3,
+      "rationales": [
+        "Falso en general: la descomposición dinámica se justifica cuando la estructura del trabajo recién se conoce al ver los datos. Acá se conoce de antemano, siempre.",
+        "Fragmenta el flujo sin necesidad: la clasificación es un paso fijo más, no un conjunto variable de subtareas.",
+        "No hay nada que decidir en runtime: toda factura se parsea. Un orquestador para una decisión que no existe es puro overhead.",
+        "Correcta. Pasos idénticos y conocidos de antemano son el caso ideal del pipeline estático: predecible, simple y fácil de depurar. Lo dinámico suma latencia y puntos de falla sin aportar nada."
+      ]
+    },
+    {
+      "id": "q4",
+      "objetivo": "decomposition",
+      "escenario": "Un agente procesa los adjuntos de mails de clientes. Cada mail trae una mezcla distinta: a veces 2 PDFs, a veces un CSV y 3 imágenes. El pipeline actual asume siempre un único PDF y falla con el resto. ¿Cómo lo rediseñás?",
+      "opciones": [
+        "Un pipeline con ramas fijas para PDF, imagen y CSV, ejecutando siempre las tres ramas",
+        "Un orquestador que inspeccione los adjuntos recibidos y despache en runtime un worker por cada uno según su tipo",
+        "Rechazar los mails cuyo formato no coincida con lo que el pipeline espera",
+        "Un prompt único que procese todos los adjuntos juntos en una sola llamada"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "Ejecutar las tres ramas siempre desperdicia trabajo cuando no hay adjuntos de ese tipo, y sigue sin manejar cantidades variables del mismo tipo.",
+        "Correcta. La estructura del trabajo recién se conoce al ver el mail: cuántos adjuntos y de qué tipo. Eso es descomposición dinámica de manual — el orquestador decide con los datos delante.",
+        "Adaptar el input al pipeline es el patrón al revés: el sistema debe adaptarse al dato variable, no el cliente al sistema.",
+        "Mezclar PDFs, CSVs e imágenes en un solo contexto diluye cada tarea y no escala cuando los adjuntos crecen."
+      ]
+    },
+    {
+      "id": "q5",
+      "objetivo": "decomposition",
+      "escenario": "Un orquestador despacha 10 workers para documentar 10 módulos, pero a cada worker le pasa el contexto completo del repo. Los workers salen lentos, caros y con outputs difusos. ¿Cuál es el fix?",
+      "opciones": [
+        "Reducir los workers a 3 para bajar el costo total",
+        "Comprimir el contexto completo con un resumen y pasárselo igual a todos",
+        "Darle a cada worker solo su subtarea y el contexto mínimo que necesita, y que el orquestador agregue los resultados",
+        "Reemplazar los 10 workers por un único agente que reciba todo el contexto"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "Menos workers con el mismo contexto inflado siguen siendo lentos y difusos: el problema es qué recibe cada uno, no cuántos son.",
+        "Un resumen global sigue mezclando los 10 módulos en cada worker: menos tokens, misma dilución de la señal propia.",
+        "Correcta. El valor del patrón está en el scoping: cada worker trabaja enfocado en su módulo con contexto acotado, y la visión global vive en el orquestador que agrega.",
+        "Vuelve al agente monolítico con contexto gigante: exactamente la dilución que la descomposición vino a resolver."
+      ]
+    },
+    {
+      "id": "q6",
+      "objetivo": "refinement",
+      "escenario": "Un loop generador-revisor pule reportes. El revisor devuelve siempre lo mismo: mejorá la redacción y la calidad general. Tras 5 iteraciones los textos cambian pero no mejoran: a veces empeoran. ¿Cuál es el fix?",
+      "opciones": [
+        "Subir la temperatura del generador para que explore más variantes",
+        "Que el revisor devuelva issues concretos con ejemplos citados del output, y el generador los arregle todos en una pasada",
+        "Agregar más iteraciones al loop para darle tiempo a converger",
+        "Invertir los roles: que el generador critique y el revisor escriba"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "Más aleatoriedad sobre feedback vago produce más variación, no más dirección: el problema es la señal, no la exploración.",
+        "Correcta. Feedback vago produce mejora aleatoria; feedback dirigido con ejemplos concretos del error produce mejora dirigida. Batchear los issues resuelve todo en una pasada.",
+        "Iterar más con la misma señal vaga acumula deriva, no convergencia: sin dirección, cada pasada es una moneda al aire.",
+        "Cambiar quién critica no cambia la calidad de la crítica: el revisor invertido seguiría diciendo hacelo mejor."
+      ]
+    },
+    {
+      "id": "q7",
+      "objetivo": "refinement",
+      "escenario": "Un revisor automático detecta 4 issues en un documento generado, pero los envía de a uno por iteración para no confundir al modelo. Cada ciclo cuesta un request completo: 4 issues, 4 pasadas. ¿Qué cambiás?",
+      "opciones": [
+        "Nada: un issue por iteración es más prolijo y evita confundir al modelo",
+        "Reducir el feedback a los 2 issues más graves y descartar el resto",
+        "Pedirle en cada iteración que además mejore lo que encuentre por su cuenta",
+        "Batchear los 4 issues en un único mensaje de feedback y arreglarlos en una sola pasada"
+      ],
+      "correcta": 3,
+      "rationales": [
+        "El modelo maneja perfectamente una lista de issues concretos: de a uno solo multiplica latencia y costo por 4 para el mismo resultado.",
+        "Descartar issues válidos baja la calidad final para ahorrar requests que se ahorran mejor batcheando.",
+        "Agrega vaguedad al feedback dirigido: mejorá lo que encuentres reintroduce la mejora aleatoria en cada pasada.",
+        "Correcta. Los issues concretos se batchean: arreglá estos 4, con sus ejemplos. Una pasada dirigida logra lo mismo que cuatro, a un cuarto del costo y la latencia."
+      ]
+    },
+    {
+      "id": "q8",
+      "objetivo": "refinement",
+      "escenario": "Un pipeline nocturno refina descripciones de productos con la regla: repetir hasta que el revisor no encuentre ningún problema. Anoche un producto iteró 40 veces y quemó el presupuesto: el revisor siempre encuentra algo. ¿Cuál es el fix?",
+      "opciones": [
+        "Definir un criterio de corte: un máximo de iteraciones o un umbral de calidad que, alcanzado, termina el loop",
+        "Pedirle al revisor que sea menos exigente en sus observaciones",
+        "Mantener la regla de perfecto pero iterar con un modelo más barato",
+        "Sacar el revisor y confiar en la primera generación"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. Todo loop de refinement necesita condición de terminación explícita: N iteraciones máximo o un umbral de calidad aceptable. Perfecto no es un criterio: es la ausencia de uno.",
+        "Ajustar la exigencia a ojo no garantiza terminación: sigue sin haber una condición de corte definida, solo un revisor más blando.",
+        "Abarata cada vuelta del loop infinito, pero sigue siendo infinito: el costo por iteración no era el problema, era la falta de fin.",
+        "Pasa de iterar sin fin a no iterar nunca: se pierde el refinement que sí mejoraba el output en las primeras pasadas."
+      ]
+    },
+    {
+      "id": "q9",
+      "objetivo": "refinement",
+      "escenario": "En un loop de refinement, el revisor devuelve: hay datos inconsistentes en el informe. El generador corrige secciones que estaban bien e introduce errores nuevos. ¿Cuál es el fix?",
+      "opciones": [
+        "Repetir el mismo feedback en mayúsculas y marcado como IMPORTANT para que lo priorice",
+        "Regenerar el informe desde cero en vez de refinarlo",
+        "Incluir en el feedback los ejemplos concretos del error: qué dato es inconsistente, dónde está y qué valor se esperaba",
+        "Aumentar el número de iteraciones para que tarde o temprano encuentre las inconsistencias"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "El énfasis no agrega información: el generador sigue sin saber cuál dato ni dónde. Feedback vago con mayúsculas sigue siendo vago.",
+        "Regenerar descarta todo lo que ya estaba bien y vuelve a tirar los dados: refinar con buena señal es más barato y más seguro.",
+        "Correcta. Con ejemplos concretos, el generador toca exactamente lo señalado y deja intacto el resto. Feedback con ejemplos es la diferencia entre mejora dirigida y adivinanza.",
+        "Más iteraciones a ciegas multiplican las oportunidades de romper secciones sanas: el problema es la señal, no la cantidad de intentos."
+      ]
+    }
+  ]
+}

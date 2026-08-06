@@ -1,0 +1,151 @@
+{
+  "id": "day-03",
+  "dia": 3,
+  "titulo": "Día 3: API stateless e historial",
+  "preguntas": [
+    {
+      "id": "q1",
+      "objetivo": "api-stateless",
+      "escenario": "Un equipo diseña un chatbot multiusuario sobre la Messages API. En la revisión de arquitectura, un dev propone no guardar nada en la app: dice que la API asocia los turnos a la API key y retoma cada conversación sola. ¿Cuál es el diseño correcto?",
+      "opciones": [
+        "Guardar el conversation_id que devuelve el primer response y mandarlo en los requests siguientes para que la API recupere el contexto",
+        "Persistir el historial por conversación en la base de datos de la app y reenviarlo completo en el array messages de cada request",
+        "Mandar solo el mensaje nuevo y confiar en que la API asocia los requests por API key dentro de una ventana de tiempo",
+        "Habilitar prompt caching para que la API conserve la conversación cacheada entre requests"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "No existe conversation_id en la Messages API: ningún response lo devuelve y ningún request lo acepta. Toda opción con memoria server-side es falsa, siempre.",
+        "Correcta. La API es stateless: el dueño del historial es la app. Se persiste por conversación en el storage propio y se manda completo, turnos user y assistant, en cada request.",
+        "La API no asocia requests entre sí, ni por API key ni por ventana de tiempo: cada request se evalúa solo, con lo que trae adentro.",
+        "Prompt caching abarata el prefijo repetido, pero no es memoria: el historial igual tiene que viajar completo en cada request."
+      ]
+    },
+    {
+      "id": "q2",
+      "objetivo": "api-stateless",
+      "escenario": "Un agente llama a la tool buscar_stock y la API responde con stop_reason tool_use. El backend ejecuta la tool y manda un request nuevo cuyo array messages contiene únicamente un turno user con el tool_result. La API devuelve un error 400. ¿Cuál es el fix?",
+      "opciones": [
+        "Reintentar el mismo request: el 400 es transitorio porque la API todavía estaba procesando la tool",
+        "Mover el tool_result a un parámetro top-level tool_results del request, fuera de messages",
+        "Agregar el tool_use_id como header del request para que la API vincule el resultado con la sesión previa",
+        "Reenviar el historial completo: los turnos previos, el turno assistant con el bloque tool_use, y el turno user nuevo con el tool_result referenciando el tool_use_id"
+      ],
+      "correcta": 3,
+      "rationales": [
+        "La API no estaba procesando nada: no ejecuta tools ni guarda estado entre requests. El 400 es estructural y reintentar devuelve exactamente lo mismo.",
+        "Ese parámetro no existe: el tool_result es un bloque de contenido dentro de un turno user del array messages.",
+        "No hay sesión que vincular: el tool_use_id va dentro del bloque tool_result, y el tool_use al que referencia tiene que estar en el mismo request, en el turno assistant previo.",
+        "Correcta. Cada request es autocontenido: el tool_result solo tiene sentido si ese mismo messages incluye el turno assistant con el bloque tool_use referenciado. Historial completo, siempre."
+      ]
+    },
+    {
+      "id": "q3",
+      "objetivo": "api-stateless",
+      "escenario": "Un asistente interno funciona perfecto hasta que el equipo redeploya el backend: después de cada deploy, todas las conversaciones activas arrancan de cero. El dev abre un ticket a Anthropic reclamando que la API perdió las sesiones. ¿Cuál es el diagnóstico y el fix?",
+      "opciones": [
+        "El historial vivía en la memoria del proceso de la app y la API nunca lo tuvo: hay que persistir los historiales en una base de datos y recargarlos al armar cada request",
+        "La API descarta las sesiones cuando detecta que cambió la IP del cliente: hay que fijar una IP estática para el backend",
+        "El deploy rotó la API key y la nueva no tiene acceso a las conversaciones de la anterior: hay que reusar la misma key",
+        "Faltó llamar al endpoint de checkpoint de conversaciones antes del deploy para que la API congele el estado"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. La Messages API es stateless: si algo se perdió al reiniciar, lo tenía el proceso de la app. El estado es del cliente y se persiste en su propio storage, nunca en la API.",
+        "La API no rastrea sesiones por IP ni por nada: no hay sesiones. Cada request llega completo y se evalúa solo.",
+        "Las API keys autentican requests; no tienen conversaciones asociadas. No existe nada server-side a lo que una key pueda dar acceso.",
+        "Ese endpoint no existe. No hay estado server-side que congelar: el único estado es el que la app arma y manda en cada request."
+      ]
+    },
+    {
+      "id": "q4",
+      "objetivo": "api-stateless",
+      "escenario": "Un bot de soporte tiene reglas de tono y alcance en el system prompt. El dev lo manda solo en el primer request para no pagar esos tokens en cada turno. A partir del segundo turno el bot ignora las reglas. ¿Cuál es el fix?",
+      "opciones": [
+        "Marcar el system prompt como persistente con cache_control para que la API lo aplique a los turnos siguientes",
+        "Repetir las reglas dentro del primer mensaje user, que el modelo pondera más que el system",
+        "Mandar el system prompt en todos los requests, y usar prompt caching para que lo repetido cueste mucho menos sin dejar de enviarse",
+        "Cargar las reglas en un turno assistant inicial fabricado, que la API conserva entre requests"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "cache_control abarata el prefijo cacheado, no lo persiste: si el request no incluye el system, el modelo no lo ve, con cache o sin cache.",
+        "Mueve el problema de lugar: ese primer mensaje tampoco viaja en los turnos siguientes salvo que el cliente lo reenvíe como parte del historial.",
+        "Correcta. Nada persiste entre requests: el system se manda siempre. Prompt caching existe exactamente para esto: el prefijo repetido se cobra mucho más barato, pero igual viaja.",
+        "Ningún turno se conserva entre requests: la API no guarda nada. Todo lo que el modelo debe ver tiene que venir en el request actual."
+      ]
+    },
+    {
+      "id": "q5",
+      "objetivo": "api-stateless",
+      "escenario": "En un chatbot de conversaciones largas, el equipo de producto detecta que usage.input_tokens sube en cada turno y lo reporta como un memory leak que hay que arreglar antes del launch. ¿Cuál es la lectura correcta?",
+      "opciones": [
+        "Es un bug del SDK: hay que actualizar la librería anthropic para que deje de acumular tokens",
+        "Es el comportamiento esperado: cada request lleva el historial completo, y el costo se gestiona del lado cliente truncando o resumiendo turnos viejos, con prompt caching para abaratar lo repetido",
+        "Hay que pedirle a Anthropic que active el modo incremental, donde solo se facturan los mensajes nuevos de cada turno",
+        "Hay que dejar de reenviar los turnos assistant, que son los que inflan el input: con los turnos user alcanza"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "El SDK no acumula nada: usage cuenta lo que el request realmente llevó, que es el historial completo. Es aritmética, no bug.",
+        "Correcta. Input creciente es la consecuencia natural de una API stateless. El control del costo es responsabilidad del cliente: truncado, resumen, y prompt caching para abaratar el prefijo repetido.",
+        "Ese modo no existe: la API factura los tokens que procesa, y procesa todo lo que el request trae. No hay facturación server-side por delta.",
+        "Sin los turnos assistant el modelo pierde la mitad de la conversación: sus propias respuestas, incluidos los tool_use. El historial válido lleva user y assistant."
+      ]
+    },
+    {
+      "id": "q6",
+      "objetivo": "api-stateless",
+      "escenario": "Un SaaS lanza su chatbot y a los minutos un cliente reporta que el bot le respondió con datos de la conversación de OTRO usuario. El backend mantiene una única lista historial en memoria que se pasa a todas las llamadas a la Messages API. ¿Cuál es el fix?",
+      "opciones": [
+        "Mantener un historial separado por usuario y conversación en el storage de la app, y armar cada request solo con el historial de esa conversación",
+        "Mandar el user_id en el campo metadata del request para que la API separe los contextos por usuario",
+        "Usar una API key distinta por usuario, porque la API aísla el contexto por key",
+        "Bajar max_tokens para que el modelo no alcance a mezclar contextos largos"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. El aislamiento entre usuarios es responsabilidad del cliente: la API responde en base al messages que recibe. Un historial global mezcla contextos; uno por conversación los separa.",
+        "metadata con user_id sirve para trazabilidad y detección de abuso, no para partir contextos: la API no guarda ni separa conversaciones por usuario.",
+        "Las keys autentican, no aíslan conversaciones: no hay contexto server-side que aislar. El bug seguiría, porque el messages compartido es el que mezcla.",
+        "max_tokens limita la longitud de la respuesta, no qué contexto ve el modelo: el request seguiría llevando el historial mezclado."
+      ]
+    },
+    {
+      "id": "q7",
+      "objetivo": "api-stateless",
+      "escenario": "Para una app mobile con conexión inestable, un dev propone que si la app pierde el estado local, la API retome la conversación: leyó en un blog que mandando el header anthropic-session-id el servidor devuelve el contexto previo. ¿Qué le respondés como arquitecto?",
+      "opciones": [
+        "Que el header existe pero es de la Batches API; en Messages hay que usar el parámetro session del body",
+        "Que funciona solo si los requests van al mismo endpoint regional, porque la sesión vive en ese datacenter",
+        "Que es viable, pero conviene rotar el session-id en cada turno por seguridad",
+        "Que ese header no existe: no hay sesiones server-side que retomar, así que el historial debe persistirse en el backend propio y reenviarse completo en cada request"
+      ],
+      "correcta": 3,
+      "rationales": [
+        "La Batches API procesa lotes asincrónicos y tampoco tiene sesiones conversacionales. No hay parámetro session en Messages: cada request es autocontenido.",
+        "No hay sesión en ningún datacenter: la API no retiene conversación en ningún lado. La regionalidad no cambia el modelo stateless.",
+        "No se puede rotar algo que no existe. Cualquier opción que dé por sentada una sesión server-side es falsa de raíz.",
+        "Correcta. No existen headers de persistencia ni sesiones. La resiliencia se diseña del lado cliente: historial en el backend propio, reconstruido y reenviado completo en cada request."
+      ]
+    },
+    {
+      "id": "q8",
+      "objetivo": "api-stateless",
+      "escenario": "Un equipo habilitó prompt caching y, para aprovechar el cache, dejó de incluir los turnos viejos en messages: razonan que ya están cacheados en el servidor. Desde ese cambio el bot responde como si cada pregunta fuera la primera. ¿Qué está pasando?",
+      "opciones": [
+        "El cache expiró: con un TTL más largo los turnos viejos seguirían disponibles y el bot recordaría",
+        "Falta referenciar el cache_id de los turnos viejos en el request para que la API los inyecte",
+        "Prompt caching abarata tokens repetidos pero no es memoria: el modelo solo ve lo que el request trae, así que hay que volver a mandar el historial completo, con cache_control para pagar menos por el prefijo",
+        "El cache solo aplica al system prompt; los turnos de conversación nunca son cacheables y por eso se pierden"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "El TTL del cache afecta el precio, no lo que el modelo ve: el contenido que no viene en el request no existe para el modelo, con cache vigente o expirado.",
+        "No hay cache_id inyectable: el cache se aprovecha mandando el mismo prefijo de contenido. Nunca reemplaza al contenido; solo abarata procesarlo.",
+        "Correcta. El cache es una optimización de costo y latencia sobre contenido que igual viaja en el request. Sacar los turnos de messages los saca del contexto del modelo: el historial se manda completo, siempre.",
+        "Los bloques de conversación también pueden cachearse con cache_control. El problema no es qué es cacheable, sino haber dejado de mandar el historial."
+      ]
+    }
+  ]
+}

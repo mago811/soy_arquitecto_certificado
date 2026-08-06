@@ -1,0 +1,187 @@
+{
+  "id": "day-08",
+  "dia": 8,
+  "titulo": "Día 8: MCP profundo: errores, descriptions, auth",
+  "preguntas": [
+    {
+      "id": "q1",
+      "objetivo": "mcp-advanced",
+      "escenario": "Un MCP server de tickets, ante un id inexistente, devuelve el stack trace completo de Python (KeyError más 40 líneas). El agente lo recibe, pide disculpas y abandona la tarea. ¿Cuál es el fix?",
+      "opciones": [
+        "Atrapar la excepción y devolver un string vacío para no confundir al modelo con detalles técnicos",
+        "Atrapar la excepción y devolver un error estructurado marcado como is_error, con mensaje accionable: el id 4512 no existe, verificá los ids con listar_tickets",
+        "Reintentar automáticamente 10 veces dentro del server antes de responder",
+        "Subir el nivel de log del server a DEBUG para que el traceback traiga más contexto"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "Peor que el traceback: el agente lee vacío como no hay datos y sigue con información fabricada. El fallo desaparece en silencio.",
+        "Correcta. El mensaje de error es información para el modelo: qué falló y cómo seguir. Con eso encadena listar_tickets solo, en vez de abandonar.",
+        "Un id inexistente no se arregla reintentando: 10 intentos idénticos fallan igual, suman latencia y el modelo nunca se entera del problema real.",
+        "Más traceback es más ruido, no más acción. El modelo necesita el próximo paso, no más líneas internas del server."
+      ]
+    },
+    {
+      "id": "q2",
+      "objetivo": "mcp-advanced",
+      "escenario": "Un dev hizo que su MCP server termine el proceso con exit code 1 cuando una tool falla, para que Claude Code se entere del error. Resultado: todas las tools del server desaparecen a mitad de sesión por un solo id inválido. ¿Cuál es el diseño correcto?",
+      "opciones": [
+        "Es correcto: el exit code es la forma estándar de propagar errores al host MCP",
+        "Configurar Claude Code para que reinicie automáticamente el server tras cada caída",
+        "Envolver todo en try/except y devolver siempre un resultado exitoso para no cortar el flujo",
+        "La tool devuelve un tool result con is_error true y mensaje accionable; el proceso sigue vivo y el modelo decide el siguiente paso"
+      ],
+      "correcta": 3,
+      "rationales": [
+        "El exit code lo ve el sistema operativo, no el modelo. Matar el proceso convierte un error de UNA llamada en la pérdida de TODAS las tools.",
+        "Ataca el síntoma: el server no debería caerse por un error de tool. Un fallo de datos es un resultado, no un crash.",
+        "Esconde el fallo: el modelo cree que todo salió bien y construye sobre datos falsos. Error silencioso es peor que error visible.",
+        "Correcta. Un error de tool es un resultado tipado (is_error) que el modelo lee para reintentar, cambiar de tool o avisar. El server nunca muere por eso."
+      ]
+    },
+    {
+      "id": "q3",
+      "objetivo": "mcp-advanced",
+      "escenario": "Un server de inventario OT expone buscar_activo_por_ip y buscar_activo_por_nombre, ambas con la description busca activos en el inventario. El modelo llama por_nombre pasándole una IP y falla. ¿Cuál es el fix?",
+      "opciones": [
+        "Reescribir las descriptions para desambiguar: cuándo usar cada una, qué las diferencia y el formato exacto del input de cada una",
+        "Renombrar la tool a buscar_activo_por_direccion_ip_exacta_v2 para que el nombre lo diga todo",
+        "Agregar en CLAUDE.md del proyecto una instrucción que le diga al modelo cuál tool usar en cada caso",
+        "Fusionar las dos tools en una sola que reciba cualquier string y adivine si es IP o nombre"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. El modelo elige la tool leyendo su description: si dos parecidas no explican cuándo usar cada una y el formato del input, elige mal. La desambiguación vive en la description.",
+        "Un nombre más largo sin description clara sigue sin decir cuándo usarla ni qué formato espera. El criterio de elección es la description, no la longitud del nombre.",
+        "Guidance frágil y en el lugar equivocado: no viaja con el server a otros proyectos y compite con el resto del contexto. El server debe ser autoexplicativo.",
+        "Mueve la ambigüedad adentro del server: ahora el código adivina en vez del modelo. Dos operaciones distintas con inputs distintos son dos tools bien descritas."
+      ]
+    },
+    {
+      "id": "q4",
+      "objetivo": "mcp-advanced",
+      "escenario": "Un dev dice: el código de mi server está impecable y comentado, el modelo va a saber elegir la tool correcta leyendo la implementación. Sus tools se eligen mal igual. ¿Qué está entendiendo mal?",
+      "opciones": [
+        "Nada: el modelo lee el código del server, el problema debe estar en los comentarios",
+        "El modelo solo lee el código si el server corre en scope project",
+        "El modelo no ve el código: elige usando name, description y schema de inputs de cada tool — ahí hay que invertir el esfuerzo",
+        "El modelo elige por el orden en que las tools fueron registradas en el server"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "El modelo jamás recibe la implementación: solo la interfaz declarada. Comentarios perfectos en código invisible no influyen en nada.",
+        "El scope define quién ve el server configurado, no qué información recibe el modelo. En ningún scope se envía el código.",
+        "Correcta. Lo único que cruza el protocolo hacia el modelo es la definición de cada tool: name, description y schema. Esa es la interfaz que decide la elección.",
+        "El orden de registro no es un criterio de selección. Sin descriptions claras, cualquier orden produce elecciones erráticas."
+      ]
+    },
+    {
+      "id": "q5",
+      "objetivo": "mcp-advanced",
+      "escenario": "El server Python del equipo tiene API_KEY igual a sk-live-abc123 hardcodeada en el código, que está versionado en el repo. ¿Cuál es el fix completo?",
+      "opciones": [
+        "Mover el token a CLAUDE.md, que no se envía a ningún servidor externo",
+        "Rotar el secret comprometido y leer la credencial de una env var: os.environ en el código, definida en el entorno o referenciada en la config del server",
+        "Ofuscar el string en el código con base64 para que no se lea a simple vista",
+        "Mover el token a un archivo config.json separado dentro del mismo repo"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "CLAUDE.md se versiona igual (mismo leak) y encima se inyecta en el contexto de cada sesión. Es contexto para el modelo, no una bóveda de secrets.",
+        "Correcta. Todo secret que tocó el repo se rota, y la credencial pasa a env var: el código referencia, cada entorno aporta su valor, el repo nunca ve el token.",
+        "Base64 se decodifica en un segundo: el secret sigue en el historial de git. Ofuscar no es proteger, y el token ya está comprometido.",
+        "Cambia de archivo, no de problema: sigue versionado y clonable por cualquiera con acceso al repo."
+      ]
+    },
+    {
+      "id": "q6",
+      "objetivo": "mcp-advanced",
+      "escenario": "Una dev nueva clona el repo, aprueba los servers y el server de base de datos le falla al arrancar con un error de variable API_TOKEN no encontrada. Al resto del equipo le funciona. ¿Qué hace?",
+      "opciones": [
+        "Pegar su token directo en .mcp.json mientras dura el sprint y revertirlo antes del release",
+        "Reinstalar el server: la instalación quedó corrupta en su máquina",
+        "Pedir que se commitee un .env con las claves del equipo para que esto no le pase a nadie más",
+        "Definir en su entorno la env var que la config referencia: el archivo compartido solo referencia la variable, cada dev aporta su propio valor"
+      ],
+      "correcta": 3,
+      "rationales": [
+        "Los mientras tanto terminan en un diff: el token entra al historial de git y hay que rotarlo. Nunca hay una ventana segura para un secret literal.",
+        "No hay corrupción: al resto le funciona porque tienen la variable definida. Es un problema de entorno, no de instalación.",
+        "Commitear las claves del equipo es el incidente de seguridad completo, multiplicado por todos los secrets a la vez.",
+        "Correcta. El diseño es exactamente ese: la config versionada referencia la variable y cada dev la define en su entorno. Le falta su valor local, nada más."
+      ]
+    },
+    {
+      "id": "q7",
+      "objetivo": "mcp-advanced",
+      "escenario": "Un dev registró ayer un MCP server y hoy sus tools no aparecen en la sesión de Claude Code. ¿Cuál es el primer paso de debugging?",
+      "opciones": [
+        "claude mcp list para ver si el server figura y su estado, y claude mcp get con el nombre para revisar comando, args, env y scope",
+        "Borrar el server y volver a agregarlo: registrarlo de nuevo resuelve la mayoría de los problemas",
+        "Revisar CLAUDE.md por si alguna instrucción está bloqueando las tools del server",
+        "Reinstalar Claude Code: si las tools no aparecen, el problema es del cliente"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. Primero observar: list muestra qué servers hay y si conectan; get muestra la config exacta de uno (comando, args, env, scope). Con eso el fix es dirigido, no adivinado.",
+        "Re-agregar a ciegas puede funcionar de casualidad, pero no dice qué estaba mal: si era una env var faltante, va a fallar igual.",
+        "CLAUDE.md orienta al modelo, no registra ni desregistra tools: si el server no conecta, ninguna instrucción lo revive.",
+        "Es el último recurso, no el primero: sin mirar el estado del server no hay evidencia de que el cliente sea el problema."
+      ]
+    },
+    {
+      "id": "q8",
+      "objetivo": "mcp-advanced",
+      "escenario": "La API upstream de un MCP server devuelve rate limit 429. El server lo atrapa y responde una lista vacía; el agente concluye que no hay resultados y entrega un informe incompleto como si fuera completo. ¿Cuál es el fix?",
+      "opciones": [
+        "Que el server reintente automáticamente 10 veces con backoff antes de responder",
+        "Subir el timeout del server para darle más tiempo a la API",
+        "Devolver un error tipado con is_error y mensaje accionable: rate limit, reintentá en 60 segundos — que el modelo decida esperar, reintentar o informar la limitación",
+        "Mantener la lista vacía pero loggear el 429 en un archivo para revisarlo después"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "Reintentos ciegos dentro del server suman latencia, pueden empeorar el rate limit y dejan al modelo afuera de la decisión. Y si los 10 fallan, volvés al mismo problema.",
+        "El 429 no es lentitud, es cuota: más timeout no cambia la respuesta de la API.",
+        "Correcta. El error accionable convierte el fallo en información: el modelo sabe qué pasó y cuánto esperar, y puede reintentar o avisar en vez de fabricar un informe con datos incompletos.",
+        "El log es para el humano de mañana; el informe falso sale hoy. El modelo sigue creyendo que la lista vacía es la verdad."
+      ]
+    },
+    {
+      "id": "q9",
+      "objetivo": "mcp-advanced",
+      "escenario": "El modelo llama buscar_activo_por_ip pasando PLC-Linea-1 como argumento y la tool falla. La description actual dice solo busca un activo por IP. ¿Cuál es el fix de raíz?",
+      "opciones": [
+        "Que la tool detecte el formato incorrecto y busque por nombre internamente sin avisar",
+        "Enriquecer la definición de la tool: description con cuándo usarla y el formato exacto del input (IP como x.x.x.x, con ejemplo), para que el modelo llame bien de entrada",
+        "Reintentar la llamada con distintas variantes del argumento hasta que alguna funcione",
+        "El modelo va a aprender el formato correcto leyendo el código fuente del server tras el primer fallo"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "El fallback silencioso enmascara el mal uso: funciona hasta que un nombre parece IP, y el modelo nunca aprende a llamar bien. La ambigüedad sigue viva.",
+        "Correcta. El modelo construye los argumentos con la definición de la tool: description y schema con formato explícito y ejemplo previenen el error antes de que ocurra.",
+        "Fuerza bruta sobre un problema de información: caro, lento y sin garantía. El formato correcto debe estar declarado, no descubierto a prueba y error.",
+        "El modelo nunca ve el código fuente del server: solo name, description y schema. No hay aprendizaje posible desde una implementación invisible."
+      ]
+    },
+    {
+      "id": "q10",
+      "objetivo": "mcp-advanced",
+      "escenario": "buscar_pedido con id 9922 responde solo Error interno. El agente reintenta la misma llamada tres veces y abandona. El server tiene otra tool, listar_pedidos, que muestra los ids válidos. ¿Qué cambio arregla el flujo?",
+      "opciones": [
+        "Que el error diga qué falló y cómo seguir: el id 9922 no existe, usá listar_pedidos para ver los ids válidos — el modelo encadena la tool correcta solo",
+        "Que buscar_pedido devuelva el pedido con el id más parecido para no fallar nunca",
+        "Agregar un hook PostToolUse que corrija los argumentos cuando la tool falla",
+        "Subir max_tokens de la respuesta para que el agente tenga más espacio para razonar el error"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. El modelo decide el próximo paso con el texto del error: si el mensaje nombra el problema y la tool que lo resuelve, la recuperación es automática, sin tocar nada más.",
+        "Fabricación pura: devolver un pedido que nadie pidió es peor que fallar. El agente construye el resto del flujo sobre un dato falso.",
+        "Un hook no sabe qué id era el correcto: la información para recuperarse (ids válidos vía listar_pedidos) la tiene el server, y su lugar es el mensaje de error.",
+        "Error interno son dos palabras: no hay razonamiento que extraiga de ahí el id válido ni la tool siguiente. Falta información, no espacio."
+      ]
+    }
+  ]
+}

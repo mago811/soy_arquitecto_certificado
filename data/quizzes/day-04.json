@@ -1,0 +1,187 @@
+{
+  "id": "day-04",
+  "dia": 4,
+  "titulo": "Día 4: tool_choice y secuenciación multi-tool",
+  "preguntas": [
+    {
+      "id": "q1",
+      "objetivo": "tool-choice",
+      "escenario": "Un agente de logística tiene dos tools: buscar_envio (recibe el nombre del destinatario y devuelve el tracking_id) y reprogramar_entrega (necesita ese tracking_id). El dev configuró tool_choice {\"type\": \"any\"} esperando que el modelo las llame en el orden correcto. En producción, a veces reprogramar_entrega se ejecuta primero con un tracking_id que no existe. ¿Cuál es el fix?",
+      "opciones": [
+        "Cambiar a tool_choice {\"type\": \"tool\", \"name\": \"reprogramar_entrega\"} para que el modelo se enfoque en la tool importante",
+        "Agregar al system prompt la instrucción de llamar siempre buscar_envio primero",
+        "Encadenar requests: forzar buscar_envio en el primero, devolver su tool_result en el historial, y dejar que el siguiente request llame reprogramar_entrega con el tracking_id real",
+        "Marcar tracking_id como required en el schema para bloquear llamadas sin id"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "Forzar la tool dependiente empeora todo: la obliga a ejecutarse ya, sin el tracking_id real. Fabricación garantizada.",
+        "El system prompt es guidance: sube la probabilidad pero no garantiza el orden, y el requisito es garantía.",
+        "Correcta. Dependencia entre tools se resuelve con requests encadenados: primero A, su tool_result al historial, y recién ahí el modelo tiene el dato real para B. Ningún valor de tool_choice garantiza orden.",
+        "required obliga a que el campo venga en la llamada, no a que su valor sea verdadero: el modelo lo completa con un id inventado."
+      ]
+    },
+    {
+      "id": "q2",
+      "objetivo": "tool-choice",
+      "escenario": "Un backend de e-commerce fuerza tool_choice {\"type\": \"tool\", \"name\": \"cancelar_orden\"} en cada mensaje que menciona una cancelación. Cuando el usuario escribe 'quiero cancelar mi última compra' sin dar el número de orden, el modelo llama cancelar_orden con un order_id de formato válido pero inexistente. ¿Por qué pasa y cuál es el fix?",
+      "opciones": [
+        "Forzar una tool obliga una llamada inmediata aunque falten datos, y el modelo inventa; el fix es encadenar: primero una tool que resuelva el order_id real y recién después cancelar",
+        "El schema de cancelar_orden está incompleto: falta un pattern regex que valide el formato del order_id",
+        "Es un bug de la API: con type tool el servidor debería rechazar llamadas con argumentos no verificados",
+        "Hay que bajar max_tokens para que el modelo no tenga espacio para inventar argumentos"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. any y tool fuerzan una tool call en ESA respuesta: el modelo no puede pedir el dato faltante, así que lo fabrica. Forzar no garantiza datos correctos; la garantía es encadenar con el dato real en el historial.",
+        "Un pattern valida forma, no existencia: un id inventado con formato válido pasa igual. El problema es forzar sin datos, no el schema.",
+        "La API valida los argumentos contra el schema y nada más: no verifica su verdad ni ejecuta tools custom. No hay chequeo server-side de datos.",
+        "max_tokens limita la longitud de la salida; no tiene ninguna relación con la fabricación de argumentos."
+      ]
+    },
+    {
+      "id": "q3",
+      "objetivo": "tool-choice",
+      "escenario": "Un agente de monitoreo OT debe registrar CADA alerta que recibe usando alguna de sus dos tools (registrar_evento o escalar_incidente). Todos los datos necesarios vienen completos en el mensaje de la alerta. Con la config actual, que no setea tool_choice, a veces el modelo responde con un análisis en texto y no llama ninguna tool. ¿Cuál es el fix?",
+      "opciones": [
+        "Agregar disable_parallel_tool_use: true para que el modelo se concentre en una sola tool",
+        "Setear tool_choice {\"type\": \"any\"}: obliga a usar alguna de las tools en cada respuesta, y acá los argumentos vienen completos en el input",
+        "Setear tool_choice {\"type\": \"none\"} y parsear el análisis en texto con regex",
+        "Reforzar en el system prompt que responder sin tools está prohibido"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "disable_parallel_tool_use limita a una tool por respuesta cuando el modelo YA decidió llamar; no lo obliga a llamar nada.",
+        "Correcta. Sin setear tool_choice aplica auto, que permite responder sin tools; any fuerza al menos una tool call por respuesta. Es el caso ideal para forzar: los datos están completos en el input, sin riesgo de fabricación.",
+        "none prohíbe las tools: lo contrario del requisito. Y parsear texto con regex es la solución frágil que el examen castiga.",
+        "Guidance: mejora la probabilidad, no la garantiza. Existiendo un mecanismo de la API que sí garantiza (any), esa es la respuesta."
+      ]
+    },
+    {
+      "id": "q4",
+      "objetivo": "tool-choice",
+      "escenario": "En el último paso de un pipeline de reportes de e-commerce, el historial ya contiene todos los tool_results con los datos de ventas. El equipo quiere un request final que produzca SOLO el resumen en texto, pero el modelo a veces vuelve a llamar tools de consulta y encarece el pipeline. ¿Cuál es el fix?",
+      "opciones": [
+        "Vaciar el array tools en el request final para que no tenga nada que llamar",
+        "Forzar una tool de resumen con tool_choice {\"type\": \"tool\"}",
+        "Bajar max_tokens para que no le queden tokens para tool calls",
+        "Setear tool_choice {\"type\": \"none\"} en el request final: las tools siguen definidas pero llamarlas queda prohibido"
+      ],
+      "correcta": 3,
+      "rationales": [
+        "Frágil: el historial referencia esas tools y desarmar el array cambia el prefijo del request. La forma explícita y soportada de prohibir llamadas es none, sin tocar las definiciones.",
+        "Fuerza exactamente lo que se quiere evitar: una tool call más. El objetivo es una respuesta final en texto.",
+        "max_tokens corta la longitud de la respuesta, no impide tool calls; solo agrega truncamiento al problema.",
+        "Correcta. none prohíbe tool calls en esa respuesta: el modelo responde en texto usando los tool_results que ya están en el historial. Es el valor pensado para el paso final de un pipeline."
+      ]
+    },
+    {
+      "id": "q5",
+      "objetivo": "tool-choice",
+      "escenario": "Para arreglar el orden entre dos tools dependientes de inventario (consultar_stock devuelve el sku_id que ajustar_stock necesita), un dev agregó disable_parallel_tool_use: true a su tool_choice {\"type\": \"any\"}. Ahora el modelo llama una sola tool por respuesta, pero a veces esa única llamada sigue siendo ajustar_stock con un sku_id inventado. ¿Qué está pasando?",
+      "opciones": [
+        "disable_parallel_tool_use solo funciona con tool_choice auto; combinado con any queda sin efecto",
+        "disable_parallel_tool_use limita la CANTIDAD de tools por respuesta, no define cuál ni en qué orden; la dependencia sigue necesitando requests encadenados",
+        "Falta setear disable_parallel_tool_use también en la definición de cada tool",
+        "El flag funciona, pero el modelo necesita ejemplos few-shot para respetarlo mejor"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "El flag se combina con cualquier valor de tool_choice; any no lo anula. El diagnóstico va por otro lado.",
+        "Correcta. El flag garantiza como máximo una tool call por respuesta y nada más: no elige cuál ni establece secuencia entre requests. El orden entre tools dependientes se garantiza encadenando requests con el tool_result real.",
+        "disable_parallel_tool_use vive dentro de tool_choice, no en las definiciones de tools: ese campo no existe ahí.",
+        "El flag SÍ se está respetando (una tool por respuesta); el error es esperar de él algo que no promete: orden."
+      ]
+    },
+    {
+      "id": "q6",
+      "objetivo": "tool-choice",
+      "escenario": "Un agente de logística pidió tres tools en paralelo en una misma respuesta: tres bloques tool_use (depósito, flota y clima). El cliente ejecutó las tres y devolvió tres mensajes user consecutivos, cada uno con un tool_result. La API rechaza el request. ¿Cuál es el fix?",
+      "opciones": [
+        "Reintentar con disable_parallel_tool_use para que el modelo pida las tools de a una",
+        "Descartar dos resultados y devolver solo el tool_result más relevante",
+        "Devolver los tres tool_result como tres bloques dentro de UN solo mensaje user, cada uno con su tool_use_id",
+        "Intercalar un mensaje assistant vacío entre cada tool_result para respetar la alternancia de roles"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "Evita el paralelismo a futuro pero pierde su beneficio (menos latencia) y no arregla el protocolo: el paralelismo es el comportamiento default y está bien usarlo.",
+        "Cada tool_use pendiente exige su tool_result correspondiente; descartar resultados deja llamadas sin responder y el request sigue inválido.",
+        "Correcta. Protocolo de parallel tool use: todos los tool_result de una respuesta vuelven juntos, en UN solo mensaje user, matcheados por tool_use_id. Un mensaje separado por resultado rompe el contrato.",
+        "La solución no es fabricar turnos vacíos: el contrato pide un único mensaje user con todos los resultados adentro."
+      ]
+    },
+    {
+      "id": "q7",
+      "objetivo": "tool-choice",
+      "escenario": "Un dev integró la Messages API con tools por primera vez. Su bot manda el request, recibe stop_reason tool_use y se queda esperando la respuesta final de la API, que nunca llega. Está convencido de que la API ejecuta la tool del lado del servidor y le va a devolver el texto terminado. ¿Qué tiene que cambiar?",
+      "opciones": [
+        "Su código: stop_reason tool_use significa que el CLIENTE debe ejecutar la tool y devolver el tool_result en un nuevo request; la API no ejecuta tools custom",
+        "Agregar un webhook para que la API le avise cuando termine de ejecutar la tool",
+        "Aumentar el timeout del request, porque la ejecución server-side de tools puede tardar",
+        "Setear tool_choice auto para que la API decida si ejecuta la tool ella misma"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. La API devuelve la INTENCIÓN (bloque tool_use con nombre y argumentos) y espera. El cliente ejecuta, arma un mensaje user con el tool_result y manda un nuevo request con el historial completo. Ese es el loop de tool use.",
+        "No existe ese webhook: no hay ejecución server-side de tools custom de la que avisar.",
+        "No hay nada corriendo del lado del servidor para ese tool_use; esperar más tiempo no cambia nada.",
+        "tool_choice controla si el modelo llama tools, no quién las ejecuta. Las tools custom las ejecuta siempre el cliente."
+      ]
+    },
+    {
+      "id": "q8",
+      "objetivo": "tool-choice",
+      "escenario": "Un equipo OT tiene tools dependientes: autenticar_operador devuelve un token_sesion que bloquear_valvula necesita. Alguien arregló el bug de orden reordenando el array tools para que autenticar_operador quede primero, y en la demo funcionó. Hoy volvió a fallar: bloquear_valvula salió primero con un token inventado. ¿Por qué?",
+      "opciones": [
+        "El deploy no tomó el nuevo orden del array; hay que verificar la config en producción",
+        "El orden del array solo aplica con tool_choice any; con auto se ignora",
+        "Falta ordenar también las descriptions para que coincidan con la secuencia del array",
+        "El orden del array tools nunca definió la ejecución: que la demo funcionara fue azar; la garantía de orden son requests encadenados con el tool_result real en el historial"
+      ],
+      "correcta": 3,
+      "rationales": [
+        "No hay config que tomar: esa semántica no existe. Con o sin deploy, el array no ordena ejecución.",
+        "Falso con cualquier valor de tool_choice: el array es una lista de definiciones disponibles, jamás una secuencia de ejecución.",
+        "Las descriptions orientan sobre cuándo usar cada tool, pero ningún ordenamiento textual garantiza secuencia.",
+        "Correcta. Distractor clásico: el orden del array tools no tiene semántica de ejecución. En la demo el modelo eligió bien de casualidad y hoy no. Orden garantizado = requests encadenados."
+      ]
+    },
+    {
+      "id": "q9",
+      "objetivo": "tool-choice",
+      "escenario": "Un agente de posventa forzado con tool_choice {\"type\": \"any\"} emitía reembolsos con orden_id inventados. El fix del equipo fue endurecer el schema de emitir_reembolso: orden_id required y con un pattern estricto. Los reembolsos fallidos siguen: ahora los ids inventados vienen con el formato perfecto. ¿Cuál es el fix real?",
+      "opciones": [
+        "Extender el pattern con un dígito verificador para que los ids inventados no validen",
+        "Cambiar a tool_choice {\"type\": \"tool\", \"name\": \"emitir_reembolso\"} para que el modelo se tome en serio esa tool",
+        "Encadenar requests: primero una tool que obtenga el orden_id real, devolver su tool_result, y que el request siguiente emita el reembolso con ese dato",
+        "Agregar al schema una description que aclare que inventar ids está prohibido"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "Un dígito verificador filtra formatos, no verdad: el modelo puede generar ids que validen igual. El schema no puede verificar existencia contra el sistema.",
+        "Sigue forzando una llamada inmediata sin datos, que es la causa exacta de la fabricación. Cambia cuál tool se fuerza, no el problema.",
+        "Correcta. El schema valida forma, nunca existencia. El único orden_id verdadero es el que viene de un tool_result real en el historial: requests encadenados. Endurecer el schema no reemplaza el encadenamiento.",
+        "Una description dentro del schema es guidance: orienta, no garantiza. Y un modelo forzado sin datos no tiene mejor opción que inventar."
+      ]
+    },
+    {
+      "id": "q10",
+      "objetivo": "tool-choice",
+      "escenario": "Un dev implementó el encadenamiento para dos tools dependientes de logística: el primer request fuerza buscar_deposito con {\"type\": \"tool\"} y funciona. Ahora duda del segundo request, después de devolver el tool_result: quiere que asignar_muelle use el deposito_id real y que el loop termine con una respuesta en texto. ¿Qué configuración corresponde para el segundo request?",
+      "opciones": [
+        "tool_choice {\"type\": \"any\"} para obligar a que se ejecute una tool sí o sí en cada respuesta que siga",
+        "Historial completo con el tool_result de buscar_deposito y tool_choice auto: con el dato real en contexto el modelo llama asignar_muelle, y el loop corta cuando stop_reason deja de ser tool_use",
+        "Un solo request con las dos tools y disable_parallel_tool_use, para que se ejecuten en secuencia del lado del servidor",
+        "Repetir {\"type\": \"tool\", \"name\": \"buscar_deposito\"} hasta que el modelo aprenda la secuencia"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "any obliga a llamar ALGUNA tool en cada respuesta: forzaría llamadas innecesarias y hasta impediría la respuesta final en texto que cierra el loop.",
+        "Correcta. Con el tool_result real en el historial, auto alcanza: el modelo tiene el deposito_id verdadero y llama la tool dependiente con datos correctos. El cliente sigue el loop mientras stop_reason sea tool_use y termina en texto.",
+        "No existe ejecución server-side de tools custom ni secuencias dentro de un request: cada tool_result requiere un round-trip del cliente.",
+        "El modelo no aprende entre requests: la API es stateless. Repetir la tool forzada solo genera llamadas duplicadas a buscar_deposito."
+      ]
+    }
+  ]
+}

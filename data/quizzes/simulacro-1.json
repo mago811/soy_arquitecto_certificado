@@ -1,0 +1,1087 @@
+{
+  "id": "simulacro-1",
+  "dia": 12,
+  "titulo": "SIMULACRO #1 — 60 preguntas, 120 minutos",
+  "preguntas": [
+    {
+      "id": "q1",
+      "objetivo": "mcp-scoping",
+      "escenario": "Una desarrolladora de un banco usa un MCP server de la mesa de tickets interna en los ocho repos en los que trabaja. Cada vez que arranca en un repo nuevo tiene que correr claude mcp add de nuevo, porque el server no aparece. Quiere configurarlo una sola vez, disponible en todos SUS proyectos, sin tocar ningún repo del equipo. ¿Qué hace?",
+      "opciones": [
+        "Agregar el server al .mcp.json de cada repo del banco, así queda siempre disponible",
+        "Mantener scope local y armar un script de shell que corra claude mcp add en cada repo nuevo",
+        "Re-agregar el server una sola vez con --scope user",
+        "Pedirle a IT que lo despliegue por enterprise managed settings para toda la organizacion"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "El .mcp.json es config de equipo versionada: le impondria su herramienta personal a todos los devs de cada repo, y habria que editarlo repo por repo.",
+        "Automatiza el sintoma sin arreglar la causa: sigue siendo scope local, una copia por proyecto, configs que divergen con el tiempo.",
+        "Correcta. Personal y en todos tus proyectos es la definicion exacta del scope user: se configura una vez, la ve solo ella, y ningun repo del equipo se entera.",
+        "Enterprise es politica organizacional para todos los usuarios: alcance desproporcionado para una preferencia personal de una sola dev."
+      ]
+    },
+    {
+      "id": "q2",
+      "objetivo": "enforcement",
+      "escenario": "En una telco, seguridad distribuyo managed settings (enterprise) con un deny para las herramientas de escaneo de red. Un ingeniero agrego un allow para esos comandos en su .claude/settings.local.json y ademas lanzo Claude Code con flags de permisos por CLI. Sigue bloqueado y abrio un ticket reportando un bug. ¿Que le respondes?",
+      "opciones": [
+        "No es un bug: los managed settings enterprise tienen la maxima precedencia sobre CLI, local, proyecto y user, y ante conflicto deny gana a allow",
+        "Es un bug: settings.local.json es el archivo mas especifico del proyecto y deberia pisar la politica",
+        "Los flags de CLI deberian ganar porque son la instruccion mas explicita en tiempo de ejecucion; que actualice la version",
+        "Tiene que borrar la cache de settings y reiniciar Claude Code para que tome su allow"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. La jerarquia es enterprise > CLI > settings.local.json > settings del proyecto > user. La politica managed esta arriba de todo justamente para que nadie la esquive, y deny siempre gana el empate contra allow.",
+        "settings.local.json es personal del proyecto, pero esta DEBAJO de enterprise y de los argumentos de CLI en la jerarquia: no puede pisar una politica managed.",
+        "Los flags de CLI estan por encima de los archivos de settings del usuario, pero por debajo de enterprise: si pudieran ganarle, la politica organizacional no serviria de nada.",
+        "No hay cache que invalidar: el comportamiento es el esperado por la precedencia. Reiniciar no cambia la jerarquia."
+      ]
+    },
+    {
+      "id": "q3",
+      "objetivo": "extraction-accuracy",
+      "escenario": "Un sistema de aduanas extrae declaraciones de importacion escaneadas a JSON. El campo pais_origen a veces no figura en el documento. El prompt ya dice: si el dato no esta, devolve null. Aun asi, el modelo completa el campo con paises plausibles inventados. El prompt tiene cinco ejemplos few-shot, todos con declaraciones completas. ¿Cual es el fix?",
+      "opciones": [
+        "Repetir la instruccion del null en mayusculas al principio y al final del prompt",
+        "Agregar ejemplos few-shot donde el dato falta en el documento y el output muestra pais_origen en null",
+        "Marcar pais_origen como required en el schema para que el modelo lo trate con mas cuidado",
+        "Bajar la temperatura a 0 para eliminar las invenciones"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "La instruccion ya esta y el modelo la ignora: los cinco ejemplos completos le ensenan que el output siempre trae un pais. El ejemplo pesa mas que la instruccion.",
+        "Correcta. Si todos los ejemplos estan completos, el modelo aprende que fabricar es lo esperado. Un ejemplo con el campo ausente y null en el output le muestra exactamente que hacer ante datos faltantes.",
+        "Al reves: required obliga a poner un valor siempre, o sea que ante un documento incompleto la fabricacion queda garantizada por schema.",
+        "La temperatura reduce variabilidad entre respuestas, no la tendencia a completar un campo que los ejemplos muestran siempre lleno."
+      ]
+    },
+    {
+      "id": "q4",
+      "objetivo": "context-methods",
+      "escenario": "El equipo de integraciones de un hospital tiene sus convenciones de nombres para recursos FHIR en una pagina de Confluence. Todos los devs las necesitan en cada sesion de Claude Code, pero nadie carga la pagina y los PRs salen violandolas. ¿Cual es el fix?",
+      "opciones": [
+        "Que cada dev copie las convenciones a su ~/.claude/CLAUDE.md personal",
+        "Exponer la pagina de Confluence como resource de un MCP server",
+        "Sumar al onboarding el paso de pegar las convenciones inline al arrancar cada sesion",
+        "Pasar las convenciones al CLAUDE.md del proyecto, versionado en el repo"
+      ],
+      "correcta": 3,
+      "rationales": [
+        "Duplica la fuente en N copias personales que divergen al primer cambio, y ademas se las carga en TODOS sus proyectos, incluso donde no aplican.",
+        "Un resource depende de que el modelo decida consultarlo en cada sesion: vuelve probabilistico algo que tiene que estar siempre.",
+        "Depende de que un humano se acuerde en cada sesion: el mismo punto de falla que hoy, con un paso mas de ceremonia.",
+        "Correcta. Informacion que todo el equipo necesita en cada sesion es el caso exacto del CLAUDE.md de proyecto: el harness lo carga automatico para todos, sin humano en el loop."
+      ]
+    },
+    {
+      "id": "q5",
+      "objetivo": "orchestration",
+      "escenario": "Un banco corre un agente nocturno que analiza 30 legajos de credito y produce un ranking de riesgo. Hoy un solo agente procesa los legajos uno por uno en el mismo contexto: tarda horas y los ultimos legajos salen peor analizados porque el contexto viene cargado. Los analisis individuales no dependen entre si; el ranking necesita los 30. ¿Como lo redisenas?",
+      "opciones": [
+        "Orchestrator-workers: un worker por legajo en paralelo, cada uno devuelve un resumen estructurado, y el orquestador construye el ranking cuando tiene los 30",
+        "Mantener un solo agente pero instruirlo para compactar su contexto despues de cada legajo",
+        "Paralelizar todo: los 30 workers de legajos y ademas un worker de ranking arrancando al mismo tiempo para ganar tiempo",
+        "Workers en paralelo que se pasan resultados parciales entre si hasta converger en el ranking, sin orquestador"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. Subtareas independientes van en paralelo, cada worker con contexto limpio; la sintesis, que depende de todas, la hace el orquestador al final. Resuelve la lentitud y la degradacion a la vez.",
+        "Compactar mitiga la degradacion pero el procesamiento sigue siendo secuencial: las horas de demora quedan intactas.",
+        "El ranking depende de los 30 analisis: arrancarlo en paralelo lo obliga a trabajar con inputs que todavia no existen. Lo dependiente va despues, no junto.",
+        "Sin orquestador nadie decide la descomposicion ni sintetiza: la coordinacion entre pares agrega complejidad y el resultado final queda sin dueno."
+      ]
+    },
+    {
+      "id": "q6",
+      "objetivo": "enforcement",
+      "escenario": "En un banco, el equipo de datos puso un deny para todo comando que use el perfil de conexion de la base productiva. Funciono, pero ahora los hotfixes legitimos quedan trabados: quieren que Claude Code pueda ejecutar esos comandos, siempre que un humano confirme en el momento, cada vez. ¿Que cambio hacen?",
+      "opciones": [
+        "Mantener el deny y documentar en CLAUDE.md que Claude pida la excepcion cuando sea un hotfix",
+        "Cambiar el deny por un allow y agregar en CLAUDE.md la instruccion de confirmar siempre antes",
+        "Reemplazar el deny por una regla ask para ese patron de comando en permissions",
+        "Reemplazar el deny por un hook PostToolUse que avise al canal de DBAs cada vez que se ejecuto"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "El deny bloquea en el harness antes de que ninguna excepcion pueda evaluarse: pedir permiso en CLAUDE.md no destraba nada, el comando nunca llega a correr.",
+        "Con allow el comando pasa sin frenos y la confirmacion queda como guidance: en una sesion larga el paso critico puede ejecutarse sin que nadie confirme.",
+        "Correcta. ask es exactamente confirmacion humana determinista: el harness frena el comando cada vez y solo sigue si alguien aprueba. Ni prohibe de mas como deny, ni promete de menos como CLAUDE.md.",
+        "Avisar despues de tocar la base productiva no es confirmar antes: cuando llega el mensaje, el comando ya corrio."
+      ]
+    },
+    {
+      "id": "q7",
+      "objetivo": "mcp-scoping",
+      "escenario": "Una auditoria de seguridad sobre el repo de un ministerio encuentra una API key literal dentro del .mcp.json que define el MCP server del registro de ciudadanos. El server debe seguir siendo compartido y versionado para todo el equipo. ¿Cual es el fix completo?",
+      "opciones": [
+        "Agregar .mcp.json al .gitignore para que la key deje de versionarse",
+        "Rotar la key expuesta y reemplazarla en .mcp.json por una referencia tipo ${REGISTRO_API_KEY} que cada dev define en su entorno",
+        "Mover el server al scope user de cada dev para que la key viva fuera del repo",
+        "Cifrar .mcp.json con una herramienta de git y compartir la clave de descifrado con el equipo"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "Ignorar el archivo rompe justamente lo que .mcp.json existe para dar: config compartida y versionada. Y la key ya expuesta sigue viva en el historial.",
+        "Correcta. Secrets en .mcp.json jamas literales: la expansion de env vars deja la config en el repo y el secret en el entorno de cada dev. Y una key que toco el repo se rota siempre, porque el historial la conserva.",
+        "Saca la key del repo pero pierde el requisito: la config deja de estar compartida y versionada, cada dev la duplica a mano y diverge.",
+        "Agrega ceremonia y una clave compartida mas que administrar, el secret sigue siendo un literal unico para todos, y no resuelve la key ya filtrada."
+      ]
+    },
+    {
+      "id": "q8",
+      "objetivo": "context-methods",
+      "escenario": "El CLAUDE.md del repo de un core bancario tiene un import @docs/spec-normativa.md que inyecta 4000 lineas de especificacion regulatoria, consultada una vez por mes para un batch. Ultimamente Claude ignora convenciones basicas del proyecto y cada sesion quema muchos mas tokens. ¿Cual es el fix?",
+      "opciones": [
+        "Sacar el import del CLAUDE.md, dejar ahi solo lo esencial de cada sesion, y adjuntar la spec con @docs/spec-normativa.md unicamente en las tareas del batch mensual",
+        "Partir la spec en dos archivos mas chicos e importar ambos desde CLAUDE.md",
+        "Mover el import al ~/.claude/CLAUDE.md de los devs que trabajan en el batch",
+        "Cambiar a un modelo con ventana de contexto mas grande para que la spec entre comoda"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. El import inyecta el contenido en TODAS las sesiones: 4000 lineas mensuales pagadas a diario diluyen las convenciones y cuestan tokens. Lo ocasional se trae con @ cuando la tarea lo pide.",
+        "Organiza la lectura humana, pero si los dos se importan siempre, el contexto cargado es identico: misma dilucion, mismo costo.",
+        "Peor punteria: el user CLAUDE.md se carga en TODOS los proyectos de esos devs, no solo en este repo ni solo en el batch.",
+        "Mas ventana no arregla senal contra ruido: las 4000 lineas siguen diluyendo las instrucciones criticas, y el costo por sesion sube igual."
+      ]
+    },
+    {
+      "id": "q9",
+      "objetivo": "enforcement",
+      "escenario": "El hook PreToolUse de un hospital bloquea correctamente las escrituras en historias-clinicas/: termina con exit 2 y el tool no se ejecuta. Pero Claude reintenta la misma edicion una y otra vez, a ciegas, sin cambiar de estrategia. El hook imprime el motivo del bloqueo con echo a stdout. ¿Que falta?",
+      "opciones": [
+        "Nada que hacer en el hook: los PreToolUse no pueden mandarle feedback a Claude; explicar la politica en CLAUDE.md",
+        "Cambiar a exit 1, que es el codigo que le entrega el mensaje a Claude",
+        "Prefijar el mensaje de stdout con una etiqueta especial tipo BLOCKED: para que Claude lo parsee",
+        "Mandar el motivo a stderr: con exit 2 el bloqueo ya funciona, y stderr es el canal que le llega a Claude como feedback"
+      ],
+      "correcta": 3,
+      "rationales": [
+        "Falso: PreToolUse si le habla a Claude, justamente via stderr cuando bloquea con exit 2. CLAUDE.md sumaria guidance pero no arregla el canal del feedback.",
+        "Exit 1 es error no bloqueante: perderia el bloqueo que hoy funciona. El contrato es exit 2 bloquea y stderr viaja a Claude.",
+        "No existe tal etiqueta: el problema no es el formato del mensaje sino el canal. Lo que va por stdout en un bloqueo no le llega a Claude.",
+        "Correcta. El contrato del hook es exit 2 bloquea el tool y el stderr se le pasa a Claude como feedback. Con el motivo en stderr, Claude entiende por que fallo y cambia de estrategia en vez de reintentar a ciegas."
+      ]
+    },
+    {
+      "id": "q10",
+      "objetivo": "mcp-scoping",
+      "escenario": "Un dev de un medio digital tiene hace meses un MCP server llamado cms en scope user, apuntando al CMS de staging. Esta semana el equipo agrego al .mcp.json del repo un server cms que apunta a la API de produccion. Desde entonces, en ese repo sus tools pegan contra produccion y el no entiende por que su config personal dejo de valer. ¿Que paso?",
+      "opciones": [
+        "Es un bug: el scope user deberia ganar porque es la config mas personal",
+        "Comportamiento esperado: ante el mismo nombre la precedencia es local > project > user, asi que en este repo el server del equipo tapa al suyo; si quiere staging aca, agrega una copia en scope local",
+        "Al aprobar el .mcp.json, Claude Code sobreescribio permanentemente su config de scope user",
+        "Los nombres de server deben ser unicos entre scopes: tiene que renombrar el suyo o el sistema queda en estado invalido"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "No hay bug: user es el escalon mas bajo de la precedencia por nombre. Si ganara user, un equipo no podria estandarizar nada via .mcp.json.",
+        "Correcta. La precedencia por nombre es local > project > user: dentro de este repo, project enmascara su server user sin tocarlo. Una copia local con ese nombre le devolveria staging solo aca, porque local le gana a project.",
+        "Nada se sobreescribe: su config user sigue intacta y activa en sus otros proyectos. Es enmascaramiento por precedencia, limitado a este repo.",
+        "El mismo nombre en varios scopes es valido y esperado: el conflicto se resuelve por precedencia, no exige unicidad ni deja nada invalido."
+      ]
+    },
+    {
+      "id": "q11",
+      "objetivo": "extraction-accuracy",
+      "escenario": "Un pipeline extrae eventos de telemetria satelital desde logs de estaciones terrenas. Los timestamps llegan mezclados: epoch en segundos, dia juliano tipo 2026-217T14:03Z y fechas tipo 14/03/2026 UTC. El prompt instruye devolver todo en ISO 8601, pero el output sigue mezclando formatos. ¿Cual es el fix?",
+      "opciones": [
+        "Agregar un post-procesamiento con regex que reescriba al formato correcto lo que salga",
+        "Repetir la instruccion de ISO 8601 al principio y al final del prompt",
+        "Agregar ejemplos few-shot que muestren cada variante de entrada convertida a ISO 8601 en el output",
+        "Pedirle al modelo que primero clasifique el formato de cada timestamp y despues extraiga"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "Un regex que normalice epoch, dia juliano y fechas ambiguas es fragil y ataca el sintoma: la extraccion sigue produciendo formatos mezclados que hay que perseguir aguas abajo.",
+        "La instruccion ya esta y no alcanza: repetirla suma enfasis marginal. El modelo necesita ver la conversion, no que se la vuelvan a pedir.",
+        "Correcta. El ejemplo ensena mas que la instruccion: un few-shot con cada variante real de entrada y su salida ISO 8601 le muestra al modelo exactamente la normalizacion esperada, y el output se ancla a ese patron.",
+        "Agrega pasos y tokens sin anclar el formato de salida: puede clasificar bien el formato de entrada y aun asi emitir la fecha como quiera."
+      ]
+    },
+    {
+      "id": "q12",
+      "objetivo": "orchestration",
+      "escenario": "En la redaccion de un diario, un orquestador lanza en paralelo al worker A, que reune y verifica fuentes de una noticia en desarrollo, y al worker B, que redacta el resumen citando esas fuentes. B cita seguido fuentes que no existen. ¿Cual es el fix de diseno?",
+      "opciones": [
+        "Endurecer el prompt de B con la instruccion de no inventar fuentes bajo ninguna circunstancia",
+        "Que B le consulte resultados parciales a A directamente mientras ambos corren",
+        "Correr tres instancias de B en paralelo y quedarse con el resumen mayoritario",
+        "Secuenciar: B depende del output de A, asi que el orquestador corre primero A y le pasa las fuentes verificadas a B como input; el paralelo es solo para subtareas independientes"
+      ],
+      "correcta": 3,
+      "rationales": [
+        "La instruccion no cambia el problema estructural: B redacta sin tener las fuentes, porque A todavia no termino. Sin input real, o inventa o no cita.",
+        "Acoplar workers entre si rompe el patron: la coordinacion es del orquestador, y los parciales de A son fuentes a medio verificar, justo lo que no se puede citar.",
+        "Tres B sin fuentes inventan tres veces: la mayoria entre outputs fabricados sigue siendo fabricada. El voto no crea el input que falta.",
+        "Correcta. Hay dependencia de datos: el output de A es input de B. Lo dependiente va en secuencia y lo independiente en paralelo; el orquestador encadena y B recien redacta cuando las fuentes verificadas existen."
+      ]
+    },
+    {
+      "id": "q13",
+      "objetivo": "enforcement",
+      "escenario": "En un medio digital, el equipo de plataforma quiere que los devs usen el pipeline interno de optimizacion de imagenes en vez de linkear originales en los articulos. Hay excepciones legitimas: breaking news y embeds de terceros. Un dev propone un hook PreToolUse que bloquee cualquier Edit que contenga un tag img con URL externa. ¿Que opinas?",
+      "opciones": [
+        "Buena idea: solo hay que refinar el patron del hook para reducir falsos positivos",
+        "Herramienta equivocada: una preferencia con excepciones legitimas es guidance; va como convencion en CLAUDE.md con un ejemplo del pipeline, no como bloqueo",
+        "Mejor una regla deny en permissions que matchee esas ediciones, que es mas simple que un hook",
+        "Mejor un hook PostToolUse que reescriba automaticamente los tags img al pipeline interno"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "Por mas fino que sea el patron, el hook no distingue un breaking news de un descuido: cada excepcion legitima bloqueada es trabajo valido frenado.",
+        "Correcta. No todo es enforcement: cuando la regla tiene excepciones validas, el bloqueo determinista castiga los casos legitimos. CLAUDE.md orienta el caso comun y deja pasar las excepciones con criterio.",
+        "Las reglas de permissions matchean tools, comandos y paths, no el contenido semantico de una edicion. Y aunque pudieran, seguiria bloqueando las excepciones legitimas.",
+        "Reescribir automatico rompe justo los embeds y urgencias que son validos: un falso positivo silencioso que ademas modifica contenido publicado sin criterio humano."
+      ]
+    },
+    {
+      "id": "q14",
+      "objetivo": "context-methods",
+      "escenario": "Una analista de un organismo publico tiene el texto de una resolucion nueva, 300 lineas, y necesita que Claude Code lo compare contra el modelo de datos del repo una sola vez, hoy. Un companero le sugiere commitear el texto y sumarlo al CLAUDE.md del proyecto para que quede disponible. ¿Que corresponde?",
+      "opciones": [
+        "Pegarlo inline en el mensaje: contexto de un solo uso, cero residuo",
+        "Seguir la sugerencia: al CLAUDE.md del proyecto, asi las proximas sesiones tambien lo tienen",
+        "Montar un MCP server que exponga las resoluciones como resources consultables",
+        "Ponerlo en su ~/.claude/CLAUDE.md para no afectar al resto del equipo"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. Vida util de un mensaje = inline. Se analiza, se responde y no deja residuo ni en el repo ni en el contexto de las sesiones futuras de nadie.",
+        "Esas 300 lineas se cargarian en cada sesion de todo el equipo para siempre, diluyendo lo importante y pagandose en tokens: el anti-patron clasico de CLAUDE.md.",
+        "Infraestructura para una consulta unica: tiempo de armado que la tarea de hoy no tiene y valor recurrente que nadie pidio.",
+        "Evita el repo pero se lo carga a ELLA en todas las sesiones de TODOS sus proyectos, para un analisis que era de hoy y de este repo."
+      ]
+    },
+    {
+      "id": "q15",
+      "objetivo": "mcp-scoping",
+      "escenario": "En el equipo de interoperabilidad de un hospital, cada dev configuro a mano el MCP server de la API FHIR siguiendo un doc de onboarding que dice corre claude mcp add con estos argumentos. Con los meses las configs divergieron: versiones y args distintos por maquina, y bugs que solo le pasan a algunos. ¿Cual es el fix?",
+      "opciones": [
+        "Versionar en el repo un script de shell que corra el claude mcp add correcto y pedirle al equipo que lo re-ejecute en cada actualizacion",
+        "Que cada dev lo re-agregue con --scope user para que al menos cada uno tenga una sola copia consistente",
+        "Definir el server en el .mcp.json del repo (scope project) con las credenciales como referencias a env vars: todos reciben la misma config al clonar, previa aprobacion",
+        "Documentar la config canonica completa en el CLAUDE.md del proyecto para que Claude la aplique en cada sesion"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "Sigue siendo copia manual por maquina: el que no re-ejecuta el script queda desactualizado y la divergencia vuelve. La fuente de verdad no esta en el repo, esta en la disciplina de cada uno.",
+        "Ordena la copia de cada dev pero no unifica nada entre devs: siguen existiendo N configs manuales que divergen igual.",
+        "Correcta. Config que todo el equipo comparte = scope project via .mcp.json versionado: una sola fuente de verdad que se actualiza con un commit, secrets como env vars, y la aprobacion al clonar es la seguridad esperada.",
+        "CLAUDE.md es contexto para el modelo, no un mecanismo de configuracion: los MCP servers los registra el harness via scopes, no una instruccion en prosa."
+      ]
+    },
+    {
+      "id": "q16",
+      "objetivo": "extraction-accuracy",
+      "escenario": "Un museo digitaliza fichas de excavacion arqueologica. El campo periodo debe ser uno de seis valores canonicos de la base de datos, pero el modelo devuelve variantes libres: Bronce final, Late Bronze, BR-III. La ingesta falla constantemente, y ademas hay fichas donde el periodo es ilegible o dudoso. ¿Cual es el fix principal?",
+      "opciones": [
+        "Un diccionario de sinonimos en post-procesamiento que mapee cada variante al valor canonico",
+        "Instruir en el prompt: usa exactamente uno de estos seis valores, listandolos en prosa",
+        "Sumar mas ejemplos few-shot que muestren fichas con los valores correctos",
+        "Restringir periodo en el JSON schema con un enum de los seis valores, y permitir null para las fichas ilegibles o dudosas"
+      ],
+      "correcta": 3,
+      "rationales": [
+        "Persigue variantes infinitas aguas abajo: cada ficha nueva puede inventar una forma nueva. Trata el sintoma en vez de restringir la salida en el origen.",
+        "La prosa mejora la probabilidad pero no restringe nada: el modelo puede seguir parafraseando, y ante una ficha dudosa no le diste salida legitima.",
+        "Los ejemplos ayudan y complementan, pero solos siguen siendo probabilisticos: la garantia estructural de que salga un valor valido la da el schema, no la imitacion.",
+        "Correcta. El enum restringe la salida a los seis valores canonicos y el null le da al modelo una salida legitima para lo ilegible, en vez de forzarlo a elegir un periodo equivocado. Restriccion estructural mas valvula anti-fabricacion."
+      ]
+    },
+    {
+      "id": "q17",
+      "objetivo": "enforcement",
+      "escenario": "La politica de un ministerio prohibe que Claude Code lea archivos bajo expedientes/, para todos los devs, sin excepciones. El tech lead agrego el deny en su .claude/settings.local.json y anuncio que quedo implementado. Una semana despues, la sesion de otro dev leyo un archivo de esa carpeta. ¿Que fallo?",
+      "opciones": [
+        "settings.local.json es personal y no se versiona: la regla solo lo cubria a el; el deny va en .claude/settings.json versionado, o mejor en managed settings enterprise",
+        "El otro dev no reinicio Claude Code para sincronizar los settings del lead",
+        "Falto duplicar la regla en el CLAUDE.md del proyecto para que el resto del equipo la conozca",
+        "El archivo era correcto pero el patron del deny estaba mal escrito"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. settings.local.json es personal del proyecto y queda fuera del repo: los demas devs jamas recibieron la regla. Politica de equipo sin excepciones = archivo compartido versionado, o managed settings si tiene que ser inescapable.",
+        "Los settings no se sincronizan entre maquinas: un archivo local del lead no llega a nadie por mas reinicios que haya.",
+        "CLAUDE.md es guidance: informaria la politica, pero no la garantiza. Y el requisito dice sin excepciones, que es terreno de enforcement.",
+        "El patron funcionaba perfecto en la maquina del lead: el problema es donde vive la regla, no como esta escrita."
+      ]
+    },
+    {
+      "id": "q18",
+      "objetivo": "context-methods",
+      "escenario": "Un consultor externo rota entre cinco repos de clientes de telecomunicaciones. Quiere que Claude Code siga siempre su checklist personal de triage de incidentes y le responda en espanol, en todos esos repos, sin commitear nada en los repos de los clientes ni afectar a sus equipos. ¿Donde va eso?",
+      "opciones": [
+        "Una seccion en el CLAUDE.md de cada repo cliente, marcada como personal",
+        "El checklist dentro del .claude/settings.local.json de cada repo",
+        "Pegar el checklist inline al arrancar cada sesion",
+        "En su ~/.claude/CLAUDE.md: memoria de usuario, cargada en todas sus sesiones de todos sus proyectos, invisible para los clientes"
+      ],
+      "correcta": 3,
+      "rationales": [
+        "Commitea sus preferencias personales en repos ajenos: se las impone a los equipos de cada cliente y las duplica en cinco lugares que divergen.",
+        "settings.local.json configura permisos y comportamiento del harness: no es un archivo de instrucciones en prosa para el modelo, y habria que repetirlo por repo.",
+        "Manual y fragil: depende de acordarse en cada sesion, que es exactamente el tipo de carga que la memoria de usuario elimina.",
+        "Correcta. Preferencias personales que aplican en todos tus proyectos = CLAUDE.md de usuario: se carga automatico en cada sesion suya, no toca ningun repo y ningun cliente lo ve."
+      ]
+    },
+    {
+      "id": "q19",
+      "objetivo": "mcp-scoping",
+      "escenario": "Una dev clono el repo de un organismo publico y, apurada, respondio que no cuando Claude Code le pidio aprobar los tres MCP servers del .mcp.json. Ahora los servers del equipo no cargan en sus sesiones. Borro el repo y lo volvio a clonar, y ni siquiera le vuelve a preguntar. ¿Cual es el fix?",
+      "opciones": [
+        "Correr claude mcp add --scope project para cada server, replicando los args del .mcp.json",
+        "Correr claude mcp reset-project-choices: su rechazo quedo registrado fuera del repo, y ese comando hace que Claude Code vuelva a pedir la aprobacion",
+        "Mover .mcp.json a .claude/.mcp.json para forzar que el prompt de aprobacion reaparezca",
+        "Borrar toda su configuracion global de Claude Code para arrancar de cero"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "Duplica a mano una config que ya esta versionada, y no toca el rechazo registrado: esta peleando contra la decision guardada en vez de resetearla.",
+        "Correcta. La eleccion de aprobar o rechazar servers de .mcp.json se guarda por usuario fuera del repo, por eso re-clonar no cambia nada. reset-project-choices existe exactamente para volver a disparar la aprobacion.",
+        "El path del archivo no gobierna la aprobacion: .mcp.json vive en la raiz del repo, y moverlo no borra la eleccion ya registrada.",
+        "Desproporcionado y destructivo: arrasa con toda su configuracion para revertir una eleccion puntual que tiene su comando especifico."
+      ]
+    },
+    {
+      "id": "q20",
+      "objetivo": "orchestration",
+      "escenario": "Un organismo procesa expedientes ciudadanos que varian muchisimo: algunos traen 2 adjuntos y otros 40, mezclando planos, informes y audios. El pipeline actual lanza siempre exactamente 4 workers fijos, uno por tipo de documento: con expedientes grandes se satura y con chicos desperdicia. ¿Cual es el rediseno correcto?",
+      "opciones": [
+        "Subir el pool fijo a 10 workers para cubrir el peor caso",
+        "Que los workers tomen trabajo de una cola compartida y negocien entre ellos quien procesa que",
+        "Que el orquestador examine cada expediente primero y decida dinamicamente cuantos workers lanzar y que subtarea recibe cada uno, procese los adjuntos independientes en paralelo y sintetice al final",
+        "Un unico agente con ventana de contexto grande que procese cada expediente completo de punta a punta"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "Sigue siendo descomposicion fija para un input variable: con 40 adjuntos se vuelve a saturar y con 2 desperdicia 8 workers. El numero magico cambia, el problema no.",
+        "La cola reparte carga, pero la negociacion entre pares le saca al orquestador su rol: decidir la descomposicion y sintetizar. Nadie mira el expediente completo ni arma el resultado final.",
+        "Correcta. Cuando la estructura del input varia, la descomposicion es dinamica: el orquestador evalua cada expediente, define las subtareas, paraleliza lo independiente y sintetiza lo que depende de todo. Es el corazon del patron orchestrator-workers.",
+        "Vuelve al agente monolitico: pierde el paralelismo con expedientes grandes y el contexto unico se degrada con 40 adjuntos mezclados, que es la falla original."
+      ]
+    },
+    {
+      "id": "q21",
+      "objetivo": "api-stateless",
+      "escenario": "Una agencia de viajes online lanza su chatbot de itinerarios sobre la Messages API. En staging (una sola instancia) funciona perfecto; en producción, detrás de un load balancer con cuatro instancias del backend, el bot pierde el hilo de la conversación al azar: a veces recuerda el destino elegido, a veces no. El equipo culpa a Anthropic: dice que los requests caen en distintos servidores de la API y la sesión no los sigue. ¿Cuál es el diagnóstico y el fix?",
+      "opciones": [
+        "Configurar sticky sessions hacia la API de Anthropic para que todos los requests de una conversación lleguen al mismo servidor del modelo",
+        "Mandar un session_id en el campo metadata para que la API reagrupe los turnos sin importar la instancia de origen",
+        "El historial vive en la memoria de cada instancia del backend y el balanceador reparte los turnos: hay que persistir el historial en un storage compartido (DB o Redis) por conversación y rearmar messages completo en cada request",
+        "Fijar una región única de la API en el SDK para que la conversación quede anclada a un solo datacenter"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "No hay sesión del lado de Anthropic que seguir: cada request se evalúa solo con lo que trae adentro. El estado que se pierde está en las instancias del propio backend, no en los servidores del modelo.",
+        "metadata sirve para trazabilidad y detección de abuso; la API no reagrupa turnos por ningún identificador porque no guarda conversaciones. Toda opción con memoria server-side es falsa, siempre.",
+        "Correcta. El bug es del cliente: cada instancia tenía su propio historial en memoria y el balanceador repartía los requests entre ellas. Con una API stateless, el dueño del historial es la app: storage compartido por conversación y messages completo en cada request.",
+        "La regionalidad no cambia el modelo stateless: ningún datacenter retiene la conversación. El azar venía del balanceador propio, no del de Anthropic."
+      ]
+    },
+    {
+      "id": "q22",
+      "objetivo": "extraction-schemas",
+      "escenario": "Una aseguradora de autos extrae datos de denuncias de siniestros con tool use y JSON schema. El campo numero_poliza es required, tipo string, sin null. Cuando el denunciante no informa su póliza, el modelo devuelve un número con el formato exacto de la compañía pero que no existe en la base. En la code review, un dev propone endurecer el pattern del campo para que los inventados no validen. ¿Qué respondés?",
+      "opciones": [
+        "Que el pattern valida forma y no existencia: el fix es tipo string o null con una description que indique devolver null cuando la póliza no figura en la denuncia",
+        "Que la propuesta es correcta: un pattern suficientemente estricto hace casi imposible fabricar un número que valide",
+        "Que hay que sacar numero_poliza del array required para que el modelo pueda omitirlo cuando no está",
+        "Que hay que agregar strict true para que la API verifique el número contra la base de pólizas"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. Un required no-nullable no le deja al modelo una salida legal para decir que el dato no está, y fabrica con formato perfecto. Nullable más description convierte la ausencia en respuesta válida del schema; el pattern jamás puede verificar existencia contra un sistema.",
+        "El modelo genera números que respetan el formato del propio pattern: siguen validando y siguen siendo falsos. La forma correcta no garantiza un dato verdadero.",
+        "Optional frena parte de la fabricación pero vuelve la ausencia ambigua: no sabés si la póliza no estaba o el modelo la salteó. Para un flujo de siniestros auditable, required más nullable es el patrón.",
+        "strict true garantiza que el output valide contra el schema: estructura y tipos. La API no consulta bases externas ni verifica la verdad de ningún valor."
+      ]
+    },
+    {
+      "id": "q23",
+      "objetivo": "tool-choice",
+      "escenario": "Un agente de una plataforma de streaming busca títulos con la tool buscar_catalogo. Para asegurarse de que siempre consulte el catálogo antes de responder, el dev seteó tool_choice {\"type\": \"tool\", \"name\": \"buscar_catalogo\"} y dejó esa config fija para TODOS los requests del loop. Ahora el agente cicla: ejecuta la tool, devuelve el tool_result, y en el request siguiente el modelo vuelve a llamar buscar_catalogo, sin entregar nunca la respuesta final en texto. ¿Cuál es el fix?",
+      "opciones": [
+        "Agregar disable_parallel_tool_use true para que el loop avance de a una llamada y pueda terminar",
+        "Bajar max_tokens en los requests siguientes para que el modelo no tenga espacio para otra tool call",
+        "Agregar al system prompt que después del primer resultado responda en texto",
+        "Forzar la tool solo en el primer request; en los siguientes, con el tool_result ya en el historial, usar tool_choice auto (o none) para que el modelo pueda cerrar con la respuesta en texto"
+      ],
+      "correcta": 3,
+      "rationales": [
+        "disable_parallel_tool_use limita la CANTIDAD de tools por respuesta, no levanta la obligación: con type tool fijo, cada respuesta DEBE llamar esa tool y el loop no puede terminar nunca.",
+        "max_tokens corta longitud, no impide tool calls: el modelo emitiría la misma llamada forzada, quizá truncada. No toca la causa.",
+        "El system prompt es guidance y tool_choice es un contrato duro de la API: mientras type tool siga seteado, el modelo tiene prohibido responder sin llamar la tool, diga lo que diga el prompt.",
+        "Correcta. Forzar una tool obliga a llamarla en ESA respuesta: dejarlo fijo prohíbe la respuesta final. El patrón es forzar solo donde hace falta y volver a auto (o none en el paso final) para que el loop termine cuando stop_reason deja de ser tool_use."
+      ]
+    },
+    {
+      "id": "q24",
+      "objetivo": "decomposition",
+      "escenario": "Una fábrica procesa cada noche los reportes de defectos de sus 12 líneas de producción: un agente analiza los defectos de cada línea y un paso final escribe el informe comparativo de causas raíz entre líneas. Hoy todo corre en secuencia estricta, línea por línea y después el informe, y el batch tarda 6 horas: no llega listo antes del turno mañana. ¿Cómo lo rediseñás?",
+      "opciones": [
+        "Partir también el informe comparativo en 12 secciones paralelas para eliminar el último cuello de botella",
+        "Analizar las 12 líneas en paralelo, porque son independientes entre sí, y correr el informe comparativo después, en un paso secuencial que reciba los 12 outputs",
+        "Mantener la secuencia pero usar un modelo más rápido para cada análisis",
+        "Lanzar las 13 tareas juntas en paralelo, análisis e informe, para máxima velocidad"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "El informe depende de los 12 análisis y además compara ENTRE líneas: partirlo en secciones paralelas rompe justamente la visión cruzada que lo define.",
+        "Correcta. La dependencia define el orden: los análisis por línea no dependen entre sí y van en paralelo; el comparativo depende de todos y va después, en secuencia. Independientes en paralelo, dependientes en secuencia.",
+        "Acelera cada paso pero conserva una arquitectura secuencial innecesaria: 12 tareas independientes siguen esperándose entre sí sin motivo.",
+        "El informe correría sin sus inputs y fabricaría comparaciones: es el error inverso, paralelizar también lo que depende de resultados previos."
+      ]
+    },
+    {
+      "id": "q25",
+      "objetivo": "refinement",
+      "escenario": "Una plataforma educativa refina planes de clase con un loop generador-revisor. El revisor devuelve solamente un puntaje de 1 a 10, y el loop regenera hasta superar 8. Los planes oscilan entre 5 y 7 durante iteraciones enteras: cambian mucho pero no mejoran, y el costo por plan se disparó. ¿Cuál es el fix?",
+      "opciones": [
+        "Bajar el umbral de corte a 6 para que el loop termine antes",
+        "Pedirle al generador que en cada iteración intente un enfoque radicalmente distinto",
+        "Que el revisor devuelva, además del puntaje, los issues concretos con ejemplos citados del plan (qué actividad falla, dónde, qué se esperaba), y que el generador los corrija todos en una sola pasada",
+        "Sumar un segundo revisor y promediar los puntajes para tener una señal más estable"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "Baja la vara en vez de mejorar el output: el loop termina antes, pero entrega planes mediocres. El problema es la señal, no el umbral.",
+        "Más variación al azar sobre una señal vacía: un puntaje sin diagnóstico no dice QUÉ cambiar, así que explorar distinto sigue siendo tirar los dados.",
+        "Correcta. Un puntaje solo es feedback vago con número: mide pero no dirige. La mejora dirigida necesita issues concretos con ejemplos del error, y batchearlos en una pasada corrige todo sin que el loop oscile.",
+        "Promediar dos señales vagas da una señal vaga más estable: el generador sigue sin saber qué corregir."
+      ]
+    },
+    {
+      "id": "q26",
+      "objetivo": "extraction-schemas",
+      "escenario": "Una plataforma de turismo extrae datos de vouchers de reservas: hotel, fechas, régimen de comidas y codigo_reserva. Para frenar los datos inventados, el equipo sacó todos los campos de la lista required. Ahora legal reclama: en los reclamos de reembolso no pueden distinguir si el voucher no traía el codigo_reserva o si el extractor lo omitió. ¿Cuál es el diseño correcto?",
+      "opciones": [
+        "Volver a required no-nullable y validar los códigos con un pattern estricto",
+        "Agregar un campo booleano por cada dato, tipo tiene_codigo, que el modelo complete además del valor",
+        "Loguear el documento fuente junto al output y auditar a mano los casos dudosos",
+        "required más tipos nullable: cada campo aparece SIEMPRE en el output, y null es la señal explícita y auditable de que el dato no estaba en el voucher"
+      ],
+      "correcta": 3,
+      "rationales": [
+        "Reintroduce la fabricación: required sin null obliga a rellenar, y un pattern valida forma, no existencia. Vuelve al problema que motivó el cambio.",
+        "Duplica el schema sin agregar garantía: el booleano también lo completa el modelo y puede contradecir al valor. required más nullable expresa lo mismo sin redundancia.",
+        "Auditar a mano no escala y no arregla el contrato: la ausencia debe expresarla el schema en el output, no reconstruirse después con humanos.",
+        "Correcta. Optional y nullable no son lo mismo: optional permite que el campo FALTE y vuelve la ausencia ambigua; required más nullable obliga a que aparezca y reserva null como señal inequívoca de que no estaba. Es el patrón de extracción auditable."
+      ]
+    },
+    {
+      "id": "q27",
+      "objetivo": "api-stateless",
+      "escenario": "Un dev que viene de otro SDK integra tool use en el bot de soporte de un servicio de streaming. Tras recibir stop_reason tool_use por la tool consultar_plan, ejecuta la tool y agrega al historial un mensaje con role tool que contiene el resultado. La API devuelve 400 por role inválido. ¿Cómo se devuelve correctamente el resultado?",
+      "opciones": [
+        "Cambiar role tool por role function, que es el nombre correcto en la Messages API",
+        "En un turno con role user, como bloque de contenido tool_result que referencia el tool_use_id, reenviando además el historial completo que incluye el turno assistant con el bloque tool_use",
+        "Como parámetro top-level tool_results del request, separado del array messages",
+        "En un turno assistant, porque el resultado continúa la respuesta que el modelo dejó a medias"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "Ese role tampoco existe: la conversación de la Messages API solo acepta turnos user y assistant. Los resultados de tools no tienen role propio.",
+        "Correcta. El tool_result es un bloque de contenido dentro de un mensaje user, matcheado por tool_use_id con el bloque tool_use del turno assistant previo. Y como la API es stateless, ese turno assistant tiene que venir en el mismo request: historial completo, siempre.",
+        "No existe ese parámetro: todo lo que el modelo debe ver viaja dentro de messages, incluidos los resultados de tools.",
+        "El turno assistant es del modelo: ahí vive el tool_use. Lo que el cliente aporta, incluido el resultado de ejecutar la tool, entra como turno user."
+      ]
+    },
+    {
+      "id": "q28",
+      "objetivo": "tool-choice",
+      "escenario": "El cotizador de una aseguradora de autos tiene la tool cotizar_poliza, que necesita marca, modelo, año y código postal. El equipo seteó tool_choice {\"type\": \"any\"} para que ningún mensaje quede sin cotizar. Cuando un usuario escribe quiero asegurar mi auto sin dar ningún dato, el modelo llama cotizar_poliza con un vehículo plausible pero inventado. Esos datos solo puede darlos el usuario. ¿Cuál es el fix?",
+      "opciones": [
+        "Volver a tool_choice auto: sin la llamada forzada, el modelo puede responder en texto pidiéndole al usuario los datos faltantes, y llamar cotizar_poliza recién cuando los tenga",
+        "Encadenar requests forzando primero una tool buscar_vehiculo que resuelva los datos reales",
+        "Marcar los cuatro parámetros como required en el schema para bloquear cotizaciones incompletas",
+        "Mantener any y agregar al system prompt que no invente vehículos bajo ninguna circunstancia"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. any fuerza una tool call en ESA respuesta: sin datos, el modelo fabrica porque no puede preguntar. Cuando el dato faltante solo lo tiene el USUARIO, no hay tool que lo resuelva: la salida es auto, que le permite pedir la información en texto antes de llamar.",
+        "El encadenamiento resuelve dependencias entre TOOLS, pero acá no existe ninguna tool que sepa qué auto tiene el usuario: el dato viene de la conversación, no de un sistema consultable.",
+        "required obliga a que los campos vengan en la llamada, no a que sean verdaderos: el modelo forzado los completa inventando, que es exactamente el bug actual.",
+        "Guidance contra un contrato duro: any le exige llamar una tool sí o sí, y sin datos su única jugada legal es inventar, diga lo que diga el prompt."
+      ]
+    },
+    {
+      "id": "q29",
+      "objetivo": "extraction-accuracy",
+      "escenario": "Un extractor de bills of lading de una naviera ya tiene el schema correcto: campos nullable con descriptions que dicen si no figura en el documento, devolvé null. Aun así, cuando el documento no menciona puerto de transbordo, el modelo completa puerto_transbordo con Singapur u otro puerto plausible de la ruta. Los tres ejemplos few-shot del prompt muestran documentos completos con todos los campos llenos. ¿Qué falta?",
+      "opciones": [
+        "Subir la cantidad de ejemplos completos de 3 a 10 para reforzar el formato de salida",
+        "Sacar los ejemplos few-shot, que están contaminando al modelo: con el schema nullable alcanza",
+        "Incluir en el few-shot ejemplos de documentos INCOMPLETOS cuyo output muestre null en los campos ausentes: los ejemplos le enseñan al modelo cuándo usar el null que el schema permite",
+        "Repetir la instrucción de devolver null al final del prompt, que es donde más pesa"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "Diez ejemplos con todos los campos llenos enseñan con más fuerza el mismo sesgo: que siempre hay un valor. El problema no es la cantidad sino qué patrón muestran.",
+        "El few-shot no sobra: bien elegido es la pieza que demuestra el comportamiento esperado. Sacarlo deja al schema sin ejemplos de uso y la accuracy suele empeorar.",
+        "Correcta. El schema hace que null sea legal; los ejemplos enseñan cuándo emitirlo. Si todo el few-shot muestra documentos completos, el modelo aprende que siempre hay valor. Ejemplos con ausencias y null en el output cierran el combo nullable, enums y few-shot con nulls.",
+        "Reubicar la instrucción es más guidance sobre lo mismo: los ejemplos concretos pesan más que la instrucción, y hoy los ejemplos la contradicen."
+      ]
+    },
+    {
+      "id": "q30",
+      "objetivo": "decomposition",
+      "escenario": "Una edtech importa cursos de instituciones externas para indexarlos: cada curso trae una mezcla distinta de módulos, videos, quizzes y PDFs, en cantidades imprevisibles. El pipeline actual tiene 3 pasos fijos (procesar módulo, procesar video, procesar quiz) y con cursos grandes deja contenido sin indexar; con tipos no previstos, directamente falla. ¿Cómo lo rediseñás?",
+      "opciones": [
+        "Un orquestador que liste los componentes del curso en runtime y despache un worker por cada componente encontrado, según su tipo",
+        "Ampliar el pipeline con pasos fijos para los 8 tipos de contenido más comunes del mercado",
+        "Exigirles a las instituciones un manifiesto con la estructura del curso antes de importar",
+        "Procesar el curso completo en una sola llamada con un prompt que cubra todos los tipos"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. La estructura del trabajo recién se conoce al abrir el curso: cuántos componentes y de qué tipo. Es el caso de la descomposición dinámica: el orquestador inspecciona los datos y decide en runtime cuántos workers crear y de qué clase.",
+        "Sigue siendo estático: el próximo curso con un noveno tipo o con 40 videos vuelve a romper. Perseguir los casos comunes no resuelve input de estructura variable.",
+        "Traslada al proveedor el trabajo que define al patrón: descubrir la estructura es exactamente lo que el orquestador puede hacer solo, listando el contenido recibido.",
+        "Un curso entero en un solo contexto diluye cada tarea y escala mal: análisis superficial, caro y sin paralelismo posible."
+      ]
+    },
+    {
+      "id": "q31",
+      "objetivo": "api-stateless",
+      "escenario": "Una app de tutoría permite estudiar desde el celular y desde la web. Un estudiante arranca una conversación en el celular y la sigue en la web: el cliente web manda solo el mensaje nuevo, confiando en que la API asocia ambos dispositivos porque los requests usan la misma API key del backend. El tutor web responde como si fuera la primera pregunta del estudiante. ¿Cuál es el fix?",
+      "opciones": [
+        "Mandar el device_id original en metadata para que la API vincule los dos dispositivos",
+        "Usar el id del último response del celular como puntero de continuación en el primer request web",
+        "Habilitar prompt caching con TTL de una hora para que el contexto del celular quede disponible desde la web",
+        "Sincronizar el historial a través del backend propio: la conversación se persiste por estudiante en el storage de la app, y cualquier cliente arma cada request con el array messages completo"
+      ],
+      "correcta": 3,
+      "rationales": [
+        "metadata no vincula nada: sirve para trazabilidad y detección de abuso. La API no asocia requests entre sí por key, dispositivo ni ningún identificador, porque no guarda conversaciones.",
+        "Los ids de response identifican mensajes para tu logging; la API no acepta punteros a requests anteriores porque para ella el request anterior no existe.",
+        "El cache abarata tokens repetidos que IGUAL viajan en el request: no es memoria compartida entre clientes. Si la web no manda el historial, el modelo no lo ve, con cache vigente o no.",
+        "Correcta. Multi-dispositivo es un problema del cliente: el historial vive en el backend de la app, por estudiante y conversación, y cada cliente lo recupera y lo reenvía completo. La API es stateless: ve únicamente lo que cada request trae."
+      ]
+    },
+    {
+      "id": "q32",
+      "objetivo": "extraction-schemas",
+      "escenario": "Un extractor procesa las bitácoras de mantenimiento de una fábrica y llena un campo estado_maquina de tipo string libre. El tablero de planta agrupa por estado y espera tres valores: operativa, detenida, en_mantenimiento. En producción aparecen estados como parada-preventiva-urgente y semi-operativa que rompen los agrupamientos del tablero. ¿Cuál es el fix?",
+      "opciones": [
+        "Agregar additionalProperties false para impedir que el modelo agregue estados no previstos",
+        "Definir estado_maquina con un enum de los valores que el tablero espera, sumando un escape como otros si hace falta: el espacio de valores queda cerrado y el modelo no puede emitir estados nuevos",
+        "Listar los tres estados válidos en el system prompt y pedirle que use solo esos",
+        "Normalizar los estados inventados con un post-proceso de regex antes de cargar el tablero"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "additionalProperties false bloquea CLAVES no declaradas en el objeto; el valor de estado_maquina sigue siendo un string libre y el estado inventado pasa igual.",
+        "Correcta. El enum es el contrato duro: cierra el espacio de valores a los que el sistema downstream entiende. Dominio cerrado con valores conocidos es el caso exacto del enum, con otros como escape para lo raro.",
+        "La lista en el prompt es guidance: ante bitácoras ambiguas el modelo puede improvisar un estado que suena razonable. Orienta, no garantiza.",
+        "Parchear después no cierra el contrato: cada estado nuevo exige otra regla de regex y mientras tanto el tablero se rompe. El schema puede impedir que el valor inválido exista."
+      ]
+    },
+    {
+      "id": "q33",
+      "objetivo": "refinement",
+      "escenario": "Un batch nocturno de una plataforma de streaming refina las sinopsis del catálogo con un loop generador-revisor. El ticket dice: iterar hasta que el revisor no marque ninguna observación. Anoche una sola sinopsis iteró 35 veces, porque el revisor siempre encuentra algún matiz de estilo, y el batch reventó el presupuesto de tokens. ¿Cuál es el fix?",
+      "opciones": [
+        "Definir un criterio de corte explícito: un máximo de iteraciones o un umbral de calidad aceptable que, alcanzado, termina el loop aunque queden observaciones menores",
+        "Correr el batch repartido en dos noches para diluir el costo de las iteraciones",
+        "Instruir al revisor para que a partir de la iteración 10 deje pasar todo",
+        "Cachear las sinopsis ya revisadas para abaratar cada vuelta del loop"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. Perfecto no es un criterio de terminación: es la ausencia de uno. Todo loop de refinement necesita corte explícito, N iteraciones máximo o un umbral de calidad, porque un revisor siempre puede encontrar algo más.",
+        "Reparte el costo del mismo loop sin fin: no hay condición de terminación, así que el problema vuelve intacto cada noche.",
+        "Es un corte disfrazado y mal implementado: ablandar al revisor degrada la señal de todas las iteraciones en vez de cortar el loop con una regla clara y medible.",
+        "El caching abarata tokens repetidos, pero un loop sin fin sigue sumando iteraciones: optimiza el costo por vuelta sin arreglar que las vueltas no terminan."
+      ]
+    },
+    {
+      "id": "q34",
+      "objetivo": "tool-choice",
+      "escenario": "Un asistente de viajes pide tres tools en paralelo en una misma respuesta: disponibilidad_vuelos, disponibilidad_hotel y pronostico_clima llegan como tres bloques tool_use. El backend, que solo esperaba una llamada por turno, ejecuta la primera y manda un mensaje user con ese único tool_result. La API rechaza el request. ¿Cuál es el fix?",
+      "opciones": [
+        "Responder el tool_result de vuelos ahora y mandar los otros dos en los siguientes requests, uno por turno",
+        "Setear tool_choice {\"type\": \"tool\"} rotando el name para que el modelo pida las tools de a una",
+        "Ejecutar las tres tools y devolver los tres tool_result como bloques dentro de UN solo mensaje user, cada uno matcheado por su tool_use_id, y con is_error true si alguna falló",
+        "Descartar la respuesta y reintentar el request original hasta que el modelo pida una sola tool"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "Los tres tool_use de esa respuesta quedan pendientes juntos: el próximo mensaje user debe responderlos todos. Repartirlos en turnos deja llamadas sin respuesta y el request sigue inválido.",
+        "Forzar de a una tool sacrifica el beneficio del paralelismo (menos latencia) y no arregla el bug real del backend: no saber responder N llamadas de una misma respuesta.",
+        "Correcta. Protocolo de parallel tool use: una respuesta con N bloques tool_use se contesta con UN solo mensaje user que trae los N tool_result, cada uno con su tool_use_id. Si una tool falló, su resultado va igual con is_error true: nunca se omite.",
+        "Reintentar es apostar al azar y pagar requests extra: el paralelismo es el comportamiento default y está bien usarlo; el que debe adaptarse es el cliente."
+      ]
+    },
+    {
+      "id": "q35",
+      "objetivo": "extraction-schemas",
+      "escenario": "Una universidad digitaliza certificados analíticos escaneados. El dev configuró el schema de extracción con strict true, additionalProperties false y todos los campos required, y presenta el pipeline como a prueba de errores. Con certificados de materias borrosas o ilegibles, el sistema carga notas que no se pueden leer en el papel, con tipo y formato perfectos. ¿Por qué falla?",
+      "opciones": [
+        "Porque strict true todavía no cubre campos numéricos como las notas",
+        "Porque ese combo garantiza ESTRUCTURA (claves, tipos, sin propiedades extra), no VERACIDAD: required no-nullable ante un dato ilegible fuerza a emitir algo, y el modelo fabrica una nota con formato válido; el fix pasa por nullable con descriptions y few-shot con nulls",
+        "Porque falta additionalProperties false también en los objetos anidados de cada materia",
+        "Porque el OCR previo es de baja calidad: con mejor escaneo el schema actual alcanza"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "Inventado: strict true valida el output contra el schema completo, números incluidos. La cuestión es qué garantiza: forma, nunca verdad.",
+        "Correcta. Toda la batería strict, additionalProperties y required valida estructura: una nota inventada del tipo correcto pasa feliz. Ante lo ilegible, required sin null no deja salida legal salvo fabricar. La veracidad se ataca con nullable, descriptions por campo y few-shot con nulls.",
+        "Más validación estructural en los anidados sigue validando lo mismo: forma del JSON. No toca el mecanismo que produce la fabricación.",
+        "Mejorar el input reduce casos pero no cambia el contrato: siempre va a haber documentos incompletos, y un schema sin null convierte cada uno en fabricación obligatoria."
+      ]
+    },
+    {
+      "id": "q36",
+      "objetivo": "api-stateless",
+      "escenario": "Compliance de una aseguradora audita el chatbot de siniestros antes del go-live y pregunta dónde quedan almacenadas las conversaciones con los clientes para el legajo de cada caso. El tech lead responde que las guarda Anthropic asociadas a la cuenta, y que si hace falta se recuperan después por API. ¿Qué corregís de esa respuesta?",
+      "opciones": [
+        "Solo el plazo: la API guarda las conversaciones un tiempo limitado, así que hay que exportarlas periódicamente",
+        "El mecanismo: se recuperan con el request id de cada response, no por cuenta",
+        "Nada: es el comportamiento documentado de la Messages API",
+        "Todo: la Messages API no ofrece recuperación de conversaciones — es stateless y el dueño del historial es la app; para auditoría, el backend debe persistir cada conversación en su propio storage en el momento en que se genera"
+      ],
+      "correcta": 3,
+      "rationales": [
+        "No hay plazo que corregir porque no hay recuperación: la Messages API no expone las conversaciones como recurso consultable. El requerimiento de auditoría se resuelve en la app.",
+        "El request id sirve para reportar problemas a soporte y trazar requests, no para recuperar contenido: no existe un endpoint que devuelva chats pasados.",
+        "Es exactamente lo contrario al modelo de la API: cada request llega completo, se procesa y no queda ninguna conversación consultable asociada a la cuenta.",
+        "Correcta. La API es stateless: el historial lo arma, lo manda y lo posee la app. Si compliance exige legajo por caso, el backend persiste cada conversación en su propio storage al generarla; nunca se delega en un almacenamiento recuperable de Anthropic que la API no ofrece."
+      ]
+    },
+    {
+      "id": "q37",
+      "objetivo": "decomposition",
+      "escenario": "El pipeline de ingesta de una plataforma de streaming hace lo mismo con cada episodio nuevo: extraer metadata, generar sinopsis y clasificar por género. Siempre los mismos 3 pasos, en el mismo orden. Un arquitecto propone migrarlo a orchestrator-workers con descomposición dinámica porque el catálogo está creciendo rápido. ¿Qué recomendás?",
+      "opciones": [
+        "Migrar: con el catálogo creciendo, lo dinámico siempre escala mejor que lo estático",
+        "Migrar solo la clasificación por género a workers dinámicos y dejar el resto fijo",
+        "Mantener el pipeline estático: los pasos no varían con el input, y para absorber el volumen alcanza con correr el pipeline de varios episodios en paralelo — escalar volumen no requiere descomposición dinámica",
+        "Agregar un orquestador que decida por episodio si hace falta generar sinopsis o no"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "Falso en general: lo dinámico se justifica cuando la estructura del trabajo recién se conoce al ver los datos. Acá se conoce siempre: 3 pasos fijos. Un orquestador sumaría latencia y puntos de falla sin aportar nada.",
+        "Fragmenta el flujo sin necesidad: la clasificación es un paso fijo más, no un conjunto variable de subtareas que haya que descubrir en runtime.",
+        "Correcta. Pasos idénticos y conocidos de antemano son el caso ideal del pipeline estático: predecible y fácil de depurar. El crecimiento del catálogo es un problema de VOLUMEN y se resuelve paralelizando instancias del mismo pipeline, no volviéndolo dinámico.",
+        "No hay decisión que tomar en runtime: todo episodio lleva sinopsis. Un orquestador para una decisión inexistente es puro overhead."
+      ]
+    },
+    {
+      "id": "q38",
+      "objetivo": "tool-choice",
+      "escenario": "Un agente de planta llama la tool leer_sensor_temperatura y el backend, al ejecutarla, recibe un timeout del sistema SCADA. El dev decidió no confundir al modelo: capturó la excepción y mandó el request siguiente con el historial pero SIN ningún tool_result para ese tool_use. La API rechaza el request. ¿Cuál es el manejo correcto del error?",
+      "opciones": [
+        "Reintentar la tool en silencio hasta que el SCADA responda, sin avisarle nada al modelo",
+        "Devolver igual un tool_result con el tool_use_id, el detalle del error y is_error en true: cada tool_use pendiente exige respuesta, y con el error a la vista el modelo puede reintentar, avisar o cambiar de estrategia",
+        "Explicar el timeout en un mensaje user de texto libre, sin bloque tool_result",
+        "Setear tool_choice none en el request siguiente para que el modelo abandone la tool que falló"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "Reintentar puede ser parte de TU manejo, pero mientras tanto el protocolo queda roto: el tool_use sigue sin respuesta. Con un SCADA caído de verdad, el loop queda colgado indefinidamente.",
+        "Correcta. El protocolo exige un tool_result por cada tool_use, también cuando la ejecución falla: is_error true con el mensaje del error. Los errores son información para el modelo, que puede reintentar, avisar al operador o seguir por otro camino.",
+        "El texto libre no responde la llamada pendiente: el contrato pide un bloque tool_result matcheado por tool_use_id. Sin eso, el request sigue inválido.",
+        "none prohíbe tool calls futuras, pero no resuelve la llamada YA pendiente en el historial: el request sigue mal formado, y encima le quitás al agente su capacidad de operar."
+      ]
+    },
+    {
+      "id": "q39",
+      "objetivo": "refinement",
+      "escenario": "Una aseguradora genera cartas de resolución de siniestros y las pasa por un revisor automático que suele detectar unos 5 issues concretos por carta: montos mal citados, cláusulas faltantes. El pipeline corre una pasada completa de corrección POR CADA issue, en serie: 5 issues, 5 requests, y cada carta tarda varios minutos en salir, violando el SLA de respuesta al cliente. ¿Qué cambiás?",
+      "opciones": [
+        "Paralelizar las 5 correcciones sobre 5 copias de la carta y hacer un merge final",
+        "Corregir solo los 2 issues más graves y aceptar el resto para cumplir el SLA",
+        "Reemplazar el revisor por instrucciones más estrictas en la generación inicial",
+        "Batchear los 5 issues en un único mensaje de feedback, con sus ejemplos citados, y corregirlos todos en una sola pasada"
+      ],
+      "correcta": 3,
+      "rationales": [
+        "Cinco copias corregidas por separado divergen entre sí: el merge de textos distintos es un problema nuevo y peor. Los issues concretos no necesitan aislarse para corregirse.",
+        "Sacrifica calidad para pagar un costo evitable: el SLA se cumple batcheando, sin descartar issues válidos.",
+        "Mejorar la generación suma, pero no reemplaza al revisor: siempre va a haber errores que detectar. El hallazgo real es que corregirlos no requiere una pasada por issue.",
+        "Correcta. El feedback dirigido se batchea: una lista de 5 issues concretos con ejemplos se corrige en una sola pasada, a un quinto de la latencia y el costo. Un issue por request solo multiplica round-trips para el mismo resultado."
+      ]
+    },
+    {
+      "id": "q40",
+      "objetivo": "extraction-schemas",
+      "escenario": "El equipo de catálogo de una plataforma de streaming diseña el extractor de metadata de fichas técnicas de películas: director, duracion, anio_estreno, idioma_original. El PM exige todos los campos required no-nullable porque el catálogo no puede tener huecos. Con fichas incompletas, el extractor ya devolvió duraciones y años de estreno inventados. ¿Qué le proponés al PM?",
+      "opciones": [
+        "required más nullable: el JSON siempre trae los cuatro campos (estructura completa para el catálogo), y null marca explícitamente qué dato faltaba en la ficha para completarlo por otra vía — required no-nullable no genera datos, genera inventos",
+        "Mantener su pedido: un catálogo con algunos datos inventados es preferible a uno con huecos visibles",
+        "Sacar los campos conflictivos del required para que el modelo los omita cuando duda",
+        "Agregar strict true, que garantiza outputs completos y correctos a la vez"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. La completitud que el PM necesita es ESTRUCTURAL y la da required: el campo siempre aparece. Nullable evita que esa exigencia se convierta en fabricación: null señala qué falta y dispara el flujo de completado. required no-nullable ante fichas incompletas no completa, fabrica.",
+        "Un año de estreno inventado con formato perfecto es indetectable y corrompe el catálogo en silencio. El hueco explícito con null al menos es visible y accionable.",
+        "Optional vuelve la ausencia ambigua: no sabés si la ficha no traía el dato o el extractor lo salteó, y el JSON pierde la estructura estable que el pipeline del catálogo necesita.",
+        "strict true garantiza que el output valide contra el schema: completo en ESTRUCTURA, nunca correcto en contenido. Una duración inventada del tipo correcto pasa igual."
+      ]
+    },
+    {
+      "id": "q41",
+      "objetivo": "exploration",
+      "escenario": "En una startup de logística de última milla, un dev trabajó el lunes con Claude Code en el módulo de tarifas dinámicas. Martes y miércoles hubo otras sesiones en el mismo repo: un hotfix de webhooks y un refactor de tests. Hoy corre claude --continue para retomar lo de tarifas, pero la sesión que se abre es la del refactor de tests. ¿Cuál es el fix?",
+      "opciones": [
+        "Cerrar y volver a correr claude --continue hasta que aparezca la sesión de tarifas",
+        "Abrir una sesión nueva y pegar un resumen de lo que recuerda del trabajo de tarifas",
+        "Usar claude --resume, que lista las sesiones previas del directorio y permite elegir la de tarifas con su historial completo",
+        "Buscar la conversación de tarifas en CLAUDE.md y pegarla en una sesión nueva"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "claude --continue retoma siempre la última sesión del directorio: correrlo mil veces va a abrir la misma, la del refactor de tests. No hay selección posible por esa vía.",
+        "El resumen manual pierde justo las decisiones finas que la sesión original guardó: es la alternativa incorrecta que resumption reemplaza.",
+        "Correcta. Cuando la sesión buscada no es la última, el selector es claude --resume: lista las sesiones previas del directorio y retoma la elegida con todo el historial de conversación intacto.",
+        "CLAUDE.md es memoria de proyecto escrita a mano: las conversaciones no se registran ahí, no hay nada que buscar."
+      ]
+    },
+    {
+      "id": "q42",
+      "objetivo": "mcp-advanced",
+      "escenario": "El MCP server de reservas de una cadena hotelera responde a los fallos con is_error true, pero el mensaje es solo un código interno: ERR_RSV_37. El agente pide disculpas y frena la tarea. Un dev propone documentar la tabla de códigos de error en el CLAUDE.md de cada proyecto que use el server. ¿Cuál es el diseño correcto?",
+      "opciones": [
+        "La tabla en CLAUDE.md: el modelo la consulta cuando recibe un código y deduce el siguiente paso",
+        "Que el propio mensaje de error sea accionable: qué falló y cómo seguir, por ejemplo habitación sin disponibilidad en esas fechas, usá consultar_disponibilidad — el server viaja autoexplicativo",
+        "Que el server reintente automáticamente la operación 10 veces antes de devolver el código",
+        "Reemplazar el código interno por el stack trace completo, que trae más detalle para razonar"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "Ata el server a que cada consumidor mantenga una tabla sincronizada en su contexto: frágil, se desactualiza y no viaja con el server a otros proyectos. La información de recuperación pertenece al tool result.",
+        "Correcta. El modelo decide el próximo paso leyendo el texto del error: si el mensaje nombra el problema y la tool que lo resuelve, la recuperación es automática en cualquier proyecto, sin tablas externas.",
+        "Una habitación ocupada no se libera reintentando: 10 intentos idénticos fallan igual, suman latencia y el modelo sigue sin saber qué pasó.",
+        "El traceback es ruido interno sin próximo paso, y encima filtra detalles de implementación. Más líneas no es más acción."
+      ]
+    },
+    {
+      "id": "q43",
+      "objetivo": "api-batches",
+      "escenario": "Una empresa de última milla recalcula cada noche los ETA de 200.000 paquetes con un loop síncrono sobre la Messages API: choca rate limits, paga precio completo y termina a las 5 de la mañana con lo justo. Los resultados se consumen recién a las 8. ¿Cuál es el rediseño correcto?",
+      "opciones": [
+        "Migrar a la Message Batches API con un custom_id por paquete: asíncrona, 50% de descuento, la mayoría de los batches termina en menos de 1h con máximo de 24h",
+        "Mantener la Messages API pero activar streaming para que cada recálculo responda antes",
+        "Pedir un aumento de rate limit y paralelizar más requests síncronos",
+        "Migrar a Batches pero enviar batches de un solo request para minimizar la latencia de cada ETA"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. Volumen enorme sin urgencia interactiva es el caso exacto de Batches: mitad de precio, sin pelear rate limits, y el custom_id matchea cada resultado con su paquete porque llegan en cualquier orden.",
+        "Streaming mejora la percepción de una respuesta individual: no cambia el costo, ni los rate limits, ni el throughput de un lote de 200.000.",
+        "Puede terminar antes, pero sigue pagando precio completo por un trabajo que puede esperar: exactamente lo que Batches resuelve más barato y más simple.",
+        "Fragmentar en batches de a uno pierde el punto: el contrato sigue siendo asíncrono sin garantía por request, y multiplica la gestión sin bajar la latencia."
+      ]
+    },
+    {
+      "id": "q44",
+      "objetivo": "hooks-config",
+      "escenario": "Una ONG protege su base de donantes con un hook PreToolUse: si el comando Bash toca donantes.db, imprime el motivo del bloqueo por stdout y termina con exit 2. El bloqueo funciona, pero Claude reintenta el mismo comando una y otra vez sin cambiar el enfoque, como si no supiera por qué fue bloqueado. ¿Cuál es el fix?",
+      "opciones": [
+        "Cambiar a exit 1, que es el código de bloqueo con feedback",
+        "Migrar la regla a un hook PostToolUse para que el mensaje llegue después de la ejecución",
+        "Duplicar el motivo del bloqueo en CLAUDE.md para que el modelo lo tenga siempre presente",
+        "Escribir el motivo por stderr: con exit 2 el stderr es lo que se le devuelve a Claude como feedback; el stdout no le llega"
+      ],
+      "correcta": 3,
+      "rationales": [
+        "Al revés: exit 1 es un error no bloqueante del hook — dejaría de bloquear. El código correcto para vetar es 2; lo que falta corregir es el canal del mensaje.",
+        "PostToolUse corre cuando el comando ya se ejecutó: perdés la prevención, que es todo el punto del hook.",
+        "Parche de guidance para un problema de plumbing: el feedback del bloqueo tiene un canal diseñado que le llega a Claude en el momento exacto del intento, con su contexto.",
+        "Correcta. El contrato del hook: exit 2 bloquea y el stderr se le pasa a Claude como feedback. Con el motivo por stdout, Claude solo ve el veto sin explicación y reintenta a ciegas; movido a stderr, ajusta el enfoque."
+      ]
+    },
+    {
+      "id": "q45",
+      "objetivo": "context-mgmt",
+      "escenario": "Una ONG arma un asistente de redacción de grants sobre la Messages API. Para que tenga la voz de la organización, cada request incluye las 400 páginas de todas las propuestas históricas. Desde entonces el asistente ignora cada vez más las instrucciones de formato del system prompt y cada request cuesta una fortuna. ¿Cuál es el fix?",
+      "opciones": [
+        "Repetir las instrucciones de formato al principio y al final de cada request para reforzarlas",
+        "Cambiar a un modelo con ventana más grande: con más espacio, las instrucciones dejan de perderse",
+        "Curar el contexto: enviar solo dos o tres propuestas ejemplares o un resumen de la guía de estilo — lo relevante para el pedido actual, no el archivo completo",
+        "Mover las 400 páginas a un solo mensaje de rol user al final del historial"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "Duplicar instrucciones suma tokens al problema: las 400 páginas siguen diluyendo todo lo demás. Repetir ruido encima del ruido no lo convierte en señal.",
+        "Más ventana es más lugar para la misma dilución, a mayor costo: el contexto irrelevante sigue compitiendo con las instrucciones.",
+        "Correcta. Más contexto no es más calidad: el material irrelevante diluye las instrucciones. La voz de la organización se transmite con pocos ejemplos bien elegidos o un resumen curado, no con el archivo entero.",
+        "Reordenar no reduce tokens ni ruido: el volcado sigue ahí con su costo y su dilución, cambie de posición o de rol."
+      ]
+    },
+    {
+      "id": "q46",
+      "objetivo": "exploration",
+      "escenario": "En el repo de netcode de un estudio de videojuegos, 500 archivos C++, hay que ubicar dónde se define la función applyLatencyCompensation. El agente hizo Glob de todos los .cpp y está haciendo Read de cada resultado en orden, quemando contexto archivo tras archivo. ¿Cuál era la estrategia correcta?",
+      "opciones": [
+        "Grep del identificador applyLatencyCompensation sobre el repo: devuelve archivo y línea, y Read se paga solo sobre ese archivo",
+        "Read del entrypoint del engine y seguir los includes hasta llegar a la función",
+        "El Glob estaba bien: solo faltaba leer los archivos en orden de tamaño, del más chico al más grande",
+        "Pedirle al modelo que recuerde en qué archivo la vio en sesiones anteriores"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. Un identificador conocido es el caso ideal de Grep: la búsqueda por contenido apunta al archivo exacto sin cargar nada al contexto, y el Read caro se gasta una sola vez, sobre el blanco confirmado.",
+        "Seguir includes a ciegas es un recorrido caro sin relación con el objetivo: cada Read intermedio quema contexto antes de confirmar relevancia.",
+        "El tamaño no correlaciona con la relevancia: sigue siendo fuerza bruta con Read, solo que en otro orden. El paso barato que falta es la búsqueda por contenido.",
+        "La memoria entre sesiones no es una herramienta de búsqueda confiable: puede no haberla visto nunca, y una corazonada no reemplaza un match exacto."
+      ]
+    },
+    {
+      "id": "q47",
+      "objetivo": "review-loops",
+      "escenario": "El detector de fraude de una fintech bloquea automáticamente toda transacción que el modelo marca, sin revisión humana. Esta semana congeló la cuenta de un cliente corporativo por un falso positivo de baja confianza y el costo comercial fue enorme. El equipo no quiere volver a revisar todo a mano. ¿Cuál es el diseño correcto?",
+      "opciones": [
+        "Mandar todas las transacciones marcadas a revisión humana antes de bloquear",
+        "Routing por umbral: marcas de alta confianza y bajo impacto se bloquean automático; baja confianza o cuentas de alto impacto pasan por un analista antes de actuar",
+        "Subir el umbral de detección para que el modelo marque menos transacciones",
+        "Agregar un segundo prompt donde el modelo revise sus propias marcas y confirme las que considere correctas"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "El otro extremo: los analistas se tapan con casos obvios, la latencia mata la prevención en fraudes claros y la atención humana se degrada justo donde importa.",
+        "Correcta. El humano se reserva para donde aporta: baja confianza o alto impacto. Lo claro y de bajo riesgo fluye automático. Ni todo a humano ni nada a humano: umbral por riesgo y confianza.",
+        "Ajustar sensibilidad cambia cuántos casos se marcan, no qué pasa con los dudosos: el falso positivo caro sigue ejecutándose sin nadie que lo frene.",
+        "Un self-check suma señal de confianza, pero quien comete el error no es su mejor auditor: en decisiones de alto impacto la salvaguarda es un humano, no otra pasada del mismo modelo."
+      ]
+    },
+    {
+      "id": "q48",
+      "objetivo": "mcp-advanced",
+      "escenario": "El MCP server de un estudio de videojuegos expone get_player, que recibe el account_id numérico, y get_player_profile, que recibe el gamertag. Ambas descriptions dicen obtiene datos del jugador. El modelo las confunde seguido y las llamadas fallan por formato de argumento. ¿Cuál es el fix de raíz?",
+      "opciones": [
+        "Eliminar get_player_profile y que quede una sola tool para evitar la confusión",
+        "Agregar al CLAUDE.md de cada proyecto consumidor una guía de cuál tool usar en cada caso",
+        "Forzar la tool correcta con tool_choice en cada llamada",
+        "Reescribir las descriptions: cuándo usar cada una, qué las diferencia y el formato exacto del input, con ejemplo (account_id 88231 vs gamertag NovaKnight)"
+      ],
+      "correcta": 3,
+      "rationales": [
+        "Elimina una capacidad para esquivar un problema de información: si ambas operaciones existen por algo, la solución es describirlas bien, no amputar una.",
+        "Guidance frágil y en el lugar equivocado: hay que replicarla en cada proyecto y compite con el resto del contexto. El server debe ser autoexplicativo donde el modelo decide: la definición de la tool.",
+        "tool_choice fuerza que se use alguna tool, pero no sabe cuál corresponde a cada intención del usuario: la elección informada sale de las descriptions, no de un parámetro.",
+        "Correcta. El modelo elige y arma los argumentos leyendo name, description y schema. Descriptions que dicen cuándo usar cada una y el formato del input, con ejemplos, previenen la confusión antes de que ocurra."
+      ]
+    },
+    {
+      "id": "q49",
+      "objetivo": "context-mgmt",
+      "escenario": "Un dev de una fintech terminó una migración de esquema larga en Claude Code y, en la misma sesión, arrancó a diseñar un flujo de onboarding que no tiene nada que ver. Claude mezcla nombres de tablas de la migración en el diseño nuevo y arrastra convenciones que ya no aplican. ¿Cuál es el fix?",
+      "opciones": [
+        "Arrancar el onboarding con contexto limpio, en una sesión nueva o con /clear: el historial de la migración es ruido que diluye y contamina la tarea nueva",
+        "Seguir en la misma sesión: la auto-compaction va a eliminar sola las partes de la migración",
+        "Repetir las instrucciones del onboarding en cada mensaje hasta que pesen más que la migración",
+        "Pegar el documento de diseño del onboarding completo al inicio para tapar el contexto viejo"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. El contexto de una tarea ajena no es contexto: es ruido que diluye instrucciones y contamina el resultado. Tarea sin relación con el historial, contexto limpio; /compact es para seguir con la misma tarea.",
+        "La auto-compaction se dispara al acercarse al límite y resume la conversación: no distingue qué tarea te importa ahora, y el resumen de la migración sigue ocupando y contaminando.",
+        "Suma tokens a una ventana ya ruidosa: la repetición compite contra el historial en vez de eliminarlo. El problema es lo que sobra, no lo que falta.",
+        "Tapar ruido con volumen agrava la dilución: el historial viejo sigue ahí y ahora hay todavía más contexto compitiendo con cada instrucción."
+      ]
+    },
+    {
+      "id": "q50",
+      "objetivo": "api-batches",
+      "escenario": "Una cadena hotelera resume 30.000 reviews con la Message Batches API. El script arma la lista de requests hotel por hotel y, al descargar los resultados, asigna cada resumen por posición en el array, en el orden de envío. En producción aparecen resúmenes de un hotel pegados a otro. ¿Cuál es el fix?",
+      "opciones": [
+        "Reenviar el batch en horario de baja carga para que la API preserve el orden",
+        "Partir el trabajo en un batch por hotel para que no se mezclen los resultados",
+        "Asignar un custom_id propio a cada request, por ejemplo hotel más review, y matchear cada resultado por ese campo: los resultados de un batch llegan en cualquier orden",
+        "Ordenar los resultados por timestamp de procesamiento antes de asignarlos, que reconstruye el orden de envío"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "El orden de los resultados no depende de la carga: el contrato de Batches es explícito, los resultados pueden llegar en cualquier orden, siempre.",
+        "Multiplica batches para esquivar el problema y ni siquiera lo resuelve: adentro de cada batch, las reviews del hotel seguirían mezclándose entre sí.",
+        "Correcta. Batches no garantiza orden: la correlación entre request y resultado es responsabilidad del custom_id. Con un id propio por request, cada resumen matchea su review sin importar cuándo llegue.",
+        "El momento de procesamiento no reconstruye el orden de envío: los requests se procesan en paralelo y en cualquier secuencia. La correlación por diseño es custom_id."
+      ]
+    },
+    {
+      "id": "q51",
+      "objetivo": "hooks-config",
+      "escenario": "Un dev de un estudio de videojuegos creó un prompt experimental para generar notas de parche a su manera y lo guardó como slash command en .claude/commands/ del repo compartido. Se versionó, y ahora todo el equipo ve /mis-notas-de-parche y algunos lo usan por error. El prompt es personal y ni siquiera está terminado. ¿Dónde debería vivir?",
+      "opciones": [
+        "En CLAUDE.md del proyecto, con una nota de que es de uso personal",
+        "En ~/.claude/commands/ del dev: los slash commands personales viven ahí, disponibles para él en todos sus proyectos y sin tocar al equipo",
+        "Donde está, pero renombrado con el prefijo del dev para que se sepa de quién es",
+        "En settings.local.json del proyecto, que no se versiona"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "Doble error: CLAUDE.md se comparte igual que el directorio de commands del proyecto, y encima cargaría en el contexto de todas las sesiones en vez de invocarse a demanda.",
+        "Correcta. La división es por audiencia: .claude/commands/ del proyecto es del equipo, versionado y compartido; ~/.claude/commands/ es personal. Un prompt experimental propio va al espacio personal.",
+        "Sigue versionado y visible para todos: el prefijo documenta la molestia en vez de eliminarla. El problema es el scope, no el nombre.",
+        "settings.local.json configura permissions, hooks y opciones locales: no es un lugar donde definir slash commands. El equivalente personal de commands es ~/.claude/commands/."
+      ]
+    },
+    {
+      "id": "q52",
+      "objetivo": "exploration",
+      "escenario": "En la plataforma de voluntariado de una ONG, el agente tiene la instrucción de abrir cada archivo del repo antes de proponer cualquier cambio, para no romper nada. En una tarea sobre el módulo de inscripciones, la auto-compaction se disparó dos veces a mitad de la lectura y la propuesta final llegó vaga y sin relación con lo pedido. ¿Cuál es el fix?",
+      "opciones": [
+        "Subir el límite de la auto-compaction para que no interrumpa la lectura completa del repo",
+        "Dividir la lectura del repo en varias sesiones y consolidar lo aprendido a mano",
+        "Mantener la lectura completa pero pedir la propuesta antes de que el contexto se llene",
+        "Reemplazar la instrucción por exploración incremental: Glob para ubicar los archivos de inscripciones, Grep para confirmar cuáles tocan el flujo, Read solo de esos"
+      ],
+      "correcta": 3,
+      "rationales": [
+        "La auto-compaction es el síntoma, no la causa: el contexto se llena porque la estrategia carga el repo entero. Ajustar el umbral no evita la dilución de la señal ni el costo.",
+        "Reparte el mismo anti-patrón en cuotas: sigue leyendo todo, ahora con el overhead extra de consolidar a mano entre sesiones.",
+        "Apostar a llegar antes del desborde no arregla la estrategia: la propuesta saldría igual de un contexto inundado de archivos irrelevantes.",
+        "Correcta. De lo amplio a lo específico: Glob acota por nombre gratis, Grep confirma por contenido, y el Read caro se paga solo sobre lo confirmado. El contexto queda para la tarea, no para el inventario del repo."
+      ]
+    },
+    {
+      "id": "q53",
+      "objetivo": "mcp-advanced",
+      "escenario": "El .mcp.json versionado de una fintech referencia el token del server de pagos como ${PAYMENTS_TOKEN}, pero a un dev nuevo le resulta engorroso y propone: pongamos el token literal en .mcp.json y agreguemos el archivo a .gitignore, así nadie lo comitea. ¿Cuál es el problema del plan?",
+      "opciones": [
+        "Ignorar .mcp.json rompe el propósito del archivo: es la config compartida del equipo y debe versionarse; el diseño correcto ya está — la config referencia ${PAYMENTS_TOKEN} y cada dev define su valor en su entorno",
+        "Ninguno: con .gitignore el token nunca llega al repo y el equipo puede compartir la config por otro canal",
+        "El problema es menor: alcanza con encriptar el token en base64 dentro de .mcp.json",
+        "El plan falla porque .gitignore no aplica a archivos de configuración de Claude Code"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. .mcp.json existe para versionarse y compartir los servers del proyecto: si se ignora, cada dev mantiene una copia divergente y el onboarding se rompe. El patrón con env var resuelve exactamente esto: config compartida, secret local por entorno.",
+        "El otro canal es el problema: copias desincronizadas, tokens circulando por chat, y un archivo con secret literal en cada máquina, listo para comitearse el día que alguien saque el ignore.",
+        "Base64 no es encriptación: se decodifica en un segundo. El secret literal sigue en el archivo, con todos los riesgos intactos.",
+        "Falso: .gitignore aplica a cualquier archivo. El plan falla por diseño, no por mecánica — sacrifica la config compartida para esquivar un patrón que ya funciona."
+      ]
+    },
+    {
+      "id": "q54",
+      "objetivo": "review-loops",
+      "escenario": "Una ONG traduce instrucciones de ayuda humanitaria con un loop automatizado: el modelo traduce, un segundo prompt valida la traducción y, si falla, se reintenta. Cuando la validación falla 10 veces seguidas, el sistema publica el último intento igual, porque el material tiene que salir. Ya se publicaron instrucciones con errores graves. ¿Qué le falta al diseño?",
+      "opciones": [
+        "Subir el límite a 30 reintentos para darle más chances a converger",
+        "Eliminar el loop y que un traductor humano haga todo el material desde el principio",
+        "Escalación en el corte: al agotar los reintentos, el contenido va a un traductor humano con el historial de intentos y los motivos de rechazo — nunca se publica una salida que no pasó la validación",
+        "Bajar la exigencia de la validación para que más traducciones pasen"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "Si 10 intentos no convergieron, el caso probablemente sea de los que el loop no puede resolver solo: más reintentos queman tokens y postergan la única salida correcta, que es escalar.",
+        "Tira el valor del loop: la mayoría del material se traduce y valida solo. Todo a humano es el otro extremo del error, y el cuello de botella humano reaparece.",
+        "Correcta. El criterio de corte existe, pero corta hacia el lado equivocado: publicar lo que la validación rechazó es peor que no cortar. El corte correcto escala a un humano con contexto: los intentos y por qué fallaron.",
+        "Ajustar el validador para que apruebe más es maquillar la métrica: los errores graves que hoy se filtran pasarían con sello de calidad."
+      ]
+    },
+    {
+      "id": "q55",
+      "objetivo": "api-batches",
+      "escenario": "Un estudio de videojuegos necesita dos cosas: mutear en segundos los mensajes tóxicos del chat in-game, y clasificar cada lunes los 3 millones de mensajes archivados de la semana para el reporte de tendencias. Para ahorrar, un dev propone resolver ambos con la Message Batches API. ¿Cuál es la arquitectura correcta?",
+      "opciones": [
+        "Batches para ambos: el descuento del 50% aplica igual y la mayoría de los batches termina en menos de 1h",
+        "Messages API síncrona para la moderación en vivo, que necesita latencia de segundos; Batches con custom_id por mensaje para los 3 millones del reporte semanal",
+        "Messages API para ambos, paralelizando el archivo semanal en requests concurrentes",
+        "Batches para la moderación, porque los mensajes llegan de a lotes, y Messages API para el reporte semanal"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "La mayoría en menos de 1h no es una garantía: el contrato admite hasta 24h. Un mute que llega horas tarde es un canal de moderación que no modera.",
+        "Correcta. La línea divisoria es la urgencia: latencia interactiva exige la Messages API síncrona; el lote semanal es el caso ideal de Batches — enorme, no urgente, 50% más barato, con custom_id porque los resultados llegan sin orden.",
+        "Paga precio completo y pelea rate limits por 3 millones de requests que pueden esperar hasta el lunes: el descuento de Batches existe para exactamente ese lote.",
+        "Invertido: pone la única tarea con requisito de segundos detrás de una API sin garantía de latencia, y paga precio completo por el lote que sí podía esperar."
+      ]
+    },
+    {
+      "id": "q56",
+      "objetivo": "exploration",
+      "escenario": "En una fintech hay que arreglar un bug en la validación de firmas de webhooks. El dev hizo Grep de verifySignature acotado a src y obtuvo matches en 3 archivos. Acto seguido le pidió a Claude Code que lea los 42 archivos del módulo de pagos completo, para tener el panorama. La sesión se llenó de contexto y el fix salió peor. ¿Qué correspondía hacer tras el Grep?",
+      "opciones": [
+        "Leer el módulo entero igual, pero en una sesión nueva dedicada solo a eso",
+        "Descartar el Grep y volver a empezar con un Glob más amplio",
+        "Leer solo el primero de los 3 archivos: el primer match suele ser la definición",
+        "Read de los 3 archivos que matchearon, y expandir a un cuarto solo si esos revelan una dependencia concreta: lo caro se paga sobre lo confirmado"
+      ],
+      "correcta": 3,
+      "rationales": [
+        "Cambiar de sesión no abarata el Read de 42 archivos: la sesión nueva llega igual de inundada al momento de escribir el fix.",
+        "Retrocede en el embudo sin motivo: el Grep ya acotó el blanco a 3 archivos. Ampliar candidatos es lo contrario de amplio a específico.",
+        "El orden de los matches no es semántico: la definición puede estar en el tercero. Con 3 archivos confirmados, leerlos es barato; adivinar cuál ignorar no aporta nada.",
+        "Correcta. El embudo termina en Read sobre lo confirmado: 3 archivos señalados por contenido. El panorama no se compra leyendo 42 archivos — cada token irrelevante diluye el fix. Se expande solo con evidencia."
+      ]
+    },
+    {
+      "id": "q57",
+      "objetivo": "hooks-config",
+      "escenario": "Una fintech necesita dos garantías en Claude Code: que nadie edite los asientos cerrados en ledger/closed/, y que cada edición en el resto de ledger/ dispare el script de reconciliación. Un dev implementó todo en un único hook PostToolUse que corre la reconciliación y, si el path era de closed/, imprime rechazado. Los archivos de closed/ se siguen modificando. ¿Cuál es el diseño correcto?",
+      "opciones": [
+        "Separar por momento: un hook PreToolUse sobre Edit y Write que bloquee closed/ con exit 2, y un PostToolUse que corra la reconciliación tras cada edición en ledger/",
+        "Mover todo a PreToolUse: bloquear closed/ y correr la reconciliación antes de cada edición",
+        "Mantener el PostToolUse pero hacer que revierta los cambios en closed/ con git checkout",
+        "Agregar en CLAUDE.md la regla de no tocar closed/ y dejar el PostToolUse para la reconciliación"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. Cada hook en su momento: PostToolUse corre cuando el tool ya se ejecutó — puede reaccionar, jamás impedir. Prevenir es PreToolUse con exit 2; reconciliar lo ya editado es PostToolUse. Dos garantías, dos hooks.",
+        "La reconciliación en PreToolUse correría sobre el estado viejo del archivo, antes del cambio: el timing correcto para reaccionar a una edición es después.",
+        "Reparar después de romper: hay una ventana con el asiento modificado, y un revert automático puede pisar estados intermedios. Cuando prevenir es posible, remediar es el diseño débil.",
+        "Guidance para un requisito sin excepciones: el modelo lo respetaría casi siempre, y el casi es justo lo que la garantía no admite."
+      ]
+    },
+    {
+      "id": "q58",
+      "objetivo": "mcp-advanced",
+      "escenario": "El equipo de una logística de última milla actualizó en el .mcp.json del repo los args del server de tracking. A una dev el cambio no le impacta: sus tools siguen corriendo con la config vieja, aunque tiene el repo al día. Está por borrar el .mcp.json y re-agregar el server a mano. ¿Cuál es el primer paso correcto?",
+      "opciones": [
+        "Seguir su plan: borrar y re-registrar el server resuelve los problemas de config desactualizada",
+        "Reinstalar Claude Code: si la config nueva no se toma, el cliente quedó cacheado",
+        "claude mcp list y claude mcp get del server para inspeccionar qué config está activa y en qué scope: un server local con el mismo nombre tiene precedencia y puede estar pisando al del proyecto",
+        "Agregar en CLAUDE.md una instrucción para que Claude use los args nuevos del server"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "Borrar el archivo compartido para arreglar un problema local castiga al equipo entero, y re-agregar a ciegas no explica por qué la config vieja seguía activa: puede volver a pasar.",
+        "No hay evidencia de cache del cliente: al resto del equipo la config nueva le funciona. Primero observar el estado real del server, después tocar.",
+        "Correcta. Primero diagnóstico: list muestra los servers activos y get revela config y scope. Ante servers con el mismo nombre, el scope local tiene precedencia sobre el project: una copia local vieja explica el síntoma y se elimina dirigido.",
+        "CLAUDE.md orienta al modelo dentro de la sesión: no decide qué config de server se carga ni puede pisar la precedencia de scopes."
+      ]
+    },
+    {
+      "id": "q59",
+      "objetivo": "context-mgmt",
+      "escenario": "El agente de analytics de un estudio de videojuegos consulta una tool de telemetría que devuelve el dump completo: 50.000 filas de eventos en JSON por llamada. Tras dos o tres llamadas, el agente ignora las instrucciones del system prompt y sus análisis se vuelven genéricos. ¿Cuál es el fix?",
+      "opciones": [
+        "Repetir las instrucciones del system prompt después de cada tool result para refrescarlas",
+        "Que la tool devuelva datos ya filtrados y agregados, como top N, sumas por dimensión y paginación bajo demanda: al contexto entra lo que el análisis necesita, no el dump",
+        "Cambiar a un modelo con ventana más grande para que los dumps entren sin desplazar nada",
+        "Bajar max_tokens de las respuestas del agente para compensar el tamaño de los dumps"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "Suma todavía más tokens a una ventana ahogada por los dumps: la repetición compite contra 50.000 filas y pierde. El problema es lo que entra, no cuántas veces se repite lo demás.",
+        "Correcta. El contexto es finito y lo irrelevante diluye las instrucciones: una tool bien diseñada devuelve la vista que la tarea necesita — agregados, top N, páginas a pedido — y deja la ventana para razonar, no para almacenar filas.",
+        "Más ventana es más lugar para el mismo ruido, a mayor costo por request: la dilución de instrucciones no se arregla agrandando el balde.",
+        "max_tokens limita la longitud de la salida del modelo: no achica los tool results ni libera la ventana que los dumps ocupan."
+      ]
+    },
+    {
+      "id": "q60",
+      "objetivo": "review-loops",
+      "escenario": "Una cadena hotelera responde reviews con un agente. La regla actual: reviews de 1 estrella van a un humano, el resto se publica automático. Esta semana una review de 4 estrellas que mencionaba una intoxicación alimentaria recibió una respuesta automática de tono festivo, y el caso escaló a prensa. ¿Cuál es el fix?",
+      "opciones": [
+        "Mandar todas las reviews a revisión humana hasta recuperar la confianza",
+        "Extender la regla: revisión humana para reviews de 3 estrellas o menos",
+        "Prohibir que el agente responda reviews que mencionen comida",
+        "Rutear por riesgo y confianza del contenido, no por proxy: temas sensibles como salud, seguridad o legales, o baja confianza, van a humano sin importar las estrellas; lo rutinario de alta confianza sigue automático"
+      ],
+      "correcta": 3,
+      "rationales": [
+        "El péndulo al otro extremo: el equipo se tapa con reviews rutinarias, la atención se degrada y el sistema deja de ahorrar. La falla fue del criterio de routing, no de la automatización.",
+        "Sigue ruteando por el proxy equivocado: el rating no mide el riesgo del contenido. La intoxicación venía en una review de 4 estrellas — el ejemplo exacto de por qué las estrellas no alcanzan.",
+        "Parche anecdótico: el próximo caso sensible será una caída en la pileta o una amenaza legal. Bloquear palabras sueltas genera huecos y falsos positivos a la vez.",
+        "Correcta. El umbral se define sobre lo que importa: riesgo del contenido y confianza del modelo. Salud, seguridad o legales escalan siempre; lo rutinario fluye. El rating era un proxy cómodo que dejaba pasar justo los casos caros."
+      ]
+    }
+  ]
+}

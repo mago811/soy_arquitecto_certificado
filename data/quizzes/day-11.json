@@ -1,0 +1,187 @@
+{
+  "id": "day-11",
+  "dia": 11,
+  "titulo": "Día 11: Confirmación de fortalezas",
+  "preguntas": [
+    {
+      "id": "q1",
+      "objetivo": "orchestration",
+      "escenario": "Un equipo necesita auditar 12 repos de microservicios en busca de dependencias vulnerables. Hoy un único agente los recorre uno por uno: tarda horas y hacia el final desborda la ventana de contexto y mezcla hallazgos de repos distintos. ¿Cuál es el rediseño correcto?",
+      "opciones": [
+        "Usar un modelo con ventana de contexto más grande para que los 12 repos entren en una sola pasada",
+        "Patrón orchestrator-workers: un subagente por repo corriendo en paralelo, y el orquestador consolida los hallazgos en el reporte final",
+        "Configurar tool_choice en any para que el agente use más tools por turno y termine antes",
+        "Mantener el agente único pero pedirle un resumen intermedio después de cada repo"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "Una ventana más grande no arregla el diseño: el contexto acumulado de 12 repos igual diluye el análisis, y la corrida sigue siendo secuencial y lenta.",
+        "Correcta. Las 12 auditorías son independientes entre sí: se paralelizan en workers con contexto propio por repo, y el orquestador sintetiza. Independientes en paralelo, dependientes encadenadas.",
+        "tool_choice controla la selección de tools dentro de un request; no paraleliza subtareas ni resuelve el desborde de contexto.",
+        "Los resúmenes alivian el contexto, pero la corrida sigue secuencial: desaprovecha que las subtareas son independientes y paralelizables."
+      ]
+    },
+    {
+      "id": "q2",
+      "objetivo": "orchestration",
+      "escenario": "Un pipeline hace tres pasos: extraer datos de facturas PDF, validar cada dato contra la base de clientes y generar el reporte de discrepancias. Para acelerar, un dev propone lanzar los tres pasos en paralelo con tres workers y que un orquestador junte los resultados al final. ¿Qué opinás del diseño?",
+      "opciones": [
+        "Correcto: el patrón orchestrator-workers consiste justamente en paralelizar los workers",
+        "Casi: falta un cuarto worker que supervise el avance de los otros tres",
+        "Incorrecto: hay que forzar el orden de los pasos con tool_choice para que cada worker espere al anterior",
+        "Incorrecto: cada paso depende del output del anterior, así que se encadenan en secuencia; lo que se paraleliza es lo independiente, como las facturas entre sí dentro de un paso"
+      ],
+      "correcta": 3,
+      "rationales": [
+        "El patrón no manda paralelizar siempre: la validación necesita los datos extraídos y el reporte necesita la validación. Paralelizar pasos dependientes deja workers esperando inputs que no existen.",
+        "Un supervisor no resuelve el problema de fondo: los pasos siguen siendo dependientes y no pueden correr a la vez.",
+        "tool_choice no secuencia workers ni requests: una dependencia se resuelve encadenando llamadas, no con un parámetro.",
+        "Correcta. Extraer, validar y reportar son dependientes: se encadenan. Lo paralelizable es lo independiente: procesar muchas facturas a la vez dentro del paso de extracción."
+      ]
+    },
+    {
+      "id": "q3",
+      "objetivo": "hooks-config",
+      "escenario": "Un equipo ya bloquea con un hook PreToolUse las escrituras en migrations/. Ahora quieren que, además, cada Edit o Write exitoso dispare la suite de tests automáticamente, siempre. Un dev propone meter la corrida de tests dentro del mismo hook PreToolUse. ¿Cuál es el diseño correcto?",
+      "opciones": [
+        "Dejar el bloqueo en PreToolUse y agregar un hook PostToolUse sobre Edit y Write que corra los tests después de cada cambio",
+        "Meter todo en el PreToolUse: si los tests fallan, devolver exit 2 para bloquear la edición",
+        "Agregar en CLAUDE.md la instrucción de correr los tests después de cada edición",
+        "Migrar las dos reglas a PostToolUse para unificar: bloquear y testear después de cada tool"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. Cada hook en su momento: PreToolUse previene (bloquea antes con exit 2), PostToolUse reacciona después: los tests corren sobre el archivo ya modificado, determinísticamente.",
+        "En PreToolUse los tests correrían ANTES de aplicar el cambio: testearías el código viejo. El timing está invertido.",
+        "Guidance: el modelo lo haría casi siempre, pero el requisito dice siempre. Eso pide un hook, no una instrucción de contexto.",
+        "PostToolUse no puede prevenir nada: corre cuando el tool ya se ejecutó. El bloqueo de migrations/ dejaría de funcionar."
+      ]
+    },
+    {
+      "id": "q4",
+      "objetivo": "hooks-config",
+      "escenario": "Un equipo usa un prompt largo de code review que cada dev pega a mano cuando lo necesita. Alguien lo copió al CLAUDE.md del repo para tenerlo siempre disponible; ahora carga en todas las sesiones, gasta contexto y Claude a veces se pone a revisar código sin que nadie se lo pida. ¿Dónde debería vivir ese prompt?",
+      "opciones": [
+        "En CLAUDE.md pero al final del archivo, con una nota de usarlo solo cuando se pida",
+        "En ~/.claude/commands/ de cada dev, para que cada uno lo tenga a mano",
+        "Como slash command en .claude/commands/ del proyecto, versionado en el repo: se invoca a demanda y lo comparte todo el equipo",
+        "Como hook PostToolUse que inyecte el prompt de review después de cada Edit"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "Sigue cargando en cada sesión: CLAUDE.md es contexto permanente, no un prompt a demanda. La posición dentro del archivo no cambia eso.",
+        "Sirve para prompts personales, pero este es del equipo: en ~/.claude/commands/ cada dev mantiene su copia y se desincronizan. Compartido va al proyecto.",
+        "Correcta. Un prompt reutilizable que se invoca cuando hace falta es exactamente un slash command; en .claude/commands/ queda versionado y disponible para todo el equipo.",
+        "Un hook ejecuta comandos en respuesta a eventos: dispararía el review tras cada edición, que es lo contrario de a demanda."
+      ]
+    },
+    {
+      "id": "q5",
+      "objetivo": "api-batches",
+      "escenario": "Una empresa tiene que clasificar 50.000 tickets históricos durante la noche. Hoy un script los manda de a uno por la Messages API: choca contra rate limits, paga precio completo y tarda horas. Los resultados se necesitan recién mañana. ¿Cuál es el fix?",
+      "opciones": [
+        "Pedir un aumento de rate limit y paralelizar los requests de la Messages API",
+        "Migrar a la Message Batches API con un custom_id por ticket: asíncrona, 50% de descuento, la mayoría de los batches termina en menos de 1h con un máximo de 24h",
+        "Usar la Message Batches API y mapear los resultados por posición, en el mismo orden en que se enviaron los requests",
+        "Activar streaming en la Messages API para que cada clasificación responda más rápido"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "Puede funcionar, pero paga precio completo y pelea contra límites por un trabajo que no es urgente: exactamente el caso que Batches resuelve más barato y más simple.",
+        "Correcta. Volumen alto sin urgencia es el caso de Batches: asíncrona, mitad de precio, y el custom_id permite matchear cada resultado con su ticket.",
+        "Los resultados de un batch llegan en cualquier orden: mapear por posición corrompe la asignación. Para eso existe custom_id.",
+        "Streaming mejora la percepción de latencia de una respuesta individual: no cambia el costo, ni los rate limits, ni el throughput del lote."
+      ]
+    },
+    {
+      "id": "q6",
+      "objetivo": "api-batches",
+      "escenario": "Para bajar costos, una startup migró su chatbot de soporte en vivo a la Message Batches API. Desde entonces los usuarios esperan minutos u horas por cada respuesta, y el equipo busca el parámetro para acelerar el procesamiento del batch. ¿Cuál es el diagnóstico?",
+      "opciones": [
+        "Batches es asíncrona y sin garantía de latencia (hasta 24h): no sirve para chat en vivo; la conversación vuelve a la Messages API síncrona y Batches queda para volumen no urgente",
+        "El batch es demasiado grande: mandando batches de un solo mensaje la latencia baja a niveles interactivos",
+        "Falta pollear más seguido el estado del batch: consultando cada segundo, los resultados se recuperan al instante",
+        "Hay que marcar los batches como prioritarios para que se procesen primero"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. El descuento de Batches se paga con latencia: la mayoría termina en menos de 1h pero puede tomar hasta 24h. Un canal interactivo necesita la Messages API síncrona.",
+        "Achicar el batch no cambia el contrato: sigue siendo procesamiento asíncrono sin garantía de latencia por request.",
+        "El polling solo detecta antes un resultado que ya está listo: no acelera el procesamiento del batch.",
+        "Ese flag no existe en la Message Batches API: suena razonable, pero es inventado."
+      ]
+    },
+    {
+      "id": "q7",
+      "objetivo": "context-mgmt",
+      "escenario": "Sesión larga de refactor en Claude Code: después de dos horas, el agente empieza a ignorar convenciones que respetaba, re-explora archivos ya leídos y repite trabajo. El dev quiere seguir con la misma tarea sin perder lo importante. ¿Cuál es el fix?",
+      "opciones": [
+        "Volver a pegar el contenido completo de CLAUDE.md en el chat cada 20 mensajes",
+        "Aumentar max_tokens para que el modelo tenga más espacio para razonar",
+        "Ejecutar /compact para resumir la conversación preservando lo esencial y seguir con el contexto limpio",
+        "No hacer nada: la ventana de contexto es lo suficientemente grande para absorber sesiones largas"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "Agrega todavía más tokens a una ventana ya saturada: alimenta la dilución que causa el problema.",
+        "max_tokens limita la longitud de la respuesta, no agranda la ventana de contexto ni limpia el historial.",
+        "Correcta. /compact resume la conversación conservando lo esencial: el contexto irrelevante acumulado es lo que diluye las instrucciones. La auto-compaction hace esto mismo al acercarse al límite.",
+        "La ventana es finita y el problema ya se manifiesta: convenciones ignoradas y trabajo repetido son los síntomas clásicos de contexto saturado."
+      ]
+    },
+    {
+      "id": "q8",
+      "objetivo": "context-mgmt",
+      "escenario": "Un asistente de soporte construido sobre la Messages API guarda cada conversación completa y la reenvía entera en cada request. Con clientes que acumulan meses de historial, los costos explotan, la latencia sube y el asistente confunde pedidos viejos con el actual. ¿Cuál es el fix?",
+      "opciones": [
+        "Activar la memoria server-side de la API para no tener que reenviar el historial en cada request",
+        "Cambiar a un modelo con ventana de contexto más grande y seguir mandando todo: más contexto siempre es mejor",
+        "Mover las instrucciones del system prompt al final del historial para que no se diluyan",
+        "Manejar el historial del lado cliente: ventana deslizante con los turnos recientes más un resumen de lo viejo, y mandar solo eso en cada request"
+      ],
+      "correcta": 3,
+      "rationales": [
+        "Esa memoria no existe: la Messages API es stateless y el historial siempre viaja del lado cliente. Cualquier opción con estado server-side es falsa.",
+        "Una ventana más grande pospone el problema y encarece cada request: el contexto irrelevante sigue diluyendo las instrucciones y confundiendo al modelo.",
+        "Reordenar no reduce tokens ni ruido: el historial gigante sigue ahí, con su costo, su latencia y su dilución.",
+        "Correcta. En una API stateless el contexto se cura del lado cliente: truncar y resumir mantiene los tokens controlados y el contexto relevante al pedido actual."
+      ]
+    },
+    {
+      "id": "q9",
+      "objetivo": "review-loops",
+      "escenario": "Un sistema analiza contratos y hoy manda el 100% de sus salidas a revisión legal. Los abogados están desbordados, revisan cada vez con menos atención y el sistema no le ahorra tiempo a nadie. El equipo tampoco quiere aprobar todo automáticamente. ¿Cuál es el diseño correcto?",
+      "opciones": [
+        "Routing por umbral de riesgo y confianza: bajo riesgo o alta confianza sigue automático; alto riesgo o baja confianza va a revisión humana",
+        "Eliminar la revisión humana: si el modelo acierta casi siempre, revisar es un costo innecesario",
+        "Contratar más revisores hasta que el equipo legal absorba el volumen completo",
+        "Que el modelo revise sus propias salidas con un segundo prompt y apruebe las que considere correctas"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. El humano se reserva para donde aporta: alto riesgo o baja confianza. El resto fluye automático. Ni todo a humano ni nada a humano: umbral.",
+        "El extremo opuesto al problema actual: en salidas de alto riesgo, un casi siempre no alcanza y el error se paga caro.",
+        "Escala el costo en vez de arreglar el diseño: el cuello de botella sigue y la atención de los revisores se sigue degradando con el volumen.",
+        "Un self-check suma señal de confianza, pero no reemplaza la revisión humana en alto riesgo: el que comete el error no es el mejor auditor de sí mismo."
+      ]
+    },
+    {
+      "id": "q10",
+      "objetivo": "review-loops",
+      "escenario": "Un agente genera código, corre los tests y se auto-corrige usando los errores como feedback. Funciona, salvo cuando un test es imposible de pasar por un bug en el test mismo: el loop queda iterando durante horas quemando tokens. ¿Qué le falta al diseño?",
+      "opciones": [
+        "Sacar el loop automatizado y que un humano revise cada iteración desde la primera",
+        "Subir la temperatura para que el modelo pruebe soluciones más creativas y salga del atasco",
+        "Un criterio de corte: máximo de iteraciones y, si al llegar los tests siguen fallando, escalar a un humano con el historial de intentos",
+        "Nada: los feedback loops convergen solos si se les da tiempo suficiente"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "Tira el valor del loop: la mayoría de los casos se resuelve sola en pocas iteraciones. Todo a humano es el otro extremo del error.",
+        "Puede variar los intentos, pero no detecta el caso irresoluble: el loop sigue quemando tokens contra un test roto.",
+        "Correcta. Todo feedback loop automatizado necesita criterio de corte: un límite de iteraciones convierte el caso patológico en una escalación con contexto en vez de un loop infinito.",
+        "No hay garantía de convergencia: contra un test con bug, ninguna cantidad de iteraciones alcanza. Ese es exactamente el caso que el corte resuelve."
+      ]
+    }
+  ]
+}

@@ -138,6 +138,157 @@
           "id": "scopes-mcp-6",
           "front": "Aparecen credenciales personales o un server experimental en un PR: ¿qué pasó y cuál es el fix?",
           "back": "Alguien usó scope project (.mcp.json) para algo personal. Fix: revertir el archivo y re-agregar en local (solo este proyecto) o user (todos tus proyectos)."
+        },
+        {
+          "id": "scopes-mcp-7",
+          "front": "Una tool MCP falla: ¿qué debe recibir el modelo?",
+          "back": "Un tool result marcado is_error: true con mensaje accionable: qué falló + cómo seguir (rate limit: reintentá en 60s / id inexistente: verificá con listar_pedidos). Nunca stack trace crudo ni string vacío: el modelo decide el próximo paso con ese texto."
+        },
+        {
+          "id": "scopes-mcp-8",
+          "front": "¿Por qué un stack trace crudo como error de tool es doble problema?",
+          "back": "1) No da próximo paso: el agente abandona o repite la misma llamada. 2) Filtra detalles internos del server (paths, versiones). Y un string vacío es peor: el agente lo lee como 'no hay datos' y fabrica. El error debe decir el qué y el cómo seguir."
+        },
+        {
+          "id": "scopes-mcp-9",
+          "front": "¿Con qué información elige el modelo qué tool MCP llamar?",
+          "back": "Solo con name, description y schema de inputs. NO lee el código del server, por prolijo que esté. Description vaga → elección incorrecta o argumentos con mal formato. La interfaz declarada es todo lo que cruza el protocolo."
+        },
+        {
+          "id": "scopes-mcp-10",
+          "front": "Dos tools parecidas (buscar_por_ip / buscar_por_nombre) y el modelo pifia: ¿fix?",
+          "back": "Reescribir las descriptions para desambiguar: cuándo usar cada una, qué las diferencia y el formato exacto de los inputs (con ejemplo). Renombrar la tool con un nombre más largo sin mejorar la description no arregla nada."
+        },
+        {
+          "id": "scopes-mcp-11",
+          "front": "Un server MCP no aparece o falla en sesión: ¿comandos de debugging?",
+          "back": "claude mcp list: qué servers están configurados y su estado. claude mcp get <nombre>: detalle de uno (comando, args, env, scope). Primero observar, después tocar — re-agregar a ciegas no dice qué estaba mal (ej: env var sin definir)."
+        }
+      ]
+    },
+    {
+      "id": "api-stateless",
+      "nombre": "API stateless",
+      "descripcion": "Por qué la Messages API no recuerda nada y qué implica.",
+      "cards": [
+        {
+          "id": "api-stateless-1",
+          "front": "¿Qué guarda la Messages API entre un request y el siguiente?",
+          "back": "Nada. Es 100% stateless: no hay conversation_id, sesiones ni memoria server-side. El cliente manda el historial completo (turnos user y assistant) en el array messages de cada request."
+        },
+        {
+          "id": "api-stateless-2",
+          "front": "El assistant devolvió un bloque tool_use. ¿Cómo sigue la conversación?",
+          "back": "El cliente ejecuta la tool y manda un request NUEVO con todo el historial, incluido el turno assistant con el tool_use, más un turno user con el tool_result que referencia el tool_use_id. La API no ejecuta tools por vos."
+        },
+        {
+          "id": "api-stateless-3",
+          "front": "¿El system prompt persiste entre turnos?",
+          "back": "No. Se manda en CADA request, como parámetro system. Si lo mandás solo en el primer turno, en los siguientes el modelo no lo tiene y las reglas se pierden."
+        },
+        {
+          "id": "api-stateless-4",
+          "front": "usage.input_tokens crece turno a turno. ¿Es un bug?",
+          "back": "No: cada request lleva el historial completo, así que el input crece. Se maneja del lado cliente (truncar o resumir turnos viejos). Prompt caching abarata el prefijo repetido, pero el historial se manda igual."
+        },
+        {
+          "id": "api-stateless-5",
+          "front": "Se reinició el server de la app y las conversaciones se perdieron. ¿Quién tenía el historial?",
+          "back": "La app, en memoria del proceso. La API nunca lo tuvo. Fix: persistir el historial en una DB, separado por usuario/conversación, y reenviarlo completo en cada request."
+        }
+      ]
+    },
+    {
+      "id": "tool-choice",
+      "nombre": "Valores de tool_choice",
+      "descripcion": "auto / any / tool / none: qué garantiza cada uno y qué no.",
+      "cards": [
+        {
+          "id": "tool-choice-1",
+          "front": "Los 4 valores de tool_choice: ¿qué obliga cada uno?",
+          "back": "auto (default): el modelo decide, puede no usar ninguna tool. any: obligado a usar ALGUNA tool. tool + name: obligado a usar ESA tool. none: prohibido usar tools. Ninguno de los cuatro garantiza orden entre tools ni argumentos verdaderos."
+        },
+        {
+          "id": "tool-choice-2",
+          "front": "¿Cómo se garantiza el orden entre dos tools dependientes (B necesita el output de A)?",
+          "back": "Con requests encadenados: el request 1 llama A (opcionalmente forzada con type tool), el cliente ejecuta A y devuelve su tool_result en el historial, y en el request siguiente el modelo llama B con el dato real. Ningún valor de tool_choice garantiza orden."
+        },
+        {
+          "id": "tool-choice-3",
+          "front": "Forzás una tool (any o tool) pero el modelo no tiene los datos para los argumentos. ¿Qué pasa?",
+          "back": "Los inventa: forzar obliga una tool call inmediata en esa respuesta, sin opción de pedir el dato faltante, y fabrica IDs con formato válido. Forzar no garantiza datos correctos. required y patterns en el schema tampoco: validan forma, no verdad."
+        },
+        {
+          "id": "tool-choice-4",
+          "front": "disable_parallel_tool_use: true — ¿qué hace y qué NO hace?",
+          "back": "Hace: limita al modelo a como máximo 1 tool call por respuesta. NO hace: no elige cuál tool, ni define orden entre requests ni entre tools dependientes. Limita cantidad, no secuencia."
+        },
+        {
+          "id": "tool-choice-5",
+          "front": "El modelo pidió 3 tools en paralelo en una misma respuesta. ¿Cómo devuelve los resultados el cliente?",
+          "back": "Ejecuta las 3 y devuelve LOS 3 bloques tool_result juntos, en UN solo mensaje user, cada uno matcheado por su tool_use_id. Un mensaje separado por resultado rompe el protocolo. El parallel tool use es el comportamiento default de la API."
+        },
+        {
+          "id": "tool-choice-6",
+          "front": "stop_reason tool_use: ¿qué significa y quién ejecuta la tool?",
+          "back": "El modelo quiere ejecutar una tool y espera el resultado. La ejecuta el CLIENTE (la API no ejecuta tools custom): corre la función, arma un mensaje user con el tool_result y manda un nuevo request con el historial completo. Ese es el loop de tool use."
+        }
+      ]
+    },
+    {
+      "id": "anti-fabricacion",
+      "nombre": "Técnicas anti-fabricación",
+      "descripcion": "Cómo lograr que el modelo diga que no está en vez de inventar.",
+      "cards": [
+        {
+          "id": "anti-fabricacion-1",
+          "front": "¿Qué garantiza realmente required en un JSON Schema de extracción?",
+          "back": "Que el campo APAREZCA en el output. No dice nada sobre la veracidad del valor: ante un documento incompleto, un campo required no nullable obliga al modelo a rellenar, y lo que rellena lo fabrica. 'Todo required para asegurar completitud' es el distractor clásico del examen."
+        },
+        {
+          "id": "anti-fabricacion-2",
+          "front": "nullable vs optional: ¿en qué se diferencian?",
+          "back": "optional (campo fuera de required) = el campo puede FALTAR del output; ausencia ambigua: ¿no estaba en el documento o el modelo se lo salteó? nullable ('type': ['string','null']) = el campo aparece, con valor null. Son cosas distintas y el examen las cruza."
+        },
+        {
+          "id": "anti-fabricacion-3",
+          "front": "¿Para qué sirve un enum en un schema de extracción?",
+          "back": "Cierra el espacio de valores: el modelo no puede emitir una categoría fuera de la lista, así que las categorías inventadas desaparecen por contrato. Si hace falta un escape, se agrega 'otros' como opción del propio enum."
+        },
+        {
+          "id": "anti-fabricacion-4",
+          "front": "¿additionalProperties: false y strict: true evitan que el modelo invente datos?",
+          "back": "No. Validan ESTRUCTURA: additionalProperties false bloquea claves no declaradas y strict garantiza que el output valide contra el schema (forma y tipos). Un valor inventado con el tipo correcto pasa igual. La VERACIDAD se ataca con nullable + enums + few-shot con nulls."
+        },
+        {
+          "id": "anti-fabricacion-5",
+          "front": "¿Cuál es el combo anti-fabricación completo (principio de oro 3)?",
+          "back": "nullable (null como respuesta válida del schema) + enums (valores cerrados) + few-shot con ejemplos que devuelven null, más descriptions por campo: 'si no está en el documento, devolvé null'. El schema es el contrato duro; el prompt solo orienta."
+        },
+        {
+          "id": "anti-fabricacion-6",
+          "front": "¿Cuál es el patrón de schema para extracción auditable?",
+          "back": "required + nullable en cada campo extraíble: el campo aparece SIEMPRE y null es la señal explícita de 'no estaba en el documento'. Mejor que optional, cuya ausencia es ambigua para auditoría (¿faltaba el dato o falló la extracción?)."
+        },
+        {
+          "id": "anti-fabricacion-7",
+          "front": "¿Cómo tiene que ser el few-shot anti-fabricación?",
+          "back": "Debe INCLUIR ejemplos donde el output correcto tiene null. El modelo aprende del ejemplo más que de la instrucción: un ejemplo con null le enseña cuándo usar la salida legal que el schema nullable habilita. Nullable sin demostración es un permiso que nadie usa."
+        },
+        {
+          "id": "anti-fabricacion-8",
+          "front": "¿Qué pasa si TODOS los ejemplos few-shot traen todos los campos completos?",
+          "back": "El modelo aprende el patrón 'siempre hay valor' y ante documentos incompletos fabrica, incluso con schema nullable y descriptions correctas: el patrón dominante de los ejemplos pisa el permiso del schema. Trampa de examen: 'agregar más ejemplos' completos refuerza la fabricación."
+        },
+        {
+          "id": "anti-fabricacion-9",
+          "front": "¿Cómo se normalizan formatos en extracción (fechas ISO 8601, montos numéricos sin símbolo)?",
+          "back": "Por doble vía: se especifica en el schema (types, enum, descriptions) Y se demuestra en los ejemplos few-shot, con inputs sucios ('3 de agosto del 26', '$ 1.250,50') y outputs normalizados ('2026-08-03', 1250.5). Si la instrucción y el ejemplo se contradicen, gana el ejemplo."
+        },
+        {
+          "id": "anti-fabricacion-10",
+          "front": "¿Cuáles son las capas para mejorar extraction accuracy, en orden?",
+          "back": "1) Schema correcto: required + nullable + enums (día 5). 2) Few-shot con nulls y formatos normalizados. 3) Descriptions de campo precisas. 4) Validación del lado cliente para lo crítico (dígito verificador, lookup): la única capa determinística — verifica lo que ninguna capa del modelo puede garantizar."
         }
       ]
     }

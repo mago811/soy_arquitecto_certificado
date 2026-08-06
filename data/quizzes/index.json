@@ -1,7 +1,64 @@
 {
   "disponibles": [
-    { "archivo": "day-00.json", "titulo": "Demo: motor de quiz (principios de oro)", "dia": 0 },
-    { "archivo": "day-01.json", "titulo": "Día 1: Enforcement vs guidance", "dia": 1 },
-    { "archivo": "day-02.json", "titulo": "Día 2: Scoping MCP + métodos de contexto", "dia": 2 }
+    {
+      "archivo": "day-00.json",
+      "titulo": "Demo: motor de quiz (principios de oro)",
+      "dia": 0
+    },
+    {
+      "archivo": "day-01.json",
+      "titulo": "Día 1: Enforcement vs guidance",
+      "dia": 1
+    },
+    {
+      "archivo": "day-02.json",
+      "titulo": "Día 2: Scoping MCP + métodos de contexto",
+      "dia": 2
+    },
+    {
+      "archivo": "day-03.json",
+      "titulo": "Día 3: API stateless e historial",
+      "dia": 3
+    },
+    {
+      "archivo": "day-04.json",
+      "titulo": "Día 4: tool_choice y secuenciación multi-tool",
+      "dia": 4
+    },
+    {
+      "archivo": "day-05.json",
+      "titulo": "Día 5: Schemas de extracción anti-fabricación",
+      "dia": 5
+    },
+    {
+      "archivo": "day-06.json",
+      "titulo": "Día 6: Consolidado de zonas rojas",
+      "dia": 6
+    },
+    {
+      "archivo": "day-08.json",
+      "titulo": "Día 8: MCP profundo: errores, descriptions, auth",
+      "dia": 8
+    },
+    {
+      "archivo": "day-09.json",
+      "titulo": "Día 9: Descomposición dinámica e iterative refinement",
+      "dia": 9
+    },
+    {
+      "archivo": "day-10.json",
+      "titulo": "Día 10: Exploración de codebase y session resumption",
+      "dia": 10
+    },
+    {
+      "archivo": "day-11.json",
+      "titulo": "Día 11: Confirmación de fortalezas",
+      "dia": 11
+    },
+    {
+      "archivo": "simulacro-1.json",
+      "titulo": "SIMULACRO #1 — 60 preguntas, 120 minutos",
+      "dia": 12
+    }
   ]
 }

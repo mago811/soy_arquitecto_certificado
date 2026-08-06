@@ -1,0 +1,151 @@
+{
+  "id": "day-05",
+  "dia": 5,
+  "titulo": "Día 5: Schemas de extracción anti-fabricación",
+  "preguntas": [
+    {
+      "id": "q1",
+      "objetivo": "extraction-schemas",
+      "escenario": "Un pipeline con tool use extrae datos de facturas hacia un JSON schema donde todos los campos son required y ninguno admite null. Cuando una factura no trae CUIT, el modelo devuelve un CUIT inventado con formato válido que pasa la validación. ¿Cuál es el fix?",
+      "opciones": [
+        "Mover la regla 'no inventes datos' al inicio del system prompt para darle más peso",
+        "Agregar additionalProperties false para que el schema rechace los datos inventados",
+        "Cambiar el tipo de cuit a ['string','null'] con una description que diga: si no aparece en el documento, devolvé null",
+        "Subir max_tokens para que el modelo tenga espacio de aclarar que el dato falta"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "El prompt ayuda pero no garantiza: mientras el schema obligue a emitir un string, el modelo no tiene una salida válida para decir que el dato no está.",
+        "additionalProperties false impide CLAVES extra en el objeto: valida la forma del JSON, no la veracidad de los valores. Un CUIT falso con el tipo correcto pasa igual.",
+        "Correcta. Con nullable, null pasa a ser una respuesta legal del schema, y la description le dice explícitamente cuándo usarla. La ausencia se vuelve un valor válido en vez de forzar fabricación.",
+        "max_tokens limita la longitud del output; no cambia el contrato del schema ni la obligación de rellenar un campo required no nullable."
+      ]
+    },
+    {
+      "id": "q2",
+      "objetivo": "extraction-schemas",
+      "escenario": "Un extractor de historias clínicas tiene fecha_diagnostico como required, tipo string, sin null. En epicrisis que no mencionan esa fecha, el modelo completa con una fecha plausible. Compliance exige distinguir 'no consta en el documento' de un dato real. ¿Qué cambiás?",
+      "opciones": [
+        "Tipo ['string','null'] manteniendo el campo en required, con description que indique devolver null cuando la fecha no consta",
+        "Sacar fecha_diagnostico de la lista required para que el modelo pueda omitirlo",
+        "Bajar la temperatura para que el modelo sea menos creativo al completar fechas",
+        "Agregar strict true para que la API valide que la fecha sea correcta"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. required + nullable es el patrón auditable: el campo aparece siempre y null es la señal explícita de que el dato no consta en el documento, exactamente lo que pide compliance.",
+        "Optional hace la ausencia ambigua: no sabés si la fecha no constaba o si el modelo se olvidó de extraerla. Para auditoría eso es peor que el problema original.",
+        "La temperatura ajusta el muestreo, no el contrato: mientras el schema exija un string, el modelo va a poner una fecha.",
+        "strict true garantiza que el output valide contra el schema: estructura y tipos. No puede verificar que una fecha sea verdadera."
+      ]
+    },
+    {
+      "id": "q3",
+      "objetivo": "extraction-schemas",
+      "escenario": "Un clasificador de tickets de soporte extrae un campo categoria de tipo string libre. En producción aparecen categorías que no existen en el sistema, como hardware-critico o red-urgente, y rompen el tablero que agrupa por categoría. ¿Cuál es el fix?",
+      "opciones": [
+        "Agregar al prompt la lista de categorías válidas y pedirle que use solo esas",
+        "Sumar ejemplos few-shot de tickets bien clasificados",
+        "Agregar additionalProperties false para bloquear las categorías nuevas",
+        "Definir categoria con un enum que contenga las categorías válidas del sistema"
+      ],
+      "correcta": 3,
+      "rationales": [
+        "La lista en el prompt orienta, pero es guidance: en casos ambiguos el modelo puede improvisar una categoría que suena razonable. No hay garantía.",
+        "El few-shot mejora la accuracy y suma, pero por sí solo no cierra el espacio de valores: sigue siendo posible una categoría fuera del sistema.",
+        "additionalProperties false impide claves no declaradas en el objeto; el valor del campo categoria sigue siendo un string libre.",
+        "Correcta. El enum cierra el espacio de valores: el modelo no puede emitir una categoría fuera de la lista. Si hace falta un escape, se agrega una opción como otros al propio enum."
+      ]
+    },
+    {
+      "id": "q4",
+      "objetivo": "extraction-schemas",
+      "escenario": "Un extractor de CVs sacó todos los campos de la lista required para que el modelo no inventara datos. Ahora en algunos outputs directamente faltan campos, y el equipo de datos no puede distinguir si el CV no traía el dato o si el modelo se lo salteó. ¿Cómo lo resolvés?",
+      "opciones": [
+        "Volver a poner todo required no nullable: mejor un dato dudoso que un campo faltante",
+        "required + tipos nullable: el campo aparece siempre, y null indica explícitamente que el dato no estaba en el CV",
+        "Un segundo request que revise cada output y complete los campos faltantes",
+        "Loguear los outputs y reconstruir a mano qué campos faltaban en cada CV"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "Vuelve al problema original: required no nullable fuerza a rellenar, y ante un CV sin el dato el modelo fabrica.",
+        "Correcta. optional y nullable no son lo mismo: optional permite que el campo FALTE (ausencia ambigua), required + nullable obliga a que aparezca, y null es la señal auditable de que no estaba.",
+        "Un segundo pase agrega costo y latencia y no resuelve la ambigüedad: el revisor tampoco sabe si el dato estaba en el CV original.",
+        "Reconstruir a mano no escala y no arregla el contrato: la ausencia la debe expresar el schema, no un proceso posterior."
+      ]
+    },
+    {
+      "id": "q5",
+      "objetivo": "extraction-schemas",
+      "escenario": "Un dev definió un schema de extracción con todos los campos required, strict true y additionalProperties false, y asegura que así el output queda garantizado. Sin embargo el extractor devuelve fechas y números de orden inventados cuando el documento no los trae. ¿Por qué?",
+      "opciones": [
+        "strict true está en beta y todavía no valida todos los tipos",
+        "Falta subir max_tokens: el modelo trunca y rellena los campos que no llegó a extraer",
+        "Esas opciones garantizan la ESTRUCTURA del JSON (claves, tipos, sin propiedades extra); required obliga a que el campo aparezca, no a que su valor sea verdadero",
+        "El modelo ignora los schemas cuando el documento está incompleto"
+      ],
+      "correcta": 2,
+      "rationales": [
+        "Inventado: strict true funciona y garantiza que el output valide contra el schema. La cuestión es qué valida: forma, no verdad.",
+        "max_tokens corta la longitud del output; no explica valores fabricados con formato correcto.",
+        "Correcta. Todo ese combo valida estructura: un valor inventado con el tipo correcto pasa la validación. La veracidad se ataca con nullable, enums y few-shot con nulls, no con más validación estructural.",
+        "Al revés: el modelo respeta el schema, y justamente por eso fabrica. required sin null no le deja una forma válida de decir que el dato no está."
+      ]
+    },
+    {
+      "id": "q6",
+      "objetivo": "extraction-schemas",
+      "escenario": "Un extractor procesa logs truncados de un firewall OT hacia un schema con campos accion e ip_origen, ambos required tipo string. En líneas cortadas el modelo devuelve acciones que el log no registró, como blocked, e IPs de origen que no aparecen. ¿Qué combinación lo arregla?",
+      "opciones": [
+        "enum con las acciones reales del firewall (allow, deny, drop) para accion, y tipo ['string','null'] con description 'si no aparece en el log, devolvé null' para ip_origen",
+        "Un hook PostToolUse que descarte los outputs con IPs que no pertenezcan a la red",
+        "Pedir en el prompt que sea conservador y no complete campos dudosos",
+        "Confirmar accion e ip_origen como required para forzar una extracción completa"
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta. El enum cierra el espacio de acciones a las que el firewall realmente emite, y nullable con description le da al modelo la salida legal para IPs ausentes en líneas truncadas.",
+        "Confunde dominios: los hooks son de Claude Code, no de la Messages API. Y filtrar después no evita que el dato fabricado se genere; a lo sumo lo detecta a veces.",
+        "Guidance: mejora la tasa de acierto pero no la garantiza. El contrato duro contra valores inventados vive en el schema.",
+        "Ese es el estado actual y la causa del problema: required sin null fuerza a rellenar campos que el log truncado no trae."
+      ]
+    },
+    {
+      "id": "q7",
+      "objetivo": "extraction-schemas",
+      "escenario": "Un extractor de contratos devuelve montos y fechas de vencimiento inventados cuando el contrato escaneado viene incompleto. El equipo ya aplicó dos fixes: subió max_tokens y agregó al prompt 'si un dato no está, no lo inventes'. La fabricación bajó pero sigue apareciendo. ¿Qué falta?",
+      "opciones": [
+        "Bajar el nivel de razonamiento del modelo para que especule menos",
+        "Repetir la instrucción anti-invento al final del prompt, que es donde más pesa",
+        "Cambiar a un modelo más grande, que fabrica menos",
+        "Rediseñar el schema: tipos nullable con descriptions 'si no está, devolvé null' y enums donde el dominio es cerrado — el prompt orienta, el schema es el contrato"
+      ],
+      "correcta": 3,
+      "rationales": [
+        "El nivel de razonamiento no gobierna la fabricación: el problema es que el schema no admite la ausencia como respuesta válida.",
+        "Sigue siendo guidance: repetir o reubicar la instrucción mejora probabilidades, no cierra el contrato.",
+        "Cualquier modelo obligado por un schema sin null va a rellenar: el contrato fuerza la fabricación sin importar el tamaño del modelo.",
+        "Correcta. La instrucción del prompt ayuda pero no garantiza; la garantía estructural la dan los tipos nullable, las descriptions por campo y los enums. Mañana se suma few-shot con nulls al combo."
+      ]
+    },
+    {
+      "id": "q8",
+      "objetivo": "extraction-schemas",
+      "escenario": "En una code review, un dev defiende su schema de extracción de facturas: 'agregué additionalProperties false, así el modelo no puede inventar datos'. ¿Es correcto?",
+      "opciones": [
+        "Sí: sin propiedades adicionales el modelo queda limitado a los datos que trae el documento",
+        "No: additionalProperties false solo impide CLAVES no declaradas en el objeto; los VALORES de los campos declarados pueden seguir siendo inventados — para eso van nullable, enums y descriptions",
+        "Sí, pero solo si se combina con strict true",
+        "No: additionalProperties false está deprecado en los schemas de tools"
+      ],
+      "correcta": 1,
+      "rationales": [
+        "Confunde claves con valores: esa opción limita la forma del objeto, no de dónde salen los datos.",
+        "Correcta. additionalProperties false es control de estructura: bloquea claves extra. La fabricación ocurre en los valores, y ahí el contrato anti-invento son los tipos nullable, los enums y las descriptions.",
+        "strict true suma la garantía de que el output valide contra el schema: más estructura, pero cero garantía de veracidad. La combinación no cambia qué se valida.",
+        "Falso: additionalProperties false es válido y de hecho necesario para strict tool use. El error del dev es sobre qué controla."
+      ]
+    }
+  ]
+}
