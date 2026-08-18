@@ -13,3 +13,11 @@
   en vez de fix estructural). Conviene un quiz transversal de discriminación:
   pares de opciones donde una le habla al modelo y la otra cambia la estructura.
   El simulacro #2 tiene que sobreponderar D5 — en el #1 tuvo 3 de 60 preguntas.
+
+- 2026-08-18 (lab día 16): `labs/day-03-api-stateless.md` usa `r.content[0].text`
+  en dos lugares. En Opus 5 el thinking está activo por defecto, así que el
+  primer bloque de la respuesta puede ser un `thinking` (con texto vacío si
+  `display` es "omitted") y `.text` tira AttributeError. El lab del día 16 ya usa
+  un helper que filtra por `b.type == "text"`. Día 3 está aprobado y congelado:
+  NO lo toqué. Si Mago lo va a correr de nuevo, conviene pedirle "Rehacé el lab
+  del día 3" para aplicar el mismo helper.
