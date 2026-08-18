@@ -1,0 +1,187 @@
+{
+  "id": "day-16",
+  "dia": 16,
+  "titulo": "Día 16: Context Management & Reliability + principio 7",
+  "preguntas": [
+    {
+      "id": "q1",
+      "objetivo": "context-mgmt",
+      "escenario": "Un agente de compliance recibe 250 controles de una norma pegados entre el system prompt y la pregunta del usuario. Le piden el control cuya fecha de vencimiento esta mas proxima y responde el control 22 (vence en 90 dias), cuando el control 173 vence en 12. Los 250 controles estan en el payload. Cual es el diagnostico y el fix?",
+      "opciones": [
+        "Truncamiento: el payload excede la ventana y los controles posteriores al 100 se descartan en silencio; hay que paginar el envio.",
+        "Recency bias: el agente prioriza lo que aparece al final; hay que mover el bloque de controles al principio del prompt.",
+        "El modelo necesita una ventana de contexto mayor para poder atender los 250 controles de forma pareja.",
+        "Lost-in-the-middle: filtrar o reordenar los controles antes de pasarlos, dejando los candidatos en los bordes del prompt."
+      ],
+      "correcta": 3,
+      "rationales": [
+        "Si estuviera truncado, el control 173 no existiria para el agente. Eligio uno especifico y equivocado, senal de que ve todo el set pero lo atiende desparejo.",
+        "Recency favoreceria el final, no el control 22 que esta al inicio. Ademas mover todo al principio deja el medio igual de desatendido.",
+        "Mas ventana no redistribuye la atencion: el efecto persiste sobre secuencias largas y solo sube el costo.",
+        "Correcta: atencion desproporcionada al inicio y al final de secuencias largas. El fix es estructural sobre el dato, acotar el set o reposicionar los candidatos, no pedir mas atencion."
+      ]
+    },
+    {
+      "id": "q2",
+      "objetivo": "context-mgmt",
+      "escenario": "Un agente de conciliacion bancaria compara extractos contra asientos contables a lo largo de seis rondas, resumiendo la conversacion entre rondas para no llenar el contexto. Al cierre informa que hay diferencias materiales en tres cuentas, pero no puede dar los importes ni los numeros de cuenta, que si tuvo en la ronda dos. Cual es el fix mas efectivo?",
+      "opciones": [
+        "Subir el umbral que dispara la compactacion, para que el historial se resuma con menos frecuencia.",
+        "Indicar en el system prompt que todo resumen debe conservar textualmente importes y numeros de cuenta.",
+        "Mantener un bloque de hechos persistente con importes y numeros de cuenta, excluido del material que se resume.",
+        "Reconsultar el sistema contable al final del proceso para recuperar los importes perdidos."
+      ],
+      "correcta": 2,
+      "rationales": [
+        "Posterga el problema sin resolverlo: con suficientes rondas la compactacion llega igual y vuelve a comprimir los importes.",
+        "Es guidance sobre un proceso probabilistico. El modelo comprime segun lo que estima relevante y ninguna instruccion garantiza que un numero sobreviva seis rondas.",
+        "Correcta: los datos exactos viajan fuera del material comprimible, asi que sobreviven cualquier cantidad de rondas de resumen.",
+        "Tactica de recuperacion, no fix. Recupera una vez y el proximo ciclo de resumen vuelve a perder los importes."
+      ]
+    },
+    {
+      "id": "q3",
+      "objetivo": "context-mgmt",
+      "escenario": "Sistema multi-agente de due diligence: un subagente lee contratos, otro estados financieros y otro notas de prensa. Cada uno devuelve hallazgos correctamente atribuidos. El agente de sintesis produce un memo donde ya no se puede saber si la afirmacion sobre un pasivo contingente de 4M salio del contrato o del balance. Legales necesita rastrear cada afirmacion. Que corrige la causa raiz?",
+      "opciones": [
+        "Que cada subagente inserte la fuente entre parentesis despues de cada afirmacion dentro de su prosa.",
+        "Que los subagentes devuelvan mappings estructurados de afirmacion a fuente, y que la sintesis los preserve y mergee.",
+        "Agregar al final del memo una seccion que liste todos los documentos consultados por cada subagente.",
+        "Guardar cada hallazgo en un indice documental y que el memo referencie los hallazgos por identificador en vez de incorporar el texto."
+      ],
+      "correcta": 1,
+      "rationales": [
+        "La atribucion sigue viviendo en la prosa, y la sintesis reescribe, fusiona y comprime prosa. Los parentesis se despegan de su afirmacion o desaparecen.",
+        "Correcta: un mapping es dato, no prosa. Sobrevive la reescritura y la sintesis puede mergear mappings de varios subagentes manteniendo el vinculo afirmacion-fuente.",
+        "Es atribucion a nivel documento, no a nivel afirmacion. Legales necesita saber de que documento salio cada claim, no que documentos se leyeron en total.",
+        "Agrega infraestructura sin resolver la sintesis: el memo sigue siendo prosa reescrita y el vinculo entre cada afirmacion y su identificador se pierde igual."
+      ]
+    },
+    {
+      "id": "q4",
+      "objetivo": "context-mgmt",
+      "escenario": "Un pipeline nocturno corre tres pasos de Claude Code en secuencia sobre el mismo repo: genera notas de migracion de esquema, audita esas notas contra el diff real de migraciones, y estima el riesgo de rollback. El paso 2 aprueba siempre y el paso 3 subestima migraciones destructivas que las notas no mencionan. Los tres pasos terminan sin errores y producen salida. Cual es la causa raiz?",
+      "opciones": [
+        "Los tres pasos comparten la sesion, asi que los pasos 2 y 3 heredan el razonamiento del paso 1 en vez de juzgar las notas de forma independiente.",
+        "Falta --output-format json, por lo que el paso 2 no puede parsear de forma fiable la salida del paso 1 y la aprueba por defecto.",
+        "El CLAUDE.md no define el estandar de las notas de migracion, asi que el auditor no tiene criterio contra el cual comparar.",
+        "Falta el flag -p y los pasos quedan esperando input interactivo, devolviendo salidas parciales que el siguiente paso aprueba."
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta: el revisor que comparte contexto con el generador hereda sus supuestos y deja de ser revisor. Sesiones independientes fuerzan a evaluar las notas desde cero.",
+        "El formato de salida afecta como se parsea, no la profundidad de la auditoria. El paso 2 produce una revision completa: el problema es que esta sesgada.",
+        "Faltarian criterios afectaria la calidad de las notas generadas, no que la auditoria sea sistematicamente ciega. El patron apunta a contexto compartido.",
+        "Sin -p el pipeline colgaria esperando input, no produciria salidas completas. El enunciado dice que los tres pasos terminan sin errores."
+      ]
+    },
+    {
+      "id": "q5",
+      "objetivo": "context-mgmt",
+      "escenario": "Un agente de soporte resume el historial cada diez turnos. El equipo detecta que el numero de ticket y el SLA acordado se degradan a el ticket del cliente y un plazo corto despues de varios resumenes. Un dev propone un hook determinista que, cuando detecta que falta el numero de ticket, lo reconsulta al CRM y lo reinyecta. Cual es la evaluacion correcta de esa propuesta?",
+      "opciones": [
+        "Es el fix correcto: automatiza la recuperacion de forma determinista y no depende de que el modelo recuerde nada.",
+        "Es innecesaria: alcanza con instruir al modelo a preservar identificadores en cada resumen que produce.",
+        "Es insuficiente, pero por el motivo equivocado: el problema de fondo es el tamano de la ventana y la solucion es ampliarla.",
+        "Es un parche de recuperacion que repara despues de perder el dato y se dispara en cada ciclo. El fix estructural es que el numero y el SLA nunca entren al material que se resume."
+      ],
+      "correcta": 3,
+      "rationales": [
+        "Que sea determinista no lo hace estructural. Sigue actuando despues de la perdida, en cada ciclo, y depende de que la deteccion del dato faltante nunca falle.",
+        "Es el disfraz numero uno del principio 7: instruir no gobierna un proceso de compresion probabilistica.",
+        "La ventana no es la causa: la perdida la produce la compactacion, que ocurre igual con cualquier ventana una vez acumulados suficientes turnos.",
+        "Correcta: el principio 7 pide cambiar que dato viaja. Un facts block excluido del resumen elimina la perdida en origen en vez de repararla ciclo tras ciclo."
+      ]
+    },
+    {
+      "id": "q6",
+      "objetivo": "context-mgmt",
+      "escenario": "Un agente debe encontrar, dentro de 400 lineas de log de un PLC pegadas en el prompt, la unica linea con severidad CRITICAL. Esa linea esta cerca de la mitad del bloque. Con el log completo en el prompt, el agente responde que no hay ninguna linea CRITICAL. Cual es el fix mas efectivo?",
+      "opciones": [
+        "Repetir la instruccion de buscar CRITICAL antes y despues del bloque de log, pidiendo maxima atencion al detalle.",
+        "Preprocesar el log con un filtro por severidad y pasar al modelo solo las lineas candidatas.",
+        "Subir la temperatura para que el agente explore de forma mas variada el contenido del log.",
+        "Partir el log en dos mitades y pedirle que analice primero la segunda, donde suele concentrarse lo importante."
+      ],
+      "correcta": 1,
+      "rationales": [
+        "Repetir la instruccion no cambia como se distribuye la atencion sobre el bloque de datos. El material del medio sigue diluido.",
+        "Correcta: acotar el set antes de pasarlo saca el dato del medio de una secuencia larga. El trabajo determinista lo hace el filtro, no la atencion del modelo.",
+        "La temperatura afecta la aleatoriedad de la generacion, no la precision de la recuperacion. Empeoraria la consistencia.",
+        "Partir ayuda solo si cada chunk se reduce por separado. Elegir a priori la segunda mitad es una corazonada: la linea puede estar en cualquier parte."
+      ]
+    },
+    {
+      "id": "q7",
+      "objetivo": "enforcement",
+      "escenario": "Una aseguradora exige dos cosas verificables: que ningun archivo escrito en contracts/ quede sin firmar digitalmente, y que ninguna herramienta pueda leer archivos de pii/. Ambas deben cumplirse sin depender de que el modelo recuerde instrucciones. Que configuracion lo logra?",
+      "opciones": [
+        "Un hook PostToolUse sobre escrituras en contracts/ que firma el archivo recien escrito, y un deny en permissions sobre pii/.",
+        "Un hook PreToolUse sobre escrituras en contracts/ que bloquea si el archivo no esta firmado, y un PostToolUse que audita las lecturas de pii/.",
+        "Ambas reglas en CLAUDE.md con ejemplos, mas un hook PreToolUse que se las recuerde al modelo antes de cada tool call.",
+        "Un PostToolUse que firma los archivos, y una regla en CLAUDE.md que prohiba leer pii/, dado que las lecturas no son bloqueables."
+      ],
+      "correcta": 0,
+      "rationales": [
+        "Correcta: firmar actua sobre un artefacto ya escrito, entonces PostToolUse. Impedir una lectura debe ocurrir antes de que el dato entre al contexto, y eso lo garantiza un deny en permissions.",
+        "No se puede exigir que un archivo este firmado antes de escribirlo: todavia no existe. Y auditar lecturas de pii/ despues es tarde, el dato ya entro al contexto.",
+        "CLAUDE.md es guidance y un recordatorio tambien depende de que el modelo cumpla. El requisito dice explicitamente que no puede depender del modelo.",
+        "La premisa es falsa: las lecturas si se bloquean con un deny en permissions. Delegar eso a CLAUDE.md convierte un requisito de compliance en una sugerencia."
+      ]
+    },
+    {
+      "id": "q8",
+      "objetivo": "refinement",
+      "escenario": "Un pipeline de revision de merge requests emite cinco categorias de hallazgos. La categoria posible race condition acierta una de cada tres veces, y el equipo empezo a mergear ignorando todos los comentarios del bot, incluidos los de seguridad, que si son precisos. Cual es el fix mas efectivo?",
+      "opciones": [
+        "Agregar al system prompt que solo reporte race conditions cuando tenga alta confianza en el hallazgo.",
+        "Agregar un segundo pase del modelo que verifique cada hallazgo de race condition antes de publicarlo.",
+        "Silenciar la categoria race condition mientras se reescribe su criterio con ejemplos de codigo de casos positivos y negativos reales.",
+        "Bajar la temperatura del modelo para reducir la variabilidad entre corridas del pipeline."
+      ],
+      "correcta": 2,
+      "rationales": [
+        "Alta confianza es un adjetivo, no un criterio. El modelo no tiene una definicion concreta contra la cual medir y la precision no mejora.",
+        "Un segundo pase que usa el mismo criterio defectuoso reproduce los mismos falsos positivos. Primero se arregla el criterio.",
+        "Correcta: silenciar la categoria rota devuelve de inmediato la confianza en las otras cuatro, y el criterio se arregla con ejemplos concretos en vez de adjetivos.",
+        "La temperatura afecta la variabilidad, no la precision del criterio. Los falsos positivos seguirian, solo que mas consistentes."
+      ]
+    },
+    {
+      "id": "q9",
+      "objetivo": "extraction-accuracy",
+      "escenario": "Un agente redacta la seccion pasos para reproducir de cada ticket de incidente. Con instrucciones detalladas produce a veces una narracion en prosa, a veces una lista numerada, a veces una mezcla de las dos, y cuando el incidente tiene precondiciones las omite. Agregar mas detalle a las instrucciones no corrigio nada. Que haces?",
+      "opciones": [
+        "Agregar de dos a cuatro ejemplos, todos de tickets simples, mostrando la lista numerada deseada.",
+        "Agregar un post-procesador que reformatee toda prosa a lista numerada antes de guardar el ticket.",
+        "Restringir el campo con un enum en el JSON schema para que solo acepte el formato lista numerada.",
+        "Agregar de dos a cuatro ejemplos que cubran tickets simples, tickets con precondiciones y tickets sin pasos reproducibles, cada uno con el razonamiento de la estructura elegida."
+      ],
+      "correcta": 3,
+      "rationales": [
+        "Ejemplos de un solo tipo de caso ensenan a pattern-matchear ese caso. Los tickets con precondiciones y los no reproducibles seguirian saliendo inconsistentes.",
+        "Post-procesar enmascara el problema: reformatea la prosa pero no puede inventar las precondiciones que el modelo omitio.",
+        "Un enum fija una etiqueta de un conjunto cerrado. No gobierna como se redacta un contenido en prosa libre ni obliga a incluir precondiciones.",
+        "Correcta: cuando las instrucciones detalladas ya fallaron, few-shot es la tecnica. El razonamiento y la cobertura de casos limite ensenan a generalizar, no a copiar un caso."
+      ]
+    },
+    {
+      "id": "q10",
+      "objetivo": "orchestration",
+      "escenario": "Un coordinador debe auditar dependencias vulnerables y medir cobertura de tests. Las dos tareas son independientes y hoy las lanza en turnos separados: 9 segundos mas 15 segundos, total 24. Ademas, para el analisis de dependencias quiere probar dos estrategias distintas partiendo del mismo estado de conversacion y comparar los resultados. Que combinacion es correcta?",
+      "opciones": [
+        "Usar fork_session para lanzar los dos subagentes en paralelo, y turnos separados para probar las dos estrategias de dependencias.",
+        "Emitir las dos Task calls en una sola respuesta para paralelizar, quedando en unos 15 segundos, y usar fork_session junto con resume para bifurcar la conversacion de dependencias en dos ramas comparables.",
+        "Emitir las dos Task calls en una sola respuesta, y para las dos estrategias abrir dos sesiones nuevas desde cero.",
+        "Fusionar ambas tareas en un unico subagente para reducir el overhead de coordinacion, y usar fork_session para las dos estrategias."
+      ],
+      "correcta": 1,
+      "rationales": [
+        "fork_session requiere resume y bifurca el historial de una conversacion existente. No lanza subagentes en paralelo: eso son varias Task calls en una misma respuesta.",
+        "Correcta: varias Task calls en una respuesta corren concurrentemente, asi que manda la mas lenta. Y fork_session, que requiere resume, bifurca el historial en una sesion nueva: exactamente comparar dos rumbos desde la misma baseline.",
+        "El paralelismo esta bien, pero dos sesiones desde cero pierden el estado compartido. El sentido de comparar estrategias es partir de la misma baseline, que es justo lo que da el fork.",
+        "Fusionar pierde el paralelismo y la especializacion: el subagente unico sigue haciendo las dos tareas en serie, sin ganancia de latencia."
+      ]
+    }
+  ]
+}

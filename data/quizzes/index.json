@@ -59,6 +59,11 @@
       "archivo": "simulacro-1.json",
       "titulo": "SIMULACRO #1 — 60 preguntas, 120 minutos",
       "dia": 12
+    },
+    {
+      "archivo": "day-16.json",
+      "titulo": "Día 16: Context Management & Reliability + principio 7",
+      "dia": 16
     }
   ]
 }
