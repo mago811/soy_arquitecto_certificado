@@ -291,6 +291,118 @@
           "back": "1) Schema correcto: required + nullable + enums (día 5). 2) Few-shot con nulls y formatos normalizados. 3) Descriptions de campo precisas. 4) Validación del lado cliente para lo crítico (dígito verificador, lookup): la única capa determinística — verifica lo que ninguna capa del modelo puede garantizar."
         }
       ]
+    },
+    {
+      "id": "contexto-fallas",
+      "nombre": "Fallas de contexto y principio 7",
+      "descripcion": "D5 y el patrón que explica 6 de 9 errores del mock: estructura vs instrucción.",
+      "cards": [
+        {
+          "id": "contexto-fallas-1",
+          "front": "¿Qué es el lost-in-the-middle y cómo lo distinguís de un truncamiento?",
+          "back": "El modelo atiende desproporcionadamente al inicio y al final de una secuencia larga; lo del medio se diluye. La firma es que elige un ítem específico pero equivocado. Si estuviera truncado, el ítem correcto no existiría para él y no podría haberlo pasado por alto: lo tiene, no lo atiende."
+        },
+        {
+          "id": "contexto-fallas-2",
+          "front": "Lost-in-the-middle: ¿cuáles son los tres fixes válidos?",
+          "back": "Acotar o filtrar el set ANTES de pasarlo, reposicionar lo crítico a los bordes del prompt, o partir en chunks y reducir chunk por chunk. Los tres cambian qué dato viaja. 'Leé con atención' y 'más ventana' no son fixes: no redistribuyen la atención."
+        },
+        {
+          "id": "contexto-fallas-3",
+          "front": "¿Qué es el progressive summarisation trap?",
+          "back": "Resumir el historial entre rondas comprime probabilísticamente: los números exactos, fechas e identificadores se degradan a enunciados cualitativos ronda tras ronda. 'Aumentó en Q3' es lo que queda de '14,2M'. La pérdida es acumulativa e irreversible dentro del historial."
+        },
+        {
+          "id": "contexto-fallas-4",
+          "front": "¿Qué es un persistent facts block y por qué funciona?",
+          "back": "Un bloque estructurado con los datos exactos (cifras, fechas, IDs) que vive FUERA del material que se resume. Funciona porque no depende de que el modelo decida preservarlos: sobreviven cualquier cantidad de rondas de resumen porque nunca entran a la compresión."
+        },
+        {
+          "id": "contexto-fallas-5",
+          "front": "En multi-agente, ¿por qué el informe final pierde la atribución si cada subagente atribuyó bien?",
+          "back": "Porque la atribución vivía en la prosa, y el agente de síntesis reescribe, fusiona y comprime prosa. Los links inline y las fuentes entre paréntesis se despegan de su afirmación o desaparecen. Lo que sobrevive la reescritura es dato estructurado, no texto."
+        },
+        {
+          "id": "contexto-fallas-6",
+          "front": "Claim-source mapping vs bibliografía al final: ¿cuál es la diferencia?",
+          "back": "La bibliografía es atribución a nivel DOCUMENTO: dice qué se consultó. El claim-source mapping es atribución a nivel AFIRMACIÓN: dice de dónde salió cada claim. Cuando el requisito es rastrear una afirmación puntual, la bibliografía es el distractor."
+        },
+        {
+          "id": "contexto-fallas-7",
+          "front": "Un pipeline genera, revisa y valida, y la review nunca objeta nada. ¿Qué falla?",
+          "back": "Session context isolation. Si el paso que revisa comparte sesión con el que generó, hereda su razonamiento y deja de ser revisor. Fix: una sesión independiente por paso, que fuerza a evaluar el artefacto desde cero. La señal es la review sistemáticamente ciega, no un error."
+        },
+        {
+          "id": "contexto-fallas-8",
+          "front": "¿Ampliar la ventana de contexto mejora la precisión?",
+          "back": "No. La ventana determina cuánto entra, no cómo se distribuye la atención. Posterga el lost-in-the-middle y la compactación, y encarece cada request. En D5 aparece como distractor en casi todos los escenarios y nunca es la respuesta."
+        },
+        {
+          "id": "contexto-fallas-9",
+          "front": "Principio 7: ¿cuál es la regla?",
+          "back": "Si el sistema YA produce output y el output es malo, el fix no es un flag, ni un formato, ni más infraestructura, ni una instrucción al modelo. Es cambiar QUÉ dato viaja o QUÉ contexto ve. Es el principio 6 generalizado más allá de Claude Code, a prompting y contexto."
+        },
+        {
+          "id": "contexto-fallas-10",
+          "front": "¿Cuáles son los tres disfraces del distractor que viola el principio 7?",
+          "back": "1) 'Instruile que siempre haga X': ninguna instrucción sobrevive N rondas de compresión. 2) 'Agregá alta confianza o sé cuidadoso al system prompt': un adjetivo no es un criterio. 3) 'Falta un flag, el formato de salida o una base de datos': si el pipeline corre y entrega, no es plumbing."
+        },
+        {
+          "id": "contexto-fallas-11",
+          "front": "Principio 7b: ¿qué hacés cuando una opción invoca un mecanismo que suena avanzado?",
+          "back": "Verificás que el mecanismo haga literalmente lo que la opción dice. Sonar sofisticado no lo hace correcto: suele ser el distractor. Los dos casos típicos son fork_session usado como paralelizador y un PreToolUse puesto a validar algo que todavía no existe."
+        },
+        {
+          "id": "contexto-fallas-12",
+          "front": "¿Qué hace exactamente fork_session y qué NO hace?",
+          "back": "Requiere resume y crea una sesión nueva que arranca con una copia del historial original y diverge desde ese punto; la original queda intacta. Sirve para probar un rumbo alternativo sin perder el anterior. NO paraleliza subagentes: eso es emitir varias Task calls en UNA sola respuesta."
+        },
+        {
+          "id": "contexto-fallas-13",
+          "front": "Un hook debe validar un archivo escrito. ¿PreToolUse o PostToolUse, y por qué?",
+          "back": "PostToolUse. PreToolUse corre antes de la acción, cuando el archivo todavía no existe: no se puede lintear ni firmar lo que no está escrito. PreToolUse sirve para BLOQUEAR algo que no debe ocurrir (una lectura, un borrado); PostToolUse para validar o transformar lo ya producido."
+        },
+        {
+          "id": "contexto-fallas-14",
+          "front": "Fix de recuperación vs fix estructural: ¿cómo los separás en un examen?",
+          "back": "El de recuperación repara después de que el daño ocurrió y se vuelve a disparar en el próximo ciclo (reconsultar la fuente, reinyectar el dato perdido). El estructural hace que el daño no pueda ocurrir. El examen pide siempre el estructural: 'prevent the problem from recurring'."
+        },
+        {
+          "id": "contexto-fallas-15",
+          "front": "ESCENARIO. Un agente resume entre rondas y tras tres rondas informa 'los ingresos subieron' pero perdió la cifra exacta. ¿Cuál es el fix más efectivo?",
+          "back": "Extraer las cifras a un facts block persistente fuera del historial resumido. Trampa: 'instruile que incluya siempre las cifras exactas' es guidance sobre compresión probabilística. Reconsultar la fuente recupera una vez y se vuelve a romper. Más ventana solo posterga."
+        },
+        {
+          "id": "contexto-fallas-16",
+          "front": "ESCENARIO. 200 filas de datos entre el system prompt y la pregunta. Le piden el margen más alto y elige la fila 45 (32%) en vez de la 142 (47%). ¿Qué está pasando?",
+          "back": "Lost-in-the-middle: la fila 142 está enterrada en el medio. Trampa: recency bias favorecería el final, no la fila 45. Y no es truncamiento, porque si lo fuera la fila 142 no existiría para el agente y no habría podido señalar una fila específica."
+        },
+        {
+          "id": "contexto-fallas-17",
+          "front": "ESCENARIO. Tres subagentes devuelven hallazgos bien citados, pero el informe sintetizado no permite rastrear qué claim vino de qué fuente. ¿Cuál es el fix?",
+          "back": "Que los subagentes devuelvan mappings estructurados claim-fuente y que la síntesis los preserve y mergee. Trampas: la bibliografía final es atribución a nivel documento; los hyperlinks en prosa no sobreviven la reescritura; una base de datos con IDs agrega infra sin resolver la síntesis."
+        },
+        {
+          "id": "contexto-fallas-18",
+          "front": "ESCENARIO. Tres pasos de CI corren en secuencia: generar changelog, revisarlo, detectar breaking changes. La revisión nunca marca nada. ¿Causa raíz?",
+          "back": "Los tres pasos comparten sesión, así que 2 y 3 heredan el razonamiento del paso 1 en vez de juzgarlo. Trampas: si faltara -p el pipeline colgaría en vez de producir salida; --output-format json cambia el parseo, no la profundidad de la revisión."
+        },
+        {
+          "id": "contexto-fallas-19",
+          "front": "ESCENARIO. Una categoría de review tiene 40% de falsos positivos y los devs ya ignoran TODAS las categorías. ¿Cuál es el fix más efectivo?",
+          "back": "Desactivar esa categoría mientras se refinan sus criterios con ejemplos concretos: recupera de inmediato la confianza en las demás. Trampas: 'reportá solo alta confianza' es un adjetivo sin criterio; un segundo pase con el mismo criterio defectuoso repite los mismos falsos positivos."
+        },
+        {
+          "id": "contexto-fallas-20",
+          "front": "ESCENARIO. Dos subagentes independientes corren en turnos separados: 8s + 12s = 20s. ¿Cómo bajás la latencia?",
+          "back": "El coordinador emite las dos Task calls en UNA sola respuesta: corren concurrentemente y manda la más lenta, unos 12s. Trampas: fork_session bifurca historial, no paraleliza; fusionarlos en un subagente pierde el paralelismo y la especialización; que un subagente llame a otro rompe el hub-and-spoke."
+        },
+        {
+          "id": "contexto-fallas-21",
+          "front": "ESCENARIO. Un agente genera tests con estilos de assertion mezclados. Instrucciones más detalladas no lo arreglaron. ¿Qué sigue?",
+          "back": "2 a 4 few-shot con el razonamiento de cada decisión Y cobertura de edge cases (async, manejo de errores). Trampa fina: ejemplos que solo muestran el estilo deseado en casos simples enseñan a pattern-matchear esos casos, no a generalizar. Post-procesar con un linter enmascara, no arregla."
+        }
+      ]
     }
   ]
 }
