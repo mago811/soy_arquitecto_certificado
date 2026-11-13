@@ -19,7 +19,7 @@ export const domains = () => readJson<{ domains: { id: string; name: string; wei
 
 export function questionFiles() {
   const dir = path.join(ROOT, "questions");
-  return readdirSync(dir).filter((f) => /^obj-\d\d\.json$/.test(f)).sort().map((f) => ({
+  return readdirSync(dir).filter((f) => /^(sim-)?obj-\d\d\.json$/.test(f)).sort().map((f) => ({
     file: path.join(dir, f),
     data: JSON.parse(readFileSync(path.join(dir, f), "utf8")) as { objective: number; questions: Q[] },
   }));

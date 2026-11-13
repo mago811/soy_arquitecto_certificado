@@ -1,0 +1,149 @@
+{
+  "objective": 28,
+  "questions": [
+    {
+      "id": "o28-q01",
+      "objective": 28,
+      "pool": "practice",
+      "scenario": "Un bot de review manda el diff completo de cada PR en una sola llamada y pide los hallazgos como JSON con structured outputs. Con PRs de 60+ archivos vuelve `stop_reason: \"max_tokens\"` y el JSON no parsea. Ya subieron `max_tokens` dos veces y los PRs siguen creciendo. ¿Cuál es el fix de fondo?",
+      "options": [
+        "Subir `max_tokens` al máximo que acepte el modelo y agregar un reintento automático cada vez que vuelva `max_tokens`.",
+        "Partir el review en llamadas más chicas (por archivo o módulo) con el mismo schema, y unir los hallazgos en código.",
+        "Pedirle al modelo que describa cada hallazgo en una sola línea, para que el JSON ocupe menos tokens y entre completo.",
+        "Desactivar structured outputs y parsear el texto libre con regex, porque así un corte no rompe todo el JSON."
+      ],
+      "correct": 1,
+      "why_correct": "Si el output crece con el tamaño del input, subir `max_tokens` es correr atrás del problema y tiene techo. Partir en subtareas chicas mantiene cada respuesta acotada; con el mismo schema, el merge en código es simple.",
+      "why_wrong": {
+        "0": "Hay un techo de salida por modelo; con PRs más grandes vuelve a pasar. Reintentar lo mismo da lo mismo.",
+        "2": "Acorta un poco pero no cambia que el output escale con el PR; y perdés detalle útil.",
+        "3": "Perdés la garantía de schema y el texto igual queda cortado: perdés hallazgos sin saber cuáles."
+      },
+      "rule": "Output que crece con el input y se trunca → partí en llamadas chicas y mergeá en código.",
+      "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/increase-consistency",
+      "source_quote": "Break down complex tasks into smaller, consistent subtasks. Each prompt then covers a single subtask, reducing inconsistency errors across scaled workflows.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o28-q02",
+      "objective": 28,
+      "pool": "practice",
+      "scenario": "Un equipo usa `claude-opus-5-5` por la Messages API sincrónica. Para que nunca más se trunque el JSON de un review gigante, alguien propone poner `max_tokens: 500000` en cada request. ¿Qué pasa con esa idea?",
+      "options": [
+        "Funciona: `max_tokens` no tiene límite superior y solo se cobra lo que efectivamente se genera en la respuesta.",
+        "Funciona solo si además se activa el beta header de contexto de 1M tokens, que también amplía la salida máxima.",
+        "Funciona, pero conviene usar 1000000 para cubrir también el thinking, que no cuenta para `max_tokens`.",
+        "No sirve: la salida máxima de Opus 5.5 en la Messages API sincrónica es 128K; hay que partir la tarea."
+      ],
+      "correct": 3,
+      "why_correct": "La tabla de modelos marca 128K tokens de salida máxima para Opus 5.5, y aclara que es el límite de la Messages API sincrónica. Estirar `max_tokens` más allá del techo no es una opción: hay que achicar cada llamada.",
+      "why_wrong": {
+        "0": "Hay un máximo de salida por modelo; la doc lo publica en la tabla de modelos.",
+        "1": "El contexto de 1M es la ventana de entrada+salida; la salida máxima sigue en 128K en la API sincrónica.",
+        "2": "Al revés: el thinking SÍ cuenta para `max_tokens`. Y el techo sigue siendo 128K."
+      },
+      "rule": "`max_tokens` tiene techo (128K en Opus 5.5 sincrónico). Pasado eso, partí.",
+      "source_url": "https://platform.claude.com/docs/en/about-claude/models/overview",
+      "source_quote": "Max output: Synchronous Messages API limit.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o28-q03",
+      "objective": 28,
+      "pool": "practice",
+      "scenario": "Un pipeline de extracción loguea \"JSONDecodeError\" en algunos documentos largos y los descarta como \"respuesta inválida del modelo\". Nadie sabe por qué pasa. ¿Qué chequeo tendría que hacer el código antes de parsear?",
+      "options": [
+        "Mirar `stop_reason`: si es `max_tokens`, la respuesta se cortó por el límite pedido y el JSON puede estar incompleto.",
+        "Validar el JSON con un segundo modelo más chico que lo repare antes de pasarlo al parser del pipeline.",
+        "Mirar el status HTTP: si es 200 la respuesta está completa, y si no, reintentar con el mismo request.",
+        "Contar las llaves `{` y `}` del texto; si no coinciden, agregar las que falten al final y volver a parsear."
+      ],
+      "correct": 0,
+      "why_correct": "`stop_reason: \"max_tokens\"` significa que Claude paró porque llegó al `max_tokens` del request. Es la señal de truncamiento; con eso decidís si subir el límite o partir el documento.",
+      "why_wrong": {
+        "1": "Reparar un JSON cortado inventa o pierde datos; no ataca la causa.",
+        "2": "Una respuesta truncada por `max_tokens` es una respuesta exitosa: viene con 200.",
+        "3": "Cerrar llaves a mano produce un JSON válido pero incompleto, sin saber qué se perdió."
+      },
+      "rule": "Antes de parsear, mirá `stop_reason`. `max_tokens` = truncado.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
+      "source_quote": "Claude stopped because it reached the `max_tokens` limit specified in your request.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o28-q04",
+      "objective": 28,
+      "pool": "practice",
+      "scenario": "Un equipo migró a Claude Opus 5.5 (thinking siempre activo) un review por módulo que antes funcionaba con `max_tokens: 4000`. Ahora varias respuestas vuelven con `stop_reason: \"max_tokens\"` aunque el JSON de hallazgos es igual de chico que antes. ¿Qué explica el cambio?",
+      "options": [
+        "El modelo nuevo genera hallazgos más largos por defecto; hay que pedirle que sea más breve en las descripciones.",
+        "Los tokens de thinking cuentan para `max_tokens` junto con la respuesta; hay que dejar margen para los dos.",
+        "Structured outputs no es compatible con thinking y el modelo se corta al intentar razonar dentro del JSON.",
+        "El schema es demasiado complejo para el modelo nuevo y la compilación de la gramática consume `max_tokens`."
+      ],
+      "correct": 1,
+      "why_correct": "La doc de thinking dice que los tokens de razonamiento se facturan como salida y cuentan para `max_tokens` junto con el texto. Con thinking prendido, el mismo límite deja menos lugar para el JSON. Acá el output no creció con el input: subir el margen es razonable.",
+      "why_wrong": {
+        "0": "El JSON es igual de chico; lo que cambió es el thinking que comparte el presupuesto.",
+        "2": "La doc no dice que sean incompatibles; el corte se explica por el presupuesto compartido.",
+        "3": "Un schema demasiado complejo da un error 400 al compilar, no un `stop_reason` de `max_tokens`."
+      },
+      "rule": "Con thinking, `max_tokens` = thinking + respuesta. Dejá margen.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
+      "source_quote": "Thinking tokens count toward `max_tokens`, so set it high enough to leave room for both the thinking and the response text.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o28-q05",
+      "objective": 28,
+      "pool": "practice",
+      "scenario": "Un script extrae datos de facturas de una página cada una, con `max_tokens: 512` y structured outputs. Algunas facturas con muchas líneas vuelven con `stop_reason: \"max_tokens\"`. El JSON completo de la factura más larga ocuparía unos 2.000 tokens. ¿Qué hacés?",
+      "options": [
+        "Partir cada factura en una llamada por línea de detalle y unir las líneas en código con un merge propio.",
+        "Pasar a la Message Batches API con el beta header de 300K de salida para tener margen de sobra.",
+        "Pedirle al modelo que omita las líneas de detalle cuando sean más de diez para que el JSON entre en 512.",
+        "Subir `max_tokens` a un valor con margen (por ejemplo 8000) y reintentar: el output es acotado y está lejos del techo."
+      ],
+      "correct": 3,
+      "why_correct": "La doc indica reintentar con un `max_tokens` más alto para obtener el output estructurado completo. Acá el output es chico y acotado: el límite estaba mal dimensionado, sobre todo si hay thinking. Partir sería sobreingeniería.",
+      "why_wrong": {
+        "0": "Partir sirve cuando el output escala o se acerca al techo; acá solo faltaba margen.",
+        "1": "Exagerado y cambia el modo de procesamiento por un problema de un parámetro mal puesto.",
+        "2": "Perdés datos a propósito; no es un fix."
+      },
+      "rule": "Un poco corto y acotado → subí `max_tokens`. Partir es para cuando crece con el input.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "source_quote": "Retry with a higher `max_tokens` value to get the complete structured output.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o28-q06",
+      "objective": 28,
+      "pool": "practice",
+      "scenario": "Un equipo ya partió su auditoría de un monorepo en una llamada por servicio. Pero cada llamada usa un formato de salida distinto (el prompt cambió entre servicios) y al final mandan todos los resultados a una última llamada \"unificá esto\", que también se trunca. ¿Qué corrigen?",
+      "options": [
+        "Volver a una sola llamada con todo el monorepo, ya que el paso de unificación también se trunca y no se ganó nada.",
+        "Subir `max_tokens` solo en la llamada de unificación, que es la única que hoy se corta, y dejar el resto como está.",
+        "Usar el mismo schema en todas las llamadas por servicio y hacer el merge, la dedupe y el orden en código, sin llamada final.",
+        "Pedirle a la llamada de unificación que resuma cada servicio en un párrafo en vez de listar todos los hallazgos."
+      ],
+      "correct": 2,
+      "why_correct": "Partir solo funciona si el merge es confiable. Con un schema común, juntar arrays, deduplicar y ordenar es código determinístico; no hace falta otra llamada que vuelva a acumular todo el output. Cada paso queda inspeccionable.",
+      "why_wrong": {
+        "0": "Vuelve al problema original del output que no entra.",
+        "1": "La llamada final acumula todo: crece con el monorepo y vuelve a chocar con el techo.",
+        "3": "Pierde los hallazgos concretos que el reporte necesita."
+      },
+      "rule": "Partir + mismo schema + merge en código. No juntes todo en otra llamada gigante.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Explicit prompt chaining (breaking a task into sequential API calls) is still useful when you need to inspect intermediate outputs or enforce a specific pipeline structure.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

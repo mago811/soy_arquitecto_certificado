@@ -51,6 +51,13 @@ Todo archivo en `content/` tiene que cumplirlo; `npm run validate` lo chequea.
 - Formato examen: escenario → "¿qué hacés / cuál es el fix / qué configuración?". Nada de definiciones sueltas.
 - El generador deja `status: "no_verificado"` y `verification: null`. Solo el verificador cambia esos campos.
 
+## Pool de simulacros: `questions/sim-obj-XX.json`
+
+Mismo formato que las de práctica, pero con `"pool": "sim"` e ids `oXX-sNN`. Van en un archivo aparte para no mezclarse con práctica.
+Son escenarios más largos y con más contexto, como en el examen real (empresa + sistema + síntoma + restricción).
+No pueden repetir escenarios de `questions/obj-XX.json`. La cuota por objetivo está en `research/sim-quota.json`.
+`sims/sim-N.json` arma cada simulacro con 60 ids, respetando el reparto por dominio (16/12/12/11/9).
+
 ## Verificación (solo el verificador escribe esto)
 
 ```json
