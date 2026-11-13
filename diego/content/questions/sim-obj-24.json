@@ -112,6 +112,30 @@
         "verdict": "ok",
         "notes": "Cita textual en prompting-claude-opus-5; W2 respaldado por la misma viñeta (\"only report high-severity issues\"/\"be conservative\" se toma literal)."
       }
+    },
+    {
+      "id": "o24-s05",
+      "objective": 24,
+      "pool": "sim",
+      "scenario": "Una aseguradora revisa cada PR de su sistema de siniestros por API. Ya dejó atrás el prompt único: ahora tiene tres prompts, uno de lógica de negocio, uno de seguridad y uno de diseño de API, cada uno con sus propios ejemplos. Pero los corre en cadena: el de negocio va primero, su lista de hallazgos se pega en el prompt de seguridad con la orden \"agregá solo lo que falte\", y lo mismo pasa hacia el de API. Desde el cambio, la pasada de seguridad casi no reporta nada cuando la de negocio ya listó muchos hallazgos, y el review tarda el triple. Las tres revisiones no dependen una de otra y el bot tiene que comentar en menos de 3 minutos. ¿Qué cambian?",
+      "options": [
+        "Mantener la cadena pero mover seguridad al primer lugar, para que su pasada nunca reciba hallazgos previos y la de negocio sea la que complete.",
+        "Volver a un único prompt con tres secciones bien tituladas y los ejemplos de los tres temas juntos, así es una sola llamada y baja la latencia.",
+        "Correr las tres pasadas en paralelo como llamadas independientes, cada una con su prompt y sus ejemplos, y unir y deduplicar el resultado en código.",
+        "Mantener la cadena y agregar a cada pasada \"IMPORTANT: ignorá los hallazgos previos y revisá todo desde cero\", sin cambiar el orden de las llamadas."
+      ],
+      "correct": 2,
+      "why_correct": "La doc de Anthropic describe el patrón sectioning: partir la tarea en subtareas independientes que corren en paralelo. Dice que en tareas con varias consideraciones los LLMs suelen rendir mejor cuando cada consideración va en una llamada aparte, con atención enfocada en ese aspecto, y pone como ejemplo revisar código con varios prompts distintos. Como las tres revisiones no dependen entre sí, no hace falta encadenarlas: en paralelo cada pasada mira solo su tema con sus ejemplos y la latencia es la de la llamada más lenta, no la suma.",
+      "why_wrong": {
+        "0": "Arregla solo a seguridad: negocio y API pasan a recibir listas ajenas, y las tres llamadas siguen siendo secuenciales, así que la latencia no baja.",
+        "1": "Vuelve a poner los tres temas a competir en la misma llamada, justo lo que la separación en llamadas con atención enfocada venía a evitar.",
+        "3": "Los hallazgos previos siguen metidos en el prompt y la cadena sigue siendo secuencial: una orden en mayúsculas no saca ese contexto ni baja el tiempo."
+      },
+      "rule": "Pasadas de review que no dependen entre sí → llamadas independientes en paralelo, cada una con su prompt y ejemplos; se juntan en código.",
+      "source_url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "source_quote": "For complex tasks with multiple considerations, LLMs generally perform better when each consideration is handled by a separate LLM call, allowing focused attention on each specific aspect.",
+      "status": "no_verificado",
+      "verification": null
     }
   ]
 }
