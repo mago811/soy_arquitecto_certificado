@@ -22,8 +22,12 @@
       "rule": "`CLAUDE_CODE_SUBAGENT_MODEL` es un default; para que no haya excepciones, sumá `CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1`.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "`CLAUDE_CODE_SUBAGENT_MODEL` is a default, so a subagent's definition or a model Claude passes still takes precedence over it.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual; FORCE=1 aplica un modelo a todos; alias en la variable resuelve a la versión del alias."
+      }
     },
     {
       "id": "o06-s02",
@@ -37,7 +41,7 @@
         "Los subagentes de plugins ignoran `hooks`, `mcpServers` y `permissionMode`: hay que copiar el archivo a `.claude/agents/` o a `~/.claude/agents/`."
       ],
       "correct": 3,
-      "why_correct": "Por seguridad, los subagentes que vienen de un plugin no soportan `hooks`, `mcpServers` ni `permissionMode`: esos campos se ignoran al cargarlos, sin error. Si se necesitan, la doc indica copiar el archivo a `.claude/agents/` o `~/.claude/agents/`. La otra vía documentada (declarar el servidor en el `.mcp.json` del plugin) lo activa siempre que el plugin está habilitado, no solo dentro del subagente.",
+      "why_correct": "Por seguridad, los subagentes que vienen de un plugin no soportan `hooks`, `mcpServers` ni `permissionMode`: esos campos se ignoran al cargarlos, sin error. Si se necesitan, la doc indica copiar el archivo a `.claude/agents/` o `~/.claude/agents/`. La otra vía que menciona (reglas en `permissions.allow` de settings) aplica a toda la sesión, no solo al subagente.",
       "why_wrong": {
         "0": "No es un tema de aprobación: el campo `mcpServers` se descarta al cargar un subagente de plugin, así que el servidor nunca se declara.",
         "1": "Los subagentes de plugin no se cargan como forks, y la @-mención solo elige qué subagente corre; no cambia qué campos del frontmatter se respetan.",
@@ -46,8 +50,12 @@
       "rule": "Subagente de plugin: `hooks`, `mcpServers` y `permissionMode` se ignoran; para usarlos, copiá el archivo a `.claude/agents/`.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "For security reasons, plugin subagents don't support the `hooks`, `mcpServers`, or `permissionMode` frontmatter fields.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "Cita textual confirmada. Se reemplazó en why_correct la mención a \".mcp.json del plugin\" (no está en la página fuente) por la alternativa que sí da la doc: permissions.allow, que aplica a toda la sesión."
+      }
     },
     {
       "id": "o06-s03",
@@ -70,8 +78,12 @@
       "rule": "Servidor con `__` en el nombre: en `tools`, `mcp__<nombre-completo>__*`.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "Without the trailing `__*`, `mcp__reports__v2` matches none of that server's tools.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual: con __ en el nombre, mcp__reports__v2__*; mcp__reports en disallowedTools también saca reports__v2."
+      }
     },
     {
       "id": "o06-s04",
@@ -94,8 +106,12 @@
       "rule": "En el SDK de TypeScript, `env` reemplaza el entorno: siempre esparcí `process.env`.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "the TypeScript SDK replaces the subprocess environment with it, so spread `process.env` into it to keep variables like `PATH`",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual: el SDK TS reemplaza el entorno con env (Python lo fusiona); la variable acepta cualquier entero positivo; AgentDefinition no tiene campo env."
+      }
     },
     {
       "id": "o06-s05",
@@ -118,8 +134,12 @@
       "rule": "`CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=1` apaga el anidamiento: el subagente del último nivel no recibe `Agent`.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "Leaves a subagent at the bottom layer unable to spawn, so it does its delegated work itself.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual de la tabla de límites del SDK; en sub-agents: con 1 se apaga el anidamiento y el subagente del último nivel no recibe Agent; Agent(tipo) solo aplica con --agent."
+      }
     },
     {
       "id": "o06-s06",
@@ -142,8 +162,12 @@
       "rule": "MCP inline en `.claude/agents/` del proyecto requiere confiar en la carpeta; en CI, pasá la definición por `--agents` o el SDK.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "Claude Code skips every inline server in that agent file",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Confirmado en \"Trust required for inline MCP servers\": no cuenta la confianza del padre ni la automática de -p; salta los inline y loguea hasTrustDialogAccepted. --agents no es un archivo de .claude/agents."
+      }
     }
   ]
 }

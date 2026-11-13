@@ -22,8 +22,12 @@
       "rule": "`SessionStore` no se combina con file checkpointing ni con `persistSession: false`; para revertir archivos entre hosts, usá git.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/session-storage",
       "source_quote": "Two options conflict with the mirror, and the SDK throws at startup if you combine either with a store:",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en session-storage: persistSession:false y file checkpointing chocan con el store y el SDK tira error al iniciar."
+      }
     },
     {
       "id": "o09-s02",
@@ -46,8 +50,12 @@
       "rule": "Con `SessionStore`, retomar subagentes requiere implementar `listSubkeys`.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/session-storage",
       "source_quote": "During resume, to discover subagent transcripts. If undefined, only the main transcript is restored.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual de la tabla de métodos: sin listSubkeys solo se restaura el transcript principal; listSessionSummaries/delete tienen otros usos."
+      }
     },
     {
       "id": "o09-s03",
@@ -70,8 +78,12 @@
       "rule": "Salida parcial por `maxTurns` → retomá ese mismo subagente; no lances uno nuevo.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "Resumed subagents retain their full conversation history, including all previous tool calls, results, and reasoning.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Confirmado: maxTurns marca la salida como parcial y Claude puede retomarlo; el retomado conserva todo su historial; Explore no se retoma."
+      }
     },
     {
       "id": "o09-s04",
@@ -94,8 +106,12 @@
       "rule": "Si el trabajo tiene que sobrevivir más que los transcripts, persistí los hallazgos como estado propio, fuera de la conversación.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "Claude Code deletes subagent transcripts after the `cleanupPeriodDays` retention period, 30 days by default",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual: cleanupPeriodDays 30 días borra transcripts de subagentes; la compactación principal no los afecta."
+      }
     },
     {
       "id": "o09-s05",
@@ -118,8 +134,12 @@
       "rule": "Tareas de varias ventanas: estado en archivos (JSON + notas + git) y ventana nueva que arranca leyéndolos.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Claude’s latest models perform especially well in using git to track state across multiple sessions.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Confirmado en best practices (multi-context window): empezar ventana nueva leyendo progress.txt, tests.json y git log; cita textual sobre git."
+      }
     }
   ]
 }

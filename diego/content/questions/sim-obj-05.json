@@ -22,8 +22,12 @@
       "rule": "Conocimiento estable que el subagente siempre necesita → `skills` en su definición, no esperar que lo herede.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "Preloaded skill content, unless listed in `AgentDefinition.skills`",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Confirmado: AgentDefinition.skills precarga contenido completo; el subagente no recibe skills cargadas por el padre; listar Skill en tools no precarga."
+      }
     },
     {
       "id": "o05-s02",
@@ -46,8 +50,12 @@
       "rule": "Si el modo de la sesión pisa el `permissionMode` del subagente, restringí con `tools`: lo que no está en la lista no existe.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "the subagent runs in that same mode and Claude Code ignores the `permissionMode` you set",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Confirmado: con acceptEdits/bypass/auto se ignora el permissionMode del subagente; prioridad proyecto (3) > usuario (4)."
+      }
     },
     {
       "id": "o05-s03",
@@ -70,8 +78,12 @@
       "rule": "Permitir una parte de una tool y bloquear otra → hook `PreToolUse` que valida y sale con código 2.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "This is useful when you need to allow some operations of a tool while blocking others.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Confirmado: PreToolUse para permitir parte de una tool; hooks en frontmatter solo mientras el subagente está activo; exit 2 bloquea; disallowedTools con especificador saca toda la tool."
+      }
     },
     {
       "id": "o05-s04",
@@ -94,8 +106,12 @@
       "rule": "Revisor de solo lectura → lista `tools` explícita sin `Agent` ni tools de edición.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "To keep one subagent from spawning while nesting is on, such as a reviewer that should stay read-only, omit `Agent` from its",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual (omitir Agent de tools en un revisor de solo lectura); sin tools hereda todo; un anidado se configura igual que uno de primer nivel."
+      }
     },
     {
       "id": "o05-s05",
@@ -112,14 +128,18 @@
       "why_correct": "Un subagente arranca en el mismo directorio de trabajo que la conversación principal. Para darle una copia aislada del repo, se usa `isolation: worktree`: corre en un worktree temporal de git (por defecto, creado desde la rama por defecto, no desde el `HEAD` de la sesión), y si no hace cambios se limpia solo.",
       "why_wrong": {
         "1": "Un fork copia la conversación, no los archivos: sus ediciones siguen cayendo en el mismo directorio de trabajo.",
-        "2": "El rewind del SDK no sigue las ediciones de subagentes, y rebobinar después no evita que se mezclen los cambios mientras el dev trabaja.",
+        "2": "Rebobinar un checkpoint no restaura las ediciones de un subagente (solo los archivos que ya había editado la conversación principal), y rebobinar después no evita que se mezclen los cambios mientras el dev trabaja.",
         "3": "En modo plan el subagente no puede aplicar ni probar la migración, que es justamente lo que tiene que hacer."
       },
       "rule": "Subagente que tiene que editar sin tocar tu checkout → `isolation: worktree`.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "To give the subagent an isolated copy of the repository instead, set",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "Cita textual de sub-agents (isolation: worktree, desde la rama por defecto, se limpia si no hay cambios). why_wrong[2] hablaba del \"rewind del SDK\" en un escenario de Claude Code: se ajustó según checkpointing (\"Subagent edits not restored\")."
+      }
     },
     {
       "id": "o05-s06",
@@ -142,8 +162,12 @@
       "rule": "Para sacar una familia entera de tools sin listar las demás, usá `disallowedTools` con patrón (`mcp__*`).",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "Withhold every MCP tool from any server",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Confirmado en la tabla de patrones: disallowedTools mcp__* retira toda tool MCP; mcpServers agrega servidores."
+      }
     }
   ]
 }

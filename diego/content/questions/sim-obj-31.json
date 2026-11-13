@@ -22,8 +22,12 @@
       "rule": "Límites explícitos por categoría: definí qué es Important en tu repo y qué es Nit como mucho.",
       "source_url": "https://code.claude.com/docs/en/code-review-customize",
       "source_quote": "The default calibration targets production code, and a docs repository, a config repository, or a prototype might want a much narrower definition.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en code-review-customize (redefinir Important para repos de docs). W0 respaldado por prompting-claude-opus-5."
+      }
     },
     {
       "id": "o31-s02",
@@ -45,9 +49,13 @@
       },
       "rule": "Categoría poco confiable → límite explícito: \"si no estás seguro, `null`, no deduzcas\" + revisión humana.",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
-      "source_quote": "If you're unsure about any aspect or if the report lacks necessary information, say \"I don't have enough information to confidently assess this.\"",
-      "status": "no_verificado",
-      "verification": null
+      "source_quote": "Explicitly give Claude permission to admit uncertainty. This technique can drastically reduce false information.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "Respuesta correcta y única. Cambiada la source_quote por la viñeta \"Allow Claude to say I don't know\" de reduce-hallucinations, que respalda la regla más directo que la frase del ejemplo de M&A. Nullable + ruta a humano es diseño, no se atribuye a la doc. Parecida a o31-q04 pero el límite es legibilidad, no dato ausente."
+      }
     },
     {
       "id": "o31-s03",
@@ -70,8 +78,12 @@
       "rule": "Límite de inclusión: cada afirmación necesita una cita del documento; sin cita, se retracta.",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
       "source_quote": "If it can’t find a quote, it must retract the claim.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual (Verify with citations) en reduce-hallucinations; el ejemplo pide sacar la afirmación y marcar dónde estaba. External knowledge restriction respalda W2."
+      }
     },
     {
       "id": "o31-s04",
@@ -94,8 +106,12 @@
       "rule": "Criterio de review = lista \"Always check\" + lista \"Do not report\", concretas y por categoría.",
       "source_url": "https://code.claude.com/docs/en/code-review-customize",
       "source_quote": "Database queries are scoped to the caller's tenant",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual del REVIEW.md de ejemplo (Always check / Do not report: Test-only code that intentionally violates production rules)."
+      }
     }
   ]
 }

@@ -22,8 +22,12 @@
       "rule": "En cada nivel de delegación, lo que el subagente necesita va en el prompt que le escribe quien lo lanza.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "Claude composes a delegation message that summarizes the task, and the subagent works from there.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Confirmado en sub-agents: contexto nuevo, mensaje de delegación; anidamiento por defecto hasta 3 capas; autoCompactWindow solo baja la ventana."
+      }
     },
     {
       "id": "o03-s02",
@@ -46,8 +50,12 @@
       "rule": "Datos de la corrida → prompt de la llamada al Agent tool; reglas estables del rol → definición del subagente.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "The only content you pass from parent to subagent is the Agent tool's prompt string, so include any file paths, error messages, or decisions the subagent needs directly in that prompt.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Confirmado en agent-sdk/subagents: solo pasa el prompt del Agent tool; no recibe el system prompt del padre; initialPrompt se ignora como subagente."
+      }
     },
     {
       "id": "o03-s03",
@@ -70,8 +78,12 @@
       "rule": "Prompt completo = lo que el subagente no puede descubrir solo, no todo pegado; su ventana depende de su propio modelo.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "Delegating to a model with a smaller window gives that subagent the smaller window.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual (ventana según el modelo del subagente). autoCompactWindow solo para compactar antes; long-form arriba según best practices."
+      }
     },
     {
       "id": "o03-s04",
@@ -94,8 +106,12 @@
       "rule": "Para seguir el trabajo de un subagente, retomalo; una invocación nueva arranca de cero.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "Each subagent invocation creates a new instance rather than continuing an earlier one.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Confirmado: cada invocación es instancia nueva; SendMessage retoma; Explore/Plan son one-shot sin agent ID."
+      }
     },
     {
       "id": "o03-s05",
@@ -118,8 +134,12 @@
       "rule": "Un subagente no puede preguntarle al humano: las decisiones tienen que viajar resueltas en el prompt de delegación.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "narrowed by two filters: the first removes a short list of tools from every subagent",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Confirmado: AskUserQuestion está en el primer filtro que quita tools a todo subagente; en primer plano pasan los pedidos de permiso."
+      }
     },
     {
       "id": "o03-s06",
@@ -142,8 +162,12 @@
       "rule": "Delegá con los hechos ya establecidos y sus IDs exactos, en formato estructurado, para que el subagente no repita ni adivine.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "The parent's conversation history or tool results",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Confirmado en la tabla de agent-sdk/subagents (no recibe historial ni tool results del padre); continue_conversation retoma la sesión más reciente (sessions)."
+      }
     }
   ]
 }

@@ -8,12 +8,12 @@
       "scenario": "Un estudio jurídico tiene un subagente que analiza contratos con la Messages API y Citations activado en cada documento PDF, para que el sintetizador pueda mostrar la página exacta de cada cláusula. Con el mismo prompt, más o menos la mitad de los contratos vuelve con citas por página y la otra mitad vuelve con texto sin ninguna cita. Revisando, ven que los contratos sin citas son todos de una sucursal que digitaliza con un escáner viejo. ¿Cuál es la causa más probable?",
       "options": [
         "Citations tiene que estar activado en todos los documentos o en ninguno: al mezclar sucursales, la API desactiva las citas de la mitad de los PDFs.",
-        "Esos PDFs son escaneos sin texto extraíble: como todavía no hay citas de imágenes, no son citables y hay que darles una capa de texto antes de mandarlos.",
+        "Esos PDFs son escaneos sin texto extraíble: como las citas de imágenes todavía no están soportadas, la API no puede devolver citas sobre ellos.",
         "Los PDFs escaneados ocupan más tokens y Claude prioriza terminar la respuesta: hay que subir `max_tokens` para que le queden tokens para citar.",
         "Para PDFs escaneados hay que usar documentos de contenido custom, porque solo ese tipo de documento admite citas a nivel de página."
       ],
       "correct": 1,
-      "why_correct": "En los PDFs, Citations extrae el texto y lo divide en oraciones citables. Las citas de imágenes todavía no están soportadas, así que un PDF que es un escaneo sin texto extraíble no es citable: Claude lo puede leer, pero no puede devolver citas sobre él. El patrón coincide con una sola sucursal y un escáner viejo.",
+      "why_correct": "En los PDFs, Citations extrae el texto y lo divide en oraciones citables. Las citas de imágenes todavía no están soportadas, así que un PDF que es un escaneo sin texto extraíble no es citable. El patrón coincide con una sola sucursal y un escáner viejo. Un arreglo razonable (inferencia, la doc no lo detalla) es pasarles OCR para que tengan texto extraíble antes de mandarlos.",
       "why_wrong": {
         "0": "La regla de todos o ninguno existe, pero se refiere a habilitar `citations` en todos los documentos de una request; acá están todos habilitados y el patrón depende del escáner.",
         "2": "El largo no explica que justo los escaneos vuelvan sin citas; además, `cited_text` ni siquiera cuenta como tokens de salida.",
@@ -22,8 +22,12 @@
       "rule": "Sin texto extraíble no hay citas: un PDF escaneado no es citable.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/citations",
       "source_quote": "As image citations are not yet supported, PDFs that are scans of documents and do not contain extractable text are not citable.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "Cita textual confirmada en citations. La opción correcta afirmaba como dato de la doc que \"hay que darles una capa de texto\": eso es inferencia. Se dejó la opción en la causa (lo que pide la pregunta) y el OCR quedó en why_correct marcado como inferencia. Resto de distractores confirmados (all-or-none, cited_text sin costo de salida, custom content por índice de bloque)."
+      }
     },
     {
       "id": "o18-s02",
@@ -46,8 +50,12 @@
       "rule": "Para controlar la granularidad de las citas (turnos, bullets), usá documentos de contenido custom.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/citations",
       "source_quote": "If you need more control over citation granularity (for example, for bullet points or transcripts), use custom content documents instead.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en citations: custom content para granularidad (transcripts); texto plano se divide en oraciones; Citations + output_config.format = 400."
+      }
     },
     {
       "id": "o18-s03",
@@ -70,8 +78,12 @@
       "rule": "Con structured outputs en el SDK, leé `structured_output` del resultado, nunca el `tool_use` de `StructuredOutput`.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/structured-outputs",
       "source_quote": "Read the validated data from `structured_output` on the result message rather than from a `tool_use` block",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en agent-sdk/structured-outputs: varios intentos de StructuredOutput con is_error; leer structured_output del resultado."
+      }
     },
     {
       "id": "o18-s04",
@@ -94,8 +106,12 @@
       "rule": "En el Agent SDK, `format` es solo una anotación: lo que tenga que cumplirse, validalo en tu código.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/structured-outputs",
       "source_quote": "is accepted as an annotation and isn't enforced by the SDK's validator.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual: format se acepta como anotación y el validador del SDK no lo hace cumplir; antes de v2.1.205 se trataba como inválido."
+      }
     },
     {
       "id": "o18-s05",
@@ -118,8 +134,12 @@
       "rule": "Atribuir fuentes es un trabajo aparte: una pasada final de citas sobre el informe y los documentos.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "passes all findings to a CitationAgent, which processes the documents and research report to identify specific locations for citations.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual del post de ingeniería (CitationAgent al final)."
+      }
     }
   ]
 }

@@ -22,8 +22,12 @@
       "rule": "Fallas relacionadas → un solo mensaje con todos los casos (entrada, actual, esperado) + un check que Claude pueda correr.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "If you name the file, describe the symptom, and say what \"fixed\" looks like up front, you usually save yourself a round of corrections later.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en best-practices. La doc respalda pedido específico (síntoma + cómo se ve arreglado); juntar fallas que interactúan sale del enunciado del objetivo (guía oficial), no de la página: la explicación no se lo atribuye a la doc. Distinto de o12-q03 (ahí es ping-pong ya ocurrido con /clear)."
+      }
     },
     {
       "id": "o12-s02",
@@ -46,8 +50,12 @@
       "rule": "Si querés la versión completa, decí el alcance de entrada: por defecto Claude construye lo mínimo que cumple el pedido.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "Claude tends to read a request conservatively and build the smallest thing that satisfies it, since it can't see how much you were hoping for.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual (best-practices, sección be ambitious). La doc confirma que think step by step/be thorough son texto común que no supera el effort. Distractores sin respaldo."
+      }
     },
     {
       "id": "o12-s03",
@@ -70,8 +78,12 @@
       "rule": "Para atrapar inconsistencias, encadená: la salida de Claude entra a un prompt siguiente que la verifica y corrige.",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
       "source_quote": "Use Claude’s outputs as inputs for follow-up prompts, asking it to verify or expand on previous statements. This can catch and correct inconsistencies.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual de Iterative refinement en reduce-hallucinations; Best-of-N (W2) también está en la página. Relacionada con o12-q07 pero el escenario (contradicciones entre secciones) es distinto."
+      }
     },
     {
       "id": "o12-s04",
@@ -94,8 +106,12 @@
       "rule": "Pedido inicial = síntoma + dónde mirar + test que falle reproduciéndolo + arreglo.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "write a failing test that reproduces it, then fix it",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual: es el ejemplo de prompt específico de best-practices (síntoma + carpeta + test que falle). Sin otra opción defendible."
+      }
     },
     {
       "id": "o12-s05",
@@ -118,8 +134,12 @@
       "rule": "Preferencia entre dos enfoques razonables → decila de entrada, con el archivo o patrón a seguir.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "Claude can't read that from the code, so if you care which one it picks, say so up front.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual (best-practices: preferencia entre dos enfoques razonables, decilo de entrada). Correcta única."
+      }
     }
   ]
 }

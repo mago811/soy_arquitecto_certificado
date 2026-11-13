@@ -22,8 +22,12 @@
       "rule": "Los tests verifican, no definen: pedí lógica general y que avise si un test parece incorrecto.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "If the task is unreasonable or infeasible, or if any of the tests are incorrect, please inform me rather than working around them.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual del prompt de ejemplo en claude-prompting-best-practices (inform me rather than working around them); la página también dice que los tests verifican y no definen la solución."
+      }
     },
     {
       "id": "o15-s02",
@@ -46,8 +50,12 @@
       "rule": "Trabajo largo: tests primero, en formato estructurado, y prohibido editarlos o borrarlos para avanzar.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "It is unacceptable to remove or edit tests because this could lead to missing or buggy functionality.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual; la página (sección multi-context window) recomienda tests en formato estructurado como tests.json creados antes de empezar."
+      }
     },
     {
       "id": "o15-s03",
@@ -70,8 +78,12 @@
       "rule": "Convenciones de una parte del repo → `.claude/rules/` con `paths:`, no un `CLAUDE.md` raíz gigante.",
       "source_url": "https://code.claude.com/docs/en/memory",
       "source_quote": "These conditional rules only apply when Claude is working with files matching the specified patterns.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en memory; la página confirma <200 líneas, path-scoped rules y que los imports no bajan el costo de contexto (W1)."
+      }
     },
     {
       "id": "o15-s04",
@@ -94,8 +106,12 @@
       "rule": "Tests que valen = cada caso borde de la spec con su test; revisalo contra la spec, salteando estilo.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "check every requirement is implemented and the listed edge cases have tests, report gaps that affect correctness and skip style",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual del prompt de review contra SPEC.md en best-practices; W3 respaldado por la nota \"A reviewer that's asked to find problems will always find something\"."
+      }
     },
     {
       "id": "o15-s05",
@@ -118,8 +134,12 @@
       "rule": "Criterio de test en `CLAUDE.md`: concreto y verificable (qué assert vale, qué fixture usar), no \"de calidad\".",
       "source_url": "https://code.claude.com/docs/en/memory",
       "source_quote": "Write instructions that are concrete enough to verify",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en memory; el ejemplo \"Run `npm test` before committing\" vs \"Test your changes\" está en la página."
+      }
     }
   ]
 }

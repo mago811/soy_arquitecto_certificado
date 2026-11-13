@@ -22,8 +22,12 @@
       "rule": "Claves desconocidas en structured outputs → array de `{key, value}`, no un dict.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "If you don’t know the keys in advance, use an array instead.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en structured-outputs (Objects with arbitrary keys); la página confirma que el SDK de Python manda un dict con properties vacío, que additionalProperties distinto de false da 400 y el límite de 24 opcionales."
+      }
     },
     {
       "id": "o29-s02",
@@ -46,8 +50,12 @@
       "rule": "Nullable solo donde el dato puede faltar: los tipos unión tienen límite (16 por request).",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "Total parameters that use `anyOf` or type arrays (for example, `\"type\": [\"string\", \"null\"]`) across all strict schemas.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual de la tabla de límites (16 parámetros con union types en todos los schemas estrictos del request; 24 opcionales). La nota de la página confirma que el límite es combinado (W2)."
+      }
     },
     {
       "id": "o29-s03",
@@ -64,14 +72,18 @@
       "why_correct": "Para documentos largos (más de 20K tokens), la doc recomienda pedirle a Claude que primero extraiga citas textuales y recién después haga la tarea: ancla la respuesta en el texto real. Combinado con nullable, un campo sin cita vuelve `null` en lugar de un valor plausible.",
       "why_wrong": {
         "0": "Es al revés: la doc recomienda poner los documentos largos arriba, antes de la consulta, las instrucciones y los ejemplos.",
-        "2": "`minimum`/`maximum` no están soportados en structured outputs (error 400), y un 3,5x igual caería dentro de ese rango.",
+        "2": "La API no soporta `minimum`/`maximum` (con el schema crudo da error 400; los SDK los sacan del schema y solo validan la respuesta después), y un 3,5x igual caería dentro de ese rango.",
         "3": "Comparar corridas puede revelar inconsistencias, pero votar no ancla el dato en el documento: un valor plausible puede repetirse."
       },
       "rule": "Documento largo → primero citas textuales, después los campos a partir de las citas (o `null`).",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
       "source_quote": "For tasks involving long documents (>20k tokens), ask Claude to extract word-for-word quotes first before performing its task.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "Cita textual en reduce-hallucinations; long-form data at the top confirmado en claude-prompting-best-practices. Corregido W2: el 400 es con schema crudo; los SDK quitan minimum/maximum del schema enviado y validan después (structured-outputs, How SDK transformation works)."
+      }
     },
     {
       "id": "o29-s04",
@@ -88,14 +100,18 @@
       "why_correct": "La doc dice que dar el contexto o la motivación de una instrucción le da a Claude más información sobre el objetivo, y que Claude puede generalizar a partir de la explicación. \"Solo 11 dígitos seguidos\" cubre separadores que nadie previó; los ejemplos variados refuerzan el formato.",
       "why_wrong": {
         "0": "Sigue enumerando casos sin decir el objetivo; el próximo separador raro (una barra, por ejemplo) vuelve a fallar.",
-        "1": "`minLength`/`maxLength` no están soportados en structured outputs: la llamada da error 400.",
+        "1": "La API no soporta `minLength`/`maxLength`: con el schema crudo da error 400, y los SDK los sacan del schema enviado y solo validan la respuesta después. Además el largo no impide un punto o un espacio en lugar de un dígito.",
         "3": "Es justo lo que no quieren: una regla por formato no escala y siempre corre detrás del próximo caso."
       },
       "rule": "Normalización: explicá el porqué del formato de salida + ejemplos variados; Claude generaliza.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Claude can generalize from the explanation.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "Cita textual en claude-prompting-best-practices (motivación de la instrucción, Claude generaliza). Corregido W1: el 400 aplica al schema crudo; los SDK transforman esas restricciones (structured-outputs)."
+      }
     }
   ]
 }

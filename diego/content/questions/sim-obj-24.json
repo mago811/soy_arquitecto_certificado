@@ -22,8 +22,12 @@
       "rule": "Few-shot de cada pasada: ejemplos dentro de `<examples>`, separados de instrucciones y del diff.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Wrap examples in `<example>` tags (multiple examples in `<examples>` tags) so Claude can distinguish them from instructions.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en claude-prompting-best-practices (examples en <example>/<examples>). Distinto de o24-q07 (diversidad de ejemplos)."
+      }
     },
     {
       "id": "o24-s02",
@@ -46,8 +50,12 @@
       "rule": "Review que vale: una instancia que no vio cómo se escribió el código, no el autor revisándose.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "reviews the diff in a fresh subagent that never saw your conversation. It isn't swayed by the reasoning that produced the code.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "descartada",
+        "notes": "No mide el objetivo 24 (separar seguridad/negocio/API en pasadas con few-shot propio): mide revisor independiente vs autorrevisión (/code-review en subagente nuevo), que no está en la currícula como objetivo. Reescribirlo hacia pasadas separadas repetiría o24-q01. Cita y datos correctos (best-practices), pero fuera de objetivo."
+      }
     },
     {
       "id": "o24-s03",
@@ -70,8 +78,12 @@
       "rule": "Pasadas especializadas como subagentes → cada uno con una `description` distinta que diga cuándo usarlo.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "Claude uses each subagent's description to decide when to delegate tasks.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en sub-agents (\"write a clear description so Claude knows when to use it\"). Distinto de o24-q04 (crear un subagente por tema)."
+      }
     },
     {
       "id": "o24-s04",
@@ -94,8 +106,12 @@
       "rule": "Separación por tema se mantiene; para latencia, pasada rápida con menos effort ahora y una exhaustiva después.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5",
       "source_quote": "Accuracy holds at lower effort settings, which supports a fast pass at review time and a more thorough pass later.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en prompting-claude-opus-5; W2 respaldado por la misma viñeta (\"only report high-severity issues\"/\"be conservative\" se toma literal)."
+      }
     }
   ]
 }

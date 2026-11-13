@@ -22,8 +22,12 @@
       "rule": "Orden crítico → pasos numerados; camino impredecible → objetivo con criterios. Y lo que debe cumplirse siempre, con enforcement.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Provide instructions as sequential steps using numbered lists or bullet points when the order or completeness of steps matters.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en prompting best practices. El hook como enforcement aparece solo en la explicación como agregado, no cambia la respuesta."
+      }
     },
     {
       "id": "o04-s02",
@@ -46,8 +50,12 @@
       "rule": "Para tener control con delegación por objetivo, instrumentá la ejecución en vez de rigidizar las instrucciones.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "Messages from within a subagent's context include a `parent_tool_use_id` field.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Confirmado: parent_tool_use_id y agent_id (TS) en agent-sdk/subagents; SubagentStart/SubagentStop existen en agent-sdk/hooks."
+      }
     },
     {
       "id": "o04-s03",
@@ -70,8 +78,12 @@
       "rule": "Para que un subagente elija mejor, dale heurísticas (qué es una buena fuente), no una receta fija.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "Adding source quality heuristics to our prompts helped resolve this issue.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual del post de ingeniería de Anthropic (SEO content farms → heurísticas de calidad de fuentes)."
+      }
     },
     {
       "id": "o04-s04",
@@ -94,8 +106,12 @@
       "rule": "Prompt para orientar cuándo delegar, límites para garantizar cuánto se puede delegar.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "Either instruction only steers Claude, so set the limits as well.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Confirmado en \"Run Opus 5 with subagents\": preset agrega una línea, Agent tool sigue disponible; con prompt propio hay que sumar la instrucción y fijar límites. allowedTools no saca tools (agent-sdk/permissions)."
+      }
     },
     {
       "id": "o04-s05",
@@ -118,8 +134,12 @@
       "rule": "Delegar por objetivo no es delegar vago: objetivo + formato de salida + tools/fuentes + límites claros.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "Each subagent needs an objective, an output format, guidance on the tools and sources to use, and clear task boundaries.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual del post de ingeniería (objetivo, formato, guía de tools/fuentes, límites claros)."
+      }
     },
     {
       "id": "o04-s06",
@@ -142,8 +162,12 @@
       "rule": "En búsqueda: empezar amplio y después acotar; enseñale el criterio al subagente, no la lista de consultas.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "We counteracted this tendency by prompting agents to start with short, broad queries, evaluate what’s available, then progressively narrow focus.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual del post de ingeniería (start wide, then narrow down)."
+      }
     }
   ]
 }

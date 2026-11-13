@@ -13,7 +13,7 @@
         "Sacar `strict: true` de la tool para evitar el límite, y validar los 22 campos nullable en el código después de cada llamada."
       ],
       "correct": 2,
-      "why_correct": "Hay un límite explícito de 16 parámetros con union types (`anyOf` o type arrays como `[\"string\", \"null\"]`) sumando todos los schemas estrictos de una request. Con 22 te pasás. Para mantener null donde falta el dato y la garantía de schema, la doc sugiere, entre otras estrategias, dividir en varias requests: cada una queda bajo el límite.",
+      "why_correct": "Hay un límite explícito de 16 parámetros con union types (`anyOf` o type arrays como `[\"string\", \"null\"]`) sumando todos los schemas estrictos de una request. Con 22 te pasás. Entre los tips para reducir complejidad, la doc propone dividir en varias requests (lo plantea para muchas tools estrictas; acá aplica partiendo la extracción en dos tools, una por request). Así cada request queda bajo el límite y conservás null y la garantía de schema.",
       "why_wrong": {
         "0": "`anyOf` cuenta igual que las type arrays para el límite de union types; no cambia nada.",
         "1": "Una cadena vacía es un valor centinela: mezcla \"no figura\" con \"vacío\" y viola el requisito de dejar claro qué dato falta.",
@@ -22,14 +22,18 @@
       "rule": "Nullable cuesta: hasta 16 union types en total por request; si te pasás, dividí la extracción.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "Total parameters that use `anyOf` or type arrays (for example, `\"type\": [\"string\", \"null\"]`) across all strict schemas.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "Cita textual de la tabla de límites (16 union types, anyOf y type arrays cuentan igual). El tip \"Split into multiple requests\" de la doc está pensado para muchas tools estrictas: se aclaró en why_correct que acá es una aplicación de ese tip."
+      }
     },
     {
       "id": "o26-s02",
       "objective": 26,
       "pool": "sim",
-      "scenario": "Un hospital extrae datos de órdenes médicas con una tool `registrar_orden` con `strict: true`. Para evitar que el modelo invente pacientes, un dev armó cada mañana el schema con `\"paciente\": {\"enum\": [...]}` con los nombres y DNI de los 300 pacientes de la agenda del día. El extractor dejó de inventar nombres, pero el área de compliance (HIPAA) frena el pase a producción. ¿Qué diseño corresponde?",
+      "scenario": "Un hospital extrae datos de órdenes médicas con una tool `registrar_orden` con `strict: true`. Para evitar que el modelo invente pacientes, un dev armó cada mañana el schema con `\"paciente\": {\"enum\": [...]}` con los nombres y DNI de los 300 pacientes de la agenda del día. El extractor dejó de inventar nombres, pero el área de compliance (HIPAA) frena el pase a producción. El equipo no quiere resignar la garantía de schema de `strict: true`. ¿Qué diseño corresponde?",
       "options": [
         "Mantener el enum de pacientes pero cifrar los nombres con un hash, así el schema no contiene datos legibles y el enum sigue validando.",
         "Mover la lista de pacientes a una regex `pattern` en el campo `paciente`, porque los patterns no se cachean como el resto del schema.",
@@ -41,13 +45,17 @@
       "why_wrong": {
         "0": "Un hash de nombre y DNI sigue siendo un identificador del paciente dentro del schema; y además le quita al modelo el texto que tiene que reconocer.",
         "1": "La doc nombra a los `pattern` explícitamente entre los lugares donde no puede ir PHI.",
-        "3": "Sin strict perdés la garantía del schema, y la regla de no poner PHI en el schema no cambia: la PHI va en el contenido del mensaje."
+        "3": "Sin strict perdés la garantía de schema que el equipo no quiere resignar, y además seguís metiendo la agenda completa con PHI en la definición de la tool. La doc indica que la PHI vaya solo en el contenido del mensaje."
       },
       "rule": "PHI nunca en el schema (enum, const, pattern, nombres de propiedades): va en el mensaje y se valida en código.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/strict-tool-use",
       "source_quote": "Do not include PHI in `input_schema` property names, `enum` values, `const` values, or `pattern` regular expressions.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "Cita textual en strict-tool-use (PHI fuera de property names, enum, const y pattern). why_wrong[3] afirmaba sin respaldo que la regla aplica igual sin strict (la doc habla de schemas compilados de strict); se agregó al escenario la restricción de mantener strict para que D quede claramente descartada y se reescribió la explicación."
+      }
     },
     {
       "id": "o26-s03",
@@ -70,8 +78,12 @@
       "rule": "Few-shot para extracción: incluí ejemplos con datos faltantes y su `null`, no solo casos completos.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Cover edge cases and vary enough that Claude doesn’t pick up unintended patterns.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en best practices (ejemplos diversos con casos borde). Opción C: `date` está entre los string formats soportados y format es \"API-enforced\" en structured-outputs, así que garantiza forma, no veracidad: la explicación es correcta."
+      }
     },
     {
       "id": "o26-s04",
@@ -94,8 +106,12 @@
       "rule": "En un schema, pedí explicación o evidencia corta, no razonamiento paso a paso.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "A property that asks for the model’s thinking or step-by-step reasoning might lead to a `reasoning_extraction` refusal. Ask for a short explanation instead.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en \"Invalid outputs\": pedir razonamiento paso a paso puede dar reasoning_extraction; required van primero en el orden."
+      }
     }
   ]
 }

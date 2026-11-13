@@ -112,6 +112,30 @@
         "verdict": "descartada",
         "notes": "Casi igual a o22-q02 (precisión global alta esconde un segmento malo → medir por segmento y dejar revisión ahí; acá el segmento es el idioma). Además la cita de ticket-routing solo habla de medir accuracy de ruteo de tickets por idioma; 'mandar ese idioma a revisión humana' no está en la doc. Reemplazar por un escenario nuevo."
       }
+    },
+    {
+      "id": "o22-s05",
+      "objective": 22,
+      "pool": "sim",
+      "scenario": "Un estudio contable extrae 18 campos (activo, pasivo, patrimonio neto, resultado del ejercicio, fecha de cierre...) de balances escaneados de pymes. Le pidieron al modelo una confianza de 0 a 100 por campo, pero viene en 90 o más casi siempre, también en los errores. Hoy revisan al azar el 5% de los balances. Los errores reales son puntuales: una cifra con una mancha o una columna corrida, un campo en un balance que en lo demás está bien. Quieren una señal por campo para mandar a revisión solo lo dudoso. ¿Qué agregan?",
+      "options": [
+        "Subir la muestra al azar del 5% al 15% de los balances, así cada revisor ve más documentos y aumenta la chance de atrapar esas cifras mal leídas.",
+        "Mantener la confianza autoinformada y subir el umbral de auto-aprobación de 90 a 97, para que solo pasen sin revisar los campos más seguros.",
+        "Correr la extracción tres veces con el mismo prompt y comparar campo por campo: los que no coinciden van a revisión, el resto sigue su curso.",
+        "Correr la extracción tres veces, quedarse en cada campo con el valor que se repite más y auto-aprobar el balance completo con esos valores."
+      ],
+      "correct": 2,
+      "why_correct": "La doc lista Best-of-N: correr el mismo prompt varias veces y comparar, porque las inconsistencias entre salidas pueden indicar alucinaciones. Comparado campo por campo, ese desacuerdo marca justo la cifra dudosa y no todo el balance, así la revisión va a donde está el riesgo. Que las corridas coincidan no prueba que el valor esté bien: el criterio se valida contra balances ya revisados.",
+      "why_wrong": {
+        "0": "Sigue siendo muestreo al azar: gasta revisión en balances limpios y no apunta al campo dudoso.",
+        "1": "Si la confianza autoinformada viene alta también en los errores, subir el umbral sin calibrarla no la vuelve una señal útil.",
+        "3": "Votar esconde el desacuerdo, que es justamente la señal de que el campo es dudoso; un valor mal leído puede ganar la votación."
+      },
+      "rule": "Si la confianza del modelo no discrimina, usá el desacuerdo entre corridas (por campo) como señal de ruteo, no el azar ni el voto.",
+      "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
+      "source_quote": "Run Claude through the same prompt multiple times and compare the outputs. Inconsistencies across outputs could indicate hallucinations.",
+      "status": "no_verificado",
+      "verification": null
     }
   ]
 }

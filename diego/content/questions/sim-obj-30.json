@@ -22,8 +22,12 @@
       "rule": "`REVIEW.md` en `fixtures/`, `tests/`, `vendor/`, `generated/`... no se aplica: esas reglas van en el raíz.",
       "source_url": "https://code.claude.com/docs/en/code-review-customize",
       "source_quote": "Code Review doesn't apply a `REVIEW.md` in or below a subdirectory with one of these names, whatever the subdirectory holds.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en code-review-customize; fixtures está en la lista. Confirmado: con default sin proteger solo se lee el raíz (W0) y nunca se lee REVIEW.md de los cambios del PR (W2)."
+      }
     },
     {
       "id": "o30-s02",
@@ -46,8 +50,12 @@
       "rule": "Includes de `REVIEW.md`: archivos al lado del raíz (`@archivo.md`); rutas a subcarpetas no se incluyen.",
       "source_url": "https://code.claude.com/docs/en/code-review-customize",
       "source_quote": "a path into a subdirectory such as `@docs/review-rules.md` isn't included.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual; la página confirma includes solo desde la raíz, de un nivel, que un link Markdown no es include y que las exclusiones no se aceptan desde una skill."
+      }
     },
     {
       "id": "o30-s03",
@@ -70,8 +78,12 @@
       "rule": "Exclusiones, topes de nits e includes de `REVIEW.md` → rama default protegida.",
       "source_url": "https://code.claude.com/docs/en/code-review-customize",
       "source_quote": "Keep `REVIEW.md` on your default branch and protect that branch.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual; tabla de la página: default sin proteger → solo raíz y el @ queda como texto plano; exclusiones y topes de nits se honran desde la default protegida (regla clásica o ruleset cuentan)."
+      }
     },
     {
       "id": "o30-s04",
@@ -94,8 +106,12 @@
       "rule": "Convenciones persistentes sin contradicciones: si dos reglas chocan, Claude elige cualquiera.",
       "source_url": "https://code.claude.com/docs/en/memory",
       "source_quote": "if two instructions contradict each other, Claude may pick one arbitrarily.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en memory (Consistency). `/doctor prompt-audit` existe (memory y best-practices; requiere Claude Code v2.1.283+) y busca archivos que se contradicen. code-review-local confirma que /code-review no lee REVIEW.md (W3)."
+      }
     }
   ]
 }

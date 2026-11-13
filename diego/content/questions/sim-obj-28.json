@@ -22,8 +22,12 @@
       "rule": "Techo sincrónico = 128K. Si la salida crece con la entrada y ya tocaste el techo → partir y mergear en código.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
       "source_quote": "Extended output is available on the Message Batches API only, not the synchronous Messages API.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Confirmado en batch-processing: output-300k-2026-03-24 sube el cap a 300K solo en Message Batches (Opus 5.5 incluido), no en la API sincrónica; techo estándar 128K; una generación de 300K puede tardar más de una hora (ventana 24 h). thinking.md: Opus 5.5 rechaza thinking disabled."
+      }
     },
     {
       "id": "o28-s02",
@@ -46,8 +50,12 @@
       "rule": "Salida acotada y lejos del techo → subí `max_tokens`. Partir es para cuando crece con la entrada o toca el techo.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
       "source_quote": "you’ll need to retry the request with a higher `max_tokens` value to get the full tool use.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en handling-stop-reasons (tool use incompleto → reintentar con max_tokens más alto). Salida acotada y lejos del techo: subir primero es lo que dice la doc. Combina o28-q03 y o28-q05 pero agrega el caso tool_use parcial ejecutado."
+      }
     },
     {
       "id": "o28-s03",
@@ -70,8 +78,12 @@
       "rule": "Thinking + JSON comparten `max_tokens`; si juntos tocan el techo y crecen con la entrada → partir.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
       "source_quote": "and they count toward `max_tokens` alongside the response text.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en thinking (thinking cuenta para max_tokens). Confirmado: Opus 5.5 128K sincrónico y rechaza thinking disabled (400). Partir es correcto porque la salida crece con la entrada y toca el techo."
+      }
     },
     {
       "id": "o28-s04",
@@ -94,8 +106,12 @@
       "rule": "Batch con salida que crece → un request por unidad, `custom_id` significativo y merge en código.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
       "source_quote": "Use meaningful `custom_id` values to easily match results with requests, because order is not guaranteed.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en batch-processing (custom_id significativos, orden no garantizado). Techo 300K solo con el header en Batches; 128K sincrónico confirma W0."
+      }
     }
   ]
 }

@@ -22,8 +22,12 @@
       "rule": "Structured outputs también funciona con streaming: no tenés que elegir entre UX progresiva y JSON garantizado.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "Stream structured outputs like normal responses",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Confirmado: streaming compatible (\"Feature compatibility\"); prefill 400 desde 4.6 (best practices); Sonnet 5.5 da 400 al forzar tools (define-tools)."
+      }
     },
     {
       "id": "o25-s02",
@@ -46,8 +50,12 @@
       "rule": "Sin apuro y con schema obligatorio: Batches API + structured outputs.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "Process structured outputs at scale with a 50 percent discount",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual: batch processing con 50% de descuento compatible con structured outputs; Sonnet 5.5 rechaza any/tool."
+      }
     },
     {
       "id": "o25-s03",
@@ -70,8 +78,12 @@
       "rule": "Restricciones que la API no soporta: el SDK las mueve a la descripción y las valida en tu código.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "Claude receives a simplified schema, but a helper that validates responses still enforces every constraint in your code.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en \"How SDK transformation works\": quita minimum/maximum, los agrega a la description y valida contra el schema original; la API no soporta restricciones numéricas (400)."
+      }
     },
     {
       "id": "o25-s04",
@@ -94,8 +106,12 @@
       "rule": "Prefill y JSON outputs no se combinan: si usás `output_config.format`, sacá el prefill.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "Prefilling is incompatible with JSON outputs.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual: \"Prefilling is incompatible with JSON outputs.\" Haiku 4.5 todavía acepta prefill (solo 4.6+ dan 400)."
+      }
     }
   ]
 }

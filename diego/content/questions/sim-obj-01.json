@@ -22,8 +22,12 @@
       "rule": "Lecturas independientes en paralelo, efectos laterales en secuencia; los resultados vuelven siempre todos juntos.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
       "source_quote": "Independent, read-only operations are usually safe to run in parallel for lower latency. Tools with side effects, shared state, or ordering requirements might be better run sequentially.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en parallel-tool-use; paralelo para lecturas, secuencial con efectos laterales, todos los tool_result juntos e is_error para no ejecutadas: confirmado."
+      }
     },
     {
       "id": "o01-s02",
@@ -46,8 +50,12 @@
       "rule": "Fable 5.1 en loops de código: empujoncito de una frase en cada turno, después de los `tool_result`.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-1",
       "source_quote": "Without the beta, place the sentence in a text block after the `tool_result` blocks in the same user message instead.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Confirmado en la guía de Fable 5.1: nudge por turno; sin la beta va en un bloque de texto después de los tool_result. Texto antes de tool_result da 400 (handle-tool-calls)."
+      }
     },
     {
       "id": "o01-s03",
@@ -65,13 +73,17 @@
       "why_wrong": {
         "1": "En un batch de browser use las llamadas dependen entre sí, así que no se corren en paralelo. Además, los resultados van todos juntos en un mismo mensaje `user`, no en mensajes separados.",
         "2": "Seguir en paralelo no arregla el orden, y reintentar en silencio esconde el error: la doc pide devolver el error en el `tool_result` y aplicar la regla de corte a las llamadas siguientes.",
-        "3": "Toda llamada necesita respuesta: si no devolvés un `tool_result` por cada `tool_use`, la próxima request se rechaza. Si querés una sola llamada por turno, la vía documentada es `disable_parallel_tool_use: true`."
+        "3": "Toda llamada necesita respuesta: si no devolvés un `tool_result` por cada `tool_use`, la próxima request se rechaza. En un batch de browser use, las llamadas que no ejecutás se responden con `is_error: true` y el texto de corte."
       },
       "rule": "Batch de browser o computer use: en orden, frenar en la primera falla y responder todas las llamadas.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/browser-use-tool",
       "source_quote": "A turn with several member calls is a batch action: run the calls in the order they appear, stop at the first failure, and answer every later call with `is_error: true` and the exact text `Not executed: an earlier action in this turn failed.`",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "Cita textual (batch actions) confirmada. Se quitó de why_wrong[3] la afirmación no respaldada de que disable_parallel_tool_use es \"la vía documentada\" para browser use."
+      }
     },
     {
       "id": "o01-s04",
@@ -94,8 +106,12 @@
       "rule": "`auto` + disable = como máximo una; `any` + disable = exactamente una (solo en modelos que aceptan forzar).",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
       "source_quote": "When the `tool_choice` type is `any` or `tool`, setting `disable_parallel_tool_use: true` means Claude calls exactly one tool.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Confirmado: any/tool + disable_parallel_tool_use = exactamente una; define-tools: Haiku 5.5 acepta forzar, Opus/Sonnet 5.5 dan 400."
+      }
     },
     {
       "id": "o01-s05",
@@ -118,8 +134,12 @@
       "rule": "Sin necesidades especiales de orden o batching, usá el Tool Runner en vez de un loop a mano.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
       "source_quote": "handles responses with multiple tool calls and formats the results for you, so you don’t write this handling yourself.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual del Tip del Tool Runner en parallel-tool-use; el manual solo para batching/orden/errores propios."
+      }
     },
     {
       "id": "o01-s06",
@@ -142,8 +162,12 @@
       "rule": "Para subagentes en paralelo con Fable 5.1: la tool de lanzar vuelve enseguida y el líder espera solo cuando lo necesita.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-1",
       "source_quote": "Have the tool that starts a subagent return immediately.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual de la sección \"Let the lead agent keep working while subagents run\" (Fable 5.1)."
+      }
     }
   ]
 }
