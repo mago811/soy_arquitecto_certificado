@@ -41,6 +41,7 @@ export async function DayView({ n, isToday }: { n: number; isToday: boolean }) {
         {isToday ? "Hoy · " : ""}Día {day.day} de 15 · <span className="capitalize">{formatDate(day.date)}</span>
       </p>
       <h1 className="mt-1 text-2xl font-bold leading-snug">{day.topic}</h1>
+      {isToday && isFuture && <p className="mt-2 rounded-lg bg-accent-soft p-2.5 text-sm text-accent">El plan arranca mañana. Si querés, podés ir mirando el día 1.</p>}
       {isFuture && !isToday && <p className="mt-2 text-sm text-muted">Este día todavía no llegó. Podés mirarlo, pero lo ideal es ir de a uno.</p>}
 
       {day.objectives.length > 0 && (

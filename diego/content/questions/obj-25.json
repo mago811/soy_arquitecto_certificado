@@ -31,7 +31,7 @@
       "pool": "practice",
       "scenario": "Un equipo migra a claude-sonnet-5-5 un clasificador que usaba prefill: el último mensaje de messages era {\"role\": \"assistant\", \"content\": \"{\"} para obligar a Claude a arrancar con JSON. Desde la migración, todas las requests fallan con 400 invalid_request_error. ¿Qué hacen?",
       "options": [
-        "Sacar el prefill y usar structured outputs (output_config.format) o una tool con un campo enum con las etiquetas.",
+        "Quitar el prefill y usar structured outputs, o una tool con un enum de etiquetas.",
         "Cambiar el prefill a \"```json\" para que el modelo lo acepte como inicio de bloque de código.",
         "Mover el mensaje assistant con \"{\" al principio de la conversación, antes del mensaje del usuario.",
         "Mantener el prefill y agregar el beta header de structured outputs para habilitarlo en este modelo."
@@ -56,7 +56,7 @@
       "scenario": "Un agente de viajes llama a una tool search_flights y al final tiene que entregar un resumen en JSON con summary y next_steps para el frontend. Hoy fallan dos cosas: a veces search_flights recibe passengers como \"2\" (string) y a veces el resumen final no respeta el formato. ¿Qué configuración resuelve las dos cosas?",
       "options": [
         "tool_choice {\"type\": \"any\"} en todas las requests para que nunca conteste en texto libre.",
-        "Solo output_config.format con el schema del resumen; eso valida también los inputs de las tools.",
+        "Solo output_config.format con el schema del resumen; eso valida también los inputs de las tools que se llamen.",
         "Solo strict: true en search_flights; eso valida también el texto final de la respuesta.",
         "strict: true en search_flights y output_config.format con el schema del resumen, en el mismo request."
       ],
@@ -80,8 +80,8 @@
       "scenario": "Un dev arma a mano un schema para output_config.format y le agrega \"minimum\": 0 al campo total y \"maxLength\": 20 al campo numero para asegurar los datos. La request vuelve con 400. Quiere mantener esas reglas. ¿Qué hace?",
       "options": [
         "Cambiar a type integer y dejar minimum, que sí está soportado para enteros.",
-        "Sacar los constraints del schema enviado (o usar el helper del SDK que los pasa a la description) y validarlos en su código.",
-        "Mandar el mismo schema como input_schema de una tool sin strict, que acepta cualquier constraint.",
+        "Sacarlos del schema enviado (el helper del SDK los pasa a la description) y validarlos en su código.",
+        "Mandar el mismo schema como input_schema de una tool sin strict, que acepta cualquier keyword de JSON Schema.",
         "Pasar los constraints a una regla en el prompt y confiar en que structured outputs los cumpla."
       ],
       "correct": 1,
@@ -103,7 +103,7 @@
       "pool": "practice",
       "scenario": "Un pipeline usa output_config.format para extraer listas largas de ítems de pedidos. La mayoría anda, pero algunos registros grandes llegan con el JSON cortado a la mitad y json.loads explota, aunque \"structured outputs garantiza el schema\". El equipo no entiende cómo puede pasar. ¿Cuál es el diagnóstico y el fix?",
       "options": [
-        "Es un bug de constrained decoding: hay que pasar a una tool con strict: true que no tiene este problema.",
+        "Es un bug de constrained decoding: hay que pasar a una tool con strict: true, que no tiene este problema de cortes.",
         "El schema tiene demasiados campos opcionales; hay que marcarlos todos como required.",
         "La respuesta cortó por max_tokens: chequear stop_reason antes de parsear y reintentar con max_tokens más alto.",
         "Es por el cache de la gramática compilada: hay que cambiar la description del schema para invalidarlo."
@@ -127,7 +127,7 @@
       "pool": "practice",
       "scenario": "Un clasificador de tickets usa structured outputs con \"enum\": [\"Billing issue\", \"Login problem\", \"Other\"]. El código hace if categoria in ENUM_VALUES y cada tanto ningún if matchea: llega \"Billing Issue\" (con I mayúscula), sin error y con stop_reason end_turn. ¿Qué cambio recomienda la doc?",
       "options": [
-        "Comparar los valores del enum sin distinguir mayúsculas y evitar enums que difieran solo en mayúsculas.",
+        "Comparar sin distinguir mayúsculas y evitar valores de enum que difieran solo en eso.",
         "Agregar \"Billing Issue\" como valor extra del enum para cubrir las dos variantes.",
         "Agregar strict: true al schema de output_config.format para que respete exacto el casing.",
         "Pasar el enum a la description del campo y dejar el type como string libre."
@@ -153,8 +153,8 @@
       "options": [
         "Falta el beta header structured-outputs-2025-11-13 para combinar las dos features.",
         "El documento es demasiado largo; hay que partirlo en chunks de menos de 20k tokens.",
-        "Hay que pasar el schema en output_format en vez de output_config.format cuando hay citations.",
-        "Citations y output_config.format son incompatibles; hay que elegir otro enfoque para tener datos con citas."
+        "Hay que pasar el schema en output_format en vez de output_config.format cuando hay citations activadas.",
+        "Citations y output_config.format son incompatibles: hay que resolver las citas por otro camino."
       ],
       "correct": 3,
       "why_correct": "La doc lista Citations como incompatible con JSON outputs: las citas se intercalan con el texto y eso choca con el schema estricto. Con las dos activadas, la API devuelve 400. Para datos estructurados con cita, la doc remite a una guía aparte en la página de Citations.",
@@ -176,7 +176,7 @@
       "scenario": "Con el SDK de Python 1.x, un dev escribe client.messages.create(..., output_format={\"type\": \"json_schema\", \"schema\": schema}) copiando un ejemplo viejo de un blog. Obtiene un TypeError antes de que salga la request. ¿Cuál es la forma correcta hoy?",
       "options": [
         "Agregar el header anthropic-beta en default_headers y dejar el dict en output_format.",
-        "Pasar output_config={\"format\": {\"type\": \"json_schema\", \"schema\": schema}}, o usar parse() con un modelo Pydantic.",
+        "Usar output_config={\"format\": {...}} con el dict, o parse() con un modelo Pydantic.",
         "Pasar el schema como response_format={\"type\": \"json_object\"}, que es el nombre estable.",
         "Mover el schema al system prompt como texto y pedirle a Claude que lo respete."
       ],
@@ -224,7 +224,7 @@
       "scenario": "Un moderador de contenido usa output_config.format con el schema {decision, motivo}. Con algunos inputs el parser de Pydantic explota: el texto no respeta el schema, y la respuesta viene con status 200 y stop_reason \"refusal\". El equipo pensaba que structured outputs garantizaba el formato siempre. ¿Qué hacen?",
       "options": [
         "Reintentar la misma request en loop hasta que vuelva con el schema correcto.",
-        "Agregar \"never refuse\" al system prompt para que siempre complete el schema.",
+        "Agregar \"never refuse\" al system prompt para que el modelo siempre complete el schema pedido.",
         "Pasar a prefill con '{\"decision\":' para que Claude no pueda negarse.",
         "Chequear stop_reason antes de parsear y tratar \"refusal\" como un caso aparte del pipeline."
       ],

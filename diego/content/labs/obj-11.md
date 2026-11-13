@@ -12,7 +12,7 @@ sources:
     title: "How the agent loop works"
   - url: https://code.claude.com/docs/en/permission-modes
     title: "Choose a permission mode"
-status: no_verificado
+status: verificada
 ---
 
 ## Objetivo
@@ -62,7 +62,7 @@ Al final vas a tener un script que falla el "build" cuando algo sale mal.
    git diff --stat
    ```
 
-   Según la doc, en un `-p` en modo Manual "a call that needs approval is denied". Lo esperable: `git diff` vacío y algo en `permission_denials`. (Si tu versión arranca `-p` en otro modo, anotá lo que veas. Para eso es el lab.)
+   Según la doc, en un `-p` en modo Manual "a call that needs approval is denied". Lo esperable: `git diff` vacío y algo en `permission_denials`. (Antes de v2.1.302, una corrida `-p` podía arrancar en auto mode: si tu versión es vieja, anotá lo que veas. Para eso es el lab.)
 
 4. **Arreglalo con permisos justos + dontAsk:**
 
@@ -86,7 +86,7 @@ Al final vas a tener un script que falla el "build" cuando algo sale mal.
    jq '{subtype, has_result: has("result"), num_turns, total_cost_usd}' r4.json
    ```
 
-   Esperado: `subtype` = `error_max_turns`, sin `result` y exit code distinto de 0. La doc explica que cada turno con tool calls cuenta, "plus one for the final text-only response".
+   Esperado: `subtype` = `error_max_turns` y sin `result`. Anotá también el exit code (la doc dice que es distinto de 0 "when the run fails"; fijate qué hace tu versión con un tope de turnos). La doc del agent loop explica que cada turno con tool calls cuenta, "plus one for the final text-only response".
 
 6. **Rompelo: tope de gasto mínimo.**
 
@@ -127,7 +127,7 @@ Al final vas a tener un script que falla el "build" cuando algo sale mal.
 
 - Explicás sin mirar por qué el paso 3 no editó nada y qué flag lo arregló.
 - En el paso 5 viste `error_max_turns`, y en el 6, `error_max_budget_usd`.
-- `ci.sh` sale con 0 cuando todo anda y con 1 cuando pega contra un tope. Nunca imprime "null".
+- `ci.sh` sale con 0 cuando todo anda y con 1 cuando pega contra un tope (lo decide el chequeo de `subtype`, no el exit code de `claude`). Nunca imprime "null".
 - Sabés de dónde sale el costo de cada corrida (`total_cost_usd`).
 
 ## Si algo falla
@@ -135,5 +135,5 @@ Al final vas a tener un script que falla el "build" cuando algo sale mal.
 - **`jq: command not found`:** instalá jq (`brew install jq` / `sudo apt install jq`).
 - **Pide login o falla la autenticación:** corré `claude` una vez en modo interactivo para loguearte. Con `--bare` necesitás `ANTHROPIC_API_KEY` sí o sí.
 - **El paso 3 sí editó:** puede que tengas reglas `permissions.allow` en tu `~/.claude/settings.json` o en el proyecto. Revisalas con `/permissions` en una sesión interactiva, o repetí con `--bare`.
-- **`error: unknown option '--max-budget-usd'`:** tu Claude Code es viejo. Actualizalo (`claude update`).
+- **Tu versión no reconoce `--max-budget-usd`:** tu Claude Code es viejo. Actualizalo (`claude update`).
 - **El paso 5 terminó en `success`:** el modelo lo resolvió sin herramientas. Pedile algo que obligue a usar varias (leer, editar y correr el test).

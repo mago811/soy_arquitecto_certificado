@@ -13,7 +13,9 @@ sources:
     title: "How Claude remembers your project"
   - url: https://code.claude.com/docs/en/code-review
     title: "Code Review"
-status: no_verificado
+  - url: https://code.claude.com/docs/en/best-practices
+    title: "Best practices for Claude Code"
+status: verificada
 ---
 
 ## Qué es

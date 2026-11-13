@@ -12,7 +12,9 @@ sources:
     title: "Claude Code GitHub Actions"
   - url: https://code.claude.com/docs/en/memory
     title: "How Claude remembers your project"
-status: no_verificado
+  - url: https://code.claude.com/docs/en/best-practices
+    title: "Best practices for Claude Code"
+status: verificada
 ---
 
 ## Objetivo

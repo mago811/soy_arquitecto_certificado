@@ -8,9 +8,9 @@
       "scenario": "Un agente de soporte tiene buscar_cliente(email) → customer_id y emitir_reembolso(customer_id, monto). Para \"asegurarse de que el reembolso salga\", el dev pone tool_choice {\"type\": \"tool\", \"name\": \"emitir_reembolso\"} desde el primer request (en un modelo que acepta forzar). Aparecen reembolsos a customer_id que no existen. ¿Cuál es el fix?",
       "options": [
         "Forzar las dos tools juntas en el mismo request con tool_choice any.",
-        "Agregar a la description de emitir_reembolso \"usá solo customer_id reales\".",
-        "Encadenar requests: primero que se llame buscar_cliente, devolver su tool_result y recién después pedir emitir_reembolso.",
-        "Agregar strict: true en emitir_reembolso para que el customer_id sea válido."
+        "Agregar a la description de emitir_reembolso \"usá solo customer_id reales, nunca los inventes\".",
+        "Encadenar: primero buscar_cliente, devolver su tool_result y recién después emitir_reembolso.",
+        "Agregar strict: true en emitir_reembolso para que el customer_id siempre sea un valor válido."
       ],
       "correct": 2,
       "why_correct": "Forzar emitir_reembolso obliga a llamarla ya, sin el dato previo. Claude tiene que llenar customer_id igual, y la doc avisa que puede inferir valores que no le diste. El dato de buscar_cliente solo llega por el tool_result en el request siguiente: cada llamada es un round trip.",
@@ -55,9 +55,9 @@
       "pool": "practice",
       "scenario": "Un agente consulta clima y hora en paralelo. El dev manda cada tool_result en su propio mensaje user, uno después del otro. Con el tiempo, Claude deja de hacer llamadas en paralelo y todo se vuelve más lento. ¿Qué corrige el problema?",
       "options": [
-        "Agregar disable_parallel_tool_use: false explícito dentro de tool_choice.",
+        "Agregar disable_parallel_tool_use: false de forma explícita dentro del objeto tool_choice.",
         "Cambiar a tool_choice any para forzar varias tools por respuesta.",
-        "Mandar los tool_result en mensajes assistant, que es el rol de las tools.",
+        "Mandar los tool_result en mensajes assistant, que es el rol que corresponde a las tools.",
         "Mandar todos los tool_result juntos en un solo mensaje user, antes de cualquier texto."
       ],
       "correct": 3,
@@ -79,10 +79,10 @@
       "pool": "practice",
       "scenario": "Un orquestador recibe un tool_use de Claude, y antes de mandar el resultado inserta un mensaje user de texto (\"recordá ser breve\") y recién después el mensaje con el tool_result. La API responde 400: \"tool_use ids were found without tool_result blocks immediately after\". ¿Cuál es el fix?",
       "options": [
-        "Mandar el tool_result inmediatamente después del tool_use, sin mensajes en el medio (el texto puede ir después de los tool_result, en el mismo mensaje).",
-        "Pasar el recordatorio al system prompt y mantener el mensaje intermedio vacío.",
-        "Duplicar el tool_use en un nuevo mensaje assistant justo antes del tool_result.",
-        "Cambiar tool_choice a none en el request del recordatorio."
+        "tool_result inmediatamente después del tool_use, y el recordatorio después de él en ese mensaje.",
+        "Pasar el recordatorio al system prompt y dejar el mensaje intermedio vacío para no romper el orden.",
+        "Duplicar el tool_use en un nuevo mensaje assistant justo antes del mensaje con el tool_result.",
+        "Cambiar tool_choice a none en el request del recordatorio para que no espere un tool_result."
       ],
       "correct": 0,
       "why_correct": "Los tool_result tienen que venir inmediatamente después de su tool_use en el historial: no puede haber mensajes en el medio. En el mensaje user, los tool_result van primero y el texto después.",
@@ -128,9 +128,9 @@
       "scenario": "Claude devuelve en una misma respuesta crear_usuario y asignar_rol(user_id). El orquestador las corre en paralelo y asignar_rol falla porque el usuario todavía no existía. El dev no sabe qué devolver para asignar_rol. ¿Qué indica la doc?",
       "options": [
         "No devolver nada para asignar_rol; Claude va a entender que falló.",
-        "Devolver un tool_result para asignar_rol con is_error: true y el mensaje de error; Claude la reintenta en el turno siguiente.",
+        "Devolver su tool_result con is_error: true y el error; Claude la reintenta en el turno siguiente.",
         "Reintentar asignar_rol en el orquestador hasta que funcione y devolver solo el éxito.",
-        "Devolver el error como texto en un mensaje user aparte, después de los tool_result."
+        "Devolver el error como texto en un mensaje user aparte, después del mensaje con los tool_result."
       ],
       "correct": 1,
       "why_correct": "La doc cubre este caso: si corrés en paralelo y una llamada falla porque su prerrequisito no había terminado, devolvés is_error: true con el mensaje de error natural, y Claude vuelve a emitir la llamada en el siguiente turno. Además, cada tool_use necesita su tool_result.",
@@ -151,10 +151,10 @@
       "pool": "practice",
       "scenario": "Un workflow de onboarding fuerza un paso por request: request 1 con tool_choice tool=crear_cuenta, request 2 con tool_choice tool=enviar_bienvenida (en un modelo que acepta forzar), devolviendo el tool_result entre medio. Funciona bien, pero la factura muestra que los bloques de mensajes no se están leyendo del prompt cache en el request 2. ¿Por qué?",
       "options": [
-        "Forzar una tool desactiva el prompt caching en todo el request.",
+        "Forzar una tool con tool_choice desactiva el prompt caching en todo el request, tools incluidas.",
         "Los tool_result nunca se pueden cachear.",
-        "Hay que mover las definiciones de tools al system prompt para que se cacheen.",
-        "Cambiar tool_choice entre requests invalida los bloques de mensajes cacheados (tools y system siguen cacheados)."
+        "Hay que mover las definiciones de tools al system prompt para que se puedan cachear entre requests.",
+        "Cambiar tool_choice entre requests invalida el cache de los mensajes (no el de tools ni system)."
       ],
       "correct": 3,
       "why_correct": "La doc lo avisa: cuando usás prompt caching, cambiar tool_choice invalida los bloques de mensajes cacheados. Las definiciones de tools y el system prompt siguen en cache, pero el contenido de los mensajes se reprocesa. Es un costo esperable de forzar pasos distintos.",
@@ -175,10 +175,10 @@
       "pool": "practice",
       "scenario": "El loop de un agente es: request → si response.content[0].type == \"tool_use\", ejecutar esa tool y mandar el resultado; si no, terminar. A veces Claude escribe una frase antes de la tool (\"Voy a buscar el pedido...\") y el agente termina sin hacer nada. ¿Cómo se arregla el loop?",
       "options": [
-        "Repetir mientras stop_reason == \"tool_use\", ejecutando todos los bloques tool_use de content.",
+        "Repetir mientras stop_reason == \"tool_use\" y ejecutar todos los bloques tool_use de content.",
         "Forzar tool_choice any en todos los requests para que content[0] sea siempre tool_use.",
         "Agregar al system prompt \"no escribas texto antes de llamar una tool\".",
-        "Usar disable_parallel_tool_use para que el tool_use quede siempre primero en content."
+        "Usar disable_parallel_tool_use para que el bloque tool_use quede siempre primero en content."
       ],
       "correct": 0,
       "why_correct": "El loop canónico de la doc se maneja por stop_reason: mientras sea \"tool_use\", ejecutás las tools y seguís. Claude suele comentar antes de llamar tools, así que no podés asumir que content[0] es el tool_use. Hay que recorrer todos los bloques.",
@@ -199,10 +199,10 @@
       "pool": "practice",
       "scenario": "Un asistente tiene la tool get_weather(location) con location required. El usuario pregunta \"¿Llevo paraguas hoy?\" sin decir dónde está, y Claude Sonnet llama get_weather con \"Buenos Aires\" sin que nadie lo haya dicho. La app sí conoce la ubicación del usuario desde su perfil. ¿Cuál es el mejor fix?",
       "options": [
-        "Hacer location opcional para que get_weather use una ubicación por defecto.",
+        "Hacer location opcional para que get_weather use una ubicación por defecto cuando falte.",
         "Forzar get_weather con tool_choice tool para que el modelo sea más preciso.",
-        "Agregar una tool get_user_location para obtener el dato antes y dejar que el loop encadene (primero ubicación, después clima).",
-        "Agregar strict: true a get_weather para que no pueda inventar location."
+        "Agregar una tool get_user_location para obtener el dato primero y dejar que el loop encadene.",
+        "Agregar strict: true a get_weather para que el modelo no pueda inventar el valor de location."
       ],
       "correct": 2,
       "why_correct": "Falta un prerrequisito. La doc avisa que cuando falta un parámetro requerido, Sonnet puede inferir un valor razonable. Si exponés una tool que trae el dato real, el loop agéntico permite obtenerlo primero y pasarlo a get_weather por el tool_result. Sin ese camino, el modelo adivina.",
@@ -223,10 +223,10 @@
       "pool": "practice",
       "scenario": "Un equipo usa claude-opus-5-5 en un workflow donde el primer paso SIEMPRE tiene que ser llamar a validar_identidad. Probaron tool_choice {\"type\": \"tool\", \"name\": \"validar_identidad\"} y reciben 400. ¿Cuál es el enfoque correcto para este modelo?",
       "options": [
-        "Usar tool_choice {\"type\": \"any\"} con una sola tool definida en el primer request.",
-        "tool_choice auto con strict: true, una instrucción clara en el prompt y una validación en código de que el primer tool_use sea validar_identidad.",
-        "Activar extended thinking manual, que habilita el forzado en Opus 5.5.",
-        "Usar prefill del turno del assistant con el bloque tool_use de validar_identidad."
+        "Usar tool_choice {\"type\": \"any\"} dejando una sola tool definida en el primer request.",
+        "auto + strict: true, una instrucción clara y una validación en código de que llegó validar_identidad.",
+        "Activar extended thinking manual, que habilita el forzado de tools en Claude Opus 5.5.",
+        "Usar prefill del turno del assistant con un bloque tool_use de validar_identidad ya armado."
       ],
       "correct": 1,
       "why_correct": "Opus 5.5 rechaza forced tool use (any y tool dan 400). La doc indica auto con strict tool use para inputs válidos, y que el prompt sigue influyendo en qué tool elige auto. Como auto no garantiza la llamada, tu código chequea que el primer tool_use sea el esperado y, si no, reintenta o corta.",

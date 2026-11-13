@@ -10,7 +10,11 @@ sources:
     title: "Common workflows"
   - url: https://code.claude.com/docs/en/best-practices
     title: "Best practices for Claude Code"
-status: no_verificado
+  - url: https://code.claude.com/docs/en/headless
+    title: "Run Claude Code programmatically"
+  - url: https://code.claude.com/docs/en/cli-reference
+    title: "CLI reference"
+status: verificada
 ---
 
 ## Objetivo
@@ -121,5 +125,5 @@ Sentir en carne propia cuándo conviene cada arquitectura:
 
 - **No ves el plan ni las opciones de aprobación:** confirmá que la barra de estado diga `⏸ plan mode on`. Si no, apretá `Shift+Tab` hasta que aparezca.
 - **En el paso 2 no editó:** te faltó `--allowedTools "Read,Edit"`. En `-p`, lo que pide aprobación se niega.
-- **`Ctrl+G` no abre nada:** configurá tu editor (por ejemplo `export EDITOR=nano`) y reintentá.
+- **`Ctrl+G` no abre nada:** `Ctrl+G` abre el plan en tu editor de texto por defecto. Revisá que tu sistema tenga uno configurado y reintentá.
 - **En el paso 6, fase 1, no devuelve un plan en `result`:** mirá `.subtype`. Si es `error_max_turns`, sacá cualquier `--max-turns` bajo.

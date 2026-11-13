@@ -13,7 +13,7 @@ sources:
     title: "Best practices for Claude Code"
   - url: https://code.claude.com/docs/en/commands
     title: "Commands"
-status: no_verificado
+status: verificada
 ---
 
 ## Qué es
@@ -35,7 +35,7 @@ Hay tres formas de encarar una tarea con Claude Code:
 Cómo se activa: `Shift+Tab`, `/plan` delante de un prompt, o `claude --permission-mode plan`. Para que un proyecto arranque siempre en plan: `"defaultMode": "plan"` en `.claude/settings.json`.
 
 Al aprobar, elegís cómo sigue:
-- **"Yes, and use auto mode"**: Claude ejecuta sin frenar en cada paso.
+- **"Yes, and use auto mode"**: aprobás y la sesión sigue en auto mode: un clasificador revisa las acciones en vez de vos.
 - **"Yes, manually approve edits"**: revisás cada edición una por una. Sirve cuando el riesgo es alto.
 - **"No, keep planning"**: Claude ajusta el plan.
 
@@ -48,9 +48,9 @@ Con `Ctrl+G` editás el plan vos mismo antes de aprobar.
 
 ## El error típico que el examen quiere que cometas
 
-- **Plan mode para todo.** Un typo en el README no necesita plan ni aprobación. Es costo y espera sin beneficio.
+- **Plan mode para todo.** La doc recomienda plan mode para tareas complejas y para cambios que querés revisar antes de que toquen el disco. Un typo en el README no es ninguna de las dos: el plan agrega espera sin beneficio.
 - **Ejecución directa en lo riesgoso.** "Migrá la autenticación de 40 archivos" con `bypassPermissions`. Si arranca mal, el rework sale caro.
-- **Aprobación humana pedida por texto.** "En CLAUDE.md: pedí permiso antes de editar". Es guidance. Plan mode bloquea las ediciones de verdad: "edits stay blocked until you approve the plan".
+- **Aprobación humana pedida por texto.** "En CLAUDE.md: pedí permiso antes de editar". Es guidance. Plan mode bloquea las ediciones de verdad: "edits stay blocked until you approve the plan". (Excepción documentada: en sesiones interactivas de terminal con bypass permissions disponible, plan mode no aplica ese bloqueo.)
 - **Plan mode en CI esperando que edite.** En `-p`, plan mode "keeps its blocks". La corrida devuelve un plan y no cambia nada. Si querés plan + aprobación en CI, son **dos fases**: una corrida que planifica, una persona que aprueba, y otra corrida que ejecuta.
 - **Que el mismo que escribió el código lo apruebe.** La review tiene que ser independiente. Y el merge lo decide una persona o la protección de rama. Code Review "never approves or blocks the pull request".
 

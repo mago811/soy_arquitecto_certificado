@@ -33,8 +33,8 @@
       "options": [
         "Agregar a la description de passengers \"debe ser un entero, nunca un string\".",
         "Cambiar tool_choice a {\"type\": \"any\"} para que el modelo elija mejor los tipos.",
-        "Validar en el backend y devolver un tool_result con is_error para que Claude reintente.",
-        "Agregar strict: true a la definición de crear_reserva (con additionalProperties false en el schema)."
+        "Validar en el backend y devolver un tool_result con is_error: true para que Claude reintente la llamada.",
+        "Agregar strict: true a crear_reserva (con additionalProperties false en su input_schema)."
       ],
       "correct": 3,
       "why_correct": "tool_choice garantiza que se llame la tool, no que los inputs respeten el schema. strict: true usa grammar-constrained sampling: el input siempre sigue el input_schema, con los tipos correctos y los campos required. La doc usa este mismo ejemplo: con strict, passengers siempre es 2.",
@@ -80,8 +80,8 @@
       "scenario": "Un equipo migra su extractor de claude-haiku-5-5 a claude-sonnet-5-5 sin cambiar el código. La request, que usa tool_choice {\"type\": \"tool\", \"name\": \"extraer_datos\"}, ahora devuelve 400 invalid_request_error. Necesitan seguir teniendo inputs válidos para el schema. ¿Qué hacen?",
       "options": [
         "Cambiar a tool_choice {\"type\": \"any\"}, que sí está soportado en Sonnet 5.5.",
-        "Activar extended thinking manual para que el modelo acepte el forzado.",
-        "Usar tool_choice auto con strict: true (y prompt claro), o structured outputs si lo que buscan es la respuesta en JSON.",
+        "Activar extended thinking manual (thinking type enabled) para que el modelo acepte el forzado de la tool.",
+        "Pasar a tool_choice auto con strict: true, o a structured outputs si quieren JSON en la respuesta.",
         "Agregar el beta header de forced tool use a la request."
       ],
       "correct": 2,
@@ -104,9 +104,9 @@
       "scenario": "Un asistente de compras fuerza la tool buscar_producto con tool_choice tool (en un modelo que lo soporta). El equipo de UX quiere que, antes de buscar, Claude le diga al usuario una frase tipo \"Dale, busco zapatillas talle 42\". Lo agregan al prompt pero la frase nunca aparece: la respuesta arranca directo con el tool_use. ¿Por qué y cuál es el fix?",
       "options": [
         "Es un bug del modelo; hay que pedir la frase en el system prompt en vez del mensaje del usuario.",
-        "Con any o tool la API prefillea el turno para forzar la tool; usar auto con la instrucción explícita en el mensaje del usuario.",
+        "Forzar hace que la API prefillee el turno; usar auto y pedir la frase en el mensaje del usuario.",
         "Hay que agregar un campo frase_para_usuario al input_schema y mostrarlo en la UI.",
-        "Hay que poner disable_parallel_tool_use: true para que el modelo emita texto antes de la tool."
+        "Poner disable_parallel_tool_use: true para que el modelo pueda emitir texto antes del bloque tool_use."
       ],
       "correct": 1,
       "why_correct": "Con tool_choice any o tool, la API prefillea el mensaje del assistant para forzar la tool, así que no hay texto antes del tool_use aunque lo pidas. La doc indica usar auto y dar la instrucción explícita en el mensaje del usuario si querés explicación más la tool.",
@@ -175,10 +175,10 @@
       "pool": "practice",
       "scenario": "Un banco usa una tool registrar_transferencia con strict: true y tool_choice any. Un auditor encuentra transferencias registradas con un CBU de 22 dígitos perfectamente formateado que no aparece en ningún lado del mensaje del cliente. El equipo responde: \"Imposible, strict garantiza el schema\". ¿Qué está pasando?",
       "options": [
-        "Strict no se aplicó porque any lo desactiva; hay que usar tool_choice tool.",
-        "El grammar cache tenía un schema viejo; hay que cambiar el nombre de la tool.",
-        "Strict garantiza la forma del input, no que el valor sea real: si el campo es obligatorio y no hay dato, el modelo igual tiene que poner algo.",
-        "Fue un error de casing del enum; hay que comparar case-insensitive."
+        "Strict no se aplicó porque tool_choice any lo desactiva; hay que usar tool_choice tool con el nombre.",
+        "El grammar cache tenía un schema viejo compilado; hay que cambiar el nombre de la tool para invalidarlo.",
+        "Strict garantiza la forma, no la verdad: si el campo es obligatorio y no hay dato, igual pone uno.",
+        "Es un problema de casing del enum de bancos; hay que comparar los valores sin distinguir mayúsculas."
       ],
       "correct": 2,
       "why_correct": "strict: true garantiza que el input cumpla el input_schema (tipos, campos requeridos). No dice nada sobre si el valor es verdadero. Si el schema exige un CBU y el mensaje no lo trae, la tool se llama igual con un valor bien formado. Hay que diseñar el schema para que pueda decir que falta (nullable u opcional) y validar.",
@@ -200,9 +200,9 @@
       "scenario": "Un triage de mails le pide a Claude que \"termine con una línea 'Prioridad: alta|media|baja'\" y después usa una regex para leerla. Cada tanto Claude escribe \"Prioridad sugerida: media\" o \"prioridad — alta\" y la regex no matchea. ¿Qué dice la doc que hay que hacer?",
       "options": [
         "Mejorar la regex para que acepte variantes y mayúsculas/minúsculas.",
-        "Agregar tres ejemplos de la línea exacta en el prompt (few-shot) y mantener la regex.",
+        "Agregar tres ejemplos de la línea exacta en el prompt (few-shot) y mantener la regex como está.",
         "Pedir la prioridad en un bloque XML <prioridad> y parsear el XML en vez de la línea.",
-        "Modelar la decisión como una tool (con un campo enum de prioridades) en vez de parsear texto libre."
+        "Modelar la decisión como una tool con un campo enum de prioridades, en vez de parsear texto."
       ],
       "correct": 3,
       "why_correct": "La doc lo dice directo: si estás escribiendo una regex para sacar una decisión de la salida del modelo, esa decisión tendría que haber sido una tool call. La estructura va en el schema, y un enum limita los valores posibles.",

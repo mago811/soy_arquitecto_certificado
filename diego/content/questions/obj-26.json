@@ -9,7 +9,7 @@
       "options": [
         "Agregar a la description \"no inventes la fecha\" y dejar el tipo como string requerido.",
         "Sacar vencimiento del schema y pedirlo en una segunda request solo cuando haga falta.",
-        "Hacer vencimiento nullable (\"type\": [\"string\", \"null\"]) e indicar que use null si la factura no lo dice.",
+        "Hacer vencimiento nullable ([\"string\", \"null\"]) e indicar que use null si no aparece.",
         "Agregar \"format\": \"date\" al campo para que solo acepte fechas válidas."
       ],
       "correct": 2,
@@ -31,7 +31,7 @@
       "pool": "practice",
       "scenario": "Un pipeline de pagos extrae medio_pago como string libre. En la base aparecen \"Visa\", \"tarjeta\", \"TC\", \"credit card\" y \"tarjeta de crédito Visa\" para lo mismo, y el dashboard de conciliación queda inutilizable. ¿Qué cambio de schema lo resuelve?",
       "options": [
-        "Definir medio_pago con un enum de valores válidos (por ejemplo tarjeta, transferencia, efectivo, otro).",
+        "Definir medio_pago como enum (tarjeta, transferencia, efectivo, otro).",
         "Agregar a la description una lista de ejemplos de cómo escribir cada medio de pago.",
         "Hacer medio_pago opcional para que solo aparezca cuando el modelo esté seguro.",
         "Normalizar después con una tabla de sinónimos en el ETL y dejar el string libre."
@@ -57,8 +57,8 @@
       "options": [
         "Quitar el enum y dejar categoria como string libre para que el modelo describa el caso.",
         "Pedir en el prompt que, si no encaja, no llame la tool.",
-        "Hacer categoria opcional para que el modelo la omita cuando no encaje.",
-        "Agregar un valor de escape al enum (por ejemplo \"otro\") y un campo de detalle nullable para describirlo."
+        "Hacer categoria opcional para que el modelo la omita cuando el reclamo no encaje en ninguna.",
+        "Agregar un valor \"otro\" al enum y un campo de detalle nullable para describir el caso."
       ],
       "correct": 3,
       "why_correct": "Un enum sin salida obliga a elegir el valor más cercano aunque no corresponda. Agregar \"otro\" le da al modelo una forma válida de decir \"no encaja\", y el campo de detalle guarda la información para revisión. Los enums aceptan strings y nulls, así que el diseño es válido.",
@@ -80,7 +80,7 @@
       "scenario": "Un equipo arma un extractor de contratos con 3 tools strict y un schema en output_config.format. Para \"no obligar a inventar\", pusieron casi todos los campos como opcionales: 31 en total entre todos los schemas. La request da 400. ¿Qué recomienda la doc?",
       "options": [
         "Sacar strict de las tools y dejar los 31 opcionales: sin strict no hay límite de complejidad.",
-        "Pasar a required los campos que siempre tienen un valor razonable y simplificar los anidados, para bajar los opcionales.",
+        "Pasar a required lo que siempre tiene un valor razonable y aplanar los anidados.",
         "Convertir todos los opcionales en type [\"string\", \"null\"]: los union types no cuentan para el límite.",
         "Partir el schema en dos objetos anidados con 15 opcionales cada uno."
       ],
@@ -105,8 +105,8 @@
       "options": [
         "Es un límite de tokens; hay que subir max_tokens para que entren los atributos.",
         "Falta additionalProperties: true en atributos para permitir keys libres.",
-        "El SDK manda el dict como objeto sin properties y Claude solo puede devolver {}; usar un modelo anidado con las keys o un array de {key, value}.",
-        "Hay que declarar atributos como Optional[dict] para que el modelo se anime a completarlo."
+        "El dict viaja sin properties y solo puede volver {}: usar un modelo anidado o un array key/value.",
+        "Hay que declarar atributos como Optional[dict] para que el modelo se anime a completarlo con datos."
       ],
       "correct": 2,
       "why_correct": "Con structured outputs, additionalProperties tiene que ser false, así que Claude solo puede devolver keys que estén listadas. Un dict no lista keys: el SDK lo manda con properties vacías y la única salida válida es {}. Si sabés las keys, usá un modelo anidado; si no, un array de pares key/value.",
@@ -127,7 +127,7 @@
       "pool": "practice",
       "scenario": "Un servicio legacy lee la salida JSON de structured outputs por posición: espera las claves en el mismo orden en que están en el schema (cliente, telefono, email, notas). telefono es opcional, y desde que lo es, a veces llega después de email y el parser posicional falla. ¿Qué hacés?",
       "options": [
-        "Marcar todas las propiedades como required (las que pueden faltar, nullable) o dejar de depender del orden.",
+        "Marcar todo como required (lo que puede faltar, nullable) o no depender del orden.",
         "Mover telefono al final del schema para que coincida con el orden en que llega.",
         "Agregar \"order\": [...] en el schema para fijar el orden de las claves.",
         "Pasar el schema por input_schema de una tool, donde el orden se respeta siempre."
@@ -153,8 +153,8 @@
       "options": [
         "Mover prioridad a required para que el modelo la tenga que pensar más.",
         "Agregar \"media\" como default en el schema para que no la escriba.",
-        "Cambiar tool_choice a any para que el modelo sea más preciso con los parámetros.",
-        "input_examples con llamadas sin prioridad cuando el pedido no la menciona, más una description que lo diga."
+        "Cambiar tool_choice a any para que el modelo sea más preciso al decidir qué parámetros completar.",
+        "input_examples con llamadas sin prioridad cuando no se menciona, más una description clara."
       ],
       "correct": 3,
       "why_correct": "input_examples le muestra a Claude ejemplos concretos de llamadas válidas, y la doc dice que esos ejemplos indican cuándo incluir los parámetros opcionales. Con una description clara de cuándo omitirla, la prioridad deja de ser un valor de relleno.",
@@ -176,7 +176,7 @@
       "scenario": "Un extractor de contratos tiene plazo_pago_dias como integer requerido. Un contrato dice \"pago a 30 o 60 días según volumen\". El pipeline guarda 30 y nadie se entera de la condición. Legales quiere que estos casos queden visibles para revisión humana. ¿Cuál es el mejor diseño?",
       "options": [
         "Cambiar plazo_pago_dias a string para que el modelo copie la frase textual.",
-        "Hacer plazo_pago_dias nullable y agregar un campo de nota (nullable) para explicar la ambigüedad, con la instrucción de usarlo.",
+        "Hacerlo nullable y sumar un campo de nota nullable que explique la ambigüedad.",
         "Mantener el integer y pedir en el prompt que elija siempre el plazo más largo, por las dudas.",
         "Agregar un campo confianza (number de 0 a 1) y descartar automáticamente lo que tenga menos de 0.8."
       ],
@@ -201,7 +201,7 @@
       "options": [
         "Agregar \"type\": \"object\" al campo moneda para que el enum de objetos sea válido.",
         "Cambiar enum por const con el objeto, que sí acepta tipos complejos.",
-        "Usar un enum de strings con los códigos (\"ARS\", \"USD\") y resolver el símbolo en el código.",
+        "Usar un enum de strings (\"ARS\", \"USD\") y resolver el símbolo en el código.",
         "Mover el enum a un $ref externo con la definición de monedas."
       ],
       "correct": 2,
@@ -223,10 +223,10 @@
       "pool": "practice",
       "scenario": "En una revisión de diseño, el tech lead dice: \"Pongamos strict: true en extraer_paciente y todos los campos como required no-nullable. Strict garantiza el schema, así que el modelo no puede inventar nada\". Varios documentos clínicos no traen fecha de nacimiento. ¿Qué le respondés?",
       "options": [
-        "Strict garantiza la forma, no la verdad: un campo requerido no-nullable sin dato en el texto obliga a poner un valor; hay que permitir null o hacerlo opcional.",
-        "Tiene razón: con strict el modelo no puede fabricar valores que no estén en el documento.",
-        "Tiene razón a medias: alcanza con agregar \"format\": \"date\" para que no invente fechas.",
-        "Tiene razón si además se usa tool_choice tool, que obliga al modelo a usar solo datos del input."
+        "No: strict garantiza la forma, no la verdad. Sin null posible, un campo requerido sin dato fuerza un valor.",
+        "Tiene razón: con strict el modelo no puede fabricar valores que no estén escritos en el documento original.",
+        "Tiene razón a medias: alcanza con agregar \"format\": \"date\" al campo para que no pueda inventar fechas.",
+        "Tiene razón si además se usa tool_choice tool, que obliga al modelo a usar solo datos que vengan del input."
       ],
       "correct": 0,
       "why_correct": "strict: true restringe el muestreo a salidas válidas para el schema: tipos, campos required y valores permitidos. No verifica que el dato esté en el documento. Si el schema exige una fecha y no hay, la salida válida es una fecha cualquiera. La doc también avisa que Sonnet puede inferir valores que no le diste.",

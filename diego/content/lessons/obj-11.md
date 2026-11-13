@@ -13,7 +13,9 @@ sources:
     title: "How the agent loop works"
   - url: https://code.claude.com/docs/en/github-actions
     title: "Claude Code GitHub Actions"
-status: no_verificado
+  - url: https://code.claude.com/docs/en/best-practices
+    title: "Best practices for Claude Code"
+status: verificada
 ---
 
 ## Qué es
@@ -33,7 +35,7 @@ Los flags que importan:
 
 | Flag | Qué hace | Ojo con |
 |---|---|---|
-| `-p` / `--print` | Corre no interactivo y sale | Sin esto, el job queda esperando input |
+| `-p` / `--print` | Corre no interactivo y sale | Sin esto, `claude "..."` abre una sesión interactiva |
 | `--output-format json` | Un objeto JSON al final | `result` solo existe si `subtype` es `success` |
 | `--output-format stream-json` | Un evento JSON por línea, en vivo | Con `--verbose` |
 | `--max-turns N` | Corta después de N turnos | Sin límite por defecto |
@@ -50,11 +52,11 @@ Ojo: `--max-turns` y `--max-budget-usd` son "print mode only". Solo funcionan co
 
 **Error 2: "le doy `bypassPermissions` y listo".** Ese modo es para "Isolated containers and VMs only". En un runner compartido, lo correcto es `--allowedTools` con lo justo y `--permission-mode dontAsk`.
 
-**Error 3: leer `.result` sin mirar `subtype`.** Si la corrida pegó contra el tope, el subtype es `error_max_turns` o `error_max_budget_usd`. En esos casos no hay `result`. Tu script publica "null" como si fuera la respuesta.
+**Error 3: leer `.result` sin mirar `subtype`.** Si la corrida pegó contra el tope, el subtype es `error_max_turns` o `error_max_budget_usd`. En esos casos no hay `result`. (Estos subtypes están documentados en la página del agent loop del Agent SDK; `claude -p` es el Agent SDK usado desde la CLI.) Tu script publica "null" como si fuera la respuesta.
 
 **Error 4: creer que el tope de gasto es exacto.** Claude Code compara el gasto *después* de cada respuesta. La respuesta que cruza el tope igual se completa. Por eso la doc dice "leave headroom".
 
-**Error 5: en `-p` sin permisos, "no hizo nada".** Una corrida `-p` sin modo de permiso arranca en Manual. Lo que necesita aprobación se **niega** (no queda colgado). La salida trae esas negaciones en `permission_denials`. El fix es aprobar lo justo con `--allowedTools`, no subir turnos.
+**Error 5: en `-p` sin permisos, "no hizo nada".** Desde Claude Code v2.1.302, una corrida `-p` sin modo de permiso arranca en Manual. Lo que necesita aprobación se **niega** (no queda colgado). La salida trae esas negaciones en `permission_denials`. El fix es aprobar lo justo con `--allowedTools`, no subir turnos.
 
 ## Ejemplo
 
@@ -89,7 +91,7 @@ Sumale `timeout-minutes` al job: la doc pide "workflow-level timeouts to avoid r
 
 ## Para recordar
 
-- `-p` = no interactivo. Sin `-p`, el job espera input que nunca llega.
+- `-p` = no interactivo. Sin `-p`, `claude` abre una sesión interactiva, pensada para una persona en la terminal.
 - Los topes (`--max-turns`, `--max-budget-usd`) son **enforcement**. CLAUDE.md es **guidance**.
 - Antes de leer `.result`, mirá `.subtype`.
 - Permisos en CI: `--allowedTools` justo + `dontAsk`. `bypassPermissions` solo en contenedores descartables.
