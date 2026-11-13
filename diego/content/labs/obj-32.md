@@ -10,7 +10,7 @@ sources:
     title: "Create custom subagents"
   - url: https://code.claude.com/docs/en/best-practices
     title: "Best practices for Claude Code"
-status: no_verificado
+status: verificada
 ---
 
 ## Objetivo

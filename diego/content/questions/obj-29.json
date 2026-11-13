@@ -1,0 +1,149 @@
+{
+  "objective": 29,
+  "questions": [
+    {
+      "id": "o29-q01",
+      "objective": 29,
+      "pool": "practice",
+      "scenario": "Un pipeline extrae remitos con structured outputs. El schema tiene `cuit` como `string` dentro de `required`. Auditoría detecta que en remitos sin CUIT el JSON trae CUITs con formato válido pero que no existen en el documento. ¿Cuál es el fix?",
+      "options": [
+        "Hacer `cuit` nullable (`\"type\": [\"string\", \"null\"]`) e indicar en el prompt que si el dato no aparece devuelva `null`, con un ejemplo así.",
+        "Agregar al prompt \"IMPORTANT: no inventes CUITs\" y mantener el campo como `string` obligatorio, para no romper el parser actual.",
+        "Agregar un `pattern` de regex al campo `cuit` para que el modelo solo pueda devolver CUITs con el formato correcto.",
+        "Activar `strict: true` en el schema para que el modelo quede obligado a respetar el documento y no genere valores falsos."
+      ],
+      "correct": 0,
+      "why_correct": "Un campo obligatorio de tipo `string` obliga a escribir algo aunque el dato falte; la doc de tool use avisa que el modelo puede inferir un valor razonable. Hacerlo nullable, darle permiso explícito de decir \"no está\" y mostrarlo con un ejemplo corta la invención.",
+      "why_wrong": {
+        "1": "El schema sigue obligando a llenar el campo: la instrucción choca con la forma que le exigís.",
+        "2": "Un regex garantiza el formato, que ya era válido; los CUITs inventados pasan igual.",
+        "3": "Strict garantiza que el output cumpla el schema, no que los valores sean verdaderos."
+      },
+      "rule": "Dato que puede faltar → nullable + permiso explícito de `null` + ejemplo con `null`.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview",
+      "source_quote": "But it might also infer a reasonable value.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o29-q02",
+      "objective": 29,
+      "pool": "practice",
+      "scenario": "Un sistema extrae la fecha de facturas de 40 proveedores. Los valores salen como `03/08/26`, `3 de agosto de 2026` o `2026-08-03`, según cómo venía cada documento, y el sistema contable rechaza la mitad. El prompt solo dice \"extraé la fecha\". ¿Qué agregás?",
+      "options": [
+        "Un paso posterior con un modelo distinto que adivine el formato de cada fecha y la convierta a lo que pide el sistema contable.",
+        "Una instrucción explícita del formato de salida (`YYYY-MM-DD`, años de dos dígitos = 20XX, dd/mm) y ejemplos con entradas variadas.",
+        "Un campo extra `fecha_original` para guardar el texto tal cual, y que el equipo contable la convierta a mano cuando haga falta.",
+        "La instrucción \"usá un formato de fecha estándar\" para que el modelo elija el más común y lo aplique siempre igual."
+      ],
+      "correct": 1,
+      "why_correct": "La doc pide ser específico sobre el formato de salida y las restricciones. Decir el formato exacto y las reglas para casos ambiguos, más ejemplos con entradas variadas, hace que cada documento salga normalizado igual.",
+      "why_wrong": {
+        "0": "Agrega otra adivinanza sin decir el formato; no es más consistente.",
+        "2": "Guardar el original puede ser útil, pero no normaliza: traslada el problema a humanos.",
+        "3": "\"Estándar\" es vago: el modelo puede elegir distintos estándares en distintos documentos."
+      },
+      "rule": "Formatos inconsistentes → decí el formato exacto de salida + ejemplos variados.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Be specific about the output format and constraints you want.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o29-q03",
+      "objective": 29,
+      "pool": "practice",
+      "scenario": "Un prompt de extracción de contratos tiene 4 ejemplos. Los 4 son del mismo cliente, con todos los campos completos y el mismo formato. En contratos de otros clientes, el modelo copia la estructura de cláusulas del ejemplo y completa campos que no existen. ¿Cómo corregís los ejemplos?",
+      "options": [
+        "Sacar los ejemplos y reemplazarlos por una descripción detallada de cada campo, para no sesgar al modelo con un solo cliente.",
+        "Agregar 10 ejemplos más del mismo cliente, para que el modelo aprenda mejor el formato antes de ver contratos nuevos.",
+        "Mantener los 4 ejemplos pero agregar en el prompt \"estos ejemplos son solo orientativos, no los copies\".",
+        "Usar ejemplos variados (clientes y formatos distintos), con casos borde y al menos uno donde faltan campos y se devuelve `null`."
+      ],
+      "correct": 3,
+      "why_correct": "La doc pide ejemplos diversos que cubran casos borde y varíen lo suficiente para que Claude no tome patrones no deseados. Uno con campos faltantes enseña qué hacer cuando el dato no está.",
+      "why_wrong": {
+        "0": "Perdés la herramienta más efectiva para formato y consistencia.",
+        "1": "Más de lo mismo refuerza el sesgo hacia ese cliente.",
+        "2": "Los ejemplos pesan más que una aclaración; si son todos iguales, el patrón sigue."
+      },
+      "rule": "Few-shot de extracción: variado, con casos borde y con un `null`.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Diverse: Cover edge cases and vary enough that Claude doesn’t pick up unintended patterns.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o29-q04",
+      "objective": 29,
+      "pool": "practice",
+      "scenario": "Para evitar montos absurdos, un dev agregó `\"minimum\": 0` y `\"maximum\": 10000000` al campo `total`, y `\"minLength\": 11` al CUIT en el schema de structured outputs. Ahora todas las llamadas fallan. ¿Qué pasa y qué hacés?",
+      "options": [
+        "Esas restricciones solo funcionan con `strict: true` en tool use; hay que mover el schema a una herramienta para que las acepte.",
+        "El schema tiene más de 24 parámetros opcionales; hay que marcar `total` y `cuit` como `required` para bajar la complejidad.",
+        "Las restricciones numéricas y de largo de string no están soportadas y dan error 400; sacalas del schema y validá rangos en tu código.",
+        "Los valores de `maximum` son demasiado grandes para la gramática; hay que bajarlos a menos de 1.000.000 para que compile."
+      ],
+      "correct": 2,
+      "why_correct": "La doc lista `minimum`/`maximum` y `minLength`/`maxLength` como no soportados en structured outputs, y usar algo no soportado da un 400. La validación de rangos va en tu código después de parsear (o se pide como reintento).",
+      "why_wrong": {
+        "0": "Las limitaciones de JSON Schema son las mismas para JSON outputs y strict tool use.",
+        "1": "El problema no es la cantidad de opcionales; son features no soportadas.",
+        "3": "No es una cuestión de valor: la restricción en sí no está soportada."
+      },
+      "rule": "Rangos y largos no van en el schema de structured outputs → validalos en código.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "source_quote": "If you use an unsupported feature, you’ll receive a 400 error with details.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o29-q05",
+      "objective": 29,
+      "pool": "practice",
+      "scenario": "Un schema tiene `\"categoria\": {\"enum\": [\"Nota de crédito\", \"Nota de Crédito\", \"Factura A\"]}` porque los documentos traen las dos escrituras. El código compara con `==` y a veces una nota de crédito cae en un bucket raro. ¿Qué hacés?",
+      "options": [
+        "Agregar al enum todas las variantes de mayúsculas posibles, para que cualquier escritura del documento tenga su valor exacto.",
+        "Pasar el campo a `string` libre sin enum y dejar que el código adivine la categoría con una lista de palabras clave.",
+        "Pedir en el prompt \"respetá exactamente las mayúsculas del enum\", porque structured outputs ya garantiza el valor exacto.",
+        "Dejar un solo valor por categoría (sin variantes que difieran solo en mayúsculas) y comparar sin distinguir mayúsculas en el código."
+      ],
+      "correct": 3,
+      "why_correct": "La doc avisa que structured outputs no garantiza la capitalización de valores `enum` y recomienda comparar sin distinguir mayúsculas y evitar valores que difieran solo en eso. Un valor canónico por categoría es además normalización.",
+      "why_wrong": {
+        "0": "Es justo lo que la doc dice que evites: valores que difieren solo en mayúsculas.",
+        "1": "Perdés la consistencia del enum y movés la adivinanza al código.",
+        "2": "La doc dice explícitamente que la capitalización de enums no está garantizada."
+      },
+      "rule": "Enums: un valor por categoría, sin variantes de mayúsculas, y comparación case-insensitive.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "source_quote": "Compare enum values case-insensitively, and avoid enum values that differ only in capitalization.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o29-q06",
+      "objective": 29,
+      "pool": "practice",
+      "scenario": "Un extractor de datos de proveedores completa el campo `direccion` incluso cuando el documento no la menciona: pone la dirección \"conocida\" de empresas grandes. El campo ya es nullable y hay un ejemplo con `null`. ¿Qué agregás al prompt?",
+      "options": [
+        "Una instrucción explícita de usar solo la información del documento provisto y no su conocimiento general, devolviendo `null` si no está.",
+        "Una lista de las direcciones correctas de los proveedores grandes, para que al menos las que completa sean las verdaderas.",
+        "Un pedido de que marque con un asterisco las direcciones que no están en el documento, dejándolas en el mismo campo.",
+        "Una instrucción de buscar la dirección en internet cuando falte, para que el dato quede siempre completo y actualizado."
+      ],
+      "correct": 0,
+      "why_correct": "La doc de alucinaciones lista restringir el conocimiento externo: indicarle explícitamente que use solo los documentos provistos y no su conocimiento general. Con el campo nullable, tiene la salida honesta cuando el dato no está.",
+      "why_wrong": {
+        "1": "Mete datos externos a propósito: la extracción deja de reflejar el documento.",
+        "2": "Mezcla datos inventados con reales en el mismo campo; el sistema no los distingue bien.",
+        "3": "Cambia la tarea de extraer por la de completar desde afuera; no es lo que dice el documento."
+      },
+      "rule": "Extracción = solo lo que dice el documento. Decilo explícito.",
+      "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
+      "source_quote": "Explicitly instruct Claude to only use information from provided documents and not its general knowledge.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

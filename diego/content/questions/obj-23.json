@@ -22,8 +22,12 @@
       "rule": "¿Alguien está bloqueado esperando? → Messages API. Batches es para lo que puede esperar hasta 24 h.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
       "source_quote": "This approach is well-suited to tasks that do not require immediate responses, with most batches finishing in less than 1 hour while reducing costs by 50 percent and increasing throughput.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Batch processing: quote textual; hasta 24 h; stream: true da validation error en batch."
+      }
     },
     {
       "id": "o23-q02",
@@ -46,8 +50,12 @@
       "rule": "Volumen grande + nadie espera + importa el costo → Message Batches API (50% del precio).",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
       "source_quote": "All usage is charged at 50 percent of the standard API prices.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "'All usage is charged at 50 percent...' textual; 'Usage of the Batches API does not affect rate limits in the Messages API' (FAQ). Fast mode (speed) es latencia síncrona con precio premium."
+      }
     },
     {
       "id": "o23-q03",
@@ -70,8 +78,12 @@
       "rule": "Resultados de batch → se emparejan por `custom_id`, nunca por posición.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
       "source_quote": "Batch results can be returned in any order, and might not match the ordering of requests when the batch was created.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Quote textual (Tip 'Batch results might not match input order': usar siempre custom_id)."
+      }
     },
     {
       "id": "o23-q04",
@@ -94,8 +106,12 @@
       "rule": "SLA con batch → espera hasta el próximo envío + 24 h ≤ SLA; ajustá la frecuencia de envío.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
       "source_quote": "Batches might take up to 24 hours for processing, but many complete sooner.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "FAQ: 'Batches might take up to 24 hours...' textual. Cuentas 4+24=28 y 12+24=36 correctas. La doc no documenta ningún parámetro de prioridad."
+      }
     },
     {
       "id": "o23-q05",
@@ -118,8 +134,12 @@
       "rule": "Batch con fallas → reenviar solo los fallidos por `custom_id`; los inválidos se corrigen antes.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
       "source_quote": "Note that the failure of one request in a batch does not affect the processing of other requests.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Quote textual (best practices de batch). Ejemplo Python: invalid_request_error 'must be fixed before re-sending'; los demás errores se pueden reintentar."
+      }
     },
     {
       "id": "o23-q06",
@@ -142,8 +162,12 @@
       "rule": "Antes de un batch grande → probá el request con la Messages API (la validación del batch es asíncrona).",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
       "source_quote": "The API validates the `params` object of each message request asynchronously, and returns validation errors when processing of the entire batch has ended.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Quote textual (Tip 'Test your batch requests with the Messages API'); max_tokens: 0 y stream: true no soportados en batch."
+      }
     },
     {
       "id": "o23-q07",
@@ -166,8 +190,12 @@
       "rule": "Resultados de batch → disponibles 29 días desde la creación; guardalos vos si los vas a necesitar después.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
       "source_quote": "Batch results are available for 29 days after creation. After that, you can still view the batch, but its results are no longer available for download.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Quote textual (Batch limitations: 29 días desde la creación). Cancelar deja resultados parciales; no se documenta extensión de retención."
+      }
     },
     {
       "id": "o23-q08",
@@ -190,8 +218,12 @@
       "rule": "`pause_turn` en un resultado de batch → el turno no terminó; se continúa con un request de seguimiento.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
       "source_quote": "If a batch result comes back with `pause_turn`, the turn did not complete; you can continue it by submitting the paused assistant content in a follow-up request (batch or synchronous)",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Quote textual (sección de server tools en batch); la doc lista todas las server tools (web search incluida) como batcheables."
+      }
     }
   ]
 }

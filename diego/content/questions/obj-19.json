@@ -22,8 +22,12 @@
       "rule": "Fuentes creíbles en conflicto → mostrar ambos valores con su fuente, nunca promediar ni elegir en silencio.",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
       "source_quote": "Make Claude’s response auditable by having it cite quotes and sources for each of its claims.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Quote textual en reduce-hallucinations (Verify with citations). La doc respalda citar fuente por afirmación para auditar; mostrar ambos valores marcados como disputados es la consecuencia de diseño. Distractores no defendibles."
+      }
     },
     {
       "id": "o19-q02",
@@ -41,13 +45,17 @@
       "why_wrong": {
         "1": "Ejemplos donde todo tiene conclusión firme le enseñan justamente a no dejar huecos: empeora el problema.",
         "2": "Más tokens o más esfuerzo no crean información que los documentos no tienen. Sin permiso para decir \"no sé\", sigue concluyendo igual.",
-        "3": "Un puntaje que el modelo se pone a sí mismo, con un umbral a ojo, no está calibrado y no reemplaza decir explícitamente que falta información."
+        "3": "Un puntaje que el modelo se pone a sí mismo, con un umbral a ojo: nada en la doc dice que ese número esté calibrado, y no reemplaza decir explícitamente que falta información."
       },
       "rule": "El modelo inventa para llenar huecos → permiso explícito para decir \"no tengo información suficiente\".",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
       "source_quote": "Explicitly give Claude permission to admit uncertainty. This technique can drastically reduce false information.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "Quote textual en reduce-hallucinations. Corregido why_wrong[3]: afirmaba como dato que el puntaje auto-reportado 'no está calibrado'; ahora dice que nada en la doc indica que lo esté."
+      }
     },
     {
       "id": "o19-q03",
@@ -70,8 +78,12 @@
       "rule": "Atribución que se pierde entre agentes → hallazgos estructurados con fuente y extracto, pasados por referencia, sin re-resumir.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "Subagents call tools to store their work in external systems, then pass lightweight references back to the coordinator. This prevents information loss during multi-stage processing",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Quote textual en el post multi-agent-research-system (artifact systems / lightweight references)."
+      }
     },
     {
       "id": "o19-q04",
@@ -94,8 +106,12 @@
       "rule": "Citas que tienen que existir textualmente en la fuente → Citations API (`cited_text`), no citas pedidas por prompt.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/citations",
       "source_quote": "Because the API parses citations into the response formats described in the following sections and extracts `cited_text` directly, citations are guaranteed to contain valid pointers to the provided documents.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Citations: cited_text extraído por la API, 'guaranteed to contain valid pointers'; cited_text no cuenta como output tokens; citations + output_config.format = 400 (confirmado). Best practices: documentos largos arriba."
+      }
     },
     {
       "id": "o19-q05",
@@ -118,8 +134,12 @@
       "rule": "Valores de años distintos no son contradicción → la fecha de cada fuente viaja como metadata hasta la síntesis.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "When using multiple documents, wrap each document in `<document>` tags with `<document_content>` and `<source>` (and other metadata) subtags for clarity.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Quote textual en prompting best practices (document/document_content/source + metadata)."
+      }
     },
     {
       "id": "o19-q06",
@@ -142,8 +162,12 @@
       "rule": "Mezcla de documentos y conocimiento general → \"usá solo los documentos\" + permiso para decir que el dato no está.",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
       "source_quote": "Explicitly instruct Claude to only use information from provided documents and not its general knowledge.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Quote textual en reduce-hallucinations (External knowledge restriction)."
+      }
     },
     {
       "id": "o19-q07",
@@ -166,8 +190,12 @@
       "rule": "Afirmaciones sin respaldo → pasada de verificación: cita que la sostenga o se retira.",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
       "source_quote": "You can also have Claude verify each claim by finding a supporting quote after it generates a response. If it can’t find a quote, it must retract the claim.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Quote textual en reduce-hallucinations; el ejemplo de la doc es justo una nota de prensa con marca [] donde se retira la afirmación."
+      }
     },
     {
       "id": "o19-q08",
@@ -190,8 +218,12 @@
       "rule": "Mismo prompt, distintos números → señal de alucinación; se investiga, no se tapa con temperatura 0.",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
       "source_quote": "Run Claude through the same prompt multiple times and compare the outputs. Inconsistencies across outputs could indicate hallucinations.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Quote textual (Best-of-N verification) en reduce-hallucinations."
+      }
     },
     {
       "id": "o19-q09",
@@ -214,8 +246,12 @@
       "rule": "\"Muchas fuentes lo dicen\" no es \"establecido\" → heurísticas de calidad de fuente, primarias sobre secundarias.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "Adding source quality heuristics to our prompts helped resolve this issue.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Quote textual en el post multi-agent: agentes elegían granjas SEO sobre PDFs académicos; se resolvió con source quality heuristics."
+      }
     },
     {
       "id": "o19-q10",
@@ -238,8 +274,12 @@
       "rule": "Research complejo → hipótesis en competencia + nivel de confianza registrado, no la primera explicación como certeza.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "As you gather data, develop several competing hypotheses. Track your confidence levels in your progress notes to improve calibration.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Quote textual en el sample prompt de complex research de prompting best practices."
+      }
     }
   ]
 }

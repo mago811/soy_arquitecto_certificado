@@ -6,7 +6,7 @@ needs: ["API key de Anthropic", "Python 3.10+"]
 sources:
   - url: https://platform.claude.com/docs/en/build-with-claude/batch-processing
     title: "Batch processing"
-status: no_verificado
+status: verificada
 ---
 
 ## Objetivo
@@ -89,13 +89,13 @@ requests = [
     for cid, texto in RESENAS.items()
 ]
 
-# Request roto a propósito: un modelo que no existe.
+# Request roto a propósito: max_tokens: 0 no está soportado dentro de un batch.
 requests.append(
     Request(
         custom_id="res-rota",
         params=MessageCreateParamsNonStreaming(
-            model="claude-modelo-inventado",
-            max_tokens=4000,
+            model="claude-opus-5-5",
+            max_tokens=0,
             messages=[{"role": "user", "content": "Hola"}],
         ),
     )
@@ -108,7 +108,7 @@ open("batch_id.txt", "w").write(message_batch.id)
 
 Corré `python crear_batch.py`. Tiene que imprimir un id `msgbatch_…` y `in_progress`.
 
-Nota honesta: según la doc, la validación de `params` es asíncrona y el error aparece al final como resultado `errored`. Si en tu cuenta el `create` rechaza el batch de entrada por el request roto, sacalo y seguí: también es la lección (probá el shape con la Messages API antes).
+Nota honesta: según la doc, la validación de `params` es asíncrona y el error aparece al final como resultado `errored`. La doc no dice qué `type` de error trae este caso puntual: si `res-rota` cae en `reintentar` en vez de `arreglar`, mirá el error que imprime y anotalo. Si en tu cuenta el `create` rechaza el batch de entrada por el request roto, sacalo y seguí: también es la lección (probá el shape con la Messages API antes).
 
 ### 3. Pollear hasta `ended` (10 min, casi todo esperando)
 
@@ -167,7 +167,7 @@ Mirá el **orden de llegada**: la doc avisa que puede no coincidir con el orden 
 
 ### 5. Reenviar solo lo fallido (8 min)
 
-Creá `reenviar.py` que arma un batch nuevo **solo** con los `custom_id` de `arreglar` (corregidos: modelo válido) y `reintentar`. No reenvíes los `succeeded`: ya los pagaste.
+Creá `reenviar.py` que arma un batch nuevo **solo** con los `custom_id` de `arreglar` (corregidos: `max_tokens` válido) y `reintentar`. No reenvíes los `succeeded`: ya los pagaste.
 
 ```python
 import anthropic
@@ -200,7 +200,7 @@ print(nuevo.id)
 - `sincrono.py` tarda segundos; el batch, minutos (o más).
 - `poll.py` termina con `processing_status == "ended"` y `request_counts` muestra cuántos `succeeded` y `errored`.
 - `resultados.py` empareja todo por `custom_id`, aunque lleguen en otro orden.
-- `res-rota` aparece en `arreglar`, y el reenvío lleva solo ese request.
+- `res-rota` aparece como `errored` (lo esperable es `arreglar`, por ser un error de validación), y el reenvío lleva solo ese request.
 - Tu tabla: CI y chat → Messages; nocturno → Batches; SLA 30 h → batches cada ≤ 6 h (por ejemplo, cada 4 h).
 
 ## Si algo falla

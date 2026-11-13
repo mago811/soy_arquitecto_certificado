@@ -5,7 +5,7 @@
       "id": "o17-q01",
       "objective": 17,
       "pool": "practice",
-      "scenario": "Un agente basado en el Agent SDK tiene que explicar cómo funciona el flujo de reembolsos en un repo de 1.200 archivos. Su prompt dice: \"Primero leé todos los archivos de `src/` para tener el panorama completo, después respondé\". Se queda sin contexto antes de terminar de leer y la respuesta es genérica. ¿Qué estrategia de exploración corresponde?",
+      "scenario": "Un agente basado en el Agent SDK, configurado con las tools Read, Grep y Glob, tiene que explicar cómo funciona el flujo de reembolsos en un repo de 1.200 archivos. Su prompt dice: \"Primero leé todos los archivos de `src/` para tener el panorama completo, después respondé\". Se queda sin contexto antes de terminar de leer y la respuesta es genérica. ¿Qué estrategia de exploración corresponde?",
       "options": [
         "Leer primero los archivos más grandes de `src/`, porque suelen concentrar la lógica de negocio importante.",
         "Concatenar todo `src/` en un solo archivo con Bash y leerlo de una vez con Read, para hacer una sola llamada.",
@@ -22,8 +22,12 @@
       "rule": "Entender un flujo → Grep el punto de entrada, Read de esos archivos, seguir imports. Nunca \"leé todo primero\".",
       "source_url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
       "source_quote": "CLAUDE.md files are naively dropped into context up front, while primitives like glob and grep allow it to navigate its environment and retrieve files just-in-time",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "Cita textual en el post de context engineering (just-in-time con glob/grep). Límite 256 KB de Read confirmado en tools-reference. Se aclaró en el escenario que el agente tiene Grep/Glob (en Linux/macOS no vienen por defecto)."
+      }
     },
     {
       "id": "o17-q02",
@@ -37,7 +41,7 @@
         "Cambiar la firma igual y dejar que el build marque los errores, así no hace falta explorar los usos de antemano."
       ],
       "correct": 0,
-      "why_correct": "Con módulos wrapper, el nombre original no aparece en los llamadores. Primero identificás todos los nombres exportados por el wrapper (Read del `index.ts`) y después buscás cada nombre por contenido con Grep en todo el código.",
+      "why_correct": "Grep busca por contenido, así que solo encuentra el texto literal que le pasás: si los llamadores importan otros nombres, `sendEmail` no aparece en ellos. Leés el wrapper (`index.ts`) para sacar todos los nombres que exporta y después hacés un Grep por cada nombre. (El paso de los alias es razonamiento sobre el código; la doc respalda la parte de que Grep busca líneas por contenido.)",
       "why_wrong": {
         "1": "`multiline` sirve para patrones que cruzan líneas. El problema es que los llamadores usan OTRO nombre.",
         "2": "Glob busca por nombre de archivo, no por uso. Un archivo puede llamar a `notifyUser` sin tener \"notify\" en el nombre.",
@@ -45,15 +49,19 @@
       },
       "rule": "Función re-exportada por un wrapper → sacá los nombres exportados y Grep por cada uno.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
-      "source_quote": "The Grep tool searches file contents for patterns.",
-      "status": "no_verificado",
-      "verification": null
+      "source_quote": "The Grep tool searches file contents for patterns. Where Glob finds files by name, Grep finds lines inside them.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "La doc solo respalda que Grep busca por contenido (y Glob por nombre); nada sobre wrappers. La respuesta es razonamiento correcto y no hay otra opción defendible (D incumple el requisito de encontrar usos antes de cambiar). Se amplió la cita y se aclaró en why_correct qué parte es de la doc."
+      }
     },
     {
       "id": "o17-q03",
       "objective": 17,
       "pool": "practice",
-      "scenario": "Claude necesita entender la función `reconcileLedger` dentro de `legacy/ledger.js`, un archivo generado de 9.000 líneas. El Read del archivo entero vuelve con un aviso `PARTIAL view` y solo las primeras líneas; la función está mucho más abajo. ¿Qué es lo más eficiente?",
+      "scenario": "Claude necesita entender la función `reconcileLedger` dentro de `legacy/ledger.js`, un archivo generado de 9.000 líneas. El Read del archivo entero vuelve con un aviso `PARTIAL view` y solo las primeras líneas; la función está mucho más abajo. Claude tiene las tools Read y Grep disponibles. ¿Qué es lo más eficiente?",
       "options": [
         "Pedirle a Claude que lea el archivo entero varias veces seguidas hasta que el aviso `PARTIAL view` desaparezca.",
         "Grep por `reconcileLedger` en modo `content` para obtener el número de línea, y después Read con `offset` y `limit` alrededor.",
@@ -70,8 +78,12 @@
       "rule": "Archivo enorme → Grep `content` para la línea, Read con `offset`/`limit` alrededor.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "so Claude reads a larger file in pages with `offset` and `limit`.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "Confirmado en tools-reference: 25.000 tokens por defecto, aviso PARTIAL view, paginar con offset/limit, Grep content da archivo y línea. Se agregó al escenario que Grep está disponible."
+      }
     },
     {
       "id": "o17-q04",
@@ -94,8 +106,12 @@
       "rule": "Priorizar qué leer → Grep `count`; ver las líneas → `content`; solo rutas → `files_with_matches`.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "`count`: match count per file, followed by a total across all matching files.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Modos files_with_matches (default), content y count confirmados textual en tools-reference; Grep disponible por el escenario."
+      }
     },
     {
       "id": "o17-q05",
@@ -118,8 +134,12 @@
       "rule": "Grep da 0 en archivos generados o ignorados → pasale la ruta directamente.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "Grep respects `.gitignore`, so gitignored files are skipped. To search a gitignored file, Claude passes its path directly.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en tools-reference; subagente con tools Read, Grep, Glob (Grep disponible). type filtra por lenguaje."
+      }
     },
     {
       "id": "o17-q06",
@@ -142,8 +162,12 @@
       "rule": "Glob truncado en 100 → patrón más específico, no repetir ni leer lo que vino.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "Results are sorted by modification time and capped at 100 files. If the cap is hit, Claude sees a truncation flag in the result and can narrow the pattern.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual: Glob ordena por mtime, tope 100 y flag de truncamiento."
+      }
     },
     {
       "id": "o17-q07",
@@ -166,8 +190,12 @@
       "rule": "Símbolo ambiguo en lenguaje tipado → code intelligence (go to definition) antes que grep + leer candidatos.",
       "source_url": "https://code.claude.com/docs/en/costs",
       "source_quote": "A single \"go to definition\" call replaces what might otherwise be a grep followed by reading multiple candidate files.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en costs (code intelligence plugins, go to definition). CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS existe (tools-reference)."
+      }
     },
     {
       "id": "o17-q08",
@@ -190,8 +218,12 @@
       "rule": "Grep con mucho ruido de otros tipos de archivo → `glob` o `type` en la llamada.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "Claude can scope results by file with the `glob` parameter, such as `**/*.tsx`, or by language with the `type` parameter, such as `py` or `rust`.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en tools-reference (parámetros glob y type; multiline para cruzar líneas)."
+      }
     }
   ]
 }

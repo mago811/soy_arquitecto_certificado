@@ -10,7 +10,7 @@ sources:
     title: "CLI reference"
   - url: https://code.claude.com/docs/en/sub-agents
     title: "Create custom subagents"
-status: no_verificado
+status: verificada
 ---
 
 ## Objetivo
@@ -90,7 +90,7 @@ Compará: ahora aparecen `RefundService.ts` y `admin.ts`.
 ```text
 1) Con Grep buscá LEGACY_PRICE_V2 en todo el repo. Después buscalo pasándole la ruta build/generated/ directo.
 2) Hacé un Glob con el patrón **/* y decime si el resultado vino truncado. Después probá con src/services/**/*.ts.
-3) Leé src/legacy.js entero. Después encontrá reconcileLedger con Grep en modo content y leé solo esas líneas con offset y limit.
+3) Leé src/legacy.js entero con Read, sin offset, limit ni allow_large. Después encontrá reconcileLedger con Grep en modo content y leé solo esas líneas con offset y limit.
 4) Usá Grep con output_mode count para el patrón "export" acotado con glob "src/lib/**/*.ts".
 ```
 
@@ -107,3 +107,4 @@ Compará: ahora aparecen `RefundService.ts` y `admin.ts`.
 
 - Claude usa Bash igual: repetí "sin Bash" o arrancá con `claude --tools "Read,Grep,Glob"` (con `--tools` tenés solo las que listás).
 - `src/legacy.js` no supera el límite: agrandalo cambiando `30000` por `200000`.
+- En el paso 4.3 Claude leyó el archivo entero de una: desde Claude Code v2.1.296, Read acepta `allow_large: true` cuando le pedís el archivo completo. Repetí la consigna aclarando "sin allow_large".

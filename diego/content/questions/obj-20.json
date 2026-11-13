@@ -19,11 +19,15 @@
         "2": "Más ventana no evita la degradación: con más tokens el recall baja (context rot). Y las sesiones largas igual compactan.",
         "3": "Releer todo es lo opuesto a la lectura dirigida: llena la ventana y empeora la degradación."
       },
-      "rule": "Sesión larga que empieza a hablar de \"patrones típicos\" → scratchpad de hallazgos que se consulta.",
+      "rule": "Sesión larga que empieza a hablar de \"patrones típicos\" → archivo de notas con los hallazgos, que se consulta.",
       "source_url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
       "source_quote": "Structured note-taking, or agentic memory, is a technique where the agent regularly writes notes persisted to memory outside of the context window. These notes get pulled back into the context window at later times.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "Cita textual (structured note-taking, NOTES.md) en el post de context engineering. Se cambió 'scratchpad' (término de la guía) por 'archivo de notas' en la regla."
+      }
     },
     {
       "id": "o20-q02",
@@ -46,8 +50,12 @@
       "rule": "Búsqueda amplia con mucha salida que no vas a volver a mirar → subagente, vuelve solo el resumen.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "By delegating these to a subagent, the verbose output stays in the subagent's context while only the relevant summary returns to your main conversation.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en sub-agents; /btw sin acceso a tools confirmado en interactive-mode."
+      }
     },
     {
       "id": "o20-q03",
@@ -70,8 +78,12 @@
       "rule": "Seguir la misma línea de trabajo con menos ruido → `/compact <foco>`. Tarea no relacionada → `/clear`.",
       "source_url": "https://code.claude.com/docs/en/context-window",
       "source_quote": "The summary keeps what you choose instead of what the automatic pass guesses is important.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en context-window (Compact with a focus, antes de una tarea larga). /context solo visualiza, /autocompact cambia el umbral, /clear empieza vacío (commands)."
+      }
     },
     {
       "id": "o20-q04",
@@ -94,8 +106,12 @@
       "rule": "Tarea nueva sin relación → `/clear [nombre]`; para volver, `/resume`.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "It costs nothing, and it means the next task doesn't keep paying for the previous one's history.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en best-practices; /clear [name] etiqueta la conversación anterior para /resume (commands); /usage marca long context; /compact es un request grande (best-practices)."
+      }
     },
     {
       "id": "o20-q05",
@@ -118,8 +134,12 @@
       "rule": "Instrucción que tiene que sobrevivir a la compactación → `CLAUDE.md` de la raíz, no el chat.",
       "source_url": "https://code.claude.com/docs/en/memory",
       "source_quote": "Project-root CLAUDE.md survives compaction: after `/compact`, Claude re-reads it from disk and re-injects it into the session.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en memory; context-window confirma que las reglas con paths: se resumen y se recargan on demand."
+      }
     },
     {
       "id": "o20-q06",
@@ -142,8 +162,12 @@
       "rule": "Necesitás retomar al subagente → `general-purpose` o custom (Explore y Plan son one-shot).",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "The built-in Explore and Plan agents are one-shot and return no agent ID, so Claude can't resume them.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en sub-agents; los subagentes retomados conservan historial completo."
+      }
     },
     {
       "id": "o20-q07",
@@ -166,8 +190,12 @@
       "rule": "Subagente que debe acumular conocimiento del repo para el equipo → `memory: project`.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "`project` is the recommended default scope. It makes subagent knowledge shareable via version control.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual; rutas de memory user/local confirmadas en sub-agents."
+      }
     },
     {
       "id": "o20-q08",
@@ -185,13 +213,17 @@
       "why_wrong": {
         "0": "La compactación resume: no es buena para mantener estado exacto de 140 elementos. Y cada resumen puede perder detalle.",
         "2": "Una sesión nueva no ve el historial de la anterior. Lo escrito en el chat de ayer no llega.",
-        "3": "Solo cambia cuándo compacta la sesión actual. No pasa nada de una sesión a la siguiente."
+        "3": "Solo cambia cuándo compacta automáticamente. No le pasa ningún estado de una sesión a la siguiente."
       },
       "rule": "Trabajo de varios días → estado en archivos (JSON + notas + git), no en la conversación.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Claude’s latest models are extremely effective at discovering state from the local filesystem.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "Cita textual en prompting best practices (multi-context window: progress.txt, tests.json, git). Se corrigió el distractor 3: /autocompact se guarda en user settings, no es 'solo la sesión actual'."
+      }
     },
     {
       "id": "o20-q09",
@@ -214,8 +246,12 @@
       "rule": "Subagentes que devuelven informes enormes → pedí resúmenes cortos de vuelta.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "Ask for short summaries back, so twenty results don't fill your context anyway.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en best-practices."
+      }
     },
     {
       "id": "o20-q10",
@@ -238,8 +274,12 @@
       "rule": "Subagente de la fase siguiente → resumen de hallazgos previos dentro del prompt de delegación.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "It doesn't see your conversation history, the skills you've already invoked, or the files Claude has already read.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en sub-agents (ventana fresca salvo fork); maxTurns y model: opus existen."
+      }
     }
   ]
 }

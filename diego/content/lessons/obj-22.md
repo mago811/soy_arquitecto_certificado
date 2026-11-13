@@ -15,7 +15,7 @@ sources:
     title: "Demystifying evals for AI agents"
   - url: https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification
     title: "Claude Certified Architect – Foundations (guía del examen, TS 5.5)"
-status: no_verificado
+status: verificada
 ---
 
 ## Qué es
@@ -38,7 +38,7 @@ La guía de content moderation de Anthropic lo muestra con niveles de riesgo: lo
 | "97% de precisión general" | Medir **por tipo de documento y por campo** antes de sacar revisión |
 | Ya automatizaste lo de alta confianza | Seguir revisando de vez en cuando una muestra de eso para detectar errores nuevos |
 
-<!-- no verificado: "confidence scores por campo calibrados con un set etiquetado" y "stratified random sampling" son términos de la guía del examen (TS 5.5); la doc de producto no los usa con esas palabras. Se apoyan en: calibrar contra jueces humanos (post de evals) y medir sobre un test set etiquetado (develop-tests). -->
+Ojo: la doc no dice que la confianza que reporta el modelo venga calibrada. Por eso los umbrales se miden contra datos etiquetados por humanos (como pide el post de evals para los jueces basados en modelos) y sobre un set que refleje la mezcla real de documentos ("Design evals that mirror your real-world task distribution", develop-tests).
 
 ## El error típico que el examen quiere que cometas
 

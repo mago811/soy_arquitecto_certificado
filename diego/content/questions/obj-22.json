@@ -8,12 +8,12 @@
       "scenario": "Una empresa extrae datos de 20.000 facturas por mes con Claude. Para controlar calidad, dos revisores miran un 5% elegido al azar. Casi todo lo que ven son PDFs digitales limpios, mientras que los errores reales (facturas escaneadas, montos ilegibles) llegan a contabilidad sin que nadie los haya visto. ¿Qué cambio de diseño hacés?",
       "options": [
         "Subir el muestreo aleatorio al 15% para que los revisores tengan más chances de cruzarse con las facturas problemáticas.",
-        "Pedirle al modelo un nivel de riesgo o confianza por extracción y mandar a revisión humana lo de nivel medio o bajo; lo alto pasa solo.",
+        "Pedirle al modelo un nivel de riesgo por extracción, validarlo contra facturas etiquetadas y mandar a revisión lo de riesgo medio o alto.",
         "Revisar primero las facturas más viejas de cada mes, porque son las que más tiempo llevan esperando en la cola de pago.",
         "Reprocesar con Claude todas las facturas escaneadas una segunda vez y, si las dos corridas coinciden, aprobarlas sin revisión."
       ],
       "correct": 1,
-      "why_correct": "El muestreo al azar gasta la revisión en documentos fáciles. La guía de content moderation propone niveles de riesgo basados en la confianza del modelo: lo de riesgo alto se resuelve automático y lo intermedio va a revisión humana. Así la atención humana va a donde está la duda.",
+      "why_correct": "El muestreo al azar gasta la revisión en documentos fáciles. La guía de content moderation propone varios niveles de riesgo, asignados según la confianza del modelo, para graduar la respuesta: en su ejemplo lo de riesgo medio va a revisión humana. Llevado a extracción, lo dudoso va al humano. Como la doc no dice que ese nivel venga calibrado, los cortes se validan contra facturas etiquetadas.",
       "why_wrong": {
         "0": "Triplica el costo y sigue sin apuntar a lo dudoso: la mayoría de lo revisado seguirá siendo fácil.",
         "2": "La antigüedad en la cola no tiene relación con la probabilidad de error de la extracción.",
@@ -22,8 +22,12 @@
       "rule": "Revisión humana por riesgo/confianza, no por muestra al azar.",
       "source_url": "https://platform.claude.com/docs/en/about-claude/use-case-guides/content-moderation",
       "source_quote": "Creating multiple risk levels allows you to adjust the aggressiveness of your moderation.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "Opción correcta reformulada: antes aprobaba sola 'lo alto' usando la confianza auto-reportada sin validar (y 'alto' era ambiguo: riesgo o confianza). Ahora: nivel de riesgo validado contra facturas etiquetadas; medio/alto a revisión. why_correct presenta la guía de content moderation como analogía (allí el riesgo alto se bloquea solo y el medio va a revisión) y aclara que la doc no dice que ese nivel venga calibrado."
+      }
     },
     {
       "id": "o22-q02",
@@ -46,8 +50,12 @@
       "rule": "Precisión general alta ≠ listo para automatizar → medí por tipo de documento y por campo.",
       "source_url": "https://platform.claude.com/docs/en/about-claude/use-case-guides/ticket-routing",
       "source_quote": "Measure the routing accuracy across different languages, aiming for no more than a 5–10 percent drop in accuracy for non-primary languages.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Ticket routing: precisión por idioma (caída 5–10%), edge cases y grupos (2–3%); quote textual."
+      }
     },
     {
       "id": "o22-q03",
@@ -70,8 +78,12 @@
       "rule": "El modelo inventa un campo que no existe → nullable + permiso para devolver null; el null se rutea a revisión.",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
       "source_quote": "Explicitly give Claude permission to admit uncertainty. This technique can drastically reduce false information.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Quote textual en reduce-hallucinations. Structured outputs soporta tipo null/nullable; la doc dice que el schema garantiza forma (constrained decoding), no veracidad."
+      }
     },
     {
       "id": "o22-q04",
@@ -85,7 +97,7 @@
         "Promediar la confianza del modelo con la de un segundo modelo y aprobar solo si el promedio de ambos supera 80."
       ],
       "correct": 2,
-      "why_correct": "Un número que produce el modelo no significa nada hasta que lo comparás con la realidad. El post de evals de Anthropic lo dice de los evaluadores basados en modelos: necesitan calibración con evaluadores humanos. El umbral sale de un set etiquetado, mirando por campo dónde empiezan los errores.",
+      "why_correct": "Un número que produce el modelo no significa nada hasta que lo comparás con la realidad: la doc no dice que la confianza auto-reportada venga calibrada. Por analogía, el post de evals de Anthropic pide que los jueces basados en modelos (LLM-as-judge) se calibren de cerca contra expertos humanos. El umbral sale de un set etiquetado, mirando por campo dónde empiezan los errores.",
       "why_wrong": {
         "0": "Es otro número a ojo. Sin datos etiquetados no sabés si 95 separa aciertos de errores.",
         "1": "Cambiar la escala no la calibra: \"alta\" puede estar igual de mal alineada con los aciertos reales.",
@@ -94,8 +106,12 @@
       "rule": "Umbral de confianza → calibrado contra datos etiquetados por humanos, por campo; nunca \"a ojo\".",
       "source_url": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
       "source_quote": "LLM-as-judge graders should be closely calibrated with human experts to gain confidence that there is little divergence between the human grading and model grading.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "Quote textual en el post de evals (LLM-as-judge calibrados con expertos humanos). why_correct reformulado para dejar claro que es analogía: la doc habla de graders basados en modelos, y no afirma que la confianza auto-reportada venga calibrada."
+      }
     },
     {
       "id": "o22-q05",
@@ -118,8 +134,12 @@
       "rule": "Documento con datos contradictorios → extraer ambos + marca de conflicto → humano.",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
       "source_quote": "Always validate critical information, especially for high-stakes decisions.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Quote textual (Note final de reduce-hallucinations). El escenario fija que legal quiere ver estos casos; la única opción que no resuelve la ambigüedad en silencio es la marcada."
+      }
     },
     {
       "id": "o22-q06",
@@ -142,8 +162,12 @@
       "rule": "Capacidad de revisión limitada → priorizar la cola por riesgo, no FIFO ni azar.",
       "source_url": "https://platform.claude.com/docs/en/about-claude/use-case-guides/content-moderation",
       "source_quote": "For example, you might want to automatically block user queries that are deemed high risk, whereas users with many medium risk queries are flagged for human review.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Content moderation: niveles de riesgo, medio a revisión humana (quote textual). Priorizar la cola por riesgo es aplicación por analogía, presentada como razonamiento, no como dato de la doc."
+      }
     },
     {
       "id": "o22-q07",
@@ -166,8 +190,12 @@
       "rule": "Automatizado ≠ sin mirar → muestra periódica de lo auto-aprobado para detectar errores nuevos.",
       "source_url": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
       "source_quote": "Production monitoring kicks in post-launch to detect distribution drift and unanticipated real-world failures.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Post de evals: 'Production monitoring kicks in post-launch to detect distribution drift...' textual; también 'periodic human review for calibration' y 'sample transcripts to read weekly'."
+      }
     },
     {
       "id": "o22-q08",
@@ -190,8 +218,12 @@
       "rule": "Extracción con Citations → campo sin cita o sin valor = a revisión; la API no lo garantiza.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/citations",
       "source_quote": "Check that each field has a value and at least one citation. The API doesn’t guarantee either.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Citations: 'Check that each field has a value and at least one citation. The API doesn’t guarantee either.' textual; incompatibilidad con structured outputs (400) y aviso de prompts 'solo JSON' confirmados."
+      }
     },
     {
       "id": "o22-q09",
@@ -214,8 +246,12 @@
       "rule": "Schema válido ≠ dato correcto → structured outputs no reemplaza medir precisión ni la revisión humana.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "Structured outputs guarantee schema-compliant responses through constrained decoding",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Structured outputs: 'guarantee schema-compliant responses through constrained decoding' textual. Prefill no soportado desde Claude 4.6 (prompting best practices, sección de migración) y la doc recomienda structured outputs en su lugar."
+      }
     },
     {
       "id": "o22-q10",
@@ -238,8 +274,12 @@
       "rule": "Set de validación para umbrales → que refleje la mezcla real de producción, con casos borde incluidos.",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
       "source_quote": "Design evals that mirror your real-world task distribution. Don’t forget to factor in edge cases!",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "develop-tests: 'Design evals that mirror your real-world task distribution. Don’t forget to factor in edge cases!' textual."
+      }
     }
   ]
 }

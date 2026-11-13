@@ -12,7 +12,7 @@ sources:
     title: "Ticket routing"
   - url: https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents
     title: "Demystifying evals for AI agents"
-status: no_verificado
+status: verificada
 ---
 
 ## Objetivo
@@ -194,6 +194,6 @@ Corré `python rutear.py` dos o tres veces (el azar cambia).
 ## Si algo falla
 
 - **`json.loads` falla o el JSON viene cortado:** mirá `response.stop_reason`. Si es `max_tokens`, subí `max_tokens` (el thinking también lo usa). Si es `refusal`, el output puede no cumplir el schema.
-- **Error 400 por el schema:** cada objeto necesita `"additionalProperties": False` y los campos en `required`.
+- **Error 400 por el schema:** cada objeto necesita `"additionalProperties": False`, y no uses features no soportadas (por ejemplo `minimum`/`maximum` en `confianza`).
 - **Con 6 facturas los números saltan mucho:** es un set de juguete. En serio se usan cientos de documentos etiquetados, que reflejen la mezcla real (incluidos los casos raros).
 - **La confianza del modelo no separa aciertos de errores:** ese es un resultado válido del lab. Por eso el umbral se mide contra datos etiquetados y no se confía a ciegas en el número.

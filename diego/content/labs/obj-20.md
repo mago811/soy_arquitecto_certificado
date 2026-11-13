@@ -14,7 +14,7 @@ sources:
     title: "How Claude remembers your project"
   - url: https://code.claude.com/docs/en/best-practices
     title: "Best practices for Claude Code"
-status: no_verificado
+status: verificada
 ---
 
 ## Objetivo
@@ -52,7 +52,7 @@ Devolveme solo: archivos clave con ruta, y 5 viñetas de hallazgos.
 
 `/context` de nuevo. Compará con el paso 1: los archivos que leyó el subagente quedaron en SU ventana; a la tuya llegó el resumen.
 
-### 3. Scratchpad: notas que sobreviven (8 min)
+### 3. Archivo de notas que sobrevive (8 min)
 
 ```text
 Escribí en NOTES.md los hallazgos del subagente con rutas exactas y nombres de funciones.

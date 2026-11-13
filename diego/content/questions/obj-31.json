@@ -1,0 +1,149 @@
+{
+  "objective": 31,
+  "questions": [
+    {
+      "id": "o31-q01",
+      "objective": 31,
+      "pool": "practice",
+      "scenario": "Un bot de review por API usa el prompt \"Revisá el PR y reportá solo lo importante\". Los devs se quejan: un día comenta naming y refactors, otro día los omite, y nunca saben qué esperar. ¿Cuál es el fix?",
+      "options": [
+        "Cambiar a \"reportá solo lo MUY importante\" y repetirlo al final del prompt para que el modelo le dé más peso.",
+        "Pedirle que asigne un puntaje de importancia del 1 al 10 a cada hallazgo y que publique solo los que pasen de 7.",
+        "Correr el mismo prompt tres veces y publicar solo los hallazgos que aparezcan en al menos dos de las tres corridas.",
+        "Listar explícitamente qué categorías reportar (bugs de lógica, authz, PII en logs) y cuáles no (estilo, naming, refactors)."
+      ],
+      "correct": 3,
+      "why_correct": "\"Importante\" es vago y el modelo lo interpreta distinto cada vez. La doc dice que Claude responde bien a instrucciones claras y explícitas. Límites de inclusión y exclusión por categoría hacen el resultado predecible.",
+      "why_wrong": {
+        "0": "Sigue siendo vago; enfatizar no define qué es importante.",
+        "1": "El puntaje lo pone el mismo criterio vago; solo le pone un número a la inconsistencia.",
+        "2": "Puede reducir algo de ruido, pero no define qué categorías querés; triplica costo."
+      },
+      "rule": "\"Solo lo importante\" → listá categorías a incluir y a excluir.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Claude responds well to clear, explicit instructions. Being specific about the output you want can help enhance results.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o31-q02",
+      "objective": 31,
+      "pool": "practice",
+      "scenario": "Diego usa un subagente reviewer que compara el código contra `SPEC.md`. El prompt dice \"revisá el diff contra SPEC.md y reportá problemas\". Cada review trae 15 sugerencias de estilo, y al aplicarlas todas el código se llenó de abstracciones innecesarias. ¿Qué cambia en el prompt?",
+      "options": [
+        "Pedir que reporte como máximo cinco problemas, para que se quede solo con los más relevantes de cada review.",
+        "Acotar: reportar solo los gaps que afectan la correctitud contra la spec y saltear el estilo explícitamente.",
+        "Pedirle que reporte todo pero que ordene los hallazgos por relevancia, y aplicar solo los primeros cinco.",
+        "Cambiar el modelo del subagente a uno más chico, que tiende a generar menos sugerencias en cada review."
+      ],
+      "correct": 1,
+      "why_correct": "La doc de Claude Code advierte que un reviewer al que le pedís problemas siempre encuentra algo, y que si arreglás todo terminás con capas de abstracción extra. Por eso su prompt modelo dice \"report gaps that affect correctness and skip style\".",
+      "why_wrong": {
+        "0": "Un tope no define qué categoría querés; pueden seguir siendo cinco de estilo.",
+        "2": "No excluye la categoría que no querés; sigue inflando el review.",
+        "3": "Cambia la cantidad por azar, no por criterio; no define qué reportar."
+      },
+      "rule": "Reviewer que siempre encuentra algo → excluí explícitamente lo que no querés (\"skip style\").",
+      "source_url": "https://code.claude.com/docs/en/best-practices",
+      "source_quote": "A reviewer that's asked to find problems will always find something.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o31-q03",
+      "objective": 31,
+      "pool": "practice",
+      "scenario": "El `CLAUDE.md` de un repo dice: \"En los reviews, ignorá las cosas menores\". El `/code-review` local sigue reportando nits de formato y comentarios sobre nombres de variables. ¿Cómo reescribís la instrucción?",
+      "options": [
+        "\"En los reviews, ignorá TODAS las cosas menores sin excepción; esto es muy importante para el equipo.\"",
+        "\"En los reviews, aplicá tu criterio profesional para decidir qué cosas son menores y cuáles merecen comentario.\"",
+        "\"En los reviews, no reportes formato, espaciado ni nombres de variables: lo chequea el linter en CI.\"",
+        "\"En los reviews, sé conservador y reportá únicamente aquello sobre lo que tengas una certeza absoluta.\""
+      ],
+      "correct": 2,
+      "why_correct": "La doc de memoria pide instrucciones concretas, que se puedan verificar (\"Use 2-space indentation\" en vez de \"Format code properly\"). Nombrar las categorías excluidas, y el porqué, deja claro el límite.",
+      "why_wrong": {
+        "0": "Enfatizar no aclara qué es \"menor\": sigue siendo vago.",
+        "1": "Delega el límite al modelo, que es justo lo que falla.",
+        "3": "\"Sé conservador\" baja todo el recall, no solo los nits."
+      },
+      "rule": "Exclusión verificable: nombrá la categoría (\"formato, nombres\"), no \"lo menor\".",
+      "source_url": "https://code.claude.com/docs/en/memory",
+      "source_quote": "Write instructions that are concrete enough to verify",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o31-q04",
+      "objective": 31,
+      "pool": "practice",
+      "scenario": "Un extractor de gastos debe devolver la moneda de cada gasto. Cuando el ticket no la dice, el modelo \"deduce\" ARS o USD por el país del comercio, y se equivoca seguido. El equipo decide que en ese caso no quiere el dato. ¿Qué instrucción define el límite?",
+      "options": [
+        "\"Si la moneda no aparece explícita en el ticket, no la infieras: devolvé `null`\", con el campo nullable y un ejemplo.",
+        "\"Deducí la moneda con cuidado usando el país del comercio y el formato del número, y solo si estás bastante seguro.\"",
+        "\"Si la moneda no aparece, usá ARS por defecto, porque la mayoría de los gastos de la empresa son en pesos.\"",
+        "\"Indicá la moneda que te parezca más probable y agregá un campo `confianza` del 0 al 1 para cada gasto.\""
+      ],
+      "correct": 0,
+      "why_correct": "Es una categoría donde el modelo no es confiable (deducir moneda). El límite explícito es no inferir y dar permiso de admitir que no está. La doc dice que permitir \"no sé\" reduce mucho la información falsa.",
+      "why_wrong": {
+        "1": "Sigue permitiendo inferir en el caso donde falla; \"con cuidado\" no es un límite.",
+        "2": "Inventa un valor por defecto que va a estar mal para los gastos en dólares.",
+        "3": "La confianza autodeclarada no está calibrada; sigue generando el dato que no querías."
+      },
+      "rule": "Categoría poco confiable → límite explícito: \"no infieras, devolvé null\".",
+      "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
+      "source_quote": "Explicitly give Claude permission to admit uncertainty. This technique can drastically reduce false information.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o31-q05",
+      "objective": 31,
+      "pool": "practice",
+      "scenario": "En el servicio Code Review, los hallazgos de la categoría \"esta función es lenta\" salen falsos la mitad de las veces: el review deduce el costo por el nombre de la función. Pero algunos son reales y importantes. ¿Qué ponés en `REVIEW.md`?",
+      "options": [
+        "\"Do not report performance issues\", para que esa categoría ruidosa desaparezca de todos los reviews.",
+        "\"Performance claims need a `file:line` citation in the source, not an inference from naming.\"",
+        "\"Be conservative with performance findings\", para que solo publique los de rendimiento más obvios.",
+        "\"Report at most one performance finding per review\", para limitar el ruido de esa categoría."
+      ],
+      "correct": 1,
+      "why_correct": "La doc de Customize Code Review da esta receta para hallazgos que resultan falsos: exigir evidencia antes de publicar esa clase de hallazgo. Mantiene los reales y corta los que son pura inferencia.",
+      "why_wrong": {
+        "0": "Excluir la categoría entera tira también los hallazgos reales e importantes.",
+        "2": "Vago: no define qué cuenta como suficiente y baja el recall sin criterio.",
+        "3": "El tope es arbitrario: puede quedarse con el falso y tirar el real."
+      },
+      "rule": "Categoría útil con falsos positivos → pedí evidencia, no la excluyas.",
+      "source_url": "https://code.claude.com/docs/en/code-review-customize",
+      "source_quote": "Findings that turn out to be wrong: require evidence before a class of finding is posted.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o31-q06",
+      "objective": 31,
+      "pool": "practice",
+      "scenario": "Un review por API con Claude Opus 5 tenía el prompt \"Reportá solo issues de severidad alta\". Bajaron los falsos positivos de estilo, pero se perdieron bugs de concurrencia que el modelo había calificado como \"media\". El equipo lo que realmente no quiere es estilo ni naming. ¿Cómo rediseñan el criterio?",
+      "options": [
+        "Cambiar a \"reportá issues de severidad alta y media\", para recuperar los de concurrencia sin volver a ver estilo.",
+        "Agregar \"sé conservador pero no te pierdas bugs de concurrencia\" al mismo prompt para equilibrar las dos cosas.",
+        "Subir el effort a `max` manteniendo el filtro de severidad, así califica mejor la severidad de cada bug.",
+        "Excluir explícitamente estilo y naming, pedir que reporte todo lo demás y filtrar por severidad en una pasada aparte."
+      ],
+      "correct": 3,
+      "why_correct": "La doc de Opus 5 avisa que \"solo severidad alta\" se puede tomar literal y el modelo reporta menos; recomienda reportar todo y filtrar en otra pasada. La exclusión correcta es por la categoría que no querés (estilo, naming), no por un umbral de severidad.",
+      "why_wrong": {
+        "0": "Sigue usando la severidad como filtro dentro del prompt; el problema reaparece con lo que califique \"baja\", y el estilo \"medio\" vuelve.",
+        "1": "Instrucción contradictoria y restrictiva dentro del mismo prompt.",
+        "2": "No cambia que la instrucción se siga al pie de la letra."
+      },
+      "rule": "Excluí por categoría lo que no querés; para severidad, reportá todo y filtrá aparte.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5",
+      "source_quote": "If your review prompt says “only report high-severity issues” or “be conservative,” the model might follow that instruction literally and report less; ask it to report everything and filter in a separate pass instead.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

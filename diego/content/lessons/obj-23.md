@@ -7,7 +7,7 @@ sources:
     title: "Batch processing"
   - url: https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification
     title: "Claude Certified Architect – Foundations (guía del examen, TS 4.5)"
-status: no_verificado
+status: verificada
 ---
 
 ## Qué es
@@ -41,8 +41,7 @@ La pregunta clave: **¿hay alguien bloqueado esperando?**
 - **No se edita:** un batch enviado no se modifica; se cancela y se manda otro.
 - **`pause_turn`:** con server tools, si un resultado vuelve con `stop_reason: "pause_turn"`, el turno no terminó; se continúa con otro request.
 
-<!-- no verificado: la guía del examen dice que el batch "does not support multi-turn tool calling within a single request". La doc de batch no lo dice con esas palabras; se deduce de que cada request vuelve como un resultado final. -->
-Con **tools tuyas** (client tools), cada request devuelve un resultado final. Si Claude pide una tool, para mandarle el `tool_result` necesitás **otro** request. Un loop agéntico interactivo dentro de un batch espera horas por cada vuelta.
+Con **tools tuyas** (client tools), cada request del batch vuelve como un resultado (un `message`). Si Claude pide una tool, el `tool_result` lo mandás vos en **otro** request (otro batch o la Messages API). Por eso un loop agéntico con tools tuyas hecho a puro batch puede esperar hasta 24 h por cada vuelta. (Las server tools son distinto: corren su loop del lado del servidor dentro del mismo request.)
 
 ## El error típico que el examen quiere que cometas
 

@@ -22,8 +22,12 @@
       "rule": "Números, fechas e IDs del caso → bloque estructurado persistente fuera del resumen, en cada request.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "When tracking structured information (such as test results or task status), use JSON or other structured formats to make schema requirements explicit to Claude.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual (State management: JSON para estado). Context rot del distractor B respaldado por la página Context windows. La correcta se apoya en la doc (estado estructurado), no solo en la guía."
+      }
     },
     {
       "id": "o21-q02",
@@ -46,8 +50,12 @@
       "rule": "Tool que devuelve 45 campos y usás 5 → recortá en la tool, antes de que entre al contexto.",
       "source_url": "https://www.anthropic.com/engineering/writing-tools-for-agents",
       "source_quote": "tool implementations should take care to return only high signal information back to agents.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en Writing tools for agents."
+      }
     },
     {
       "id": "o21-q03",
@@ -58,10 +66,10 @@
         "Repetir las instrucciones en mayúsculas al principio y al final del prompt para que el modelo no las pierda de vista.",
         "Dividir los 12 informes en 12 requests separados y pedir en cada uno una síntesis completa de todo el tema.",
         "Bajar la temperatura a 0 para que el modelo recorra los informes de forma más determinística y no saltee secciones.",
-        "Poner los informes arriba, cada uno en `<document>` con su `<source>`, un resumen de hallazgos clave, y la pregunta al final."
+        "Poner los informes arriba, cada uno en `<document>` con su `<source>`, y la pregunta y las instrucciones al final."
       ],
       "correct": 3,
-      "why_correct": "La doc pide poner los datos largos arriba y la consulta al final, y envolver cada documento en tags con su metadata. Las secciones explícitas y un resumen de hallazgos al principio atacan el efecto de posición (lo del medio se pierde).",
+      "why_correct": "La doc de long context prompting pide poner los datos largos arriba y la consulta al final (mejora hasta un 30% con inputs multidocumento) y envolver cada documento en `<document>` con `<source>` y demás metadata. Hoy el prompt hace lo contrario: pregunta arriba e informes pegados sin estructura.",
       "why_wrong": {
         "0": "El problema no es que olvide las instrucciones, sino que pierde contenido del medio. Gritar las instrucciones no estructura los informes.",
         "1": "Cada request vería solo un informe: no puede sintetizar entre todos. Además multiplica costo sin resolver la posición.",
@@ -70,8 +78,12 @@
       "rule": "Input largo → documentos arriba con tags y fuente, hallazgos clave al principio, pregunta al final.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Queries at the end can improve response quality by up to 30 percent in tests, especially with complex, multidocument inputs.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "Cita textual. Se sacó de la opción correcta 'un resumen de hallazgos clave' y de why_correct la referencia al efecto de posición ('lost in the middle'): no están en la doc, solo en la guía del examen."
+      }
     },
     {
       "id": "o21-q04",
@@ -94,8 +106,12 @@
       "rule": "Documento largo y respuestas imprecisas → pedí las citas textuales primero, la respuesta después.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "For long document tasks, ask Claude to quote relevant parts of the documents first before carrying out its task. This helps Claude focus on the relevant content and ignore the rest of the document.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual (Ground responses in quotes)."
+      }
     },
     {
       "id": "o21-q05",
@@ -109,7 +125,7 @@
         "Activar prompt caching en el system prompt para que Claude recuerde la conversación entre requests sucesivos."
       ],
       "correct": 2,
-      "why_correct": "La Messages API es stateless: no guarda nada entre requests. Siempre hay que mandar el historial completo. Si eso es caro, se gestiona del lado del cliente (compaction, context editing, estado estructurado), pero nunca omitiendo el historial.",
+      "why_correct": "La Messages API es stateless: no guarda nada entre requests. Siempre hay que mandar el historial completo. Si eso es caro, se gestiona de forma explícita (compactación, context editing, estado estructurado), pero nunca omitiendo el historial.",
       "why_wrong": {
         "0": "No existe un mecanismo así en la Messages API: no hay memoria server-side que se recupere con el id de una respuesta.",
         "1": "Batches procesa requests independientes de forma asíncrona. No encadena conversaciones ni guarda estado.",
@@ -118,8 +134,12 @@
       "rule": "Messages API = stateless: cada request lleva el historial completo. Memoria server-side → opción falsa.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/working-with-messages",
       "source_quote": "The Messages API is stateless, which means that you always send the full conversational history to the API.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "Cita textual. Se corrigió 'del lado del cliente' en why_correct: compaction y context editing de la API se aplican del lado del servidor sobre el historial que mandás."
+      }
     },
     {
       "id": "o21-q06",
@@ -142,8 +162,12 @@
       "rule": "Muchos resultados de tools viejos que ya no sirven → context editing con `clear_tool_uses_20250919`.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
       "source_quote": "Older tool results (such as file contents or search results) are no longer needed once Claude has processed them.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual; clear_thinking_20251015, placeholder y 'solo resultados por defecto' confirmados en context editing."
+      }
     },
     {
       "id": "o21-q07",
@@ -166,8 +190,12 @@
       "rule": "Context editing borra algo que necesitás siempre → `exclude_tools` con esa tool.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
       "source_quote": "List of tool names whose tool uses and results should never be cleared. Useful for preserving important context.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual de la tabla (exclude_tools); clear_tool_inputs, keep (default 3) y trigger confirmados."
+      }
     },
     {
       "id": "o21-q08",
@@ -190,8 +218,12 @@
       "rule": "Ventana deslizante que pierde lo del principio → compactación (resumen de lo viejo + turnos recientes textuales).",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/compaction",
       "source_quote": "when the last few turns must reach Claude word for word. The summary covers only the older turns.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en Compaction overview (compaction that keeps recent turns). La correcta se apoya en la doc; 'ventana deslizante' solo aparece en el escenario/distractores."
+      }
     },
     {
       "id": "o21-q09",
@@ -214,8 +246,12 @@
       "rule": "El resumen descarta algo crítico → prompt de resumen propio que diga qué conservar.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/compaction",
       "source_quote": "when the default summary drops something a later turn needs. Your prompt replaces the default one.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual (write your own summarization prompt)."
+      }
     },
     {
       "id": "o21-q10",
@@ -238,8 +274,12 @@
       "rule": "Downstream con poco contexto → el upstream devuelve datos estructurados y condensados, no transcripciones.",
       "source_url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
       "source_quote": "Each subagent might explore extensively, using tens of thousands of tokens or more, but returns only a condensed, distilled summary of its work (often 1,000-2,000 tokens).",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en el post de context engineering (1,000-2,000 tokens)."
+      }
     }
   ]
 }

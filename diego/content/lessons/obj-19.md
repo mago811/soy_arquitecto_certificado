@@ -13,14 +13,14 @@ sources:
     title: "How we built our multi-agent research system"
   - url: https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification
     title: "Claude Certified Architect – Foundations (guía del examen, TS 5.6)"
-status: no_verificado
+status: verificada
 ---
 
 ## Qué es
 
 Un agente de síntesis junta lo que encontraron varios subagentes y arma un informe. El problema: si una fuente dice "el mercado vale USD 4.200 M" y otra dice "USD 3.100 M", el camino fácil es escribir **una** cifra con tono seguro. Eso borra información: el lector no sabe que hay desacuerdo.
 
-La guía del examen (TS 5.6) pide lo contrario: informes con **secciones explícitas** que separen hallazgos bien establecidos de los disputados, y conflictos **anotados con la fuente** "rather than arbitrarily selecting one value".
+El objetivo del examen pide lo contrario: informes que separen lo bien establecido de lo disputado y que anoten cada conflicto con su fuente, en vez de elegir un valor arbitrariamente. La doc oficial da las piezas: "Make Claude’s response auditable by having it cite quotes and sources for each of its claims" y darle permiso explícito para admitir incertidumbre (Reduce hallucinations).
 
 ## Cuándo se usa
 
@@ -57,7 +57,7 @@ Armá el informe con tres secciones:
 Tené en cuenta la fecha de cada documento: un número de 2019 y otro de 2024 pueden no contradecirse.
 ```
 
-Con Citations activado en todos los documentos, cada frase del informe vuelve con `cited_text` y `document_title`. La doc dice que así las citas tienen garantizado apuntar a los documentos que pasaste. Después, una segunda pasada: "para cada afirmación, encontrá una cita que la respalde; si no la encontrás, sacala y dejá `[]`".
+Con Citations activado en todos los documentos, las afirmaciones citadas vuelven con `cited_text` y `document_title`. La doc dice que así las citas tienen garantizado apuntar a los documentos que pasaste (no garantiza que toda frase traiga cita: lo que no tenga, revisalo). Después, una segunda pasada: "para cada afirmación, encontrá una cita que la respalde; si no la encontrás, sacala y dejá `[]`".
 
 ## Para recordar
 

@@ -19,21 +19,21 @@ sources:
     title: "Writing effective tools for agents"
   - url: https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification
     title: "Guía oficial del examen (Task Statement 5.1)"
-status: no_verificado
+status: verificada
 ---
 
 ## Qué es
 
 Arrancá por lo básico: **la Messages API es stateless**. No recuerda nada. En cada request mandás el historial completo. Por eso la conversación crece en cada turno, y con ella el costo y el ruido.
 
-Y más contexto no es mejor contexto. La doc lo dice así: "more context isn’t automatically better". A medida que crecen los tokens, la precisión y el recall bajan (*context rot*). El examen agrega un nombre: **"lost in the middle"**, lo del medio de un input largo es lo que más se pierde.
+Y más contexto no es mejor contexto. La doc lo dice así: "more context isn’t automatically better". A medida que crecen los tokens, la precisión y el recall bajan (*context rot*). La guía del examen agrega un nombre: **"lost in the middle"** (lo del medio de un input largo es lo que más se pierde). Ojo: ese término es de la guía, no de la doc; la doc habla de context rot y de dónde poner los documentos largos.
 
 Entonces el trabajo no es "meter todo", es **curar** qué entra. Las técnicas:
 
 | Técnica | Qué hace | Cuándo | Ojo con |
 |---|---|---|---|
 | **Compactación** (resumen) | Reemplaza turnos viejos por un resumen. Puede dejar los últimos turnos textuales | Conversación larga en general. Es la estrategia principal según la doc | Resumir varias veces diluye números, fechas y promesas |
-| **Bloque de estado estructurado** ("case facts") | JSON con montos, fechas, IDs, estados. Va en cada request, fuera del resumen | Datos que tienen que ser exactos | Hay que actualizarlo vos (o la app), no el resumidor |
+| **Bloque de estado estructurado** ("case facts", en la jerga de la guía del examen) | JSON con montos, fechas, IDs, estados. Va en cada request, fuera del resumen | Datos que tienen que ser exactos | Hay que actualizarlo vos (o la app), no el resumidor |
 | **Recortar outputs de tools** | La tool devuelve solo los campos que importan | Tools que devuelven 40 campos y usás 5 | Recortar en la tool, antes de que entre al contexto |
 | **Context editing** (`clear_tool_uses_20250919`) | La API borra resultados de tools viejos y deja un placeholder | Agentes con muchas tools cuyos resultados ya se procesaron | `exclude_tools` para lo que nunca se debe borrar |
 | **Ventana deslizante** cruda (FIFO) | Tira los mensajes más viejos | Casi nunca sola | Pierde la consigna y los requisitos del principio |
@@ -42,7 +42,7 @@ Entonces el trabajo no es "meter todo", es **curar** qué entra. Las técnicas:
 
 - **"El agente redondeó USD 1.247,83 a 'unos mil'"** → bloque de datos del caso, en JSON, en cada prompt. La doc: usá "JSON or other structured formats" para el estado.
 - **"El contexto se llena de resultados de `lookup_order`"** → la tool devuelve solo lo relevante ("return only high signal information"). Si además hay muchos resultados viejos: context editing.
-- **"La síntesis ignora los informes del medio"** → documentos arriba, cada uno en `<document>` con `<source>`, un resumen de hallazgos clave al principio y la pregunta al final. La doc: "Queries at the end can improve response quality by up to 30 percent".
+- **"La síntesis ignora los informes del medio"** → documentos arriba, cada uno en `<document>` con `<source>`, y la pregunta al final. La doc: "Queries at the end can improve response quality by up to 30 percent".
 - **"Contrato largo, respuestas imprecisas"** → pedí que primero cite los fragmentos relevantes en `<quotes>` y después responda.
 - **"El resumen por defecto se come las promesas al cliente"** → prompt de resumen propio que diga qué conservar.
 - **"El sintetizador recibe 6 transcripciones de 25k"** → que los subagentes devuelvan datos estructurados y condensados (hallazgos, citas, relevancia), no su razonamiento entero.
@@ -76,5 +76,5 @@ La tool `lookup_order` devuelve 5 campos, no 45. Si hay muchas llamadas a tools,
 - API stateless → historial completo en cada request.
 - Exacto → bloque estructurado, fuera del resumen. Resumible → compactación.
 - Output de tool → recortado en la tool. Resultados viejos → `clear_tool_uses_20250919`.
-- Input largo → datos arriba con tags, hallazgos clave primero, pregunta al final, citas antes de responder.
+- Input largo → datos arriba con tags, pregunta al final, citas antes de responder.
 - `max_tokens`, 1M y caching no son fixes de calidad de contexto.

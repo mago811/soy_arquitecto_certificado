@@ -42,7 +42,7 @@ La doc lo dice así: "Break down complex tasks into smaller, consistent subtasks
 
 - El review de un solo prompt **se pierde un tema** de forma consistente (siempre falla en seguridad, por ejemplo).
 - Querés **ejemplos distintos** para cada tema: si los mezclás en un solo prompt, el modelo puede copiar patrones que no corresponden.
-- Querés **medir** cada tema por separado (cuántos falsos positivos tiene la pasada de seguridad vs. la de API). Con chaining cada paso es "a separate API call so you can log, evaluate, or branch at any point".
+- Querés **medir** cada tema por separado: con chaining cada paso es "a separate API call so you can log, evaluate, or branch at any point".
 - En Claude Code: subagentes en `.claude/agents/` (por ejemplo `security-reviewer.md`, `api-reviewer.md`). Cada uno "runs in its own context window with a custom system prompt, specific tool access, and independent permissions".
 
 ## El error típico que el examen quiere que cometas
@@ -50,7 +50,6 @@ La doc lo dice así: "Break down complex tasks into smaller, consistent subtasks
 1. **"Agregá más instrucciones y más ejemplos al mismo prompt."** Suena lógico, pero agranda la mezcla. El problema es que compiten, no que falte texto.
 2. **"Pedile que sea conservador / que solo reporte lo grave."** Eso baja todo, incluido lo que sí querías. La doc de Opus 5 avisa: el modelo "might follow that instruction literally and report less; ask it to report everything and filter in a separate pass instead".
 3. **"Corré el mismo prompt mezclado tres veces y uní resultados."** Repetir no separa los temas: la competencia sigue en cada corrida.
-4. **"Subí el effort / usá un modelo más grande."** Puede ayudar un poco, pero no arregla un prompt que mezcla criterios.
 
 ## Ejemplo
 

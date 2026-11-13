@@ -11,7 +11,7 @@ sources:
     title: "Effective context engineering for AI agents"
   - url: https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification
     title: "Guía oficial del examen (Task Statement 2.5)"
-status: no_verificado
+status: verificada
 ---
 
 ## Qué es

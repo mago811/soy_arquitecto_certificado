@@ -22,8 +22,12 @@
       "rule": "Archivos por nombre o extensión → Glob. Texto dentro de archivos → Grep.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "The Glob tool finds files by name pattern.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual; subagente con Read, Grep, Glob. Read no lee directorios (tools-reference)."
+      }
     },
     {
       "id": "o32-q02",
@@ -46,8 +50,12 @@
       "rule": "\"¿Quién llama a X?\" / \"¿dónde aparece este error?\" → Grep.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "The Grep tool searches file contents for patterns.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual; agente con Read, Grep y Glob. Tope de 100 de Glob confirmado."
+      }
     },
     {
       "id": "o32-q03",
@@ -70,8 +78,12 @@
       "rule": "Listar una carpeta → `ls` vía Bash (o Glob), nunca Read.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "Read only reads files, not directories. Claude lists directory contents with a shell command such as `ls`.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual: Read solo lee archivos, se lista con ls vía Bash."
+      }
     },
     {
       "id": "o32-q04",
@@ -94,8 +106,12 @@
       "rule": "git, tests, builds, cualquier cosa que sea \"ejecutar\" → Bash.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "Executes shell commands in your environment.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Bash 'Executes shell commands in your environment' textual en la tabla de tools; git diff --name-only main...HEAD es comando git estándar."
+      }
     },
     {
       "id": "o32-q05",
@@ -109,17 +125,21 @@
         "Usar Write con solo la línea nueva, porque Write agrega el contenido al final del archivo existente."
       ],
       "correct": 2,
-      "why_correct": "Edit exige que `old_string` aparezca exactamente una vez. Si aparece varias, se agrega contexto alrededor hasta que identifique una sola ocurrencia. (Si aun así no se puede, el fallback es Read del archivo completo + Write con todo el contenido.)",
+      "why_correct": "Edit exige que `old_string` aparezca exactamente una vez. Si aparece varias, la doc dice que se pasa un string más largo, con suficiente contexto alrededor para identificar una sola ocurrencia (o `replace_all: true` si querés cambiarlas todas). Acá solo hay que tocar una, así que va el `old_string` que incluye `paymentsClient`.",
       "why_wrong": {
         "0": "`replace_all` cambia las CUATRO ocurrencias. Solo había que tocar una.",
         "1": "Edit hace reemplazo exacto de strings: no usa regex ni matching aproximado.",
         "3": "Write no agrega: crea o sobrescribe el archivo entero. Te quedarías con un `config.ts` de una línea."
       },
-      "rule": "Edit falla por no-único → `old_string` con más contexto (o Read + Write). `replace_all` solo si querés cambiar todas.",
+      "rule": "Edit falla por no-único → `old_string` con más contexto. `replace_all` solo si querés cambiar todas.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "When it appears more than once, Claude either supplies a longer string with enough surrounding context to pin down one occurrence, or sets `replace_all: true` to replace them all.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "Cita textual (Uniqueness) en tools-reference; Edit no usa regex y Write crea o sobrescribe (confirmado). Se sacó de why_correct y de rule el fallback Read+Write, que es de la guía del examen y no de la doc."
+      }
     },
     {
       "id": "o32-q06",
@@ -142,8 +162,12 @@
       "rule": "Grep = regex de ripgrep: escapá metacaracteres (`{`, `(`, `.`…).",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "Patterns that include regex metacharacters need escaping.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita y ejemplo interface\\{\\} textual en tools-reference; el escenario dice que usa la tool Grep."
+      }
     },
     {
       "id": "o32-q07",
@@ -166,8 +190,12 @@
       "rule": "Explorador que no puede ejecutar ni editar → `tools: Read, Grep, Glob`. El límite lo pone la config, no el prompt.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "Now it's a reviewer that can't edit anything, and that limit is enforced by Claude Code rather than requested in a prompt.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en best-practices; tools-reference confirma que Glob/Grep vuelven para un subagente que los lista y deja afuera Bash. permissionMode plan no quita Bash."
+      }
     },
     {
       "id": "o32-q08",
@@ -190,8 +218,12 @@
       "rule": "Glob ve archivos gitignored por defecto; Grep no.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "Glob doesn't respect `.gitignore` by default, so it finds gitignored files alongside tracked ones.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual: Glob no respeta .gitignore por defecto; Grep saltea gitignored."
+      }
     }
   ]
 }
