@@ -1,0 +1,101 @@
+{
+  "objective": 23,
+  "questions": [
+    {
+      "id": "o23-s01",
+      "objective": 23,
+      "pool": "sim",
+      "scenario": "Un e-commerce usa Claude para dos cosas: un asistente de compras en la web que responde en streaming mientras el cliente espera, y la generación nocturna de 60.000 descripciones de productos que se publican al día siguiente. Finanzas pide bajar costos y un dev propone pasar las dos cargas a la Message Batches API. Al probar con el asistente, agrega `stream: true` en cada request del batch y recibe errores de validación. ¿Qué recomendás?",
+      "options": [
+        "Mandar el asistente en batches de una sola request y sin `stream`, que tienen el mismo 50% de descuento y terminan en segundos.",
+        "Dejar el asistente en la Messages API con streaming y pasar solo las descripciones nocturnas a la Message Batches API.",
+        "Pasar las dos cargas a batch y simular el streaming en el front, mostrando la respuesta de a poco cuando el batch termina.",
+        "Usar `speed` (fast mode) dentro del batch del asistente, para que la respuesta vuelva rápido aunque no tenga streaming."
+      ],
+      "correct": 1,
+      "why_correct": "La Batches API sirve para tareas que no necesitan respuesta inmediata: es asíncrona, la mayoría de los batches termina en menos de una hora y cuesta la mitad. El asistente tiene a una persona esperando y además usa `stream`, que no se admite en batch. Las descripciones nocturnas sí encajan.",
+      "why_wrong": {
+        "0": "Un batch no tiene garantía de segundos: puede tardar hasta 24 horas. El cliente del chat no puede esperar eso.",
+        "2": "Simular streaming no resuelve la latencia real del batch; el cliente igual espera a que termine.",
+        "3": "`speed` tampoco se admite en batch: ajusta latencia sincrónica, que no aplica al procesamiento asíncrono."
+      },
+      "rule": "Alguien esperando la respuesta (o `stream`) → Messages API. Volumen sin apuro → Batches API.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "source_quote": "This approach is well-suited to tasks that do not require immediate responses, with most batches finishing in less than 1 hour while reducing costs by 50 percent and increasing throughput.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o23-s02",
+      "objective": 23,
+      "pool": "sim",
+      "scenario": "Un fondo de inversión genera a las 7:00 un informe para el comité de las 9:00. El flujo tiene tres pasos dependientes: clasificar 300 noticias, extraer cifras de las relevantes y redactar el informe con esas cifras. Para ahorrar, cada paso se manda como un batch y el siguiente arranca cuando termina el anterior. Casi todos los días llega, pero dos veces este mes el informe no estuvo listo a las 9:00. El comité no acepta atrasos. ¿Qué cambiás?",
+      "options": [
+        "Juntar los tres pasos en un único batch de 900 requests, para que el tiempo total sea el de un solo batch y no el de tres.",
+        "Hacer polling cada 5 segundos en vez de cada minuto, para enganchar el paso siguiente apenas termina el batch anterior.",
+        "Mantener los batches y poner un `custom_id` con el paso y la noticia, para que los resultados se procesen en el orden correcto.",
+        "Correr el flujo con la Messages API: cada paso bloquea al siguiente, hay un plazo fijo y un batch puede tardar hasta 24 horas."
+      ],
+      "correct": 3,
+      "why_correct": "Un batch puede tardar hasta 24 horas, aunque muchos terminen antes. Con tres pasos encadenados y un plazo de 2 horas, cualquier batch lento rompe la entrega. Cuando el flujo bloquea y el plazo no admite variación, va la Messages API, aunque cueste más.",
+      "why_wrong": {
+        "0": "Los pasos dependen uno del otro: no podés armar la request de redacción sin las cifras del paso anterior.",
+        "1": "El polling solo detecta antes que terminó; no acorta el tiempo de procesamiento de un batch lento.",
+        "2": "`custom_id` sirve para emparejar resultados con requests, no cambia cuánto tarda el batch."
+      },
+      "rule": "Pasos encadenados + deadline duro → Messages API. El batch no promete tiempo.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "source_quote": "Batches might take up to 24 hours for processing, but many complete sooner.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o23-s03",
+      "objective": 23,
+      "pool": "sim",
+      "scenario": "Una consultora legal analiza 20.000 cláusulas por semana con la Message Batches API. Cada request lleva el mismo manual de criterios de 60.000 tokens en el system prompt, más la cláusula. Activaron prompt caching, pero el reporte de uso muestra pocos aciertos de cache y el costo de input sigue alto. Revisando, ven que el `cache_control` está solo en algunas requests y que usan la duración de cache por defecto. Quieren seguir en batch. ¿Qué ajustan?",
+      "options": [
+        "Mover el manual del system prompt al primer mensaje del usuario, porque en batch el cache solo funciona sobre `messages`.",
+        "Volver a la Messages API, porque prompt caching y batches no se combinan y los dos descuentos no se pueden sumar.",
+        "Poner bloques `cache_control` idénticos en todas las requests y usar la duración de 1 hora, porque el batch puede tardar más de 5 minutos.",
+        "Partir el trabajo en 20.000 batches de una request cada uno, para que cada batch reutilice en orden el cache del anterior."
+      ],
+      "correct": 2,
+      "why_correct": "La Batches API admite prompt caching y los descuentos se suman, pero los aciertos son best-effort porque las requests se procesan en paralelo. La doc pide `cache_control` idéntico en cada request del batch, y sugiere la duración de cache de 1 hora porque un batch puede tardar más de 5 minutos.",
+      "why_wrong": {
+        "0": "No hay tal restricción: el system prompt se puede cachear y es el lugar natural para el manual compartido.",
+        "1": "Es al revés: la doc dice que los descuentos de caching y de batches se pueden sumar.",
+        "3": "Los batches no garantizan orden ni tiempo; 20.000 batches suman overhead y no mejoran los aciertos."
+      },
+      "rule": "Batch + contexto compartido → `cache_control` idéntico en todas las requests y cache de 1 hora.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "source_quote": "Include identical `cache_control` blocks in every Message request within your batch.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o23-s04",
+      "objective": 23,
+      "pool": "sim",
+      "scenario": "Una telco tiene un chatbot de atención en vivo sobre la Messages API que en horario pico queda cerca de sus rate limits. Además tiene que reclasificar 150.000 tickets históricos para un análisis que se entrega en dos semanas. El tech lead quiere hacerlo con la Message Batches API pero solo de madrugada y en tandas chicas, 'para no comerle rate limit al chatbot'. Con ese plan el trabajo se estira a 10 días. ¿Qué le decís?",
+      "options": [
+        "Que el uso de la Batches API no afecta los rate limits de la Messages API: puede mandar de día, en varios batches por el tope de tamaño.",
+        "Que tiene razón: batch y Messages comparten el mismo cupo, así que conviene incluso pasar el chatbot a batch durante la madrugada.",
+        "Que mande los 150.000 tickets en un solo batch de madrugada, porque la Batches API no tiene tope de requests por batch.",
+        "Que use un loop paralelo sobre la Messages API durante el día, porque en batch no se puede clasificar con un system prompt."
+      ],
+      "correct": 0,
+      "why_correct": "La Batches API tiene sus propios rate limits y su uso no afecta los de la Messages API, así que el chatbot no compite con el batch. Lo que sí hay que respetar es el tope de 100.000 requests o 256 MB por batch: 150.000 tickets van en al menos dos batches.",
+      "why_wrong": {
+        "1": "La doc dice lo contrario. Y un chatbot en vivo no puede ir a batch: nadie espera horas una respuesta.",
+        "2": "Un batch tiene tope de 100.000 requests o 256 MB; 150.000 tickets no entran en uno.",
+        "3": "Los system messages se pueden batchear; y un loop paralelo sí competiría con el rate limit del chatbot."
+      },
+      "rule": "Batches no le come rate limit a la Messages API; respetá el tope de 100.000 requests / 256 MB por batch.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "source_quote": "Usage of the Batches API does not affect rate limits in the Messages API.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

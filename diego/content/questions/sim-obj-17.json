@@ -1,0 +1,125 @@
+{
+  "objective": 17,
+  "questions": [
+    {
+      "id": "o17-s01",
+      "objective": 17,
+      "pool": "sim",
+      "scenario": "Una aseguradora tiene un agente del Agent SDK con las tools Read, Grep y Glob que audita las llamadas a `legacyCrypto.encrypt(` en un monorepo antes de dar por cerrada una migración. Para no inundar el contexto, pagina un Grep en modo `content` con `head_limit: 50` y va subiendo `offset` de a 50. Las tres primeras páginas traen coincidencias; en la cuarta recibe `No entries at this offset`. El informe concluye: 'el patrón ya no aparece en el repo, la migración está completa'. ¿Qué tendría que haber hecho el agente?",
+      "options": [
+        "Volver a correr la búsqueda sin `head_limit`, porque el modo `content` sin paginar es la única forma confiable de ver si quedan llamadas.",
+        "Leer el mensaje como que el `offset` pasó la última coincidencia, y ajustar o reiniciar el `offset` en vez de concluir que no hay matches.",
+        "Pasar a Glob con `**/*.js` y leer cada archivo con Read, porque Grep pierde coincidencias cuando se pagina con `offset`.",
+        "Cambiar a `output_mode: \"files_with_matches\"`, porque `offset` solo funciona en ese modo y en `content` devuelve páginas vacías."
+      ],
+      "correct": 1,
+      "why_correct": "`No entries at this offset` aparece cuando el `offset` apunta más allá de la última coincidencia de un patrón que sí tiene matches. No significa que el patrón no exista. El agente tiene que ajustar o reiniciar el `offset` (o pedir el total con `count`) antes de concluir.",
+      "why_wrong": {
+        "0": "Sacar la paginación trae todas las líneas de una y llena el contexto, que es justo lo que se quería evitar.",
+        "2": "Grep no pierde coincidencias al paginar. Leer archivo por archivo es más caro y no arregla la mala lectura del mensaje.",
+        "3": "`offset` funciona en modo `content`; el mensaje vacío es el comportamiento documentado al pasarse de la última coincidencia."
+      },
+      "rule": "`No entries at this offset` = te pasaste de la última coincidencia, no 'el patrón no existe'.",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "When the tool's `offset` parameter points past the last match for a pattern that has matches, Grep returns `No entries at this offset`, so Claude widens or resets the offset instead of concluding the pattern doesn't match.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o17-s02",
+      "objective": 17,
+      "pool": "sim",
+      "scenario": "Seis devs de una prepaga usan Claude Code sobre un backend Java de 3.000 archivos. Cada mañana alguien abre sesión con 'revisá el código y mejorá lo que veas'. Claude pasa los primeros 20 minutos leyendo carpetas enteras, `/context` muestra la ventana casi llena antes de cambiar una línea, y los cambios terminan siendo cosméticos en archivos al azar. El objetivo real de la semana es endurecer la validación de entrada del endpoint de autorizaciones en `AuthorizationController.java`. ¿Qué cambio tiene más impacto?",
+      "options": [
+        "Agregar en CLAUDE.md 'leé siempre todo `src/` antes de proponer cambios', para que Claude tenga el panorama completo antes de editar.",
+        "Correr `/compact` cada 10 minutos durante la exploración, para que las lecturas de carpetas enteras no lleguen a llenar la ventana.",
+        "Pasar a un modelo con ventana de 1M de tokens, para que la lectura amplia del repo entre completa sin tener que compactar.",
+        "Cambiar el pedido por uno específico: 'agregá validación de entrada al endpoint de autorizaciones en `AuthorizationController.java`'."
+      ],
+      "correct": 3,
+      "why_correct": "Un pedido vago como 'mejorá el código' dispara un escaneo amplio. Uno específico, que nombra la función y el archivo, deja que Claude trabaje con pocas lecturas: busca el punto de entrada, lo lee y sigue desde ahí.",
+      "why_wrong": {
+        "0": "Leer todo `src/` por adelantado es lo contrario de explorar de forma incremental: llena la ventana con archivos irrelevantes.",
+        "1": "Compactar seguido ataca el síntoma: el escaneo amplio sigue ocurriendo y cada resumen pierde detalle.",
+        "2": "Una ventana más grande deja entrar más ruido, pero no le dice a Claude qué buscar. El problema es el pedido."
+      },
+      "rule": "Pedido vago → escaneo amplio. Nombrá la función y el archivo para que la exploración arranque en el lugar justo.",
+      "source_url": "https://code.claude.com/docs/en/costs",
+      "source_quote": "Vague requests like \"improve this codebase\" trigger broad scanning. Specific requests like \"add input validation to the login function in auth.ts\" let Claude work efficiently with minimal file reads.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o17-s03",
+      "objective": 17,
+      "pool": "sim",
+      "scenario": "Una software factory instaló el plugin de code intelligence de TypeScript para que Claude navegue un monorepo con 'go to definition' en vez de buscar texto. En las notebooks de los devs funciona: Claude salta a una definición en una llamada. Pero el equipo de plataforma corre las mismas tareas de exploración en sesiones de Claude Code en la nube, y ahí Claude vuelve a buscar con grep y a abrir candidatos uno por uno, gastando mucho más contexto. El plugin está configurado igual en los dos lados. ¿Qué explica la diferencia y qué hacen?",
+      "options": [
+        "En la nube Claude Code no arranca los language servers de los plugins y la tool LSP queda inactiva; lo que dependa de LSP va en sesión local.",
+        "En la nube hay que nombrar `LSP` en `--allowedTools`, porque ahí las tools de plugins quedan fuera del set por defecto, igual que Grep.",
+        "En la nube el plugin necesita `memory: project` en su configuración, para conservar el índice de símbolos entre una sesión y otra.",
+        "En la nube el índice del language server se arma de a poco; alcanza con correr una exploración completa una vez para que después ande."
+      ],
+      "correct": 0,
+      "why_correct": "La doc lo dice directo: en sesiones en la nube Claude Code no arranca los language servers de los plugins, así que la tool LSP queda inactiva. Sin LSP, Claude vuelve a la búsqueda de texto. Si la navegación por símbolos importa, esa exploración se hace en una sesión local con el binario del language server instalado.",
+      "why_wrong": {
+        "1": "No hay nada que habilitar con flags: el language server directamente no se arranca en la nube.",
+        "2": "`memory` es un campo de subagentes para notas persistentes, no una opción de los plugins de code intelligence.",
+        "3": "No es un problema de índice que se 'calienta': el server no corre, así que ninguna cantidad de exploraciones lo activa."
+      },
+      "rule": "Code intelligence (LSP) acelera la exploración, pero en sesiones en la nube queda inactivo.",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "Claude Code doesn't start plugin language servers, so the LSP tool stays inactive there.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o17-s04",
+      "objective": 17,
+      "pool": "sim",
+      "scenario": "Una empresa de pagos armó un asistente interno de código con el Agent SDK. Antes de cada pregunta, un pipeline busca por embeddings los 40 fragmentos más parecidos en un índice que se regenera cada domingo y los pega en el prompt. Los martes y miércoles el asistente cita funciones que ya se renombraron y no ve archivos nuevos; además, los 40 fragmentos ocupan buena parte del contexto aunque la pregunta sea puntual. Re-indexar a diario no está aprobado por costo. ¿Qué rediseño ataca las dos fallas?",
+      "options": [
+        "Bajar de 40 a 10 fragmentos por pregunta, para que el contexto quede más libre y el modelo se concentre en los más parecidos.",
+        "Pegar en el system prompt el árbol completo del repo junto con el contenido de todos los archivos modificados en la semana.",
+        "Darle al agente Glob, Grep y Read sobre el repo vivo para que cargue archivos a demanda por ruta, en vez de pre-cargar fragmentos.",
+        "Agregar al prompt 'si una función no existe, avisá', para que el modelo detecte por su cuenta los fragmentos desactualizados."
+      ],
+      "correct": 2,
+      "why_correct": "Con un enfoque 'just in time' el agente mantiene referencias livianas (rutas) y carga datos con tools cuando los necesita. Glob y Grep sobre el repo actual evitan el índice viejo y traen solo lo que la pregunta pide, en vez de 40 fragmentos fijos.",
+      "why_wrong": {
+        "0": "Menos fragmentos baja el consumo de contexto, pero siguen saliendo del índice del domingo: el problema de datos viejos queda.",
+        "1": "Cargar todo por adelantado empeora el uso de contexto y igual no cubre lo que cambió fuera de esa lista.",
+        "3": "El modelo no puede saber que un fragmento es viejo si no tiene acceso al código actual: es una instrucción sin mecanismo."
+      },
+      "rule": "Índice que se pone viejo + contexto lleno → navegación just-in-time con Glob/Grep/Read sobre el repo vivo.",
+      "source_url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+      "source_quote": "primitives like glob and grep allow it to navigate its environment and retrieve files just-in-time, effectively bypassing the issues of stale indexing and complex syntax trees.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o17-s05",
+      "objective": 17,
+      "pool": "sim",
+      "scenario": "Un e-commerce tiene un subagente explorador (`tools: Read, Grep, Glob`) que debe averiguar qué módulos manejan el estado `PENDING_PAYMENT` antes de rediseñar la máquina de estados de pedidos. Su primera llamada es un Grep en modo `content` sobre todo el repo: vuelven 2.300 líneas de tests, fixtures y logs de ejemplo, el subagente se queda sin contexto útil y su resumen omite dos servicios clave. El código de producción está en 9 servicios bajo `services/`. ¿Cómo debería encarar la primera pasada?",
+      "options": [
+        "Leer con Read el `README.md` de cada uno de los 9 servicios y recién después decidir en cuáles conviene buscar el estado.",
+        "Repetir el Grep en modo `content` con `multiline: true`, para que cada match traiga el bloque entero y no haga falta abrir archivos.",
+        "Hacer Glob con `**/*` para tener el inventario completo de archivos y descartar a mano tests y fixtures antes de buscar.",
+        "Arrancar con Grep en el modo por defecto (`files_with_matches`) acotado a `services/`, mirar qué archivos aparecen y leer solo esos."
+      ],
+      "correct": 3,
+      "why_correct": "El modo por defecto de Grep, `files_with_matches`, devuelve solo rutas, sin contenido. Acotado con `path` a `services/`, da el mapa de qué archivos tocan el estado con muy poco contexto. Después Claude lee solo los relevantes: entendimiento incremental en vez de un volcado.",
+      "why_wrong": {
+        "0": "Los README no dicen dónde se usa un estado puntual; es lectura por adelantado que gasta contexto sin apuntar al dato.",
+        "1": "`multiline` sirve para patrones que cruzan líneas. Traería todavía más texto por coincidencia y empeora la inundación.",
+        "2": "Glob devuelve como máximo 100 archivos ordenados por fecha: con `**/*` el inventario sale truncado y no dice qué archivo usa el estado."
+      },
+      "rule": "Primera pasada: rutas (`files_with_matches`) acotadas; contenido solo de los archivos que valen la pena.",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "`files_with_matches`: file paths only, no line content. This is the default.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

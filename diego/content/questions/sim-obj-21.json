@@ -1,0 +1,101 @@
+{
+  "objective": 21,
+  "questions": [
+    {
+      "id": "o21-s01",
+      "objective": 21,
+      "pool": "sim",
+      "scenario": "Un agente de soporte técnico de una empresa de software usa prompt caching y context editing con `clear_tool_uses_20250919` y el `trigger` por defecto. Cada vez que el contexto pasa el umbral, la API limpia apenas uno o dos resultados chicos: el prefijo cacheado se invalida y la factura por escrituras de cache se disparó. El equipo no quiere sacar la limpieza porque las sesiones son largas. ¿Qué parámetro ajustan?",
+      "options": [
+        "`clear_tool_inputs: true`, para que además de los resultados se borren las llamadas y la limpieza no invalide el cache.",
+        "`keep` en 0, para que cada limpieza borre todos los resultados y el cache se reescriba una sola vez en toda la sesión.",
+        "Bajar el `trigger` a 30.000 tokens, para que la limpieza se dispare antes y el cache se rompa con menos contenido acumulado.",
+        "`clear_at_least` con un mínimo de tokens, para que solo se limpie cuando se libera lo suficiente como para justificar romper el cache."
+      ],
+      "correct": 3,
+      "why_correct": "La limpieza de tool results invalida el prefijo cacheado. La doc recomienda limpiar suficientes tokens para que valga la pena, con `clear_at_least`: si la API no puede liberar al menos ese mínimo, la estrategia no se aplica y el cache queda.",
+      "why_wrong": {
+        "0": "Borrar también las llamadas libera más por limpieza, pero cada limpieza sigue rompiendo el cache igual.",
+        "1": "`keep` define cuántos pares recientes se conservan; borrarlos todos le saca al agente lo que necesita y no evita limpiezas repetidas.",
+        "2": "Un `trigger` más bajo hace que la limpieza se dispare más seguido: más invalidaciones, no menos."
+      },
+      "rule": "Context editing rompe el cache: con `clear_at_least` hacés que cada limpieza valga la pena.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
+      "source_quote": "Use the `clear_at_least` parameter to ensure a minimum number of tokens is cleared each time.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o21-s02",
+      "objective": 21,
+      "pool": "sim",
+      "scenario": "Un agente de auditoría de contratos revisa 200 archivos por tarea con una tool `read_contract` y usa context editing con `clear_tool_uses_20250919` para no pasarse de contexto. El problema: las conclusiones intermedias (qué cláusulas eran riesgosas en cada contrato) salían de esos resultados, y cuando se limpian el agente ya no puede armar el informe final con detalle. Poner `read_contract` en `exclude_tools` no sirve: llenaría el contexto. ¿Qué agregás?",
+      "options": [
+        "La memory tool junto con context editing: Claude recibe un aviso cerca del umbral y guarda lo esencial en memoria antes de la limpieza.",
+        "`clear_tool_inputs: true`, para que se borren las llamadas a la tool pero se conserven los resultados con las cláusulas riesgosas.",
+        "Subir `keep` a 200, para que la API conserve todos los pares de tool use y resultado que se generan durante la tarea.",
+        "Mandar cada request sin el historial previo y guardarlo en tu base, para que el contexto no crezca entre un contrato y otro."
+      ],
+      "correct": 0,
+      "why_correct": "Context editing se combina con la memory tool: cuando el contexto se acerca al umbral de limpieza, Claude recibe un aviso para preservar lo importante y lo escribe en archivos de memoria. Después de la limpieza lo consulta a demanda. Retención selectiva sin cargar los 200 resultados.",
+      "why_wrong": {
+        "1": "Es al revés: `clear_tool_inputs` borra además las llamadas; los resultados se limpian igual.",
+        "2": "Conservar los 200 pares es lo mismo que no limpiar: el contexto se llena, que es lo que se quería evitar.",
+        "3": "La Messages API es stateless: sin historial el modelo pierde todo lo anterior, incluidas las conclusiones."
+      },
+      "rule": "Antes de que se limpien resultados importantes, que Claude los guarde: context editing + memory tool.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
+      "source_quote": "When your conversation context approaches the configured clearing threshold, Claude receives an automatic warning to preserve important information.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o21-s03",
+      "objective": 21,
+      "pool": "sim",
+      "scenario": "Un equipo migró un agente de investigación a context editing del lado del servidor. Como ahora la API limpia resultados viejos, un dev escribió código que, después de cada respuesta, borra también del historial local los tool results antiguos 'para quedar sincronizados con lo que ve el modelo'. Desde ese cambio, con Claude Opus 5.5 aparecen problemas en turnos largos con thinking, y los logs locales ya no sirven para auditar qué vio el agente. ¿Qué corregís?",
+      "options": [
+        "Borrar también del historial local los bloques de thinking viejos, para que coincidan con los tool results que ya se eliminaron.",
+        "Activar `clear_thinking_20251015` con `keep` en 0, para que el servidor no compare los thinking contra el historial recortado.",
+        "Sacar ese código: el cliente mantiene el historial completo sin modificar y la API aplica la limpieza antes de que llegue al modelo.",
+        "Pasar a una ventana deslizante de los últimos 20 turnos en el cliente, que es compatible con los bloques de thinking preservados."
+      ],
+      "correct": 2,
+      "why_correct": "Context editing se aplica del lado del servidor, antes de que el prompt llegue a Claude. El cliente sigue mandando su historial completo y no tiene que sincronizarse con la versión editada. En modelos con preserved thinking, editar turnos viejos en el cliente puede invalidar los thinking de los turnos siguientes.",
+      "why_wrong": {
+        "0": "Editar más del lado del cliente agrava el problema: son esas ediciones las que invalidan los thinking.",
+        "1": "`keep` tiene que ser mayor que 0 (o `\"all\"`), y el problema no está en el servidor sino en el recorte del cliente.",
+        "3": "Recortar en el cliente es otra edición de turnos previos; además pierde contexto que la limpieza del servidor sí maneja."
+      },
+      "rule": "Con context editing, tu historial local queda completo: la API edita del lado del servidor.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
+      "source_quote": "Your client application maintains the full, unmodified conversation history. You do not need to sync your client state with the edited version.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o21-s04",
+      "objective": 21,
+      "pool": "sim",
+      "scenario": "Una fintech corre el mismo agente de análisis con thinking sobre dos modelos: Claude Opus 4.1 para clientes legacy y Claude Opus 5.5 para el resto. En Opus 5.5 el contexto crece mucho más rápido turno a turno, porque se conservan los thinking de turnos anteriores; en Opus 4.1 eso no pasa. Quieren el mismo comportamiento de retención en los dos modelos y controlar cuánto thinking viejo queda en la ventana. ¿Qué hacen?",
+      "options": [
+        "Apagar thinking en Opus 5.5, porque es la única forma de que ese modelo no acumule bloques de turnos anteriores.",
+        "Incluir `clear_thinking_20251015` en `context_management` con `keep` explícito, en vez de depender del default de cada modelo.",
+        "Usar `clear_tool_uses_20250919` con `clear_tool_inputs: true`, que también limpia los thinking asociados a cada tool use.",
+        "Borrar en el cliente los thinking de turnos anteriores antes de cada request, con la misma lógica para los dos modelos."
+      ],
+      "correct": 1,
+      "why_correct": "Sin la estrategia `clear_thinking_20251015`, cada clase de modelo usa su default: Opus 4.5 en adelante conserva todo el thinking previo; Opus 4.1 y anteriores, solo el del turno en curso. La doc recomienda incluir la estrategia con `keep` explícito si el código corre sobre varias clases de modelo.",
+      "why_wrong": {
+        "0": "Apagar thinking pierde razonamiento; existe una estrategia justamente para controlar cuánto se conserva.",
+        "2": "`clear_tool_uses_20250919` limpia resultados (y opcionalmente llamadas) de tools, no bloques de thinking.",
+        "3": "En modelos con preserved thinking, editar turnos previos en el cliente puede invalidar los thinking de turnos siguientes."
+      },
+      "rule": "Varias clases de modelo → `clear_thinking_20251015` con `keep` explícito, no el default de cada una.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
+      "source_quote": "If your code runs across multiple model classes, include this strategy and set `keep` explicitly rather than relying on the per-model default.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

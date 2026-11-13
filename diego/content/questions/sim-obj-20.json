@@ -1,0 +1,101 @@
+{
+  "objective": 20,
+  "questions": [
+    {
+      "id": "o20-s01",
+      "objective": 20,
+      "pool": "sim",
+      "scenario": "Diego investiga con Claude Code un bug de conciliación en un sistema contable. Temprano en la sesión, Claude leyó `ledger/rules.py` (unos 12.000 tokens) y lo usó bien. Después de una compactación automática, Diego pregunta por la regla de redondeo de ese archivo y Claude responde con una explicación genérica que no coincide con el código. En la conversación, después de compactar, el archivo figura como `Referenced file` y no como `Read`. Diego no quiere volver a meter el archivo entero en cada pregunta. ¿Qué pasó y qué hace?",
+      "options": [
+        "La compactación sacó el archivo del espacio temporal de la sesión; hay que reiniciar con `claude --continue` para recuperarlo.",
+        "El archivo superó el tope de 25.000 tokens de Read; hay que subir `CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS` y releerlo entero.",
+        "Tras compactar, un archivo de más de 5.000 tokens vuelve solo como ruta; Claude tiene que releer la parte puntual con `offset`/`limit`.",
+        "Lo leído antes de compactar queda guardado en el resumen; alcanza con pedirle a Claude que use lo que dice ese resumen sobre el archivo."
+      ],
+      "correct": 2,
+      "why_correct": "Después de compactar, Claude Code re-lee algunos archivos recientes, pero uno de más de 5.000 tokens vuelve como referencia a la ruta, sin contenido (`Referenced file`). Claude no tiene el código: tiene que volver a leer, y lo eficiente es leer solo la sección de la regla.",
+      "why_wrong": {
+        "0": "El archivo sigue en disco y la compactación no lo toca; reiniciar la sesión no cambia lo que hay en contexto.",
+        "1": "12.000 tokens no pasan el tope de Read; el motivo es la regla de los 5.000 tokens al re-inyectar tras compactar.",
+        "3": "El resumen no guarda el código textual; responder desde ahí es justo lo que produjo la explicación genérica."
+      },
+      "rule": "Tras compactar, `Referenced file` = solo la ruta. Releé la sección que necesitás, no supongas.",
+      "source_url": "https://code.claude.com/docs/en/context-window",
+      "source_quote": "A file over 5,000 tokens comes back as a path reference without its content, shown as `Referenced file` instead of `Read`.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o20-s02",
+      "objective": 20,
+      "pool": "sim",
+      "scenario": "Una distribuidora hace con Claude Code una migración de 3 días y lleva el avance en `progress.md` (módulos hechos, decisiones, próximos pasos). El CLAUDE.md del proyecto dice 'después de cada compactación, releé progress.md'. Aun así, tras algunas compactaciones automáticas Claude retoma módulos que ya estaban migrados, porque no lo relee. El equipo quiere que el contenido actual de `progress.md` entre al contexto después de cada compactación sin depender de que Claude se acuerde. ¿Qué configuran?",
+      "options": [
+        "Un hook `SessionStart` con matcher `compact` cuyo comando haga `cat progress.md`, para que su salida entre al contexto compactado.",
+        "Escribir la instrucción del CLAUDE.md en mayúsculas y con 'IMPORTANT', para que pese más que el resumen de la compactación.",
+        "Mover `progress.md` a una regla con `paths:` en `.claude/rules/`, para que Claude Code la recargue sola cada vez que compacta.",
+        "Correr `/compact keep progress.md` a mano cada hora, para que la compactación automática no llegue nunca a dispararse."
+      ],
+      "correct": 0,
+      "why_correct": "Un hook `SessionStart` con matcher `compact` corre después de cada compactación y lo que su comando imprime se agrega al contexto. Con `cat progress.md` el estado actual entra siempre, sin depender de una instrucción. Es enforcement en vez de guidance.",
+      "why_wrong": {
+        "1": "Sigue siendo una instrucción que Claude puede no cumplir; el fallo ya ocurre con la instrucción escrita.",
+        "2": "Las reglas con `paths:` cargan cuando Claude toca archivos que matchean y se resumen al compactar: no se re-inyectan solas.",
+        "3": "No garantiza nada: la automática puede dispararse igual entre dos corridas, y el resumen manual tampoco relee el archivo."
+      },
+      "rule": "Contexto crítico que tiene que volver tras cada compactación → hook `SessionStart` con matcher `compact`.",
+      "source_url": "https://code.claude.com/docs/en/hooks-guide",
+      "source_quote": "Use a `SessionStart` hook with a `compact` matcher to re-inject critical context after every compaction.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o20-s03",
+      "objective": 20,
+      "pool": "sim",
+      "scenario": "Diego arrancó una sesión de Claude Code con 20 minutos de definiciones cuidadosas: restricciones de la API pública, convenciones de nombres y el plan de refactor del módulo de facturación. Después vino una hora y media de debugging de un test flaky, con logs enormes; el bug ya está resuelto. El contexto está casi lleno y quiere seguir con el refactor. Un `/compact` común resumiría todo junto, y él necesita que las definiciones iniciales queden tal cual. ¿Qué hace?",
+      "options": [
+        "`/clear` y pedirle a Claude que retome el refactor a partir del resumen de la sesión anterior que queda guardado.",
+        "`/compact` sin instrucciones, porque la compactación conserva textuales los primeros mensajes de la sesión.",
+        "Subir el umbral con `/autocompact` a un valor más alto, para que la compactación no se dispare mientras sigue con el refactor.",
+        "`/rewind`, elegir el primer mensaje del debugging y **Summarize from here**, para comprimir solo desde ahí y dejar lo anterior intacto."
+      ],
+      "correct": 3,
+      "why_correct": "**Summarize from here** comprime la conversación desde el mensaje elegido en adelante y deja intactos los mensajes previos. Es el caso que da la doc: resumir un debugging verboso desde la mitad, conservando las instrucciones iniciales.",
+      "why_wrong": {
+        "0": "`/clear` empieza una conversación vacía; no hay un resumen automático que Claude vaya a retomar.",
+        "1": "`/compact` reemplaza toda la conversación por un resumen; no garantiza que los primeros mensajes queden textuales.",
+        "2": "Postergar la compactación no libera espacio: el contexto sigue lleno de logs que ya no sirven."
+      },
+      "rule": "Querés resumir solo una parte de la sesión → `/rewind` + Summarize from here / up to here.",
+      "source_url": "https://code.claude.com/docs/en/checkpointing",
+      "source_quote": "summarize a verbose debugging session from the midpoint forward, keeping your initial instructions intact",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o20-s04",
+      "objective": 20,
+      "pool": "sim",
+      "scenario": "En una telco, el CLAUDE.md del repo dice: 'ignorá `vendor/` y `third_party/`: son copias de librerías externas'. En la conversación principal Claude lo respeta. Pero cuando delega en el subagente Explore la búsqueda de dónde se arma el header de autenticación, el resumen vuelve lleno de hallazgos en `vendor/` y le faltan los archivos propios. El equipo no quiere crear un subagente custom solo para esto. ¿Qué hacen?",
+      "options": [
+        "Agregar `vendor/` y `third_party/` al `.gitignore`, porque Explore busca solo con Grep y Grep saltea lo que ignora git.",
+        "Repetir la regla en el pedido de delegación ('ignorá `vendor/` y `third_party/`'), porque Explore arranca sin los CLAUDE.md.",
+        "Pasar la regla a `~/.claude/CLAUDE.md`, porque Explore sí carga el CLAUDE.md del usuario aunque saltee el del proyecto.",
+        "Correr `/compact` antes de delegar, para que el resumen de la conversación con la regla le llegue al subagente Explore."
+      ],
+      "correct": 1,
+      "why_correct": "Explore y Plan arrancan sin los archivos CLAUDE.md, para que la investigación sea rápida y barata. Si una regla tiene que llegar al subagente, la doc dice que la repitas en el pedido de delegación. El ejemplo que usa es justamente 'ignorá `vendor/`'.",
+      "why_wrong": {
+        "0": "Ignorar código versionado para engañar a la búsqueda es un cambio del repo con efectos colaterales, y Glob no respeta `.gitignore` por defecto.",
+        "2": "Explore saltea todos los niveles de CLAUDE.md, el de usuario incluido.",
+        "3": "Un subagente no-fork no ve el historial de la conversación; el resumen de `/compact` no le llega."
+      },
+      "rule": "Explore no lee CLAUDE.md: lo que tenga que respetar, ponelo en el pedido de delegación.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "If a rule must, such as \"ignore the `vendor/` directory,\" restate it in the prompt you give Claude when delegating.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

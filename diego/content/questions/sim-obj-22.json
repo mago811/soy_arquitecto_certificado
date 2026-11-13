@@ -1,0 +1,101 @@
+{
+  "objective": 22,
+  "questions": [
+    {
+      "id": "o22-s01",
+      "objective": 22,
+      "pool": "sim",
+      "scenario": "Una empresa de logística extrae datos de remitos con structured outputs. El schema tiene `review_status` con enum `[\"Auto approve\", \"Needs human review\"]` y el código manda a la cola humana solo si `review_status == \"Needs human review\"`. En una auditoría aparecen remitos ilegibles que nunca pasaron por revisión: el JSON traía `\"Needs Human Review\"`, y la respuesta había terminado normal, sin error. El equipo creía que el schema garantizaba los valores exactos. ¿Cuál es el fix?",
+      "options": [
+        "Agregar `strict: true` al schema, porque sin esa opción los enums de structured outputs se validan solo de forma aproximada.",
+        "Reintentar la request cuando el valor no coincide con el enum, porque en ese caso la API devuelve un `stop_reason` especial.",
+        "Comparar `review_status` sin distinguir mayúsculas de minúsculas antes de rutear, en vez de una igualdad exacta con el enum.",
+        "Pasar `review_status` a texto libre y que el código mande a revisión cualquier valor que contenga la palabra 'review'."
+      ],
+      "correct": 2,
+      "why_correct": "Structured outputs no garantiza la capitalización de los valores `enum`: puede volver uno que difiere solo en mayúsculas, y la respuesta termina normal, sin error ni `stop_reason` especial. La doc indica comparar los enums sin distinguir mayúsculas y evitar valores que solo difieran en eso.",
+      "why_wrong": {
+        "0": "La doc aclara que esto aplica tanto a JSON outputs como a strict tool use: `strict` no lo evita.",
+        "1": "No hay `stop_reason` especial ni error: la respuesta termina normal, por eso el caso pasó de largo.",
+        "3": "Texto libre pierde la garantía de forma y una búsqueda de palabra es más frágil que comparar el enum bien."
+      },
+      "rule": "El ruteo a revisión no puede depender de la capitalización exacta de un enum: compará sin distinguir mayúsculas.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "source_quote": "Compare enum values case-insensitively, and avoid enum values that differ only in capitalization.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o22-s02",
+      "objective": 22,
+      "pool": "sim",
+      "scenario": "Un banco extrae 25 campos de formularios de apertura de cuenta escaneados. Después de la extracción, un segundo llamado a Claude hace de verificador: recibe la imagen y el valor de cada campo y responde solo 'correcto' o 'incorrecto'; lo 'incorrecto' va a revisión humana. Auditando, ven que en campos tachados o con manchas el verificador casi siempre dice 'correcto', y esos errores pasan de largo. Las imágenes no se pueden mejorar. ¿Qué cambiás en el verificador?",
+      "options": [
+        "Darle una salida: que responda 'Unknown' cuando la imagen no alcanza para decidir, y mandar esos campos a revisión humana.",
+        "Pedirle que responda con más seguridad y sin dudar, para que deje de aprobar los valores que no pudo leer con claridad.",
+        "Que evalúe los 25 campos en una sola respuesta con una nota global, así tiene a la vista el contexto del formulario completo.",
+        "Subir el `max_tokens` del verificador, para que tenga espacio de razonar antes de responder 'correcto' o 'incorrecto'."
+      ],
+      "correct": 0,
+      "why_correct": "Con solo dos opciones, el verificador está forzado a elegir aunque no pueda leer el campo. La guía de evals de Anthropic recomienda darle al juez una salida, como responder 'Unknown' si no tiene información suficiente. Ese 'Unknown' es la señal de ambigüedad por campo que va a revisión.",
+      "why_wrong": {
+        "1": "Pedir más seguridad empuja justo a lo contrario: aprobar con confianza lo que no se ve.",
+        "2": "La recomendación es la inversa: rubric por dimensión y un juez aislado por dimensión, no una nota global.",
+        "3": "El problema no es espacio de salida: es que el formato no le deja expresar 'no se puede saber'."
+      },
+      "rule": "Juez binario sin salida = adivina. Dale 'Unknown' y ruteá esos campos a humanos.",
+      "source_url": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
+      "source_quote": "To avoid hallucinations, give the LLM a way out, like providing an instruction to return “Unknown” when it doesn’t have enough information.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o22-s03",
+      "objective": 22,
+      "pool": "sim",
+      "scenario": "Una aseguradora rutea los reclamos que extrae Claude: lo dudoso va a un equipo de 4 analistas. Tras cambiar el prompt, el porcentaje enviado a revisión bajó de 30% a 8%, y el gerente lo presenta como una mejora de calidad. Nadie midió cuántos auto-aprobados tenían errores ni cuántos de los enviados a revisión estaban bien. El directorio pide saber si el ruteo realmente mejoró antes de reducir el equipo de analistas. ¿Qué medís?",
+      "options": [
+        "El tiempo promedio que tarda cada analista en cerrar un caso, porque si bajó, el ruteo está mandando casos más claros.",
+        "El porcentaje de reclamos enviados a revisión cada semana, comparado contra el objetivo de 10% que fijó el área.",
+        "La confianza promedio que el modelo reporta en los auto-aprobados, que tendría que haber subido con el prompt nuevo.",
+        "Precisión y recall del ruteo contra casos etiquetados: qué errores reales atrapa y cuántos de los enviados lo necesitaban."
+      ],
+      "correct": 3,
+      "why_correct": "Que baje la tasa de revisión no dice si el ruteo es mejor: puede estar dejando pasar errores. La doc recomienda evaluar el sistema en forma regular con métricas como precisión y recall. Recall muestra cuántos errores reales llegan a revisión; precisión, cuánto trabajo se gasta en casos que estaban bien.",
+      "why_wrong": {
+        "0": "El tiempo de cierre depende de muchas cosas y no mide los errores que nunca llegaron a un analista.",
+        "1": "Es la misma métrica que generó la confusión: mide volumen enviado, no calidad del ruteo.",
+        "2": "Una confianza autorreportada que sube no prueba que haya menos errores; hay que medir contra la verdad."
+      },
+      "rule": "Ruteo a revisión se evalúa con precisión y recall contra etiquetas, no con 'cuánto mandamos'.",
+      "source_url": "https://platform.claude.com/docs/en/about-claude/use-case-guides/content-moderation",
+      "source_quote": "Regularly assess the performance of your content moderation system using metrics such as precision and recall tracking.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o22-s04",
+      "objective": 22,
+      "pool": "sim",
+      "scenario": "Una empresa de comercio exterior extrae datos de certificados de origen en español, portugués e inglés. Con 1.000 certificados etiquetados, casi todos en español, la precisión general es 96%, y el plan es auto-aprobar todo lo que salga con confianza alta. El equipo de Brasil se queja de errores en los certificados en portugués, que son el 15% del volumen. Pueden pagar revisión humana para una parte del flujo, no para todo. ¿Cómo diseñás el ruteo?",
+      "options": [
+        "Auto-aprobar lo de confianza alta y revisar una muestra al azar del 15% de todos los certificados, sin mirar el idioma.",
+        "Medir la precisión por idioma y mandar a revisión los certificados en portugués mientras su precisión quede debajo de la del español.",
+        "Traducir al español los certificados en portugués antes de extraer, porque así la precisión queda igual que la del español.",
+        "Bajar el umbral de confianza para todos los idiomas, así entran más documentos a revisión y se cubren también los portugueses."
+      ],
+      "correct": 1,
+      "why_correct": "El 96% general está dominado por el español y esconde cómo anda cada idioma. La doc recomienda medir la exactitud por idioma, apuntando a no más de 5–10% de caída en los idiomas no principales. Con eso, la revisión humana va al segmento que no llega, no a todo el flujo.",
+      "why_wrong": {
+        "0": "Una muestra al azar sobre todo el volumen dedica la mayoría del esfuerzo al español, que ya anda bien.",
+        "2": "Traducir agrega otro paso que puede fallar; 'queda igual' es una suposición, no una medición.",
+        "3": "Bajar el umbral para todos gasta revisión en todos los idiomas, no en el segmento con problemas."
+      },
+      "rule": "Precisión global alta puede esconder un segmento malo: medí por característica del documento (idioma, tipo) y ruteá ese segmento.",
+      "source_url": "https://platform.claude.com/docs/en/about-claude/use-case-guides/ticket-routing",
+      "source_quote": "Measure the routing accuracy across different languages, aiming for no more than a 5–10 percent drop in accuracy for non-primary languages.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

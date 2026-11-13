@@ -1,0 +1,101 @@
+{
+  "objective": 32,
+  "questions": [
+    {
+      "id": "o32-s01",
+      "objective": 32,
+      "pool": "sim",
+      "scenario": "Una fintech de Rosario usa Claude Code en las notebooks Linux de sus 30 devs. Seguridad quiere auditar cada búsqueda de contenido que hace Claude en el repo, así que agregó en el `.claude/settings.json` del proyecto un hook `PreToolUse` con `matcher: \"Grep\"` que escribe cada llamada en un log. Después de una semana el log está vacío, aunque en las sesiones se ve a Claude buscando strings todo el tiempo. Nadie arranca Claude Code con `--tools` ni `--allowedTools`, y seguridad no quiere cambiar cómo arranca cada dev. ¿Cuál es el fix?",
+      "options": [
+        "Agregar `Grep` a `permissions.allow` en `.claude/settings.json`, para que la tool vuelva al set por defecto y el hook se dispare.",
+        "Pasar el hook a `PostToolUse` con el mismo matcher `Grep`, porque las búsquedas de solo lectura no pasan por `PreToolUse`.",
+        "Cambiar el matcher a `Bash` y filtrar en el script los comandos `grep` y `find`: en Linux las búsquedas llegan a los hooks como Bash.",
+        "Mover el hook a `~/.claude/settings.json` de cada dev, porque los hooks del proyecto no aplican a las tools built-in de búsqueda."
+      ],
+      "correct": 2,
+      "why_correct": "En macOS, Linux y WSL, Claude Code deja Glob y Grep fuera del set por defecto: Claude busca con `find` y `grep` a través de la tool Bash. Esas búsquedas llegan a los hooks y a las reglas de permisos como llamadas a `Bash`. Un matcher `Grep` nunca matchea; hay que enganchar `Bash` y filtrar el comando.",
+      "why_wrong": {
+        "0": "La doc lo dice explícito: una regla allow en un archivo de settings no devuelve Glob ni Grep. Vuelven con `--tools`/`--allowedTools`, sacando Bash o desde un subagente.",
+        "1": "El problema no es el evento sino el matcher: la tool Grep no se está usando. Con `PostToolUse` y `Grep` el log sigue vacío.",
+        "3": "Los hooks de proyecto aplican a todas las tools. Cambiar de archivo no cambia que la búsqueda llegue como `Bash`."
+      },
+      "rule": "En Linux/macOS sin flags, las búsquedas de Claude son llamadas a `Bash`: hooks y permisos se escriben contra `Bash`.",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "In Claude's shell those two commands run embedded versions of `bfs` and `ugrep`, and the searches reach your hooks and permission rules as `Bash` calls.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o32-s02",
+      "objective": 32,
+      "pool": "sim",
+      "scenario": "Una empresa de logística migra su API de Flask a FastAPI. Un subagente de auditoría definido con `tools: Read, Grep, Glob` (así la tool Grep está disponible) tiene que encontrar todas las funciones cuyo decorador `@app.route(..., methods=[\"POST\"])` está en una línea y el `def` en la línea siguiente. El patrón `@app\\.route\\(.*POST.*\\)\\s*def` devuelve 0 resultados, aunque Diego encuentra varios casos abriendo los archivos a mano. Las rutas están en `api/` y no hay nada ignorado por git. ¿Qué cambia en la llamada a Grep?",
+      "options": [
+        "Activar `multiline: true`, porque por defecto el patrón matchea dentro de una sola línea y acá decorador y `def` están separados.",
+        "Pasar `output_mode: \"content\"`, porque en el modo por defecto Grep no evalúa los patrones que usan `\\s` entre dos tokens.",
+        "Cambiar a Glob con `**/*.py` y leer cada archivo con Read, porque Grep no admite clases de caracteres como `\\s` o `.*`.",
+        "Escapar el `@` como `\\@`, porque ripgrep lo trata como metacaracter y descarta el patrón sin devolver ningún aviso."
+      ],
+      "correct": 0,
+      "why_correct": "Grep matchea por defecto dentro de una sola línea. El patrón pide que el decorador y el `def` estén juntos, pero en el código están en líneas distintas. Con `multiline: true` el patrón puede cruzar el salto de línea.",
+      "why_wrong": {
+        "1": "El modo de salida cambia qué se devuelve (rutas, líneas o conteo), no cómo se evalúa el patrón. Con `content` sigue sin matchear.",
+        "2": "Grep usa la sintaxis regex de ripgrep, que soporta `\\s` y `.*`. Leer todos los archivos llena el contexto sin necesidad.",
+        "3": "`@` no es metacaracter en regex. Además, un patrón que ripgrep rechaza vuelve con un error con su diagnóstico, no en silencio."
+      },
+      "rule": "Patrón que tiene que cruzar líneas → Grep con `multiline: true`.",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "By default, patterns match within a single line. Claude can set `multiline: true` to match across line boundaries.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o32-s03",
+      "objective": 32,
+      "pool": "sim",
+      "scenario": "El equipo de datos de una cadena de supermercados usa Claude Code para depurar un job de ETL. El bug parece estar en los datos: hay que ver las columnas y las primeras filas de `out/ventas_2026_10.parquet`, que pesa 2 GB. Claude llama a Read sobre el archivo y recibe un error que dice que no lee ese tipo de archivo. Diego sugiere reintentar con un rango chico para no traer los 2 GB. En la máquina hay Python con pandas instalado. ¿Qué hace Claude?",
+      "options": [
+        "Reintentar Read con `offset: 1` y `limit: 50`, para leer solo el encabezado del archivo sin pasar el límite de tokens.",
+        "Usar Grep sobre el `.parquet` con el nombre de la columna, para ver las filas que la contienen sin abrir el archivo entero.",
+        "Reintentar Read con `allow_large: true`, para que el archivo entre de una vez dimensionado contra el contexto que queda libre.",
+        "Correr por Bash un script corto de Python que abra el parquet e imprima el schema y las primeras filas de la tabla."
+      ],
+      "correct": 3,
+      "why_correct": "Read rechaza archivos cuya extensión trata como binaria, y `.parquet` está en esa lista. El rechazo es por tipo, no por tamaño. La salida es un comando o script de shell que entienda el formato: con pandas, un script corto por Bash muestra schema y filas.",
+      "why_wrong": {
+        "0": "`offset` y `limit` sirven para paginar texto grande. Un `.parquet` se rechaza por extensión, con o sin rango.",
+        "1": "Parquet es un formato binario y comprimido: buscar texto adentro no devuelve filas legibles ni confiables.",
+        "2": "`allow_large` cambia el tope de tamaño de una lectura de texto, no habilita leer formatos binarios."
+      },
+      "rule": "Read rechaza binarios como `.parquet` o `.xlsx` → leelos con un comando o script por Bash.",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "Read refuses a file whose extension it treats as binary, such as `.xlsx`, `.parquet`, `.heic`, or `.zip`.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o32-s04",
+      "objective": 32,
+      "pool": "sim",
+      "scenario": "Una consultora tiene un agente del Agent SDK que, al cerrar cada tarea, agrega una entrada al final de `CHANGELOG.md`, un archivo con 400 líneas de historia. El agente tiene Read, Write y Edit. Después de una semana el archivo tiene solo la última entrada: se perdió toda la historia. En los logs se ve que, cada vez, el agente llamó a Write con el texto de la entrada nueva. El equipo no quiere que el agente reescriba el archivo entero en cada tarea. ¿Qué corrección aplicás?",
+      "options": [
+        "Seguir con Write y agregar al prompt 'agregá al final, no reemplaces', porque Write tiene un modo append que se activa por instrucción.",
+        "Usar Edit con un `old_string` único que tome el final actual del archivo y un `new_string` con ese mismo texto más la entrada nueva.",
+        "Usar Edit con `replace_all: true` sobre el título `# Changelog`, para que la entrada nueva se agregue en todas las ocurrencias.",
+        "Hacer Read del archivo antes de cada Write, porque Write solo pisa el contenido cuando el archivo no se leyó en la conversación."
+      ],
+      "correct": 1,
+      "why_correct": "Write crea un archivo o sobrescribe el existente con el contenido completo que recibe: no hace append ni merge. Para un cambio parcial se usa Edit, que reemplaza un `old_string` único por un `new_string`. Tomar el final actual y devolverlo con la entrada agregada suma sin tocar el resto.",
+      "why_wrong": {
+        "0": "Write no tiene modo append: siempre deja en el archivo exactamente el contenido que recibe. El prompt no cambia eso.",
+        "2": "`replace_all` reemplaza todas las ocurrencias de un texto; el título aparece una vez y la entrada quedaría arriba, no al final.",
+        "3": "Leer antes es un requisito para poder sobrescribir un archivo existente, no algo que evite la sobrescritura."
+      },
+      "rule": "Write sobrescribe todo; para agregar o cambiar una parte de un archivo, Edit con un `old_string` único.",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "The Write tool creates a new file or overwrites an existing one with the full content provided. It doesn't append or merge.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

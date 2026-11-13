@@ -1,0 +1,125 @@
+{
+  "objective": 19,
+  "questions": [
+    {
+      "id": "o19-s01",
+      "objective": 19,
+      "pool": "sim",
+      "scenario": "Una consultora de energía usa un sistema multi-agente que arma informes sobre el precio del litio. Antes de mandarlos al cliente, un juez LLM puntúa cada informe en 'claridad' y 'cobertura de los temas pedidos', y todos aprueban con 0,9 o más. Pero el cliente detecta que un informe dice 'el consenso del mercado es USD 14.000/t' cuando las fuentes citadas daban 9.000 y 21.000, y que otro le atribuye a un PDF algo que el PDF no dice. El equipo no puede revisar a mano los 300 informes por mes. ¿Qué cambiás en la evaluación?",
+      "options": [
+        "Subir el umbral de aprobación a 0,95 en claridad y cobertura, para que solo lleguen al cliente los informes mejor puntuados.",
+        "Sumar al rubric del juez exactitud factual (¿las afirmaciones coinciden con las fuentes?) y de citas (¿la fuente citada dice eso?).",
+        "Reemplazar el juez por un chequeo que confirme que cada párrafo tenga al menos una cita, sin revisar qué dice esa cita.",
+        "Que el sintetizador le ponga a cada informe su propia nota de confianza de 0 a 1 y publicar solo los que tengan 0,8 o más."
+      ],
+      "correct": 1,
+      "why_correct": "Los dos errores (un 'consenso' inventado y una cita mal atribuida) son de fidelidad a las fuentes, y el rubric actual no los mide. Anthropic evalúa su sistema de research con un juez LLM que mira, entre otras cosas, exactitud factual y exactitud de citas. Eso escala sin revisar todo a mano.",
+      "why_wrong": {
+        "0": "Subir el umbral sobre criterios que no miden fidelidad no atrapa estos errores: los informes malos ya sacaban 0,9.",
+        "2": "Contar citas no verifica que la cita respalde la afirmación; el caso del PDF mal atribuido pasaría igual.",
+        "3": "Una nota que el mismo modelo se pone no es una medición independiente; no hay base en la doc para usarla como filtro."
+      },
+      "rule": "Si el riesgo es colapsar o atribuir mal, el rubric tiene que medir afirmación vs. fuente y cita vs. afirmación.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "factual accuracy (do claims match sources?), citation accuracy (do the cited sources match the claims?)",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o19-s02",
+      "objective": 19,
+      "pool": "sim",
+      "scenario": "Un banco arma con la Messages API una síntesis de riesgo crediticio a partir de 8 informes de calificadoras. Compliance exige que cada afirmación tenga una cita generada por la API, no copiada por el modelo, así que activaron `citations: {\"enabled\": true}` en cada document block. Para que el front consuma el resultado, además agregaron `output_config.format` con un JSON schema del informe. Desde ese cambio, todas las requests devuelven 400. ¿Cuál es el fix?",
+      "options": [
+        "Dejar `output_config.format`, desactivar citations y pedir que cada campo del JSON incluya la frase textual del informe entre comillas.",
+        "Simplificar el schema (menos campos opcionales), porque el 400 viene del límite de complejidad del schema combinado con documentos.",
+        "Sacar `output_config.format`, dejar las citas activas y pedir una línea por afirmación ('campo: valor') que tu código parsea a JSON.",
+        "Pasar los informes como bloques `search_result` en vez de `document`, porque esos bloques sí se combinan con structured outputs."
+      ],
+      "correct": 2,
+      "why_correct": "Citations y structured outputs son incompatibles: con citas activas en cualquier documento y `output_config.format`, la API devuelve 400. La doc propone pedir una línea por campo, mantener las citas y parsear las líneas en tu código. Así cada valor conserva su cita de la API.",
+      "why_wrong": {
+        "0": "Volvés a citas copiadas por el modelo, que es justo lo que compliance no acepta: pueden venir parafraseadas.",
+        "1": "El 400 no es por complejidad: aparece con cualquier schema mientras haya citas activas en algún documento.",
+        "3": "La incompatibilidad aplica también a los bloques `search_result` con citas activas: el 400 sigue."
+      },
+      "rule": "Citations + `output_config.format` = 400. Para estructura con citas: una línea por campo y parseo propio.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/citations",
+      "source_quote": "If you enable citations on any user-provided document (`document` blocks or `search_result` blocks) and also include the `output_config.format` parameter (or the deprecated `output_format` parameter), the API returns a 400 error.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o19-s03",
+      "objective": 19,
+      "pool": "sim",
+      "scenario": "Una aseguradora tiene un asistente RAG para sus analistas: el buscador trae 15 fragmentos de manuales y circulares internas, y el código los concatena como texto plano en el mensaje del usuario. Cuando dos circulares se contradicen sobre una cobertura, la respuesta da una sola versión como si fuera la única y, si el analista pregunta de dónde salió, el modelo nombra una circular equivocada. Quieren que cada afirmación quede atribuida a su fragmento y su origen, sin escribir lógica de citas propia. ¿Qué cambiás?",
+      "options": [
+        "Pasar cada fragmento como bloque `search_result` con su `source` y `title`, y `citations` activado, para que cada cita vuelva con su origen.",
+        "Pedir en el system prompt que cierre cada oración con el nombre de la circular entre corchetes, y validar ese formato con una regex.",
+        "Concatenar los fragmentos ordenados por fecha de la circular, para que ante una contradicción el modelo use siempre la más nueva.",
+        "Subir de 15 a 40 fragmentos por pregunta, para que el modelo tenga contexto suficiente para reconocer la fuente correcta."
+      ],
+      "correct": 0,
+      "why_correct": "Los bloques `search_result` permiten que Claude cite tu contenido como cita resultados web: cada cita lleva el `source` y el `title` que vos pusiste. Con atribución por fragmento, ante dos circulares en conflicto se ve qué dice cada una en vez de una versión anónima.",
+      "why_wrong": {
+        "1": "El modelo escribe el nombre de la circular de memoria; la regex chequea el formato, no que la atribución sea real.",
+        "2": "Elegir siempre la más nueva colapsa el conflicto en vez de mostrarlo, y no resuelve la atribución equivocada.",
+        "3": "Más fragmentos sin estructura de fuente suman ruido y no le dan al modelo una forma confiable de atribuir."
+      },
+      "rule": "RAG con atribución confiable → fragmentos como `search_result` con `source`/`title` y citas activas.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/search-results",
+      "source_quote": "Search result content blocks let Claude cite your own content the same way it cites web search results: each citation carries the source and title you provided.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o19-s04",
+      "objective": 19,
+      "pool": "sim",
+      "scenario": "Un think tank usa un agente de research para un informe sobre trabajo informal en la región. El prompt dice solo 'investigá y resumí los datos clave'. El borrador presenta como hallazgos firmes cifras que salen de una única nota periodística, con el mismo tono que datos que repiten la oficina de estadística y dos papers. Los editores no quieren que el agente deje de usar notas periodísticas, pero sí que se distinga lo que está respaldado de lo que no. ¿Qué agregás al prompt?",
+      "options": [
+        "Que use solo fuentes académicas y descarte todo dato periodístico, para que lo que quede en el informe sea confiable por definición.",
+        "Que escriba todo el informe en tono prudente ('podría', 'sería'), así ningún dato queda sobreafirmado frente a los demás.",
+        "Que promedie las cifras cuando haya más de una fuente y que use la única disponible cuando el dato tenga una sola fuente.",
+        "Criterios de éxito claros y que verifique cada dato en varias fuentes, marcando aparte los que dependen de una sola fuente."
+      ],
+      "correct": 3,
+      "why_correct": "La guía de prompting para research recomienda definir qué es una respuesta exitosa y pedirle a Claude que verifique la información en varias fuentes. Con eso el informe puede separar lo corroborado de lo que se apoya en una sola nota, sin descartar esa nota.",
+      "why_wrong": {
+        "0": "Contradice el pedido de los editores y tira información útil; el problema es el rótulo, no la fuente.",
+        "1": "Bajar el tono de todo también borra la diferencia: lo bien respaldado queda igual de dudoso que lo débil.",
+        "2": "Promediar colapsa datos distintos en un número que ninguna fuente dice, y la fuente única sigue sin marca."
+      },
+      "rule": "Para no aplanar la certeza: criterios de éxito + verificación cruzada + marcar lo de fuente única.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Ask Claude to verify information across multiple sources.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o19-s05",
+      "objective": 19,
+      "pool": "sim",
+      "scenario": "Un laboratorio farmacéutico genera con Claude síntesis de literatura sobre interacciones de medicamentos para su equipo médico. Ya aplicaron todo lo recomendado: permiso para decir 'no tengo información suficiente', citas por afirmación, una verificación posterior que retira lo que no tiene cita y restricción a los documentos provistos. Los errores bajaron mucho. El gerente propone dejar de pasar las síntesis por un farmacéutico antes de usarlas en recomendaciones de dosis, 'porque ya no alucina'. ¿Qué le respondés?",
+      "options": [
+        "Que se puede sacar la revisión si se fija `temperature: 0`, porque así las afirmaciones citadas pasan a ser deterministas.",
+        "Que estas técnicas reducen las alucinaciones pero no las eliminan; en decisiones de alto riesgo como dosis, la validación humana sigue.",
+        "Que alcanza con revisar a mano una muestra al azar del 2%, porque con citas activadas los errores pasan a ser despreciables.",
+        "Que se puede sacar si cada síntesis se genera tres veces y se publica la versión más larga, que suele ser la más completa."
+      ],
+      "correct": 1,
+      "why_correct": "La doc es explícita: las técnicas reducen mucho las alucinaciones, pero no las eliminan, y la información crítica hay que validarla, sobre todo en decisiones de alto riesgo. Una recomendación de dosis es exactamente ese caso.",
+      "why_wrong": {
+        "0": "La temperatura no garantiza que lo que se afirma sea correcto ni que esté en las fuentes.",
+        "2": "Una muestra al azar mira pocos casos de alto riesgo; con dosis, un error que pasa es grave.",
+        "3": "Correr varias veces sirve para comparar e identificar inconsistencias, no para elegir la versión más larga como buena."
+      },
+      "rule": "Ninguna técnica anti-alucinación elimina el riesgo: lo crítico y de alto impacto se valida con humanos.",
+      "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
+      "source_quote": "Remember, although these techniques significantly reduce hallucinations, they don’t eliminate them entirely. Always validate critical information, especially for high-stakes decisions.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}
