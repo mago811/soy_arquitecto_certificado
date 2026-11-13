@@ -1,0 +1,101 @@
+{
+ "objective": 36,
+ "questions": [
+  {
+   "id": "o36-s01",
+   "objective": 36,
+   "pool": "sim",
+   "scenario": "Un e-commerce tiene en su server MCP `cancel_order` (\"Cancels an order.\") y `refund_order` (\"Refunds an order.\"). Cancelar solo se puede antes del despacho; después, lo que corresponde es un reembolso. Cuando un cliente dice \"ya me llegó y no lo quiero\", Claude llama `cancel_order`, el backend rechaza y el agente se traba. Por auditoría, las dos tools tienen que seguir separadas. ¿Qué cambio ataca la causa?",
+   "options": [
+    "Unificarlas en una tool `order_action` con un parámetro `action`, para reducir la ambigüedad al elegir.",
+    "Agregar al system prompt \"si el pedido ya fue entregado, usá refund_order\" y dejar las descripciones como están.",
+    "Renombrarlas con prefijo de servicio, como `orders_cancel` y `orders_refund`, para desambiguar la selección.",
+    "Reescribir cada descripción: qué hace, cuándo sí y cuándo no (antes o después del despacho) y cuál usar si no."
+   ],
+   "correct": 3,
+   "why_correct": "Claude elige tools por su descripción, y la doc dice que es el factor más importante. Una línea no dice cuándo usarla ni cuándo no. Si cada descripción marca el límite (antes o después del despacho) y nombra la alternativa, Claude puede elegir bien.",
+   "why_wrong": {
+    "0": "Consolidar es una buena práctica en otros casos, pero acá viola la restricción de auditoría: tienen que seguir separadas.",
+    "1": "Ayuda, pero deja la causa (descripciones vacías) y reparte la info entre el prompt y las tools.",
+    "2": "Las dos son del mismo servicio: el prefijo no agrega información para distinguirlas."
+   },
+   "rule": "Tools parecidas → cada descripción dice cuándo SÍ, cuándo NO y cuál usar en su lugar.",
+   "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+   "source_quote": "Provide extremely detailed descriptions. This is by far the most important factor in tool performance.",
+   "status": "no_verificado",
+   "verification": null
+  },
+  {
+   "id": "o36-s02",
+   "objective": 36,
+   "pool": "sim",
+   "scenario": "Una empresa usa Claude Code con unos 200 tools MCP y tool search activado. Su tool de reembolsos tiene una descripción de 9.000 caracteres: los primeros 5.000 son contexto legal e historia del sistema, y recién después dice que procesa reembolsos de tarjetas. Cuando un usuario pide \"reembolsá el cargo duplicado\", Claude nunca encuentra esa tool. No quieren perder el detalle legal. ¿Qué cambian?",
+   "options": [
+    "Reducir la descripción a una línea, \"Procesa reembolsos.\", para que entre seguro en el límite de búsqueda.",
+    "Poner al principio qué hace la tool y las palabras con que se la buscaría, y dejar el detalle legal para después.",
+    "Marcarla para que cargue de entrada (sin diferir), así está siempre en contexto con su descripción completa.",
+    "Repetir \"reembolso\" en el nombre y en cada parámetro, porque la búsqueda solo compara nombres de tools."
+   ],
+   "correct": 1,
+   "why_correct": "Cuando tool search compara el pedido con la descripción, lee solo lo que entra en el límite más corto. Si lo importante está después del texto legal, no lo ve. La doc pide poner primero lo crítico y las palabras con que se buscaría la tool. El detalle legal puede seguir, más abajo.",
+   "why_wrong": {
+    "0": "Pierde el detalle que quieren conservar y va contra la recomendación de descripciones detalladas.",
+    "2": "Una tool que carga de entrada tiene el límite corto (4.096 caracteres): Claude vería solo texto legal.",
+    "3": "Tool search compara contra la descripción, no solo contra el nombre."
+   },
+   "rule": "Tool search lee el principio de la descripción: lo que hace la tool y sus palabras clave, arriba.",
+   "source_url": "https://code.claude.com/docs/en/mcp",
+   "source_quote": "When tool search matches Claude's query against a tool's description, it reads only the part within the shorter limit, so put the words Claude would search for near the start too.",
+   "status": "no_verificado",
+   "verification": null
+  },
+  {
+   "id": "o36-s03",
+   "objective": 36,
+   "pool": "sim",
+   "scenario": "Una empresa publicó un server MCP de facturación electrónica con 30 tools bien descriptas. Sus clientes lo usan en Claude Code con tool search activado. Reportan que, ante pedidos como \"emití la nota de crédito de la factura 1520\", Claude a veces contesta que no tiene cómo hacerlo, sin buscar ninguna tool del server. Al arrancar la sesión, de ese server solo se cargan los nombres de las tools. ¿Qué agregan al server?",
+   "options": [
+    "Server instructions: qué tipo de tareas resuelven sus tools, cuándo buscarlas y qué capacidades tienen.",
+    "Un prompt de MCP `ayuda` que liste las 30 tools, para que Claude lo invoque al arrancar cada sesión.",
+    "Un resource con el catálogo completo de tools, para que Claude lo lea antes de cada pedido de facturación.",
+    "Descripciones de tools mucho más largas, para que la búsqueda tenga más texto contra el cual comparar."
+   ],
+   "correct": 0,
+   "why_correct": "Con tool search, al arrancar solo se cargan los nombres de las tools y las server instructions. Las instructions le dicen a Claude cuándo buscar las tools del server, como las descripciones de las skills. Si faltan, Claude no sabe que existe una tool para \"notas de crédito\".",
+   "why_wrong": {
+    "1": "Los prompts de MCP los invoca el usuario; Claude no los corre solo al arrancar.",
+    "2": "Claude tendría que decidir leerlo, y el problema es justamente que no sabe que el server sirve para esto.",
+    "3": "Las descripciones ya están bien. Si Claude no inicia una búsqueda, alargarlas no cambia nada, y la búsqueda solo lee el principio."
+   },
+   "rule": "Con tool search, las server instructions le dicen a Claude cuándo buscar tus tools.",
+   "source_url": "https://code.claude.com/docs/en/mcp",
+   "source_quote": "Server instructions help Claude understand when to search for your tools, similar to how skills work.",
+   "status": "no_verificado",
+   "verification": null
+  },
+  {
+   "id": "o36-s04",
+   "objective": 36,
+   "pool": "sim",
+   "scenario": "Un SaaS de cobranzas tiene `get_invoice(id)` y `get_payment(id)` en su server MCP; en los dos casos `id` es un string sin descripción. Las facturas tienen formato `INV-000123` y los pagos `PAY-000123`, pero los usuarios suelen decir \"la 123\". Claude pasa números de factura a `get_payment` y al revés. Los nombres de las tools y su forma no se pueden cambiar, porque otros clientes ya las usan. ¿Qué hacen?",
+   "options": [
+    "Consolidarlas en `get_record(type, id)`, porque menos tools reducen la ambigüedad a la hora de elegir.",
+    "Forzar `tool_choice` a `get_invoice` cada vez que el mensaje del usuario mencione la palabra \"factura\".",
+    "Describir cada tool y su `id`: formato esperado, qué ID recibe y que para el otro tipo va la otra tool.",
+    "Agregar un `enum` con todos los IDs válidos en cada schema, para que Claude no pueda mandar uno equivocado."
+   ],
+   "correct": 2,
+   "why_correct": "La doc pide que la descripción explique qué significa cada parámetro y cuándo usar (y no usar) la tool. Con el formato de cada ID y la referencia a la otra tool, Claude puede mapear \"la 123\" a la tool correcta, o preguntar cuál es, sin tocar nombres ni forma.",
+   "why_wrong": {
+    "0": "Cambia la forma de las tools, y la restricción lo prohíbe.",
+    "1": "Es lógica frágil por palabra clave, y forzar no funciona en modelos como Opus 5.5 o Sonnet 5.5 (devuelven 400). No arregla la causa.",
+    "3": "Un `enum` con todos los IDs de facturas y pagos es inmanejable y cambia todo el tiempo."
+   },
+   "rule": "IDs que se confunden entre tools → describí el formato del parámetro y qué tool corresponde a cada tipo.",
+   "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+   "source_quote": "What each parameter means and how it affects the tool's behavior",
+   "status": "no_verificado",
+   "verification": null
+  }
+ ]
+}

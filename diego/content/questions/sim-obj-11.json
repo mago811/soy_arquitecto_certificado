@@ -1,0 +1,125 @@
+{
+ "objective": 11,
+ "questions": [
+  {
+   "id": "o11-s01",
+   "objective": 11,
+   "pool": "sim",
+   "scenario": "Un e-commerce corre cada noche `claude -p \"Aplicá los parches de seguridad de dependencias y corré los tests\" --max-turns 3 --output-format json`. El flujo esperado son exactamente tres turnos con tools: leer el lockfile, actualizar y correr los tests. Las corridas hacen los tres pasos, pero terminan con `subtype: error_max_turns`, sin `result`, y el job falla aunque los tests pasaron. No quieren habilitar corridas mucho más largas. ¿Cuál es el fix?",
+   "options": [
+    "Reemplazar `--max-turns 3` por `--max-budget-usd 1.00`, porque el tope de turnos también cuenta los de los subagentes.",
+    "Agregar `--permission-mode dontAsk` para que Claude no gaste turnos esperando aprobaciones que nadie va a dar.",
+    "Subir a `--max-turns 4`: se cuenta cada turno con tools más uno para la respuesta final de solo texto.",
+    "Leer `.result` aunque el subtype sea de error, porque el texto final siempre viene incluido en el JSON."
+   ],
+   "correct": 2,
+   "why_correct": "El tope cuenta cada turno con tool calls y, además, el turno final de texto. Con 3, la corrida se corta justo antes de responder: subtype `error_max_turns` y sin respuesta final. Con 4 entra el flujo completo sin abrir la puerta a corridas largas.",
+   "why_wrong": {
+    "0": "Cambiar a un tope de gasto saca el límite de turnos, que es lo que querían conservar. Y el diagnóstico de los subagentes no explica el síntoma.",
+    "1": "No hay esperas de aprobación en el síntoma: los tres pasos se ejecutaron. Falta el turno de la respuesta final.",
+    "3": "`result` solo viene en la variante `success`. En `error_max_turns` no hay respuesta final que leer."
+   },
+   "rule": "`--max-turns` = turnos con tools + 1 para la respuesta final.",
+   "source_url": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
+   "source_quote": "Count each turn with tool calls, plus one for the final text-only response. Without that extra turn, the run ends with a ResultMessage of subtype error_max_turns and no final response.",
+   "status": "no_verificado",
+   "verification": null
+  },
+  {
+   "id": "o11-s02",
+   "objective": 11,
+   "pool": "sim",
+   "scenario": "En una consultora, el job de CI que escribe las notas de release corría `claude -p` usando la sesión de suscripción que alguien dejó logueada en el runner. Para que la corrida sea igual en todos los runners agregaron `--bare`. Desde ese cambio, el job falla de entrada por autenticación, aunque nadie tocó el runner ni la cuenta. Quieren mantener `--bare`. ¿Qué tienen que hacer?",
+   "options": [
+    "Setear `ANTHROPIC_API_KEY` en el entorno del job, porque el modo bare no usa el login de la suscripción.",
+    "Volver a loguearse en el runner con `claude` interactivo, para refrescar la sesión que lee el modo bare.",
+    "Pasar con `--settings` la ruta del archivo de credenciales, porque bare solo desactiva la autodetección.",
+    "Agregar `--setting-sources user`, para que `--bare` vuelva a cargar la autenticación de ese usuario."
+   ],
+   "correct": 0,
+   "why_correct": "El modo bare no usa el login de suscripción. La doc indica setear `ANTHROPIC_API_KEY` antes de correrlo. Además, en CI la key va como secreto del pipeline, no en el repo.",
+   "why_wrong": {
+    "1": "El problema no es una sesión vencida: bare directamente no usa ese login. Refrescarlo no cambia nada.",
+    "2": "`--settings` carga un archivo de settings, no credenciales de suscripción. No hay forma documentada de que bare use ese login.",
+    "3": "`--setting-sources` elige qué archivos de settings se cargan. No hace que bare use la suscripción."
+   },
+   "rule": "`--bare` en CI → autenticá con `ANTHROPIC_API_KEY`.",
+   "source_url": "https://code.claude.com/docs/en/headless",
+   "source_quote": "Set ANTHROPIC_API_KEY before running it, because bare mode doesn't use your subscription login",
+   "status": "no_verificado",
+   "verification": null
+  },
+  {
+   "id": "o11-s03",
+   "objective": 11,
+   "pool": "sim",
+   "scenario": "Un proyecto open source corre `claude -p \"Resumí este PR\"` en un runner, sobre el checkout de cada pull request, incluidos los que vienen de forks. Un auditor demuestra que un PR malicioso podría agregar un `.claude/settings.json` con un hook y un `.mcp.json` con un servidor propio, y que la corrida los ejecutaría. El equipo creía que el diálogo de confianza del workspace los protegía. Quieren seguir usando `-p`. ¿Qué cambio cierra el hueco?",
+   "options": [
+    "Agregar `--permission-mode plan`: en plan mode no se ejecutan hooks ni servidores MCP definidos por el proyecto.",
+    "Agregar `--allowedTools \"Read\"`: los hooks solo corren cuando la tool a la que están asociados está pre-aprobada.",
+    "Nada: en `-p` se muestra igual el diálogo de confianza y, como nadie lo acepta, esa configuración no se carga.",
+    "Correr con `--bare`, que saltea la autodetección de hooks, servidores MCP y demás configuración del proyecto."
+   ],
+   "correct": 3,
+   "why_correct": "Sin `--bare`, una sesión `-p` corre los hooks de `.claude/settings.json` y conecta los servers de `.mcp.json` aunque la carpeta nunca haya sido aceptada: en `-p` no hay diálogo de confianza. `--bare` saltea toda esa autodetección.",
+   "why_wrong": {
+    "0": "Plan mode limita ediciones, no la carga de hooks ni la conexión de servidores MCP del proyecto.",
+    "1": "`--allowedTools` pre-aprueba tools. No decide si se cargan los hooks del proyecto.",
+    "2": "Es justo al revés: `-p` no muestra diálogo de confianza ni pide aprobar servers, y carga esa configuración."
+   },
+   "rule": "`-p` sobre código no confiable → `--bare`: en `-p` no hay diálogo de confianza.",
+   "source_url": "https://code.claude.com/docs/en/headless",
+   "source_quote": "Without --bare, a -p session runs the hooks in a project's .claude/settings.json and connects the servers in its .mcp.json, even in a folder you've never trusted.",
+   "status": "no_verificado",
+   "verification": null
+  },
+  {
+   "id": "o11-s04",
+   "objective": 11,
+   "pool": "sim",
+   "scenario": "Un equipo usa la GitHub Action de Claude con `claude_args: \"--max-turns 10 --max-budget-usd 3\"`. Una corrida quedó colgada casi seis horas: en su segundo turno Claude levantó el servidor de desarrollo con `npm run dev` y el job nunca terminó. El gasto en tokens fue bajo, pero se consumieron muchos minutos de Actions. Quieren cortar este tipo de corridas. ¿Qué agregan?",
+   "options": [
+    "Bajar `--max-turns` a 3, para que la corrida se corte antes de llegar al turno que levanta el servidor.",
+    "Un timeout a nivel workflow en el YAML: los topes de turnos y gasto no cortan un turno colgado.",
+    "Bajar `--max-budget-usd` a 0.50, porque el tope de gasto también tiene en cuenta cuánto dura cada turno.",
+    "Usar `--output-format stream-json`, para que la Action detecte que no llegan eventos y corte la corrida."
+   ],
+   "correct": 1,
+   "why_correct": "`--max-turns` y `--max-budget-usd` se evalúan turno a turno y por tokens. Un comando que no termina no consume turnos ni tokens, así que ninguno de los dos lo corta. La doc de la Action recomienda timeouts a nivel workflow para evitar jobs desbocados.",
+   "why_wrong": {
+    "0": "El servidor se levantó en el turno 2: con un tope de 3 la corrida se cuelga igual.",
+    "2": "El tope de gasto mide costo estimado de tokens, no tiempo. Una corrida colgada casi no gasta tokens.",
+    "3": "`stream-json` cambia el formato de salida. No tiene ningún mecanismo para cortar la corrida."
+   },
+   "rule": "Turnos y presupuesto cortan corridas largas; un comando colgado lo corta el timeout del workflow.",
+   "source_url": "https://code.claude.com/docs/en/github-actions",
+   "source_quote": "Set workflow-level timeouts to avoid runaway jobs",
+   "status": "no_verificado",
+   "verification": null
+  },
+  {
+   "id": "o11-s05",
+   "objective": 11,
+   "pool": "sim",
+   "scenario": "Una empresa corre Claude Code en un contenedor efímero y aislado que genera y aplica migraciones, con `--permission-mode bypassPermissions` para que nada frene la corrida. La corrida necesita `Bash` para ejecutar las migraciones. Seguridad agrega un requisito: Claude nunca puede ejecutar `git push`, porque el contenedor tiene credenciales de escritura al repo. No quieren perder el modo sin prompts. ¿Qué configuración cumple todo?",
+   "options": [
+    "Agregar `--disallowedTools \"Bash\"`, que saca Bash del contexto y así no hay forma de que se ejecute un push.",
+    "Pasar `--allowedTools` con todos los comandos permitidos menos `git push`: en bypass solo corre lo que está listado.",
+    "Mantener bypass y sumar el deny `Bash(git push *)`: las reglas deny bloquean en todos los modos.",
+    "Escribir en el prompt \"nunca hagas git push\": en bypass no se evalúa ninguna regla, así que solo queda la instrucción."
+   ],
+   "correct": 2,
+   "why_correct": "Las reglas deny se aplican en todos los modos, incluido `bypassPermissions`. La corrida sigue sin prompts y Claude Code bloquea cualquier `git push` que intente.",
+   "why_wrong": {
+    "0": "Saca Bash entero, y la corrida necesita Bash para las migraciones. Rompe el job para resolver un solo comando.",
+    "1": "En bypass, las reglas allow no tienen efecto: todo corre igual. Esa lista no bloquearía el push.",
+    "3": "Es falso que en bypass no se evalúen reglas: los deny sí se aplican. Y una instrucción en el prompt no garantiza nada."
+   },
+   "rule": "Bypass no saltea los deny: ahí va lo que no puede pasar nunca.",
+   "source_url": "https://code.claude.com/docs/en/permission-modes",
+   "source_quote": "Deny rules block in every mode, including bypassPermissions.",
+   "status": "no_verificado",
+   "verification": null
+  }
+ ]
+}

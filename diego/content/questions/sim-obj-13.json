@@ -1,0 +1,125 @@
+{
+ "objective": 13,
+ "questions": [
+  {
+   "id": "o13-s01",
+   "objective": 13,
+   "pool": "sim",
+   "scenario": "Una aseguradora corre un reviewer en CI con `claude -p ... --tools \"Read,Grep,Glob\"` para que solo pueda leer. El repo tiene un `.mcp.json` con el servidor de Jira que el equipo usa a diario. En varias corridas, el reviewer creó tickets y comentó en Jira por su cuenta. Quieren que el reviewer no tenga ninguna tool MCP, sin tocar el `.mcp.json`. ¿Qué agregan a la invocación?",
+   "options": [
+    "`--allowedTools \"Read,Grep,Glob\"`, que convierte esa lista en la única disponible, tools MCP incluidas.",
+    "`--bare`, que deja afuera las tools MCP y mantiene cargado el CLAUDE.md con los criterios de la review.",
+    "`--tools \"\"` antes de la lista, para vaciar primero el set y que después entren solo las tres de lectura.",
+    "`--disallowedTools \"mcp__*\"`, porque `--tools` no afecta a las tools MCP y ese patrón las saca todas."
+   ],
+   "correct": 3,
+   "why_correct": "`--tools` restringe solo las tools built-in; no toca las MCP. La doc lo dice explícitamente y propone `--disallowedTools \"mcp__*\"` para sacarlas también. El `.mcp.json` queda intacto para el uso diario.",
+   "why_wrong": {
+    "0": "`--allowedTools` pre-aprueba tools para que no pidan permiso. No limita qué tools existen en la sesión.",
+    "1": "`--bare` sí saltea los servers MCP, pero también saltea CLAUDE.md. La review perdería los criterios del repo.",
+    "2": "`--tools` se pasa una vez con la lista final; igual no tocaría las tools MCP, que es el problema."
+   },
+   "rule": "`--tools` limita built-ins; para MCP: `--disallowedTools \"mcp__*\"`.",
+   "source_url": "https://code.claude.com/docs/en/cli-reference",
+   "source_quote": "The flag doesn't affect MCP tools; to deny those too, use --disallowedTools \"mcp__*\".",
+   "status": "no_verificado",
+   "verification": null
+  },
+  {
+   "id": "o13-s02",
+   "objective": 13,
+   "pool": "sim",
+   "scenario": "Un bot de una fintech lee la review de `claude -p --output-format json --json-schema schema.json` y arma un link a cada archivo con hallazgos. El schema declara `\"url\": {\"type\": \"string\", \"format\": \"uri\"}`. Casi siempre anda, pero a veces llega `\"url\": \"src/pagos/api.ts línea 40\"` y el bot se cae. El equipo asumía que `--json-schema` garantizaba ese formato. ¿Qué corresponde?",
+   "options": [
+    "Validar el campo en el bot antes de usarlo: Claude Code toma `format` como anotación y no lo valida.",
+    "Cambiar a `--output-format stream-json`, que valida `format` evento por evento antes de emitir el resultado.",
+    "Subir `--max-turns`, porque Claude Code reintenta hasta cumplir el `format` y a veces se queda sin turnos.",
+    "Pasar el schema con `--append-system-prompt`, que hace cumplir el formato con más fuerza que `--json-schema`."
+   ],
+   "correct": 0,
+   "why_correct": "Claude Code acepta schemas con `format` (como `uri` o `email`), pero lo trata como anotación y no lo valida. El tipo y la estructura sí se cumplen; el formato del string lo tiene que validar el paso siguiente.",
+   "why_wrong": {
+    "1": "`stream-json` cambia cómo se emite la salida. No agrega validación de `format`.",
+    "2": "No hay reintentos por `format`, porque no se valida. Más turnos no cambian nada.",
+    "3": "Un texto en el system prompt es guía, no validación. Y se perdería la salida en `structured_output`."
+   },
+   "rule": "`--json-schema` no hace cumplir `format`: validalo vos.",
+   "source_url": "https://code.claude.com/docs/en/headless",
+   "source_quote": "Claude Code accepts schemas that use the format keyword, such as \"format\": \"email\", but treats format as an annotation and doesn't enforce it.",
+   "status": "no_verificado",
+   "verification": null
+  },
+  {
+   "id": "o13-s03",
+   "objective": 13,
+   "pool": "sim",
+   "scenario": "Una empresa de logística programó un workflow nocturno con la GitHub Action de Claude y este input: `prompt: \"Corré npm audit, analizá las vulnerabilidades y abrí un issue con el resumen\"`. La corrida termina en verde, pero el log muestra que Claude no pudo ejecutar ningún comando ni crear el issue. Seguridad exige darle a la corrida solo lo que esa tarea necesita. ¿Qué cambian?",
+   "options": [
+    "Nada de permisos: alcanza con pasar las instrucciones a un `CLAUDE.md`, que la Action lee en cada corrida.",
+    "Agregar `--permission-mode bypassPermissions` en `claude_args`, porque el runner de Actions ya es un entorno aislado.",
+    "Dar con `--allowedTools` en `claude_args` solo `Bash(npm audit *)` y `Bash(gh issue create *)`.",
+    "Agregar `--comment` al prompt, que habilita la shell y la API de GitHub para publicar los resultados."
+   ],
+   "correct": 2,
+   "why_correct": "Con un prompt de texto plano, Claude no tiene shell ni acceso a la API de GitHub hasta que le das las tools que necesita, con `--allowedTools` en `claude_args` (o una regla `permissions.allow`). Dar solo esos dos comandos cumple con el mínimo privilegio.",
+   "why_wrong": {
+    "0": "CLAUDE.md da contexto, no permisos. Claude seguiría sin poder ejecutar comandos.",
+    "1": "Bypass habilita todo: va contra el pedido de seguridad de dar solo lo necesario.",
+    "3": "`--comment` es un argumento del skill de code review para publicar la review en el PR. No da acceso a shell."
+   },
+   "rule": "En la Action con prompt de texto: sin `--allowedTools`, Claude no tiene shell ni API de GitHub.",
+   "source_url": "https://code.claude.com/docs/en/github-actions",
+   "source_quote": "For a plain-text prompt, Claude has no shell or GitHub API access until you grant the tools the prompt needs, with --allowedTools in claude_args or a permissions.allow rule in the settings input.",
+   "status": "no_verificado",
+   "verification": null
+  },
+  {
+   "id": "o13-s04",
+   "objective": 13,
+   "pool": "sim",
+   "scenario": "Un equipo armó la review de PRs con la GitHub Action y el plugin `code-review`: `prompt: \"/code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }}\"`, más la línea `claude_args` que habilita la tool de comentarios inline. Los permisos del workflow son los del ejemplo oficial. La corrida termina bien y el log muestra hallazgos reales, pero en el PR no aparece ningún comentario. ¿Qué falta?",
+   "options": [
+    "Cambiar `pull-requests: read` por `write` en `permissions`, porque la tool inline no puede publicar sin eso.",
+    "Agregar `--comment` al prompt: sin ese argumento Claude no publica nada y los hallazgos quedan en el log.",
+    "Sacar la línea `claude_args`, porque el skill ya declara la tool y la duplicación la deja desactivada.",
+    "Pedir salida estructurada con `--json-schema`, porque los comentarios inline se arman desde `structured_output`."
+   ],
+   "correct": 1,
+   "why_correct": "`--comment` es lo que hace que Claude publique la review en el PR, como comentarios inline o un resumen. Sin ese argumento no publica nada y los hallazgos solo se ven en el log del workflow, que es justo el síntoma.",
+   "why_wrong": {
+    "0": "El ejemplo oficial usa esos permisos y funciona. El síntoma (todo en el log) coincide con que falta `--comment`, no con un error de permisos.",
+    "2": "Es al revés: la Action solo levanta el server de comentarios inline cuando `--allowedTools` en `claude_args` lo nombra. Sacarla rompe más.",
+    "3": "Los comentarios inline los publica la tool MCP de la Action, no se arman desde `structured_output`."
+   },
+   "rule": "Review con el plugin: sin `--comment`, los hallazgos quedan solo en el log.",
+   "source_url": "https://code.claude.com/docs/en/github-actions",
+   "source_quote": "Without it, Claude posts nothing, and you read the findings in the workflow run log.",
+   "status": "no_verificado",
+   "verification": null
+  },
+  {
+   "id": "o13-s05",
+   "objective": 13,
+   "pool": "sim",
+   "scenario": "En una empresa de pagos, el job de review corre `claude -p` con `--append-system-prompt-file ci-rules.txt`. El pipeline genera ese archivo en cada corrida según el tipo de PR, así que esas reglas no pueden vivir en archivos del repo. En PRs grandes, Claude delega el análisis en el subagente `reviewer` de `.claude/agents/`. Los hallazgos de ese subagente ignoran siempre las reglas de `ci-rules.txt`. ¿Qué agregan?",
+   "options": [
+    "`--append-subagent-system-prompt-file ci-rules.txt`, que suma ese texto al system prompt de cada subagente.",
+    "`--system-prompt-file ci-rules.txt`, que reemplaza el prompt principal, y así lo heredan todos los subagentes.",
+    "Un paso que copie las reglas al CLAUDE.md del repo antes de correr, porque los subagentes cargan CLAUDE.md.",
+    "`--setting-sources project`, para que el subagente cargue las mismas instrucciones que la conversación principal."
+   ],
+   "correct": 0,
+   "why_correct": "Un subagente recibe solo su propio system prompt más datos del entorno, no el system prompt de Claude Code. Por eso lo que agregás con `--append-system-prompt-file` no le llega. En `-p`, `--append-subagent-system-prompt-file` agrega el texto al system prompt de cada subagente.",
+   "why_wrong": {
+    "1": "Reemplazar el prompt principal tampoco llega al subagente, y además perdés el comportamiento por defecto de Claude Code.",
+    "2": "Funcionaría técnicamente, pero viola la restricción: las reglas no pueden vivir en archivos del repo.",
+    "3": "`--setting-sources` elige qué archivos de settings cargar. No pasa el texto de `ci-rules.txt` a nadie."
+   },
+   "rule": "Lo que agregás al system prompt principal no llega a los subagentes: usá `--append-subagent-system-prompt(-file)`.",
+   "source_url": "https://code.claude.com/docs/en/sub-agents",
+   "source_quote": "Subagents receive only this system prompt plus basic environment details like the working directory, not the Claude Code system prompt.",
+   "status": "no_verificado",
+   "verification": null
+  }
+ ]
+}

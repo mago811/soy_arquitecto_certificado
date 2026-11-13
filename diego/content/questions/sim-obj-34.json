@@ -1,0 +1,125 @@
+{
+ "objective": 34,
+ "questions": [
+  {
+   "id": "o34-s01",
+   "objective": 34,
+   "pool": "sim",
+   "scenario": "Una aerolínea tiene un asistente interno, con host y cliente MCP propios, que mantiene sesiones largas con los agentes de reservas. Al arrancar, el host lee el resource `policies://equipaje/vigente` y lo incluye como contexto. Cuando Legales cambia la política a mitad del día, el asistente sigue respondiendo con la versión vieja hasta que se reinicia la sesión. El server MCP también es propio. ¿Qué implementan?",
+   "options": [
+    "Que el server declare `listChanged` y emita `notifications/resources/list_changed` cuando cambia la política.",
+    "Convertir la política en una tool `get_baggage_policy`, para que el modelo la consulte cuando lo crea necesario.",
+    "Declarar `subscribe` en el server; el host se suscribe y relee al recibir `notifications/resources/updated`.",
+    "Agregar la annotation `lastModified` al resource, que hace que el cliente lo vuelva a leer cuando cambia."
+   ],
+   "correct": 2,
+   "why_correct": "Las suscripciones sirven para enterarse de cambios en un resource puntual. El server declara `subscribe`, el cliente se suscribe al URI y recibe `notifications/resources/updated` cuando cambia; ahí el host vuelve a leerlo.",
+   "why_wrong": {
+    "0": "`listChanged` avisa cuando cambia la LISTA de resources disponibles, no el contenido de uno que ya existe.",
+    "1": "La consulta queda a criterio del modelo: puede responder con lo que ya tiene en contexto. No garantiza que use la versión nueva.",
+    "3": "`lastModified` es una pista para mostrar u ordenar. No dispara ninguna relectura."
+   },
+   "rule": "Contenido de un resource que cambia → `subscribe` + `notifications/resources/updated`.",
+   "source_url": "https://modelcontextprotocol.io/specification/2025-11-25/server/resources",
+   "source_quote": "Clients can subscribe to specific resources and receive notifications when they change",
+   "status": "no_verificado",
+   "verification": null
+  },
+  {
+   "id": "o34-s02",
+   "objective": 34,
+   "pool": "sim",
+   "scenario": "Un equipo convirtió la tool `search_tickets(query)` de su server MCP de soporte en un resource template `tickets://search/{query}`, con el argumento de que \"es de solo lectura, así que es un resource\". Desde el cambio, en el host que usan (que incluye resources solo cuando la aplicación o el usuario los eligen), el agente ya no busca tickets por su cuenta en medio de una tarea. ¿Qué corresponde?",
+   "options": [
+    "Volver a exponer la búsqueda como tool: las tools las invoca el modelo; los resources los maneja la aplicación.",
+    "Agregar `priority: 1.0` al template, para que el host lo incluya siempre en el contexto del modelo.",
+    "Declarar `listChanged`, así el host le avisa al modelo cada vez que aparecen tickets nuevos para buscar.",
+    "Convertirla en un prompt de MCP con argumento `query`, que el modelo dispara cuando lo necesita."
+   ],
+   "correct": 0,
+   "why_correct": "\"Solo lectura\" no es el criterio. Las tools están pensadas para que el modelo las descubra y las invoque cuando las necesita; los resources los maneja la aplicación. Una búsqueda que el agente decide hacer en medio de la tarea es una tool.",
+   "why_wrong": {
+    "1": "`priority` es una pista para el cliente. Además, un template con `{query}` no tiene un contenido fijo que incluir.",
+    "2": "`listChanged` avisa cambios en la lista de resources. No le da al modelo la capacidad de buscar.",
+    "3": "Los prompts los dispara el usuario, no el modelo."
+   },
+   "rule": "Lo decide el modelo en medio de la tarea → tool. Contexto que elige la app → resource.",
+   "source_url": "https://modelcontextprotocol.io/specification/2025-11-25/server/tools",
+   "source_quote": "Tools in MCP are designed to be model-controlled, meaning that the language model can discover and invoke tools automatically based on its contextual understanding and the user's prompts.",
+   "status": "no_verificado",
+   "verification": null
+  },
+  {
+   "id": "o34-s03",
+   "objective": 34,
+   "pool": "sim",
+   "scenario": "Una universidad expone la documentación de su intranet en un server MCP, como resources con URIs `https://intranet.uni.local/docs/...`. El server lee los documentos por la red interna y anda bien. Pero varios clientes MCP, al ver el esquema `https://`, intentan bajar el contenido directo desde la máquina del usuario y fallan cuando ese usuario no está en la VPN. ¿Qué indica la spec?",
+   "options": [
+    "Mantener `https://` y declarar el `mimeType` correcto, que le indica al cliente que lo pida con `resources/read`.",
+    "Agregar la annotation `audience: [\"assistant\"]`, que obliga al cliente a leerlo a través del server.",
+    "Pasar los documentos a un template `https://intranet.uni.local/docs/{id}` para forzar el uso de `resources/read`.",
+    "Usar un esquema propio, como `docs://`: `https://` va solo si el cliente puede bajarlo por su cuenta."
+   ],
+   "correct": 3,
+   "why_correct": "La spec dice que `https://` se usa solo cuando el cliente puede bajar el resource directo de la web por su cuenta, sin pasar por el server. Si no, conviene otro esquema o uno propio, aunque el server descargue el contenido por internet.",
+   "why_wrong": {
+    "0": "El `mimeType` describe el contenido; no le dice al cliente cómo obtenerlo. El esquema sigue invitando a bajarlo directo.",
+    "1": "`audience` indica para quién es útil el contenido (usuario o modelo), no cómo se lee.",
+    "2": "Sigue siendo `https://`: el problema del esquema no cambia por usar un template."
+   },
+   "rule": "URI `https://` solo si el cliente lo puede bajar solo; si no, esquema propio.",
+   "source_url": "https://modelcontextprotocol.io/specification/2025-11-25/server/resources",
+   "source_quote": "Servers SHOULD use this scheme only when the client is able to fetch and load the resource directly from the web on its own",
+   "status": "no_verificado",
+   "verification": null
+  },
+  {
+   "id": "o34-s04",
+   "objective": 34,
+   "pool": "sim",
+   "scenario": "Un equipo corre Claude Code en modo no interactivo (`claude -p`) en un job nocturno que arma reportes cruzando datos de su server MCP de catálogo. El server expone los schemas de las tablas como resources. Como en el job nadie escribe @-mentions, un dev propone duplicar cada resource como una tool `get_schema_x` \"para que Claude pueda leerlos\". ¿Qué le respondés?",
+   "options": [
+    "Tiene razón: fuera del modo interactivo los resources no son accesibles, solo las tools MCP.",
+    "No hace falta: Claude Code le da tools para listar y leer resources MCP si el server los soporta.",
+    "Hay que pasar los resources con `--mcp-config` como contenido inline, porque en `-p` no se leen del server.",
+    "Conviene crear un prompt de MCP por cada schema, porque en `-p` los prompts se ejecutan solos como comandos."
+   ],
+   "correct": 1,
+   "why_correct": "Las @-mentions son una forma de adjuntar resources, no la única. Claude Code le da a Claude tools para listar y leer resources MCP cuando el server los soporta. Duplicar cada resource como tool agranda la superficie de tools sin necesidad.",
+   "why_wrong": {
+    "0": "Es falso: Claude puede listar y leer resources con las tools que Claude Code agrega, también en `-p`.",
+    "2": "`--mcp-config` carga configuración de servers MCP, no el contenido de los resources.",
+    "3": "Los prompts de MCP los invoca el usuario como comandos; no se ejecutan solos."
+   },
+   "rule": "Sin @-mention, Claude igual puede listar y leer resources MCP en Claude Code: no los dupliques como tools.",
+   "source_url": "https://code.claude.com/docs/en/mcp",
+   "source_quote": "Claude Code automatically provides tools to list and read MCP resources when servers support them",
+   "status": "no_verificado",
+   "verification": null
+  },
+  {
+   "id": "o34-s05",
+   "objective": 34,
+   "pool": "sim",
+   "scenario": "Una empresa de software construye su propio agente con la API de Claude y un cliente MCP. Su server de documentación expone 5.000 guías como resources. Para que el agente \"tenga todo\", la app incluye todos los resources en el contexto de cada pedido: los requests son lentísimos y caros, y el modelo se confunde con guías que no vienen al caso. Quieren seguir sin que el modelo tenga que hacer llamadas de exploración, y sin que el usuario tenga que elegir guías a mano. ¿Qué cambian?",
+   "options": [
+    "Pegar el índice de las 5.000 guías en la description de una tool `search_docs`, para que el modelo sepa qué hay.",
+    "Declarar `subscribe` en el server, así la app solo recibe las guías que cambiaron desde el último pedido.",
+    "Que la app elija qué resources incluir según el pedido (por ejemplo, con embeddings) antes de pasarlos.",
+    "Exponer cada guía como un prompt de MCP, para que se cargue solo la que corresponda con un comando."
+   ],
+   "correct": 2,
+   "why_correct": "Los resources los maneja la aplicación: la app decide cómo usarlos, ya sea eligiendo partes relevantes, buscando con embeddings o pasándolos todos. Pasar todo es una opción, no la obligación. Seleccionar antes de incluir baja costo y ruido sin sumar llamadas de exploración del modelo.",
+   "why_wrong": {
+    "0": "Mete un índice enorme en una description y obliga al modelo a buscar con tool calls, justo lo que querían evitar.",
+    "1": "Las suscripciones avisan cambios; no deciden qué es relevante para cada pedido.",
+    "3": "Los prompts los dispara el usuario: viola la condición de no elegir a mano."
+   },
+   "rule": "Resources = la app decide qué entra en contexto; no hace falta pasarlos todos.",
+   "source_url": "https://modelcontextprotocol.io/docs/learn/server-concepts",
+   "source_quote": "Applications can access this information directly and decide how to use it - whether that's selecting relevant portions, searching with embeddings, or passing it all to the model.",
+   "status": "no_verificado",
+   "verification": null
+  }
+ ]
+}

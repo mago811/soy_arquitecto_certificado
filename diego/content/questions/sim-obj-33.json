@@ -1,0 +1,125 @@
+{
+ "objective": 33,
+ "questions": [
+  {
+   "id": "o33-s01",
+   "objective": 33,
+   "pool": "sim",
+   "scenario": "Una editorial corre su pipeline de contenidos con `claude --agent coordinator`. El coordinador tiene `tools: Agent, Read` y hay dos subagentes propios: `researcher` (lectura y búsqueda web) y `writer` (escribe en `drafts/`). En los logs ven que a veces delega en `general-purpose`, que tiene todas las tools, y ese subagente editó archivos fuera de `drafts/`. Quieren que el coordinador solo pueda delegar en esos dos. ¿Qué cambian?",
+   "options": [
+    "`tools: Agent(researcher, writer), Read` en el coordinador: es una allowlist de los tipos que puede lanzar.",
+    "`disallowedTools: Edit, Write` en el coordinador, así ningún subagente que lance puede editar archivos.",
+    "Descriptions más específicas para `researcher` y `writer`, para que Claude los prefiera a `general-purpose`.",
+    "`Agent(general-purpose)` en `permissions.allow`, para que esa delegación pase a pedir confirmación."
+   ],
+   "correct": 0,
+   "why_correct": "Un agente que corre como hilo principal con `claude --agent` puede limitar qué tipos de subagente lanza con `Agent(tipo, ...)` en `tools`. Es una allowlist: si intenta otro tipo, falla, y en su prompt solo ve los permitidos.",
+   "why_wrong": {
+    "1": "Los subagentes heredan las tools de la conversación principal: `writer` también perdería `Write` y no podría escribir los borradores.",
+    "2": "Mejora la elección, pero es guía: no impide delegar en `general-purpose`.",
+    "3": "`allow` pre-aprueba, no pide confirmación. Lograría lo contrario."
+   },
+   "rule": "Limitar en quién delega un agente principal → `tools: Agent(tipo1, tipo2)`.",
+   "source_url": "https://code.claude.com/docs/en/sub-agents",
+   "source_quote": "This is an allowlist: only the worker and researcher subagents can be spawned.",
+   "status": "no_verificado",
+   "verification": null
+  },
+  {
+   "id": "o33-s02",
+   "objective": 33,
+   "pool": "sim",
+   "scenario": "En una fintech, el subagente `qa-lead` está definido en `.claude/agents/` y lo lanza la conversación principal. Su frontmatter tiene `tools: Agent(test-runner), Read, Grep`, con la idea de que solo pueda delegar en `test-runner`. En la práctica, `qa-lead` también lanza `general-purpose` y otros tipos. ¿Por qué pasa y qué opción respeta la intención?",
+   "options": [
+    "Falta el permiso: hay que agregar `Agent(test-runner)` a `permissions.allow` para que la lista sea exclusiva.",
+    "La sintaxis vigente es `Task(test-runner)`; `Agent(...)` solo se acepta en settings, no en frontmatter.",
+    "Los subagentes no pueden lanzar subagentes; esos lanzamientos los hace en realidad la conversación principal.",
+    "En un subagente la lista entre paréntesis se ignora; solo aplica a un agente lanzado con `claude --agent`."
+   ],
+   "correct": 3,
+   "why_correct": "La sintaxis `Agent(tipo)` como allowlist solo aplica a un agente que corre como hilo principal con `claude --agent`. En la definición de un subagente, listar `Agent` le permite lanzar subagentes (dentro del límite de profundidad), pero la lista entre paréntesis se ignora. Si `qa-lead` corre como hilo principal, la allowlist funciona.",
+   "why_wrong": {
+    "0": "`permissions.allow` pre-aprueba llamadas; no convierte nada en exclusivo.",
+    "1": "`Task` es un alias viejo de `Agent`; ambos se aceptan. El problema es dónde corre `qa-lead`.",
+    "2": "Los subagentes sí pueden lanzar subagentes si tienen `Agent` y lo permite el límite de profundidad."
+   },
+   "rule": "`Agent(tipo)` como allowlist solo vale en el agente principal (`claude --agent`).",
+   "source_url": "https://code.claude.com/docs/en/sub-agents",
+   "source_quote": "The Agent(agent_type) allowlist syntax applies only to an agent running as the main thread with claude --agent.",
+   "status": "no_verificado",
+   "verification": null
+  },
+  {
+   "id": "o33-s03",
+   "objective": 33,
+   "pool": "sim",
+   "scenario": "Un equipo de soporte definió el subagente `intake` con `tools: AskUserQuestion`: cuando un ticket llega incompleto, tendría que hacerle preguntas al usuario antes de pasar el caso. Cada vez que el coordinador intenta lanzarlo, la tool `Agent` devuelve un error que nombra la entrada de `tools` que no se pudo resolver. ¿Cuál es el diseño correcto?",
+   "options": [
+    "Poner `tools: AskUserQuestion, Read` para que tenga al menos una tool que resuelva y así pueda arrancar.",
+    "Que pregunte al usuario la conversación principal: `AskUserQuestion` se quita de todo subagente.",
+    "Correr `intake` en background, porque solo los subagentes en foreground pierden `AskUserQuestion`.",
+    "Darle `AskUserQuestion` desde `permissions.allow` en settings, porque `tools` no acepta tools interactivas."
+   ],
+   "correct": 1,
+   "why_correct": "`AskUserQuestion` está en la lista de tools que se quitan de todo subagente, aunque figure en `tools`. Si ninguna entrada resuelve, Claude Code no lanza el subagente. Preguntarle al usuario es rol de la conversación principal; el subagente recibe el caso ya completo.",
+   "why_wrong": {
+    "0": "Arrancaría, pero sin `AskUserQuestion`: no podría hacer su trabajo. Solo esconde el error.",
+    "2": "La quita aplica a todos los subagentes, en foreground y en background.",
+    "3": "`permissions.allow` pre-aprueba tools que existen. No devuelve una tool que el subagente no tiene."
+   },
+   "rule": "Lo que necesita al usuario (preguntar) queda en el agente principal, no en un subagente.",
+   "source_url": "https://code.claude.com/docs/en/sub-agents",
+   "source_quote": "When nothing in the tools list resolves to a tool, for example because every entry is misspelled or names a tool that isn't available to subagents, Claude Code usually refuses to launch the subagent",
+   "status": "no_verificado",
+   "verification": null
+  },
+  {
+   "id": "o33-s04",
+   "objective": 33,
+   "pool": "sim",
+   "scenario": "Un retail tiene el subagente `data-auditor`. Hereda tres servidores MCP (BigQuery, Looker y Slack, con unas 40 tools que cambian seguido) y usa `Bash` para correr scripts de validación. Su rol prohíbe usar las herramientas de edición de archivos. Hoy no tiene ni `tools` ni `disallowedTools`. No quieren mantener a mano una lista de 40 tools MCP. ¿Qué ponen en su frontmatter?",
+   "options": [
+    "`tools: Read, Grep, Glob, Bash`, que deja lo necesario y sigue heredando todas las tools MCP del proyecto.",
+    "`disallowedTools: Bash(* > *)`, para bloquear solo las escrituras por redirección y conservar el resto.",
+    "`disallowedTools: Write, Edit`, que hereda todo el pool salvo esas dos, incluidas `Bash` y las tools MCP.",
+    "`permissionMode: plan`, que impide editar archivos y deja habilitadas `Bash` y las tools MCP."
+   ],
+   "correct": 2,
+   "why_correct": "`disallowedTools` funciona como denylist sobre lo heredado: saca `Write` y `Edit` y conserva `Bash`, las tools MCP y el resto. No hay que listar las 40 tools MCP ni actualizarlas cuando cambian.",
+   "why_wrong": {
+    "0": "Con `tools` como allowlist, el subagente queda SOLO con esas cuatro: pierde todas las tools MCP.",
+    "1": "Una entrada con especificador en `disallowedTools` saca la tool entera: se quedaría sin `Bash`.",
+    "3": "Si la conversación principal está en `acceptEdits`, `auto` o bypass, ese `permissionMode` se ignora. Además, plan mode no está pensado para ejecutar scripts."
+   },
+   "rule": "Quitar pocas tools y heredar el resto (MCP incluidas) → `disallowedTools`.",
+   "source_url": "https://code.claude.com/docs/en/sub-agents",
+   "source_quote": "This example uses disallowedTools to inherit the subagent's tool pool except Write and Edit. The subagent keeps Bash, MCP tools, and the rest of its pool",
+   "status": "no_verificado",
+   "verification": null
+  },
+  {
+   "id": "o33-s05",
+   "objective": 33,
+   "pool": "sim",
+   "scenario": "Un equipo de plataforma tiene conectados en el proyecto los servidores MCP `jira`, `github` y `pagerduty`. El subagente `triage` solo tiene que leer código y consultar o actualizar tickets de Jira. En algunas corridas, `triage` llamó a la guardia por PagerDuty o comentó en PRs de GitHub, cosas que no son su rol. ¿Qué configuración le dan?",
+   "options": [
+    "`tools: Read, Grep` y una línea en su prompt: \"usá solo Jira; nunca PagerDuty ni GitHub\".",
+    "`tools: Read, Grep, mcp__jira__*`, que le da todas las tools del server de Jira y ninguna de los otros.",
+    "`disallowedTools: mcp__*` junto con `tools: mcp__jira__*`, para sacar todo lo MCP y volver a sumar Jira.",
+    "`disallowedTools: mcp__pagerduty`, que alcanza porque GitHub ya tiene sus propios permisos de token."
+   ],
+   "correct": 1,
+   "why_correct": "`tools` acepta entradas para un server MCP entero: `mcp__jira__*` da todas las tools de Jira. Como `tools` es una allowlist, `triage` queda con lectura más Jira, y nada de GitHub ni PagerDuty.",
+   "why_wrong": {
+    "0": "Sin `mcp__jira__*` no tiene ninguna tool de Jira. Y la línea del prompt es guía, no restricción.",
+    "2": "`disallowedTools` se aplica primero: saca también Jira, y después `tools` ya no encuentra nada de Jira.",
+    "3": "Deja las tools de GitHub, que tampoco son de su rol. Los permisos del token no son el reparto de tools."
+   },
+   "rule": "Un server MCP entero para un subagente → `mcp__server__*` en su `tools`.",
+   "source_url": "https://code.claude.com/docs/en/sub-agents",
+   "source_quote": "If both are set, disallowedTools is applied first, then tools is resolved against the remaining pool.",
+   "status": "no_verificado",
+   "verification": null
+  }
+ ]
+}
