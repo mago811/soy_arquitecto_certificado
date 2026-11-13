@@ -5,7 +5,7 @@
       "id": "o11-q01",
       "objective": 11,
       "pool": "practice",
-      "scenario": "Una fintech agregó un paso a su pipeline de GitLab: `claude \"Arreglá los errores de lint del repo\"`. El job nunca termina: queda corriendo hasta que GitLab lo mata por timeout a la hora, sin un solo cambio. En local, el mismo comando abre la interfaz de Claude Code y funciona. ¿Cuál es el fix?",
+      "scenario": "Una fintech agregó un paso a su pipeline de GitLab: `claude \"Arreglá los errores de lint del repo\"`. El job no produce ninguna respuesta útil ni cambia un solo archivo. En local, el mismo comando abre la sesión interactiva de Claude Code y funciona. ¿Cuál es el fix?",
       "options": [
         "Agregar `--max-turns 10` para que el job corte solo",
         "Agregar `-p` para que corra en modo no interactivo y termine",
@@ -13,17 +13,21 @@
         "Agregar `--permission-mode bypassPermissions` para que no pregunte"
       ],
       "correct": 1,
-      "why_correct": "Sin `-p`, `claude` arranca la sesión interactiva y espera a una persona que en CI no existe. `-p` (o `--print`) corre no interactivo: hace la tarea, imprime y sale. Es el primer flag de cualquier invocación automatizada.",
+      "why_correct": "`claude \"query\"` arranca una sesión interactiva con ese prompt inicial: está pensada para una persona en la terminal, y en CI no hay nadie. `-p` (o `--print`) corre no interactivo: hace la tarea, imprime la respuesta y sale. Es el primer flag de cualquier invocación automatizada.",
       "why_wrong": {
-        "0": "`--max-turns` es \"print mode only\": sin `-p` no aplica. Y aunque aplicara, limita el trabajo, no evita que la sesión espere input.",
-        "2": "`--verbose` muestra más detalle, pero el proceso sigue siendo interactivo y sigue esperando.",
+        "0": "`--max-turns` es \"print mode only\": sin `-p` no aplica. Y aunque aplicara, limita el trabajo, no cambia que la sesión sea interactiva.",
+        "2": "`--verbose` muestra más detalle, pero la sesión sigue siendo interactiva.",
         "3": "Saltear permisos no saca a Claude del modo interactivo. Además, `bypassPermissions` es para contenedores aislados, no para un runner compartido."
       },
       "rule": "Claude Code en CI siempre con `-p`: sin eso espera una persona que no existe.",
       "source_url": "https://code.claude.com/docs/en/headless",
       "source_quote": "Add the -p (or --print) flag to any claude command to run it non-interactively.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "cli-reference: `claude \"query\"` = \"Start interactive session with initial prompt\"; `-p` = sin modo interactivo. La doc no describe que el job quede colgado hasta el timeout: se reformuló el escenario y los rationales para no afirmar ese comportamiento."
+      }
     },
     {
       "id": "o11-q02",
@@ -46,8 +50,12 @@
       "rule": "Tope que se tiene que cumplir = `--max-turns` / `--max-budget-usd` (enforcement), nunca un texto en CLAUDE.md.",
       "source_url": "https://code.claude.com/docs/en/cli-reference",
       "source_quote": "Stop the run once estimated spend on API calls reaches this amount (print mode only).",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "cli-reference: `--max-turns` y `--max-budget-usd` existen, print mode only; best-practices los pone en la columna determinística. Distractores (CLAUDE.md, medir costo, haiku) no limitan."
+      }
     },
     {
       "id": "o11-q03",
@@ -61,7 +69,7 @@
         "Leer `.subtype` primero y fallar el job si no es `success`"
       ],
       "correct": 3,
-      "why_correct": "Cuando la corrida pega contra un tope, el resultado tiene subtype `error_max_turns` (o `error_max_budget_usd`) y no trae `result`. El campo `result` solo existe en la variante `success`. El script tiene que mirar `subtype` y, si no es `success`, fallar el job en vez de publicar \"null\".",
+      "why_correct": "Cuando la corrida pega contra un tope, el mensaje de resultado tiene subtype `error_max_turns` (o `error_max_budget_usd`) y no trae `result`: ese campo solo existe en la variante `success`. La salida `json` de `claude -p` es ese mensaje de resultado del Agent SDK. El script tiene que mirar `subtype` y, si no es `success`, fallar el job en vez de publicar \"null\".",
       "why_wrong": {
         "0": "Subir el tope esconde el problema y saca el freno contra corridas desbocadas. El script tiene que manejar el caso de error igual.",
         "1": "Con texto plano perdés la forma de distinguir un éxito de una corrida cortada. Seguís publicando algo que no es la respuesta.",
@@ -70,8 +78,12 @@
       "rule": "Antes de leer `.result`, chequeá `.subtype == \"success\"`; si pegó contra un tope, no hay resultado.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
       "source_quote": "The result field holds the final text output and is only present on the success variant, so always check the subtype before reading it.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "Cita textual en agent-sdk/agent-loop (tabla de subtypes: error_max_turns sin result). Ojo: `subtype`/`error_max_turns` están documentados en las páginas del Agent SDK, no en cli-reference/headless; headless presenta `claude -p` como el Agent SDK vía CLI y dice que el stream termina en un mensaje `result`. Se aclaró eso en why_correct."
+      }
     },
     {
       "id": "o11-q04",
@@ -94,8 +106,12 @@
       "rule": "`--max-budget-usd` es un freno, no un límite exacto: dejá margen debajo de tu techo real.",
       "source_url": "https://code.claude.com/docs/en/cli-reference",
       "source_quote": "Spend from subagents counts toward the cap. Spend can pass the cap, so leave headroom.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "cli-reference --max-budget-usd: estimación client-side, subagentes cuentan, 'Spend can pass the cap, so leave headroom'. agent-loop#budget-headroom: se compara tras cada respuesta, que se completa. Distractores contradicen la doc."
+      }
     },
     {
       "id": "o11-q05",
@@ -109,7 +125,7 @@
         "Subir `--max-turns` para que tenga más intentos de editar"
       ],
       "correct": 0,
-      "why_correct": "Una corrida `-p` sin modo de permiso arranca en modo Manual. Ahí, lo que necesita aprobación se niega si nada lo aprueba, y queda en `permission_denials`. La forma segura es pre-aprobar con `--allowedTools` exactamente lo que la tarea necesita, con patrones como `Bash(npm test *)`.",
+      "why_correct": "Desde Claude Code v2.1.302, una corrida `-p` sin modo de permiso arranca en modo Manual. Ahí, lo que necesita aprobación se niega si nada lo aprueba, y queda en `permission_denials`. La forma segura es pre-aprobar con `--allowedTools` exactamente lo que la tarea necesita, con patrones como `Bash(npm test *)`.",
       "why_wrong": {
         "1": "`--dangerously-skip-permissions` equivale a `bypassPermissions`, pensado para contenedores y VMs aisladas. Abre todo de golpe en vez de lo justo.",
         "2": "CLAUDE.md es texto para el modelo. No aprueba nada en el sistema de permisos: las llamadas se van a seguir negando.",
@@ -118,8 +134,12 @@
       "rule": "En `-p`, lo que no está pre-aprobado se niega: aprobá lo justo con `--allowedTools`.",
       "source_url": "https://code.claude.com/docs/en/headless",
       "source_quote": "In a Manual mode claude -p run, a call that needs approval is denied unless something approves it, such as a PermissionRequest hook or a --permission-prompt-tool.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "headless: Manual mode en -p niega lo que necesita aprobación; permission-modes: arranque en Manual 'In Claude Code v2.1.302 or later' (antes podía arrancar en auto). Se agregó la versión al why_correct. `permission_denials` documentado en headless como campo del mensaje final."
+      }
     },
     {
       "id": "o11-q06",
@@ -142,8 +162,12 @@
       "rule": "CI cerrado = `--allowedTools` justo + `--permission-mode dontAsk`.",
       "source_url": "https://code.claude.com/docs/en/permission-modes",
       "source_quote": "Use this mode for CI pipelines or restricted environments where you pre-define what Claude may do; the session never waits for input.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "permission-modes#dontAsk: niega lo que pediría permiso, corren lecturas y allow rules, 'Use this mode for CI pipelines...'. Tabla de modos confirma acceptEdits/plan/bypassPermissions como más permisivos o bloqueantes."
+      }
     },
     {
       "id": "o11-q07",
@@ -166,8 +190,12 @@
       "rule": "En la GitHub Action v1, todo flag del CLI (`--max-turns`, `--model`, `--allowedTools`) va en `claude_args`.",
       "source_url": "https://code.claude.com/docs/en/github-actions",
       "source_quote": "Move CLI options such as max_turns and model into claude_args.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "github-actions 'Upgrade from beta': mover max_turns/model a claude_args; quitar input `mode`. Timeout de workflow figura solo como red extra ('Set workflow-level timeouts to avoid runaway jobs'), no reemplaza --max-turns."
+      }
     },
     {
       "id": "o11-q08",
@@ -190,8 +218,12 @@
       "rule": "Costo por corrida en scripts = `--output-format json` → `total_cost_usd`.",
       "source_url": "https://code.claude.com/docs/en/headless",
       "source_quote": "With --output-format json, the response payload includes total_cost_usd and a per-model cost breakdown, so scripted callers can track spend without consulting the usage dashboard.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "headless: con --output-format json viene total_cost_usd y desglose por modelo. 'Incluso con error' respaldado en agent-sdk/agent-loop ('All result subtypes carry total_cost_usd')."
+      }
     },
     {
       "id": "o11-q09",
@@ -214,8 +246,12 @@
       "rule": "Corridas reproducibles en CI = `--bare` + configuración explícita por flags.",
       "source_url": "https://code.claude.com/docs/en/headless",
       "source_quote": "Bare mode is useful for CI and scripts where you need the same result on every machine.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "headless#bare: saltea hooks/MCP/CLAUDE.md, cita textual, flags --mcp-config/--settings en la tabla, requiere ANTHROPIC_API_KEY o apiKeyHelper. Distractores no evitan la carga."
+      }
     },
     {
       "id": "o11-q10",
@@ -238,8 +274,12 @@
       "rule": "Resultado único al final = `json`. Eventos en vivo = `stream-json` + `--verbose`.",
       "source_url": "https://code.claude.com/docs/en/headless",
       "source_quote": "Use --output-format stream-json with --verbose and --include-partial-messages to receive tokens as they're generated.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "headless 'Stream responses': stream-json + --verbose (+ --include-partial-messages); cli-reference: --include-partial-messages requiere stream-json. Última línea = result con costo y sesión."
+      }
     }
   ]
 }

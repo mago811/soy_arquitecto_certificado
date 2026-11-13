@@ -1,5 +1,6 @@
 import "server-only";
 import { neon } from "@neondatabase/serverless";
+import { SCHEMA_SQL } from "@/db/schema";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Row = any;
@@ -11,7 +12,37 @@ let _sql: Sql | null = null;
  * En producción: driver HTTP de Neon.
  * En local (DATABASE_URL a localhost): driver `pg`, para poder probar con un Postgres común.
  */
+let _ready: Promise<void> | null = null;
+
+/** Cliente SQL. La primera llamada de cada instancia crea las tablas si no existen. */
 export function sql(): Sql {
+  const raw = rawSql();
+  return async (strings, ...values) => {
+    if (!_ready) {
+      _ready = (async () => {
+        for (const stmt of SCHEMA_SQL.split(";").map((x) => x.trim()).filter(Boolean)) {
+          await exec(stmt);
+        }
+      })().catch((e) => { _ready = null; throw e; });
+    }
+    await _ready;
+    return raw(strings, ...values);
+  };
+}
+
+/** Ejecuta SQL sin parámetros (para el DDL). */
+async function exec(text: string) {
+  const url = process.env.DATABASE_URL!;
+  if (/@(localhost|127\.0\.0\.1)[:/]/.test(url)) {
+    const { Pool } = await import("pg");
+    const pool = new Pool({ connectionString: url });
+    try { await pool.query(text); } finally { await pool.end(); }
+  } else {
+    await neon(url).query(text);
+  }
+}
+
+function rawSql(): Sql {
   if (_sql) return _sql;
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error("Falta DATABASE_URL");

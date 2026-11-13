@@ -10,20 +10,24 @@
         "Copiar las reglas al `~/.claude/CLAUDE.md` del tech lead",
         "Pegar el link a la wiki en cada comentario `@claude` del PR",
         "Escribir los criterios de review en un `CLAUDE.md` en la raíz del repo",
-        "Poner las reglas en un `CLAUDE.local.md` dentro del repo"
+        "Poner las reglas en el `CLAUDE.local.md` del tech lead, ignorado por git"
       ],
       "correct": 2,
       "why_correct": "La doc de GitHub Actions dice que los estándares y criterios de review van en un `CLAUDE.md` en la raíz del repositorio. Como está en git, llega al runner con el checkout y Claude lo lee en cada corrida.",
       "why_wrong": {
         "0": "El `CLAUDE.md` de usuario vive en la máquina del tech lead. El runner de GitHub no lo tiene.",
-        "1": "Un link no hace que Claude lea la wiki: no tiene acceso a Confluence. Además depende de que cada persona se acuerde de pegarlo.",
-        "3": "`CLAUDE.local.md` es para preferencias personales del proyecto y no se versiona para el equipo. No es el lugar para estándares compartidos."
+        "1": "Un link no garantiza que Claude lea la wiki: en el runner no hay nada que le dé acceso a Confluence. Además depende de que cada persona se acuerde de pegarlo.",
+        "3": "`CLAUDE.local.md` es para preferencias personales del proyecto y la doc indica agregarlo a `.gitignore`: no llega al runner con el checkout. No es el lugar para estándares compartidos."
       },
       "rule": "Estándares de review compartidos → `CLAUDE.md` del repo, versionado en git.",
       "source_url": "https://code.claude.com/docs/en/github-actions",
       "source_quote": "Create a CLAUDE.md file in your repository root to define code style guidelines, review criteria, project-specific rules, and preferred patterns.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "github-actions 'Define project standards in CLAUDE.md' (cita textual). Corregido: la opción D ('CLAUDE.local.md dentro del repo') era defendible si se commiteaba; ahora dice que está ignorado por git (memory: 'add to .gitignore'). Suavizado el rationale de B (no afirmar acceso a Confluence)."
+      }
     },
     {
       "id": "o13-q02",
@@ -46,8 +50,12 @@
       "rule": "`--bare` no carga CLAUDE.md: los estándares se pasan con `--append-system-prompt(-file)`.",
       "source_url": "https://code.claude.com/docs/en/cli-reference",
       "source_quote": "Minimal mode: skip auto-discovery of hooks, skills, custom commands, subagents, installed plugins, MCP servers, auto memory, and CLAUDE.md so scripted calls start faster.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "cli-reference --bare (cita textual) y headless: con bare se pasa contexto con --append-system-prompt(-file). best-practices: bare saltea CLAUDE.md 'the repo's as well as the machine's'."
+      }
     },
     {
       "id": "o13-q03",
@@ -70,8 +78,12 @@
       "rule": "`--allowedTools` pre-aprueba; `--tools` / `--disallowedTools` restringen.",
       "source_url": "https://code.claude.com/docs/en/cli-reference",
       "source_quote": "To restrict which tools are available, use --tools instead.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "cli-reference --allowedTools: 'To restrict which tools are available, use --tools instead'. tools-reference: nombrar Glob/Grep en --tools los habilita. --disallowedTools también los saca (mencionado en why_correct, no está entre opciones)."
+      }
     },
     {
       "id": "o13-q04",
@@ -94,8 +106,12 @@
       "rule": "Salida para un bot = `--output-format json --json-schema` → leer `structured_output`.",
       "source_url": "https://code.claude.com/docs/en/headless",
       "source_quote": "To get output conforming to a specific schema, use --output-format json with --json-schema and a JSON Schema definition.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "headless 'Get structured output': --output-format json + --json-schema → campo structured_output; cli-reference --json-schema existe (print mode only)."
+      }
     },
     {
       "id": "o13-q05",
@@ -118,8 +134,12 @@
       "rule": "`structured_output` puede faltar: chequeá que exista antes de procesarlo.",
       "source_url": "https://code.claude.com/docs/en/headless",
       "source_quote": "If a run ends without valid structured output, for example because Claude declined the request, the response has no structured_output field. Before your script uses structured_output, check that the field is present.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "headless: 'If a run ends without valid structured output... the response has no structured_output field... check that the field is present' (textual)."
+      }
     },
     {
       "id": "o13-q06",
@@ -142,8 +162,12 @@
       "rule": "En la Action, la herramienta de comentarios inline se habilita con `--allowedTools` en `claude_args`, aunque el skill ya la declare.",
       "source_url": "https://code.claude.com/docs/en/github-actions",
       "source_quote": "the Claude Code GitHub Action starts the MCP server that posts inline comments only when --allowedTools in claude_args names it.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "github-actions 'Run a skill': mantener claude_args aunque el frontmatter nombre la herramienta; la Action levanta el MCP de inline comments solo si --allowedTools lo nombra. El ejemplo usa pull-requests: read."
+      }
     },
     {
       "id": "o13-q07",
@@ -166,8 +190,12 @@
       "rule": "Sumar un rol sin perder lo default = `--append-system-prompt`; `--system-prompt` reemplaza todo.",
       "source_url": "https://code.claude.com/docs/en/headless",
       "source_quote": "Use --append-system-prompt to add instructions while keeping Claude Code's default behavior.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "headless 'Customize the system prompt' (textual) + cli-reference: --system-prompt y --system-prompt-file reemplazan, --append-system-prompt agrega; reemplazar quita el git status snapshot."
+      }
     },
     {
       "id": "o13-q08",
@@ -190,8 +218,12 @@
       "rule": "Si el reviewer solo necesita el diff, dáselo por stdin y no le des Bash.",
       "source_url": "https://code.claude.com/docs/en/headless",
       "source_quote": "Piping the diff means Claude doesn't need Bash permission to read it",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "headless 'Add Claude to a build script': 'Piping the diff means Claude doesn't need Bash permission to read it' (textual). Bash(git*) sigue siendo amplio."
+      }
     },
     {
       "id": "o13-q09",
@@ -214,8 +246,12 @@
       "rule": "Prefijo seguro en reglas Bash: `Bash(comando *)`, con espacio antes del `*`.",
       "source_url": "https://code.claude.com/docs/en/headless",
       "source_quote": "The space before * is important: without it, Bash(git diff*) would also match git diff-index.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "headless 'Create a commit': trailing ' *' = prefijo; 'The space before * is important... git diff-index' (textual)."
+      }
     },
     {
       "id": "o13-q10",
@@ -238,8 +274,12 @@
       "rule": "Las reglas de review se toman de la rama base: el PR no puede reescribir con qué se lo revisa.",
       "source_url": "https://code.claude.com/docs/en/code-review",
       "source_quote": "Which instructions it follows: REVIEW.md from the base or default branch and never from the pull request's own changes.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "code-review: 'Which instructions it follows: REVIEW.md from the base or default branch and never from the pull request's own changes' y 'A review never approves or blocks the pull request'. Code Review es Team/Enterprise."
+      }
     }
   ]
 }

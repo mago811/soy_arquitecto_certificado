@@ -13,17 +13,21 @@
         "Usar `/batch` para partir cada typo en unidades y correrlas en worktrees"
       ],
       "correct": 1,
-      "why_correct": "Plan mode sirve para cambios que querés revisar antes de que toquen el disco y para tareas complejas, donde evita rework caro. Un typo es chico, claro y fácil de revertir: el plan no aporta nada y la espera cuesta. Lo razonable es ejecutar directo con permisos justos y que la revisión humana sea la del diff en el PR.",
+      "why_correct": "La doc recomienda plan mode para tareas complejas, donde evita rework caro, y para cambios que querés revisar antes de que toquen el disco. Un typo no es ninguna de las dos cosas: es chico, claro y fácil de revertir, así que el plan solo agrega espera. Lo razonable es ejecutar directo con permisos justos y que la revisión humana sea la del diff en el PR.",
       "why_wrong": {
         "0": "Más aprobadores atacan el síntoma. El problema es usar una arquitectura de alto control para una tarea trivial.",
         "2": "Spec, sesión nueva y review independiente es para requisitos difusos o cambios grandes. Para un typo es puro overhead.",
         "3": "`/batch` es para cambios grandes que se descomponen en 5 a 30 unidades independientes, no para un cambio de una línea."
       },
-      "rule": "Cambio chico, claro y reversible → ejecución directa; plan mode es para lo complejo o riesgoso.",
+      "rule": "Plan mode es para lo complejo o lo que querés revisar antes de tocar disco; un cambio trivial y reversible va directo.",
       "source_url": "https://code.claude.com/docs/en/costs",
       "source_quote": "Use plan mode for complex tasks: Press Shift+Tab to cycle to plan mode before implementation. Claude explores the codebase and proposes an approach for your approval, preventing expensive re-work when the initial direction is wrong.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "La doc no dice literalmente 'tarea chica → ejecución directa'; sí dice 'Use plan mode for complex tasks' (costs, cita textual) y 'For changes you want to review before they touch disk, switch to plan mode' (common-workflows). Ningún distractor es defendible (multi-fase y /batch son para lo grande). Se reformuló why_correct/rule para apoyarse solo en eso, no en una regla inventada."
+      }
     },
     {
       "id": "o08-q02",
@@ -46,14 +50,18 @@
       "rule": "Grande + desconocido + riesgo de rumbo equivocado → plan mode antes de tocar disco.",
       "source_url": "https://code.claude.com/docs/en/costs",
       "source_quote": "Claude explores the codebase and proposes an approach for your approval, preventing expensive re-work when the initial direction is wrong.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "costs: plan mode para tareas complejas, 'preventing expensive re-work when the initial direction is wrong' (textual). permission-modes: bypassPermissions 'Isolated containers and VMs only'."
+      }
     },
     {
       "id": "o08-q03",
       "objective": 8,
       "pool": "practice",
-      "scenario": "En el servicio de pagos, la política exige que un humano apruebe el enfoque antes de que Claude modifique cualquier archivo. Hoy está en el CLAUDE.md: \"SIEMPRE pedí aprobación antes de editar\". La semana pasada Claude editó tres archivos sin preguntar. ¿Qué cambio garantiza la política en las sesiones de terminal?",
+      "scenario": "En el servicio de pagos, la política exige que un humano apruebe el enfoque antes de que Claude modifique cualquier archivo. Hoy está en el CLAUDE.md: \"SIEMPRE pedí aprobación antes de editar\". La semana pasada Claude editó tres archivos sin preguntar. ¿Qué cambio hace que las sesiones de terminal del proyecto arranquen con las ediciones bloqueadas hasta aprobar un plan?",
       "options": [
         "Arrancar en plan mode: `\"defaultMode\": \"plan\"` en `.claude/settings.json`",
         "Repetir la regla en CLAUDE.md en mayúsculas y al principio del archivo",
@@ -70,8 +78,12 @@
       "rule": "\"Aprobar antes de editar\" se garantiza con plan mode (bloquea ediciones), no con texto en CLAUDE.md.",
       "source_url": "https://code.claude.com/docs/en/permission-modes",
       "source_quote": "Claude reads files, runs shell commands to explore, and writes a plan, but does not edit your source. Except in interactive terminal sessions with bypass permissions available, edits stay blocked until you approve the plan.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "permission-modes: plan mode bloquea ediciones hasta aprobar (textual, con la excepción de bypass disponible) y defaultMode plan en .claude/settings.json. Se cambió 'garantiza' por una pregunta precisa: la doc no dice que un dev no pueda salir del modo con Shift+Tab, así que 'garantizar' era más de lo respaldado."
+      }
     },
     {
       "id": "o08-q04",
@@ -94,8 +106,12 @@
       "rule": "Plan + aprobación humana en CI = dos corridas separadas por una aprobación; en `-p`, plan mode no edita.",
       "source_url": "https://code.claude.com/docs/en/permission-modes",
       "source_quote": "Plan mode keeps its blocks wherever Claude Code runs without an interactive terminal, including non-interactive runs with -p",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "permission-modes: 'Plan mode keeps its blocks wherever Claude Code runs without an interactive terminal, including non-interactive runs with -p' (textual). Multi-fase con aprobación humana entre corridas es la única opción que cumple."
+      }
     },
     {
       "id": "o08-q05",
@@ -118,8 +134,12 @@
       "rule": "Cambio masivo y mecánico con aprobación del plan → `/batch` (plan → aprobación → unidades en worktrees).",
       "source_url": "https://code.claude.com/docs/en/commands",
       "source_quote": "Researches the codebase, decomposes the work into 5 to 30 independent units, and presents a plan. Once approved, spawns one background subagent per unit in an isolated worktree.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "commands: /batch investiga, descompone en 5 a 30 unidades, presenta plan; aprobado, un subagente por unidad en worktree que corre tests y abre PR (textual)."
+      }
     },
     {
       "id": "o08-q06",
@@ -142,8 +162,12 @@
       "rule": "Requisitos difusos → multi-fase: spec primero, implementación en sesión nueva, review contra la spec.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "Once SPEC.md exists, start a fresh session to build from it, so the build begins with a clean context and a written definition of done.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "best-practices: entrevista → SPEC.md → 'start a fresh session to build from it' (textual); el ejemplo de la doc es justamente rate limiting en la API pública."
+      }
     },
     {
       "id": "o08-q07",
@@ -166,8 +190,12 @@
       "rule": "La review confiable la hace alguien que no escribió el código: subagente o sesión nueva.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "/code-review reviews the diff in a fresh subagent that never saw your conversation. It isn't swayed by the reasoning that produced the code.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "best-practices: '/code-review reviews the diff in a fresh subagent that never saw your conversation. It isn't swayed by the reasoning...' (textual)."
+      }
     },
     {
       "id": "o08-q08",
@@ -190,8 +218,12 @@
       "rule": "Plan aprobado + riesgo alto → \"Yes, manually approve edits\".",
       "source_url": "https://code.claude.com/docs/en/permission-modes",
       "source_quote": "Yes, manually approve edits: approve and review each edit individually.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "permission-modes 'Review and approve a plan': 'Yes, manually approve edits: approve and review each edit individually' (textual); las otras opciones descritas igual que en la doc."
+      }
     },
     {
       "id": "o08-q09",
@@ -205,7 +237,7 @@
         "La review informa; el merge lo decide una persona vía protección de rama"
       ],
       "correct": 3,
-      "why_correct": "La aprobación humana no se delega en el resumen del modelo. La doc pone la \"última palabra\" del lado determinístico: protección de rama y una persona que aprueba el merge. Code Review está diseñado así: nunca aprueba ni bloquea el PR, y la decisión de mergear queda en el equipo.",
+      "why_correct": "La aprobación humana no se delega en el resumen del modelo. La doc de best practices pone la \"última palabra\" del lado determinístico: protección de rama y una persona que aprueba el merge. Code Review está diseñado así: nunca aprueba ni bloquea el PR, y la decisión de mergear queda en el equipo.",
       "why_wrong": {
         "0": "CLAUDE.md es guidance y no reemplaza la aprobación humana que exige compliance.",
         "1": "Una review más profunda puede encontrar más, pero \"sin hallazgos\" no garantiza que el código esté bien. Y el humano sigue sin decidir.",
@@ -214,8 +246,12 @@
       "rule": "Aprobación humana = control determinístico (protección de rama + persona), nunca el veredicto del modelo.",
       "source_url": "https://code.claude.com/docs/en/code-review",
       "source_quote": "A review never approves or blocks the pull request, so the decision to merge stays with your team.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "code-review: 'A review never approves or blocks the pull request...' (textual); niveles Quick/Standard/Deep existen. 'Who has the last word: Branch protection, a person who approves the merge' está en best-practices, no en code-review: se aclaró la fuente en why_correct."
+      }
     },
     {
       "id": "o08-q10",
@@ -238,8 +274,12 @@
       "rule": "Default de equipo para un repo → `.claude/settings.json` (`defaultMode: \"plan\"`), no CLAUDE.md.",
       "source_url": "https://code.claude.com/docs/en/permission-modes",
       "source_quote": "To make plan mode the default for a project's terminal sessions, set defaultMode to plan in .claude/settings.json",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "permission-modes 'Set plan mode as the default': defaultMode plan en .claude/settings.json (textual). ~/.claude/settings.json también funciona pero es por dev; CLAUDE.md/CLAUDE.local.md no cambian el modo."
+      }
     }
   ]
 }
