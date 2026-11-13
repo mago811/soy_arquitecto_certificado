@@ -22,14 +22,18 @@
    "rule": "Fork en background = ediciones fuera de checkpoints: `/rewind` no las deshace, git sí.",
    "source_url": "https://code.claude.com/docs/en/skills",
    "source_quote": "A forked skill that runs in the background applies its edits outside your session's checkpoints.",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "ok",
+    "notes": "Cita textual en skills: fork en background edita fuera de los checkpoints; revertir con git."
+   }
   },
   {
    "id": "o14-s02",
    "objective": 14,
    "pool": "sim",
-   "scenario": "En Telco Sur, la skill `/vigilar-deploy` tiene `context: fork` y `agent: general-purpose`. Su último paso es programar un re-chequeo en 30 minutos con la tool `CronCreate`. En el pipeline, donde la corren con `claude -p`, funciona. En la terminal interactiva, el subagente informa que no tiene ninguna herramienta para programar el re-chequeo. Nadie cambió la definición. ¿Cuál es el fix?",
+   "scenario": "En Telco Sur, la skill `/vigilar-deploy` tiene `context: fork` y `agent: general-purpose`. Su último paso es programar un re-chequeo en 30 minutos con la tool `CronCreate`. En el pipeline, donde la corren con `claude -p`, el subagente encuentra y llama `CronCreate` sin problema. En la terminal interactiva, el subagente informa que no tiene ninguna herramienta para programar el re-chequeo. Nadie cambió la definición. ¿Cuál es el fix?",
    "options": [
     "Agregar `CronCreate` a `allowed-tools` en el frontmatter, para que el fork lo tenga disponible también en interactivo.",
     "Cambiar a `agent: Explore`, que conserva el set completo de tools tanto en foreground como en background.",
@@ -46,8 +50,12 @@
    "rule": "Fork que necesita una tool fuera del set de background → `background: false`.",
    "source_url": "https://code.claude.com/docs/en/skills",
    "source_quote": "If your skill's steps depend on a tool outside that set, set background: false to keep the full tool set.",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "corregida",
+    "notes": "Cita textual en skills; sub-agents confirma que CronCreate no está en el set de background. Ajuste de redacción: 'funciona' en -p pasa a 'el subagente encuentra y llama CronCreate' (en -p una tarea de sesión no tiene a quién despertar)."
+   }
   },
   {
    "id": "o14-s03",
@@ -70,14 +78,18 @@
    "rule": "Campo mal escrito en el frontmatter = campo ignorado sin error. `agent`, no `agent-type`.",
    "source_url": "https://code.claude.com/docs/en/skills",
    "source_quote": "A field name must match the table exactly, hyphens included: Claude Code ignores a field it doesn't recognize without reporting an error.",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "ok",
+    "notes": "Cita textual en skills (campos con nombre exacto, ignorados sin error); sin agent usa general-purpose."
+   }
   },
   {
    "id": "o14-s04",
    "objective": 14,
    "pool": "sim",
-   "scenario": "En Banco Pampa, el subagente `api-builder` (en `.claude/agents/`) genera endpoints nuevos. Las convenciones de API del banco están en la skill `api-conventions`, que tiene solo guías, sin una tarea concreta. Para que el subagente las aplique, alguien le agregó `context: fork` a esa skill. Ahora la skill devuelve resultados vacíos y `api-builder` sigue sin respetar las convenciones. Quieren que el subagente arranque siempre con esas guías cargadas. ¿Qué hacen?",
+   "scenario": "En Banco Pampa, el subagente `api-builder` (en `.claude/agents/`) genera endpoints nuevos. Las convenciones de API del banco están en la skill `estandares-api`, que tiene solo guías, sin una tarea concreta. Para que el subagente las aplique, alguien le agregó `context: fork` a esa skill. Ahora la skill devuelve resultados vacíos y `api-builder` sigue sin respetar las convenciones. Quieren que el subagente arranque siempre con esas guías cargadas. ¿Qué hacen?",
    "options": [
     "Agregar `agent: api-builder` a la skill con fork, para que las guías corran dentro de ese mismo subagente.",
     "Mantener `context: fork` y agregar `background: false`, para que el resultado de la skill vuelva al subagente.",
@@ -94,8 +106,12 @@
    "rule": "Skill de referencia para un subagente → campo `skills` del subagente, no `context: fork`.",
    "source_url": "https://code.claude.com/docs/en/sub-agents",
    "source_quote": "Preloaded skills: full content of any skill named in the agent's skills field.",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "corregida",
+    "notes": "Cita textual en sub-agents; skills confirma las dos direcciones (fork vs campo skills). Renombrada la skill a `estandares-api` para separarla de o14-q02 (que usa `api-conventions` y pide sacar el fork); acá la respuesta es el campo `skills`."
+   }
   },
   {
    "id": "o14-s05",
@@ -118,8 +134,12 @@
    "rule": "Fork de solo lectura que necesita CLAUDE.md → subagente propio con `tools` de lectura, no Explore.",
    "source_url": "https://code.claude.com/docs/en/skills",
    "source_quote": "The built-in Explore and Plan agents start without CLAUDE.md and git status to keep their context small.",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "ok",
+    "notes": "Cita textual en skills; sub-agents confirma que los subagentes custom cargan CLAUDE.md y Explore/Plan no. Combina o14-q03 y q05 con otra respuesta."
+   }
   }
  ]
 }

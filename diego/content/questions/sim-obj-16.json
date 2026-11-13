@@ -22,8 +22,12 @@
    "rule": "Deny de Read/Edit no frena a un script que abre archivos solo: para eso, sandbox.",
    "source_url": "https://code.claude.com/docs/en/permissions",
    "source_quote": "For OS-level enforcement that blocks all processes from accessing a path, enable the sandbox.",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "ok",
+    "notes": "Respaldo textual en permissions: los deny de Read/Edit no cubren subprocesos que abren archivos; sandbox para enforcement a nivel SO."
+   }
   },
   {
    "id": "o16-s02",
@@ -46,8 +50,12 @@
    "rule": "Deny gana siempre: ni un allow de hook ni un allow de otro nivel lo revierten.",
    "source_url": "https://code.claude.com/docs/en/permissions",
    "source_quote": "PreToolUse hook decisions don't bypass permission rules.",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "ok",
+    "notes": "Respaldo directo en permissions: 'a matching deny rule blocks the call... even when the hook returned allow'. Acotar el deny es la única salida dentro de la regla."
+   }
   },
   {
    "id": "o16-s03",
@@ -70,8 +78,12 @@
    "rule": "Procedimiento personal, en todos tus repos, invocable → `~/.claude/skills/`.",
    "source_url": "https://code.claude.com/docs/en/skills",
    "source_quote": "Create a skill when you keep pasting the same instructions, checklist, or multi-step procedure into chat",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "ok",
+    "notes": "Cita textual en skills; ~/.claude/skills es personal y vale en todos los proyectos."
+   }
   },
   {
    "id": "o16-s04",
@@ -94,8 +106,12 @@
    "rule": "Guía para toda la organización, sin opción de excluirla → CLAUDE.md gestionado. Bloqueo → managed settings.",
    "source_url": "https://code.claude.com/docs/en/memory",
    "source_quote": "Developers can exclude other CLAUDE.md files with the claudeMdExcludes setting, but not this one.",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "ok",
+    "notes": "Cita textual en memory: el CLAUDE.md gestionado no se puede excluir con claudeMdExcludes."
+   }
   },
   {
    "id": "o16-s05",
@@ -118,8 +134,12 @@
    "rule": "Regla acotada por archivos → frontmatter `paths`. Otro nombre de campo = regla que se carga siempre.",
    "source_url": "https://code.claude.com/docs/en/memory",
    "source_quote": "paths is the only field Claude Code reads from a rule; any other field is ignored without an error.",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "ok",
+    "notes": "Cita textual en memory: paths es el único campo que se lee de una regla."
+   }
   }
  ]
 }

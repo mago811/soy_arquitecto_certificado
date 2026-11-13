@@ -22,8 +22,12 @@
    "rule": "`--tools` limita built-ins; para MCP: `--disallowedTools \"mcp__*\"`.",
    "source_url": "https://code.claude.com/docs/en/cli-reference",
    "source_quote": "The flag doesn't affect MCP tools; to deny those too, use --disallowedTools \"mcp__*\".",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "ok",
+    "notes": "Cita textual en cli-reference (--tools no afecta MCP; --disallowedTools \"mcp__*\"). headless confirma que --bare saltea CLAUDE.md."
+   }
   },
   {
    "id": "o13-s02",
@@ -46,8 +50,12 @@
    "rule": "`--json-schema` no hace cumplir `format`: validalo vos.",
    "source_url": "https://code.claude.com/docs/en/headless",
    "source_quote": "Claude Code accepts schemas that use the format keyword, such as \"format\": \"email\", but treats format as an annotation and doesn't enforce it.",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "ok",
+    "notes": "Cita textual en headless: format se trata como anotación y no se valida."
+   }
   },
   {
    "id": "o13-s03",
@@ -57,11 +65,11 @@
    "options": [
     "Nada de permisos: alcanza con pasar las instrucciones a un `CLAUDE.md`, que la Action lee en cada corrida.",
     "Agregar `--permission-mode bypassPermissions` en `claude_args`, porque el runner de Actions ya es un entorno aislado.",
-    "Dar con `--allowedTools` en `claude_args` solo `Bash(npm audit *)` y `Bash(gh issue create *)`.",
+    "Dar con `--allowedTools` en `claude_args` solo `Bash(npm audit *)` y la tool MCP de GitHub que crea issues.",
     "Agregar `--comment` al prompt, que habilita la shell y la API de GitHub para publicar los resultados."
    ],
    "correct": 2,
-   "why_correct": "Con un prompt de texto plano, Claude no tiene shell ni acceso a la API de GitHub hasta que le das las tools que necesita, con `--allowedTools` en `claude_args` (o una regla `permissions.allow`). Dar solo esos dos comandos cumple con el mínimo privilegio.",
+   "why_correct": "Con un prompt de texto plano, Claude no tiene shell ni acceso a la API de GitHub hasta que le das las tools que necesita, con `--allowedTools` en `claude_args` (o una regla `permissions.allow`). Dar solo `npm audit` y la tool que crea el issue cumple con el mínimo privilegio.",
    "why_wrong": {
     "0": "CLAUDE.md da contexto, no permisos. Claude seguiría sin poder ejecutar comandos.",
     "1": "Bypass habilita todo: va contra el pedido de seguridad de dar solo lo necesario.",
@@ -70,8 +78,12 @@
    "rule": "En la Action con prompt de texto: sin `--allowedTools`, Claude no tiene shell ni API de GitHub.",
    "source_url": "https://code.claude.com/docs/en/github-actions",
    "source_quote": "For a plain-text prompt, Claude has no shell or GitHub API access until you grant the tools the prompt needs, with --allowedTools in claude_args or a permissions.allow rule in the settings input.",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "corregida",
+    "notes": "Cita textual en github-actions. Cambiada la opción correcta: en vez de `Bash(gh issue create *)` (el uso de gh en la Action no está documentado) dice 'la tool MCP de GitHub que crea issues', como el ejemplo programado que usa tools mcp__github__*."
+   }
   },
   {
    "id": "o13-s04",
@@ -94,8 +106,12 @@
    "rule": "Review con el plugin: sin `--comment`, los hallazgos quedan solo en el log.",
    "source_url": "https://code.claude.com/docs/en/github-actions",
    "source_quote": "Without it, Claude posts nothing, and you read the findings in the workflow run log.",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "ok",
+    "notes": "Cita textual en github-actions; el ejemplo oficial usa pull-requests: read y funciona. Distinta de o13-q06."
+   }
   },
   {
    "id": "o13-s05",
@@ -118,8 +134,12 @@
    "rule": "Lo que agregás al system prompt principal no llega a los subagentes: usá `--append-subagent-system-prompt(-file)`.",
    "source_url": "https://code.claude.com/docs/en/sub-agents",
    "source_quote": "Subagents receive only this system prompt plus basic environment details like the working directory, not the Claude Code system prompt.",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "ok",
+    "notes": "Cita textual en sub-agents; cli-reference confirma --append-subagent-system-prompt-file (solo -p)."
+   }
   }
  ]
 }

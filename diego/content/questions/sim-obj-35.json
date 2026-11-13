@@ -22,8 +22,12 @@
    "rule": "SDK con `settingSources` explícito → incluí `\"project\"` o no se lee `.mcp.json`.",
    "source_url": "https://code.claude.com/docs/en/agent-sdk/mcp",
    "source_quote": "If you set settingSources explicitly, include \"project\" for this file to load.",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "ok",
+    "notes": "Cita textual en agent-sdk/mcp; agent-sdk/typescript confirma que [] desactiva user/project/local y que sin permiso Claude ve las tools pero no las llama."
+   }
   },
   {
    "id": "o35-s02",
@@ -46,8 +50,12 @@
    "rule": "SDK sin navegador + server con OAuth → token en `headers` desde una env var.",
    "source_url": "https://code.claude.com/docs/en/agent-sdk/mcp",
    "source_quote": "The SDK doesn't open a browser or run an interactive OAuth flow.",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "ok",
+    "notes": "Cita textual en agent-sdk/mcp; con needs-auth la doc indica token en headers o login interactivo en esa máquina."
+   }
   },
   {
    "id": "o35-s03",
@@ -70,8 +78,12 @@
    "rule": "Server personal en todos tus proyectos → `--scope user`. Para el equipo → project. Solo acá → local.",
    "source_url": "https://code.claude.com/docs/en/mcp",
    "source_quote": "User-scoped servers are stored in ~/.claude.json and provide cross-project accessibility, making them available across all projects on your machine while remaining private to your user account.",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "ok",
+    "notes": "Cita textual en mcp (scope user en ~/.claude.json, privado y en todos los proyectos)."
+   }
   },
   {
    "id": "o35-s04",
@@ -94,8 +106,12 @@
    "rule": "Server remoto en JSON → siempre con `\"type\"`; sin `type` se toma como stdio.",
    "source_url": "https://code.claude.com/docs/en/mcp",
    "source_quote": "A JSON entry that has a url but no type is a configuration error, because Claude Code reads an entry with no type as a stdio server.",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "ok",
+    "notes": "Cita textual en mcp (entrada con url sin type = error de configuración). Variables sin default cargan con warning."
+   }
   },
   {
    "id": "o35-s05",
@@ -118,8 +134,12 @@
    "rule": "`${CLAUDE_PROJECT_DIR}` en `args` de `.mcp.json` → con default: `${CLAUDE_PROJECT_DIR:-.}`.",
    "source_url": "https://code.claude.com/docs/en/mcp",
    "source_quote": "This variable is set in the server's environment, not in Claude Code's own environment, so referencing it via ${VAR} expansion in the command or args of a project-scoped .mcp.json entry",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "ok",
+    "notes": "Cita textual en mcp: CLAUDE_PROJECT_DIR está en el entorno del server; en args hace falta ${CLAUDE_PROJECT_DIR:-.}. Expansión vale en command/args/env/url/headers."
+   }
   }
  ]
 }

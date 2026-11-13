@@ -15,15 +15,19 @@
    "correct": 0,
    "why_correct": "Un agente que corre como hilo principal con `claude --agent` puede limitar qué tipos de subagente lanza con `Agent(tipo, ...)` en `tools`. Es una allowlist: si intenta otro tipo, falla, y en su prompt solo ve los permitidos.",
    "why_wrong": {
-    "1": "Los subagentes heredan las tools de la conversación principal: `writer` también perdería `Write` y no podría escribir los borradores.",
+    "1": "`disallowedTools` saca tools del propio coordinador; no limita en qué tipos de subagente delega. Seguiría pudiendo lanzar `general-purpose`.",
     "2": "Mejora la elección, pero es guía: no impide delegar en `general-purpose`.",
     "3": "`allow` pre-aprueba, no pide confirmación. Lograría lo contrario."
    },
    "rule": "Limitar en quién delega un agente principal → `tools: Agent(tipo1, tipo2)`.",
    "source_url": "https://code.claude.com/docs/en/sub-agents",
    "source_quote": "This is an allowlist: only the worker and researcher subagents can be spawned.",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "corregida",
+    "notes": "Cita textual en sub-agents. Reescrito why_wrong[1]: decía que los subagentes heredan las tools del coordinador (contradice el escenario, donde general-purpose edita aunque el coordinador solo tiene Agent y Read)."
+   }
   },
   {
    "id": "o33-s02",
@@ -46,8 +50,12 @@
    "rule": "`Agent(tipo)` como allowlist solo vale en el agente principal (`claude --agent`).",
    "source_url": "https://code.claude.com/docs/en/sub-agents",
    "source_quote": "The Agent(agent_type) allowlist syntax applies only to an agent running as the main thread with claude --agent.",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "ok",
+    "notes": "Respaldo directo en sub-agents: 'The Agent(agent_type) allowlist syntax applies only to an agent running as the main thread with claude --agent... any type list inside the parentheses is ignored'. Task(...) confirmado como alias."
+   }
   },
   {
    "id": "o33-s03",
@@ -70,8 +78,12 @@
    "rule": "Lo que necesita al usuario (preguntar) queda en el agente principal, no en un subagente.",
    "source_url": "https://code.claude.com/docs/en/sub-agents",
    "source_quote": "When nothing in the tools list resolves to a tool, for example because every entry is misspelled or names a tool that isn't available to subagents, Claude Code usually refuses to launch the subagent",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "ok",
+    "notes": "Cita textual en sub-agents; AskUserQuestion está en el primer filtro (se quita de todo subagente)."
+   }
   },
   {
    "id": "o33-s04",
@@ -94,8 +106,12 @@
    "rule": "Quitar pocas tools y heredar el resto (MCP incluidas) → `disallowedTools`.",
    "source_url": "https://code.claude.com/docs/en/sub-agents",
    "source_quote": "This example uses disallowedTools to inherit the subagent's tool pool except Write and Edit. The subagent keeps Bash, MCP tools, and the rest of its pool",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "ok",
+    "notes": "Cita textual en sub-agents; confirmado que una entrada con especificador en disallowedTools saca la tool entera y que permissionMode se ignora con el principal en acceptEdits/auto/bypass."
+   }
   },
   {
    "id": "o33-s05",
@@ -117,9 +133,13 @@
    },
    "rule": "Un server MCP entero para un subagente → `mcp__server__*` en su `tools`.",
    "source_url": "https://code.claude.com/docs/en/sub-agents",
-   "source_quote": "If both are set, disallowedTools is applied first, then tools is resolved against the remaining pool.",
-   "status": "no_verificado",
-   "verification": null
+   "source_quote": "The tools and disallowedTools fields also take entries for a whole MCP server",
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "corregida",
+    "notes": "Correcta confirmada en sub-agents (tabla: tools con mcp__server__* da todas las tools de un server). Cambiada la source_quote: la anterior respaldaba solo el distractor 2."
+   }
   }
  ]
 }

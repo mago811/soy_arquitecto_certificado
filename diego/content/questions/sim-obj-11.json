@@ -22,8 +22,12 @@
    "rule": "`--max-turns` = turnos con tools + 1 para la respuesta final.",
    "source_url": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
    "source_quote": "Count each turn with tool calls, plus one for the final text-only response. Without that extra turn, the run ends with a ResultMessage of subtype error_max_turns and no final response.",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "ok",
+    "notes": "Cita textual en agent-sdk/agent-loop; la tabla de subtypes confirma que result solo viene en success."
+   }
   },
   {
    "id": "o11-s02",
@@ -40,14 +44,18 @@
    "why_correct": "El modo bare no usa el login de suscripción. La doc indica setear `ANTHROPIC_API_KEY` antes de correrlo. Además, en CI la key va como secreto del pipeline, no en el repo.",
    "why_wrong": {
     "1": "El problema no es una sesión vencida: bare directamente no usa ese login. Refrescarlo no cambia nada.",
-    "2": "`--settings` carga un archivo de settings, no credenciales de suscripción. No hay forma documentada de que bare use ese login.",
+    "2": "`--settings` carga settings, no tu login: en bare, Claude Code nunca lee credenciales OAuth. Lo único de auth que acepta ahí es un `apiKeyHelper`, que igual usa una API key, no la suscripción.",
     "3": "`--setting-sources` elige qué archivos de settings se cargan. No hace que bare use la suscripción."
    },
    "rule": "`--bare` en CI → autenticá con `ANTHROPIC_API_KEY`.",
    "source_url": "https://code.claude.com/docs/en/headless",
    "source_quote": "Set ANTHROPIC_API_KEY before running it, because bare mode doesn't use your subscription login",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "corregida",
+    "notes": "Cita textual en headless. Ajustado why_wrong[2]: la doc sí acepta un apiKeyHelper en --settings, pero eso es una API key, no el login de suscripción."
+   }
   },
   {
    "id": "o11-s03",
@@ -70,32 +78,40 @@
    "rule": "`-p` sobre código no confiable → `--bare`: en `-p` no hay diálogo de confianza.",
    "source_url": "https://code.claude.com/docs/en/headless",
    "source_quote": "Without --bare, a -p session runs the hooks in a project's .claude/settings.json and connects the servers in its .mcp.json, even in a folder you've never trusted.",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "ok",
+    "notes": "Cita textual en headless: -p no muestra diálogo de confianza; --bare saltea hooks y .mcp.json. Distinta de o11-q09 (seguridad vs reproducibilidad)."
+   }
   },
   {
    "id": "o11-s04",
    "objective": 11,
    "pool": "sim",
-   "scenario": "Un equipo usa la GitHub Action de Claude con `claude_args: \"--max-turns 10 --max-budget-usd 3\"`. Una corrida quedó colgada casi seis horas: en su segundo turno Claude levantó el servidor de desarrollo con `npm run dev` y el job nunca terminó. El gasto en tokens fue bajo, pero se consumieron muchos minutos de Actions. Quieren cortar este tipo de corridas. ¿Qué agregan?",
+   "scenario": "Un equipo usa la GitHub Action de Claude con `claude_args: \"--max-turns 10 --max-budget-usd 3\"`. Una corrida quedó colgada casi seis horas: el log muestra que se trabó en el segundo turno y nunca llegó a un tercero. El gasto en tokens fue bajo, pero se consumieron muchos minutos de Actions. Quieren un tope de tiempo para cualquier corrida. ¿Qué agregan?",
    "options": [
-    "Bajar `--max-turns` a 3, para que la corrida se corte antes de llegar al turno que levanta el servidor.",
-    "Un timeout a nivel workflow en el YAML: los topes de turnos y gasto no cortan un turno colgado.",
+    "Bajar `--max-turns` a 3, para que la corrida se corte antes de que llegue a quedarse colgada.",
+    "Un timeout a nivel workflow en el YAML: los topes de turnos y de gasto no son topes de tiempo.",
     "Bajar `--max-budget-usd` a 0.50, porque el tope de gasto también tiene en cuenta cuánto dura cada turno.",
     "Usar `--output-format stream-json`, para que la Action detecte que no llegan eventos y corte la corrida."
    ],
    "correct": 1,
-   "why_correct": "`--max-turns` y `--max-budget-usd` se evalúan turno a turno y por tokens. Un comando que no termina no consume turnos ni tokens, así que ninguno de los dos lo corta. La doc de la Action recomienda timeouts a nivel workflow para evitar jobs desbocados.",
+   "why_correct": "`--max-turns` cuenta turnos y `--max-budget-usd` mide el gasto estimado en tokens. Ninguno es un tope de tiempo: una corrida trabada que no avanza de turno ni gasta tokens no llega a ninguno de los dos. Para eso, la doc de la Action recomienda timeouts a nivel workflow, que evitan jobs desbocados.",
    "why_wrong": {
-    "0": "El servidor se levantó en el turno 2: con un tope de 3 la corrida se cuelga igual.",
-    "2": "El tope de gasto mide costo estimado de tokens, no tiempo. Una corrida colgada casi no gasta tokens.",
+    "0": "La corrida se trabó en el turno 2: con un tope de 3 nunca llega al límite y se cuelga igual.",
+    "2": "El tope de gasto mide costo estimado de tokens, no tiempo. Una corrida trabada casi no gasta tokens.",
     "3": "`stream-json` cambia el formato de salida. No tiene ningún mecanismo para cortar la corrida."
    },
-   "rule": "Turnos y presupuesto cortan corridas largas; un comando colgado lo corta el timeout del workflow.",
+   "rule": "Turnos y presupuesto limitan trabajo y gasto; el tiempo de una corrida lo limita el timeout del workflow.",
    "source_url": "https://code.claude.com/docs/en/github-actions",
    "source_quote": "Set workflow-level timeouts to avoid runaway jobs",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "corregida",
+    "notes": "Respaldo indirecto: la doc de la Action recomienda timeouts a nivel workflow. Reescrito el escenario: ya no atribuye el cuelgue a 'npm run dev' (el Bash tool tiene timeout propio de 2 a 10 min según tools-reference) y se quitó la afirmación no documentada sobre comandos colgados."
+   }
   },
   {
    "id": "o11-s05",
@@ -118,8 +134,12 @@
    "rule": "Bypass no saltea los deny: ahí va lo que no puede pasar nunca.",
    "source_url": "https://code.claude.com/docs/en/permission-modes",
    "source_quote": "Deny rules block in every mode, including bypassPermissions.",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "ok",
+    "notes": "Cita textual en permission-modes: los deny bloquean en todos los modos, incluido bypassPermissions."
+   }
   }
  ]
 }

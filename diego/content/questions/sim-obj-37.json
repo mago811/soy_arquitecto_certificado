@@ -22,8 +22,12 @@
    "rule": "Forzar una tool = sin thinking. Si querés razonamiento: `auto` + instrucción + validación en código.",
    "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
    "source_quote": "Forcing a tool also skips thinking on every model that accepts forced tool use: the response starts with the tool_use block and has no thinking block.",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "ok",
+    "notes": "Cita textual en define-tools; Haiku 5.5 acepta forzar (confirmado en la tabla) pero saltea thinking. thinking.md confirma que type enabled da 400 en Haiku 5.5 y Sonnet 5.5."
+   }
   },
   {
    "id": "o37-s02",
@@ -46,8 +50,12 @@
    "rule": "Forzá solo el paso que tiene que ir primero; después, `auto` y que el loop encadene.",
    "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
    "source_quote": "tool forces Claude to always use a particular tool.",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "ok",
+    "notes": "Cita textual en define-tools (tool fuerza siempre esa tool). Haiku 5.5 acepta forzar según la doc."
+   }
   },
   {
    "id": "o37-s03",
@@ -70,8 +78,12 @@
    "rule": "Último paso solo texto, con tools definidas → `tool_choice: none`.",
    "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
    "source_quote": "none prevents Claude from using any tools.",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "ok",
+    "notes": "Cita textual en define-tools (none); nota de caching confirma que cambiar tool_choice no invalida tools ni system. disable_parallel_tool_use con auto = como mucho una."
+   }
   },
   {
    "id": "o37-s04",
@@ -94,8 +106,12 @@
    "rule": "Dependientes que salen juntas → \"solo agrupá llamadas independientes\" + `is_error` si pasa igual.",
    "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
    "source_quote": "If you run in parallel and a call fails because its prerequisite hadn't completed, return is_error: true with the natural error message. Claude will reissue the call on the next turn.",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "ok",
+    "notes": "Cita textual en parallel-tool-use (troubleshooting #4), que también propone 'Only batch tool calls that are independent of each other.' Variante de o37-q06 con la restricción de conservar paralelismo."
+   }
   },
   {
    "id": "o37-s05",
@@ -105,11 +121,11 @@
    "options": [
     "Cambiar a `tool_choice: {\"type\": \"any\"}`, que Sonnet 5.5 acepta porque no fuerza una tool en particular.",
     "Volver a `claude-haiku-5-5`: es la única forma de garantizar el JSON, porque con `auto` puede llegar texto.",
-    "Usar structured outputs con ese JSON schema, sin la tool ficticia ni ningún `tool_choice` forzado.",
+    "Usar structured outputs con ese schema en `output_config.format`, sin la tool ficticia ni `tool_choice` forzado.",
     "Mantener la tool forzada y activar `thinking` manual, que en Sonnet 5.5 habilita el uso forzado de tools."
    ],
    "correct": 2,
-   "why_correct": "Sonnet 5.5 rechaza `any` y `tool` con un 400. Para estos modelos, la doc propone `auto` con strict tool use si necesitás una llamada a tool, o structured outputs si lo que querés es una respuesta con forma JSON fija. Como la tool era ficticia, alcanza con structured outputs.",
+   "why_correct": "Sonnet 5.5 rechaza `any` y `tool` con un 400. Para estos modelos, la doc propone `auto` con strict tool use si necesitás una llamada a tool, o structured outputs si lo que querés es una respuesta con forma JSON fija. Como la tool era ficticia, alcanza con structured outputs: el schema va en `output_config.format`.",
    "why_wrong": {
     "0": "`any` también es uso forzado y también devuelve 400 en Sonnet 5.5.",
     "1": "No es la única forma: structured outputs garantiza la forma del JSON en el modelo nuevo.",
@@ -118,8 +134,12 @@
    "rule": "Solo querés un JSON con forma fija → structured outputs, no una tool ficticia forzada.",
    "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
    "source_quote": "auto with strict tool use to guarantee schema-valid tool inputs, or structured outputs when you need a response in a fixed JSON shape.",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "corregida",
+    "notes": "Cita textual en define-tools (tabla de modelos: Sonnet 5.5 da 400 con any/tool; usar strict tool use o structured outputs). Agregado `output_config.format` (confirmado en build-with-claude/structured-outputs). thinking.md confirma 400 con type enabled en Sonnet 5.5."
+   }
   }
  ]
 }

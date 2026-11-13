@@ -22,8 +22,12 @@
    "rule": "Contenido de un resource que cambia → `subscribe` + `notifications/resources/updated`.",
    "source_url": "https://modelcontextprotocol.io/specification/2025-11-25/server/resources",
    "source_quote": "Clients can subscribe to specific resources and receive notifications when they change",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "ok",
+    "notes": "Cita textual en la spec de resources (subscribe / notifications/resources/updated vs listChanged)."
+   }
   },
   {
    "id": "o34-s02",
@@ -46,8 +50,12 @@
    "rule": "Lo decide el modelo en medio de la tarea → tool. Contexto que elige la app → resource.",
    "source_url": "https://modelcontextprotocol.io/specification/2025-11-25/server/tools",
    "source_quote": "Tools in MCP are designed to be model-controlled, meaning that the language model can discover and invoke tools automatically based on its contextual understanding and the user's prompts.",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "ok",
+    "notes": "Cita textual en la spec de tools (model-controlled); resources application-driven. Distinta de o34-q02."
+   }
   },
   {
    "id": "o34-s03",
@@ -70,8 +78,12 @@
    "rule": "URI `https://` solo si el cliente lo puede bajar solo; si no, esquema propio.",
    "source_url": "https://modelcontextprotocol.io/specification/2025-11-25/server/resources",
    "source_quote": "Servers SHOULD use this scheme only when the client is able to fetch and load the resource directly from the web on its own",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "ok",
+    "notes": "Cita textual en la spec de resources (esquema https:// solo si el cliente lo baja solo)."
+   }
   },
   {
    "id": "o34-s04",
@@ -94,8 +106,12 @@
    "rule": "Sin @-mention, Claude igual puede listar y leer resources MCP en Claude Code: no los dupliques como tools.",
    "source_url": "https://code.claude.com/docs/en/mcp",
    "source_quote": "Claude Code automatically provides tools to list and read MCP resources when servers support them",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "ok",
+    "notes": "Cita textual en code.claude.com/docs/en/mcp: Claude Code da tools para listar y leer resources."
+   }
   },
   {
    "id": "o34-s05",
@@ -118,8 +134,12 @@
    "rule": "Resources = la app decide qué entra en contexto; no hace falta pasarlos todos.",
    "source_url": "https://modelcontextprotocol.io/docs/learn/server-concepts",
    "source_quote": "Applications can access this information directly and decide how to use it - whether that's selecting relevant portions, searching with embeddings, or passing it all to the model.",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "ok",
+    "notes": "Cita textual en server-concepts: la app decide cómo usar los resources (porciones, embeddings o todo)."
+   }
   }
  ]
 }

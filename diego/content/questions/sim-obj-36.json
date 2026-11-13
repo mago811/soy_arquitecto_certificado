@@ -5,25 +5,29 @@
    "id": "o36-s01",
    "objective": 36,
    "pool": "sim",
-   "scenario": "Un e-commerce tiene en su server MCP `cancel_order` (\"Cancels an order.\") y `refund_order` (\"Refunds an order.\"). Cancelar solo se puede antes del despacho; después, lo que corresponde es un reembolso. Cuando un cliente dice \"ya me llegó y no lo quiero\", Claude llama `cancel_order`, el backend rechaza y el agente se traba. Por auditoría, las dos tools tienen que seguir separadas. ¿Qué cambio ataca la causa?",
+   "scenario": "Una aseguradora tiene en su server MCP `open_claim` y `update_claim`. Cada descripción tiene cuatro frases: qué hace la tool, qué devuelve y qué significa cada parámetro. Ninguna dice cuándo NO usarla. Cuando un asegurado vuelve a escribir por un siniestro que ya tiene número, Claude llama `open_claim` y crea un duplicado. Por auditoría, las dos tools tienen que seguir separadas, con permisos distintos. ¿Qué cambio ataca la causa?",
    "options": [
-    "Unificarlas en una tool `order_action` con un parámetro `action`, para reducir la ambigüedad al elegir.",
-    "Agregar al system prompt \"si el pedido ya fue entregado, usá refund_order\" y dejar las descripciones como están.",
-    "Renombrarlas con prefijo de servicio, como `orders_cancel` y `orders_refund`, para desambiguar la selección.",
-    "Reescribir cada descripción: qué hace, cuándo sí y cuándo no (antes o después del despacho) y cuál usar si no."
+    "Unificarlas en una tool `claim_action` con un parámetro `action`, para reducir la ambigüedad al elegir.",
+    "Agregar al system prompt \"si el siniestro ya tiene número, usá update_claim\" y no tocar las descripciones.",
+    "Agregar `input_examples` a `open_claim` con llamadas bien armadas, para que Claude vea cuándo corresponde.",
+    "Sumar a cada descripción cuándo no usarla (siniestro nuevo o existente) y qué tool corresponde en ese caso."
    ],
    "correct": 3,
-   "why_correct": "Claude elige tools por su descripción, y la doc dice que es el factor más importante. Una línea no dice cuándo usarla ni cuándo no. Si cada descripción marca el límite (antes o después del despacho) y nombra la alternativa, Claude puede elegir bien.",
+   "why_correct": "La doc pide que cada descripción diga qué hace la tool y también cuándo usarla y cuándo no. Estas descripciones cubren lo primero, pero no el límite entre las dos. Si cada una marca cuándo no aplica y cuál corresponde en ese caso, Claude tiene en la descripción misma el dato para elegir.",
    "why_wrong": {
     "0": "Consolidar es una buena práctica en otros casos, pero acá viola la restricción de auditoría: tienen que seguir separadas.",
-    "1": "Ayuda, pero deja la causa (descripciones vacías) y reparte la info entre el prompt y las tools.",
-    "2": "Las dos son del mismo servicio: el prefijo no agrega información para distinguirlas."
+    "1": "Puede ayudar, pero deja la causa en las descripciones y separa la regla de la tool a la que se refiere.",
+    "2": "`input_examples` muestra cómo armar bien los inputs de tools complejas. No le dice a Claude cuándo elegir una tool u otra."
    },
    "rule": "Tools parecidas → cada descripción dice cuándo SÍ, cuándo NO y cuál usar en su lugar.",
    "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
-   "source_quote": "Provide extremely detailed descriptions. This is by far the most important factor in tool performance.",
-   "status": "no_verificado",
-   "verification": null
+   "source_quote": "When it should be used (and when it shouldn’t)",
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "corregida",
+    "notes": "Era casi igual a o36-q01 (dos tools de e-commerce con descripciones de una línea, misma respuesta y distractores). Reescrito: descripciones ya detalladas a las que les falta 'cuándo no', distractor nuevo con input_examples, y cita 'When it should be used (and when it shouldn’t)'. Nombrar la tool alternativa es la forma concreta de expresar el 'cuándo no' que pide la doc."
+   }
   },
   {
    "id": "o36-s02",
@@ -46,8 +50,12 @@
    "rule": "Tool search lee el principio de la descripción: lo que hace la tool y sus palabras clave, arriba.",
    "source_url": "https://code.claude.com/docs/en/mcp",
    "source_quote": "When tool search matches Claude's query against a tool's description, it reads only the part within the shorter limit, so put the words Claude would search for near the start too.",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "ok",
+    "notes": "Cita textual en mcp; límites confirmados (4.096 para carga upfront, 16.384 diferidas; la búsqueda lee solo el límite corto). Distinta de o36-q05 (tool diferida + búsqueda)."
+   }
   },
   {
    "id": "o36-s03",
@@ -70,8 +78,12 @@
    "rule": "Con tool search, las server instructions le dicen a Claude cuándo buscar tus tools.",
    "source_url": "https://code.claude.com/docs/en/mcp",
    "source_quote": "Server instructions help Claude understand when to search for your tools, similar to how skills work.",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "ok",
+    "notes": "Cita textual en mcp: con tool search solo cargan nombres y server instructions; las instructions dicen cuándo buscar."
+   }
   },
   {
    "id": "o36-s04",
@@ -94,8 +106,12 @@
    "rule": "IDs que se confunden entre tools → describí el formato del parámetro y qué tool corresponde a cada tipo.",
    "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
    "source_quote": "What each parameter means and how it affects the tool's behavior",
-   "status": "no_verificado",
-   "verification": null
+   "status": "verificada",
+   "verification": {
+    "date": "2026-11-13",
+    "verdict": "ok",
+    "notes": "Cita textual en define-tools (qué significa cada parámetro; cuándo usar y cuándo no). Confirmado: tool_choice forzado da 400 en Opus 5.5 y Sonnet 5.5."
+   }
   }
  ]
 }
