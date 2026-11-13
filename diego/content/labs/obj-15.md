@@ -10,7 +10,7 @@ sources:
     title: "How Claude remembers your project"
   - url: https://code.claude.com/docs/en/best-practices
     title: "Best practices for Claude Code"
-status: no_verificado
+status: verificada
 ---
 
 ## Objetivo
@@ -24,7 +24,7 @@ Pedir tests dos veces para la misma función: una con "subí la cobertura" y otr
 ```bash
 mkdir lab-obj15 && cd lab-obj15 && git init
 python -m venv .venv && source .venv/bin/activate && pip install pytest
-mkdir tests
+mkdir tests && touch tests/__init__.py
 cat > mora.py <<'PY'
 from datetime import date
 def calcular_mora(monto: float, vence: date, pago: date, tasa_diaria: float = 0.001) -> float:
@@ -76,5 +76,5 @@ Corré pytest tests/test_b.py -q y mostrame la salida.
 
 ## Si algo falla
 
-- **No usa la fixture**: revisá que `CLAUDE.md` esté en la raíz y corré `/memory` para ver que se cargó.
+- **No usa la fixture**: revisá que `CLAUDE.md` esté en la raíz de la carpeta donde arrancás `claude`; si lo creaste con la sesión abierta, salí y volvé a arrancar `claude`. `/memory` te muestra dónde está cada archivo de memoria.
 - **pytest no importa `mora`**: corré desde la raíz de `lab-obj15`; si hace falta, creá un `tests/__init__.py` vacío o corré `python -m pytest`.

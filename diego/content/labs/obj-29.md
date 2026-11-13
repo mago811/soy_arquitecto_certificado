@@ -10,7 +10,7 @@ sources:
     title: "Reduce hallucinations"
   - url: https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices
     title: "Prompting best practices"
-status: no_verificado
+status: verificada
 ---
 
 ## Objetivo
@@ -63,7 +63,7 @@ for n, d in DOCS.items():
 
 3. Corré `python lab.py 1` y `python lab.py 2`. Anotá: ¿qué CUIT puso V1 para `norte` y `este`? ¿En qué formato salieron las fechas? ¿El total de `este` es negativo?
 
-4. Rompelo: en V2 agregá `"minimum": 0` a `total`. Corré. Tenés que ver un 400 (restricción numérica no soportada). Sacalo y validá en Python: `assert isinstance(x["total"], float)`.
+4. Rompelo: en V2 agregá `"minimum": 0` a `total`. Corré. Tenés que ver un 400 (restricción numérica no soportada). Sacalo y validá el rango en Python, después de parsear: por ejemplo `assert -10_000_000 <= x["total"] <= 10_000_000`.
 
 ## Cómo sabés que salió bien
 

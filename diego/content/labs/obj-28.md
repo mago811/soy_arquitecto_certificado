@@ -1,6 +1,6 @@
 ---
 objective: 28
-title: "Lab (repaso): provocar un JSON truncado y arreglarlo partiendo"
+title: "Lab (repaso): provocar un JSON truncado y arreglarlo (subir max_tokens o partir)"
 minutes: 30
 needs: ["API key de Anthropic", "Python 3.10+"]
 sources:
@@ -10,7 +10,7 @@ sources:
     title: "Structured outputs"
   - url: https://platform.claude.com/docs/en/build-with-claude/thinking
     title: "Thinking"
-status: no_verificado
+status: verificada
 ---
 
 ## Objetivo
@@ -57,7 +57,7 @@ if __name__ == "__main__":
 
 Corré `python lab.py`. Con 30 archivos y 4000 tokens (thinking incluido) debería volver `max_tokens` y el JSON no parsea. Si no se corta, subí a 60 archivos.
 
-3. Arreglo A (subir): cambiá a `review(ARCHIVOS, 32000)`. ¿Entra? Ahora imaginá 600 archivos: ¿hasta dónde subís? El techo de Opus 5.5 en la Messages API es 128K.
+3. Arreglo A (subir): cambiá a `review(ARCHIVOS, 32000)`. ¿Entra? Ahora imaginá 600 archivos: ¿hasta dónde subís? El techo de Opus 5.5 en la Messages API sincrónica es 128K. Subir es el primer remedio que da la doc; partir es para cuando el output crece con el input.
 
 4. Arreglo B (partir). `partido.py`:
 
@@ -69,7 +69,7 @@ hallazgos = []
 for i in range(0, len(items), 5):                      # lotes de 5 archivos
     stop, texto = review(dict(items[i:i+5]), 8000)
     if stop == "max_tokens":
-        print("lote", i, "truncado: partir más fino"); continue
+        print("lote", i, "truncado: subí max_tokens del lote o partí más fino"); continue
     hallazgos += json.loads(texto)["hallazgos"]
 unicos = {h["archivo"]: h for h in hallazgos}            # dedupe por archivo
 print("hallazgos:", len(unicos), "de", len(ARCHIVOS))
@@ -84,4 +84,4 @@ print("hallazgos:", len(unicos), "de", len(ARCHIVOS))
 
 - **No se trunca en el paso 2**: bajá `max_tokens` o agregá archivos. El objetivo es ver el corte.
 - **Error 400 de schema**: revisá `"additionalProperties": False` en cada objeto.
-- **Un lote de 5 se trunca**: bajá a lotes de 2. Partir más fino es el fix, no estirar.
+- **Un lote de 5 se trunca**: primero subí el `max_tokens` del lote (por ejemplo a 16000); si sigue, bajá a lotes de 2.

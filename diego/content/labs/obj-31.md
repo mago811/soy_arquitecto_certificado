@@ -10,7 +10,7 @@ sources:
     title: "Create custom subagents"
   - url: https://code.claude.com/docs/en/code-review-customize
     title: "Customize Code Review (Choose what to write in REVIEW.md)"
-status: no_verificado
+status: verificada
 ---
 
 ## Objetivo
@@ -52,7 +52,7 @@ Revisá el diff (`git diff`) y reportá lo importante.
 
 3. Ronda A (vago): `Usá el subagente revisor sobre el diff.` Anotá: ¿encontró los 2 bugs? ¿Cuántos comentarios de estilo/naming (`Descuento`, `T`, `x`)?
 
-4. Ronda B ("sé conservador"): cambiá la última línea del subagente a `Revisá el diff y sé conservador: reportá solo lo de severidad alta.` Reiniciá y repetí. Anotá lo mismo.
+4. Ronda B ("sé conservador"): cambiá la última línea del subagente a `Revisá el diff y sé conservador: reportá solo lo de severidad alta.` Repetí (Claude Code detecta en unos segundos los cambios a un archivo de subagente, sin reiniciar). Anotá lo mismo.
 
 5. Ronda C (límites explícitos): reemplazá el cuerpo por:
 
