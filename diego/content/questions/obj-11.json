@@ -1,0 +1,245 @@
+{
+  "objective": 11,
+  "questions": [
+    {
+      "id": "o11-q01",
+      "objective": 11,
+      "pool": "practice",
+      "scenario": "Una fintech agregó un paso a su pipeline de GitLab: `claude \"Arreglá los errores de lint del repo\"`. El job nunca termina: queda corriendo hasta que GitLab lo mata por timeout a la hora, sin un solo cambio. En local, el mismo comando abre la interfaz de Claude Code y funciona. ¿Cuál es el fix?",
+      "options": [
+        "Agregar `--max-turns 10` para que el job corte solo",
+        "Agregar `-p` para que corra en modo no interactivo y termine",
+        "Agregar `--verbose` para ver en el log dónde se trabó",
+        "Agregar `--permission-mode bypassPermissions` para que no pregunte"
+      ],
+      "correct": 1,
+      "why_correct": "Sin `-p`, `claude` arranca la sesión interactiva y espera a una persona que en CI no existe. `-p` (o `--print`) corre no interactivo: hace la tarea, imprime y sale. Es el primer flag de cualquier invocación automatizada.",
+      "why_wrong": {
+        "0": "`--max-turns` es \"print mode only\": sin `-p` no aplica. Y aunque aplicara, limita el trabajo, no evita que la sesión espere input.",
+        "2": "`--verbose` muestra más detalle, pero el proceso sigue siendo interactivo y sigue esperando.",
+        "3": "Saltear permisos no saca a Claude del modo interactivo. Además, `bypassPermissions` es para contenedores aislados, no para un runner compartido."
+      },
+      "rule": "Claude Code en CI siempre con `-p`: sin eso espera una persona que no existe.",
+      "source_url": "https://code.claude.com/docs/en/headless",
+      "source_quote": "Add the -p (or --print) flag to any claude command to run it non-interactively.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o11-q02",
+      "objective": 11,
+      "pool": "practice",
+      "scenario": "Un job nocturno corre `claude -p \"Hacé pasar todos los tests\" --allowedTools \"Read,Edit,Bash(npm test *)\"`. Una noche un test flaky lo hizo iterar 140 turnos y gastó USD 60. El equipo quiere que ninguna corrida pueda volver a pasar de unos USD 5 ni de 25 turnos, pase lo que pase. ¿Qué configurás?",
+      "options": [
+        "Agregar al CLAUDE.md: \"IMPORTANTE: no más de 25 intentos ni 5 dólares\"",
+        "Agregar `--output-format json` y revisar `total_cost_usd` cada mañana",
+        "Agregar `--max-turns 25 --max-budget-usd 5.00` a la invocación",
+        "Cambiar a `--model haiku` para que cada turno salga más barato"
+      ],
+      "correct": 2,
+      "why_correct": "`--max-turns` corta la corrida al llegar a N turnos, y `--max-budget-usd` la corta cuando el gasto estimado llega al monto. Los dos funcionan con `-p` y los aplica Claude Code, no el modelo. Es enforcement, que es lo que pide \"pase lo que pase\".",
+      "why_wrong": {
+        "0": "CLAUDE.md es guidance: el modelo lo lee y puede no cumplirlo. Para un tope que tiene que cumplirse siempre, hace falta un mecanismo que aplique el harness.",
+        "1": "Medir el costo sirve para auditar, pero no frena nada: te enterás a la mañana siguiente, con la plata ya gastada.",
+        "3": "Un modelo más barato baja el costo por turno, pero no limita la cantidad de turnos. Un loop infinito sigue siendo infinito."
+      },
+      "rule": "Tope que se tiene que cumplir = `--max-turns` / `--max-budget-usd` (enforcement), nunca un texto en CLAUDE.md.",
+      "source_url": "https://code.claude.com/docs/en/cli-reference",
+      "source_quote": "Stop the run once estimated spend on API calls reaches this amount (print mode only).",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o11-q03",
+      "objective": 11,
+      "pool": "practice",
+      "scenario": "Un script de CI corre `claude -p \"...\" --max-turns 8 --output-format json` y después publica en Slack lo que devuelve `jq -r '.result'`. Algunas noches el mensaje en Slack dice literalmente \"null\" y el pipeline queda en verde. ¿Cuál es el fix correcto?",
+      "options": [
+        "Subir `--max-turns` a 100 para que siempre llegue a terminar",
+        "Cambiar a `--output-format text`, que siempre trae texto",
+        "Agregar `--verbose` para que el JSON incluya el resultado igual",
+        "Leer `.subtype` primero y fallar el job si no es `success`"
+      ],
+      "correct": 3,
+      "why_correct": "Cuando la corrida pega contra un tope, el resultado tiene subtype `error_max_turns` (o `error_max_budget_usd`) y no trae `result`. El campo `result` solo existe en la variante `success`. El script tiene que mirar `subtype` y, si no es `success`, fallar el job en vez de publicar \"null\".",
+      "why_wrong": {
+        "0": "Subir el tope esconde el problema y saca el freno contra corridas desbocadas. El script tiene que manejar el caso de error igual.",
+        "1": "Con texto plano perdés la forma de distinguir un éxito de una corrida cortada. Seguís publicando algo que no es la respuesta.",
+        "2": "`--verbose` agrega detalle de los turnos. No hace aparecer un `result` que no existe cuando la corrida no terminó."
+      },
+      "rule": "Antes de leer `.result`, chequeá `.subtype == \"success\"`; si pegó contra un tope, no hay resultado.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
+      "source_quote": "The result field holds the final text output and is only present on the success variant, so always check the subtype before reading it.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o11-q04",
+      "objective": 11,
+      "pool": "practice",
+      "scenario": "Un equipo corre `claude -p ... --max-budget-usd 2.00` en cada PR. Finanzas ve una corrida que reportó `total_cost_usd` de 2.31 y abre un ticket: \"el tope no funciona\". ¿Qué respondés?",
+      "options": [
+        "El tope se chequea después de cada respuesta, que igual se completa: puede pasarse un poco. Hay que dejar margen",
+        "Es un bug: `--max-budget-usd` debería cortar exacto en 2.00. Hay que bajar de versión",
+        "El tope solo cuenta el gasto del agente principal. Lo que gastan los subagentes queda afuera",
+        "El tope solo se aplica con `--output-format stream-json`. Con `json` se ignora"
+      ],
+      "correct": 0,
+      "why_correct": "Claude Code compara el gasto con el tope cuando llega cada respuesta del modelo. La respuesta que cruza el tope igual se completa y se cuenta. Además, el control usa una estimación del lado del cliente. La doc lo dice: el gasto puede pasarse del tope, así que dejá margen (por ejemplo, poné 1.70 si el límite real es 2).",
+      "why_wrong": {
+        "1": "No es un bug: está documentado que el gasto puede pasarse del tope. Bajar de versión no cambia el diseño.",
+        "2": "Al revés: la doc dice que lo que gastan los subagentes cuenta para el tope.",
+        "3": "`--max-budget-usd` es \"print mode only\", pero no depende del formato de salida. Funciona con `json`."
+      },
+      "rule": "`--max-budget-usd` es un freno, no un límite exacto: dejá margen debajo de tu techo real.",
+      "source_url": "https://code.claude.com/docs/en/cli-reference",
+      "source_quote": "Spend from subagents counts toward the cap. Spend can pass the cap, so leave headroom.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o11-q05",
+      "objective": 11,
+      "pool": "practice",
+      "scenario": "Un job de GitHub Actions corre `claude -p \"Corré los tests y arreglá lo que falle\" --output-format json`, sin ningún flag de permisos. Termina rápido, con exit 0, pero no cambió ningún archivo. En el JSON, `permission_denials` lista llamadas a `Edit` y a `Bash`. ¿Cuál es el fix?",
+      "options": [
+        "Pre-aprobar lo justo: `--allowedTools \"Read,Edit,Bash(npm test *)\"`",
+        "Agregar `--dangerously-skip-permissions` en el runner compartido",
+        "Escribir en CLAUDE.md: \"Tenés permiso para editar y correr tests\"",
+        "Subir `--max-turns` para que tenga más intentos de editar"
+      ],
+      "correct": 0,
+      "why_correct": "Una corrida `-p` sin modo de permiso arranca en modo Manual. Ahí, lo que necesita aprobación se niega si nada lo aprueba, y queda en `permission_denials`. La forma segura es pre-aprobar con `--allowedTools` exactamente lo que la tarea necesita, con patrones como `Bash(npm test *)`.",
+      "why_wrong": {
+        "1": "`--dangerously-skip-permissions` equivale a `bypassPermissions`, pensado para contenedores y VMs aisladas. Abre todo de golpe en vez de lo justo.",
+        "2": "CLAUDE.md es texto para el modelo. No aprueba nada en el sistema de permisos: las llamadas se van a seguir negando.",
+        "3": "El problema no es la cantidad de turnos. Cada intento de editar se va a seguir negando."
+      },
+      "rule": "En `-p`, lo que no está pre-aprobado se niega: aprobá lo justo con `--allowedTools`.",
+      "source_url": "https://code.claude.com/docs/en/headless",
+      "source_quote": "In a Manual mode claude -p run, a call that needs approval is denied unless something approves it, such as a PermissionRequest hook or a --permission-prompt-tool.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o11-q06",
+      "objective": 11,
+      "pool": "practice",
+      "scenario": "Seguridad pide que el job de CI con Claude haga solo lo que está pre-aprobado (`Read`, `Edit` y `Bash(npm run lint *)`). Cualquier otra cosa que normalmente pediría permiso tiene que negarse sola, sin esperar a nadie. ¿Qué modo de permiso combinás con `--allowedTools`?",
+      "options": [
+        "`--permission-mode acceptEdits`",
+        "`--permission-mode plan`",
+        "`--permission-mode bypassPermissions`",
+        "`--permission-mode dontAsk`"
+      ],
+      "correct": 3,
+      "why_correct": "`dontAsk` niega cualquier llamada que hubiera pedido permiso. Igual deja correr las lecturas y lo que cubren tus `--allowedTools` o reglas `allow`. La doc lo recomienda para CI cerrado: la sesión nunca espera input.",
+      "why_wrong": {
+        "0": "`acceptEdits` aprueba ediciones de archivos y comandos de filesystem como `mkdir` o `mv` sin preguntar. Es más permisivo que \"solo lo pre-aprobado\".",
+        "1": "`plan` bloquea las ediciones: el job planificaría y no arreglaría nada.",
+        "2": "`bypassPermissions` aprueba todo lo que no cubren las reglas deny/ask. Es lo opuesto a \"solo lo pre-aprobado\"."
+      },
+      "rule": "CI cerrado = `--allowedTools` justo + `--permission-mode dontAsk`.",
+      "source_url": "https://code.claude.com/docs/en/permission-modes",
+      "source_quote": "Use this mode for CI pipelines or restricted environments where you pre-define what Claude may do; the session never waits for input.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o11-q07",
+      "objective": 11,
+      "pool": "practice",
+      "scenario": "Un equipo migró su workflow de `anthropics/claude-code-action@beta` a `@v1`. Dejaron el input `max_turns: \"5\"` en el bloque `with:`, pero ahora las corridas hacen 30 o 40 turnos. ¿Cuál es el fix?",
+      "options": [
+        "Agregar al `prompt` la frase \"no uses más de 5 turnos\"",
+        "Pasar el límite como flag: `claude_args: \"--max-turns 5\"`",
+        "Dejar `max_turns` y agregar `mode: agent` para que lo respete",
+        "Sacar el límite y poner solo `timeout-minutes: 5` en el job"
+      ],
+      "correct": 1,
+      "why_correct": "En v1, las opciones del CLI van dentro de `claude_args`, que acepta cualquier argumento del CLI de Claude Code. La guía de migración lo dice explícito: hay que mover `max_turns` y `model` a `claude_args`.",
+      "why_wrong": {
+        "0": "Un pedido en el prompt es guidance: el modelo puede no cumplirlo. Además no arregla el input mal configurado.",
+        "2": "La guía de v1 dice que hay que sacar el input `mode`, porque el modo ahora se detecta solo. No hace que se respete `max_turns`.",
+        "3": "Un timeout del workflow es una buena red de seguridad extra, pero corta por tiempo y deja el trabajo a medias. No reemplaza el límite de turnos."
+      },
+      "rule": "En la GitHub Action v1, todo flag del CLI (`--max-turns`, `--model`, `--allowedTools`) va en `claude_args`.",
+      "source_url": "https://code.claude.com/docs/en/github-actions",
+      "source_quote": "Move CLI options such as max_turns and model into claude_args.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o11-q08",
+      "objective": 11,
+      "pool": "practice",
+      "scenario": "Plataforma quiere un dashboard con el costo de cada corrida de Claude en CI, por repo, sin entrar a ninguna consola. Hoy el script corre `claude -p \"...\"` y guarda la salida de texto en un log. ¿Qué cambio es el más directo?",
+      "options": [
+        "Buscar con regex en el texto de salida líneas con el símbolo \"$\"",
+        "Agregar `--verbose` y sumar los tokens que aparecen en el log",
+        "Agregar `--output-format json` y leer `total_cost_usd` con jq",
+        "Pedirle en el prompt que al final informe cuánto gastó"
+      ],
+      "correct": 2,
+      "why_correct": "Con `--output-format json`, la respuesta incluye `total_cost_usd` y el desglose por modelo. Un script lo lee con `jq -r '.total_cost_usd'` sin consultar ningún dashboard. Ese campo viene incluso cuando la corrida terminó con error.",
+      "why_wrong": {
+        "0": "La salida de texto es la respuesta del modelo: no trae un campo de costo confiable para parsear.",
+        "1": "`--verbose` muestra los turnos. Sumar tokens a mano es frágil y además tendrías que convertirlos a plata vos.",
+        "3": "El modelo no sabe cuánto costó la corrida. Lo que te diga puede ser inventado."
+      },
+      "rule": "Costo por corrida en scripts = `--output-format json` → `total_cost_usd`.",
+      "source_url": "https://code.claude.com/docs/en/headless",
+      "source_quote": "With --output-format json, the response payload includes total_cost_usd and a per-model cost breakdown, so scripted callers can track spend without consulting the usage dashboard.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o11-q09",
+      "objective": 11,
+      "pool": "practice",
+      "scenario": "El mismo `claude -p` da resultados distintos en dos runners self-hosted. En uno, un dev dejó hooks en `~/.claude` y el proyecto tiene un `.mcp.json` que levanta un servidor que en el otro runner no existe. El equipo quiere que la corrida haga lo mismo en cualquier máquina y cargar explícitamente solo lo que necesita. ¿Qué hacés?",
+      "options": [
+        "Correr con `--bare` y pasar lo necesario con flags (`--mcp-config`, `--settings`)",
+        "Agregar al CLAUDE.md: \"Ignorá los hooks y servidores MCP del usuario\"",
+        "Correr con `--permission-mode plan` para que no ejecute nada de afuera",
+        "Agregar `--verbose` para detectar qué hook corre en cada runner"
+      ],
+      "correct": 0,
+      "why_correct": "`--bare` saltea el auto-descubrimiento de hooks, skills, plugins, servidores MCP, memoria y CLAUDE.md. Así la corrida hace lo mismo en cualquier máquina. Lo que sí hace falta se pasa explícito con flags. Ojo: `--bare` no usa el login de suscripción, así que necesita `ANTHROPIC_API_KEY` o un `apiKeyHelper`.",
+      "why_wrong": {
+        "1": "Los hooks y los servidores MCP los ejecuta el harness, no el modelo. Un texto en CLAUDE.md no evita que se carguen.",
+        "2": "Plan mode bloquea ediciones, pero no evita que se carguen los hooks ni que conecten los MCP. Y el job dejaría de hacer su trabajo.",
+        "3": "`--verbose` ayuda a diagnosticar, pero no hace que los runners se comporten igual."
+      },
+      "rule": "Corridas reproducibles en CI = `--bare` + configuración explícita por flags.",
+      "source_url": "https://code.claude.com/docs/en/headless",
+      "source_quote": "Bare mode is useful for CI and scripts where you need the same result on every machine.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o11-q10",
+      "objective": 11,
+      "pool": "practice",
+      "scenario": "Un equipo quiere mostrar en su panel interno el progreso de una corrida larga de `claude -p`, evento por evento, mientras pasa. Hoy usan `--output-format json` y el panel queda vacío hasta el final. ¿Qué cambian?",
+      "options": [
+        "Usar `--output-format text` con `--verbose`",
+        "Agregar `--include-partial-messages` y dejar `json`",
+        "Subir `--max-turns` para que el resultado llegue antes",
+        "Usar `--output-format stream-json` con `--verbose`"
+      ],
+      "correct": 3,
+      "why_correct": "`json` entrega un solo objeto al final. `stream-json` emite un JSON por línea a medida que pasan las cosas, y la última línea es el `result` con el costo y la sesión. Para eventos en vivo se usa `stream-json` con `--verbose`; para ver también los tokens a medida que se generan, se suma `--include-partial-messages`.",
+      "why_wrong": {
+        "0": "El texto plano no trae eventos estructurados que el panel pueda parsear.",
+        "1": "`--include-partial-messages` requiere `--output-format stream-json`. Con `json` no hay stream.",
+        "2": "La cantidad de turnos no cambia cuándo llega la salida: con `json` siempre llega al final."
+      },
+      "rule": "Resultado único al final = `json`. Eventos en vivo = `stream-json` + `--verbose`.",
+      "source_url": "https://code.claude.com/docs/en/headless",
+      "source_quote": "Use --output-format stream-json with --verbose and --include-partial-messages to receive tokens as they're generated.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

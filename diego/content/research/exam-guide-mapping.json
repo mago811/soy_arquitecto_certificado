@@ -1,0 +1,84 @@
+{
+  "verified": true,
+  "verification": {
+    "weights": true,
+    "exam_format": true,
+    "domain_names": true,
+    "task_statement_list": true,
+    "mapping": false,
+    "task_statements": false
+  },
+  "source_urls": [
+    "https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification",
+    "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
+    "https://anthropic.skilljar.com/claude-certified-architect-foundations-access-request",
+    "https://claude.com/resources/articles/four-role-based-claude-certifications"
+  ],
+  "guide_version": "Version 1.0 · Effective July 2026 · Exam code: CCAR-F",
+  "weights": { "d1": 27, "d2": 20, "d3": 20, "d4": 18, "d5": 15 },
+  "official_domain_numbering": {
+    "1": { "name": "Agentic Architecture & Orchestration", "weight": 27, "internal": "d1" },
+    "2": { "name": "Tool Design & MCP Integration", "weight": 18, "internal": "d4" },
+    "3": { "name": "Claude Code Configuration & Workflows", "weight": 20, "internal": "d2" },
+    "4": { "name": "Prompt Engineering & Structured Output", "weight": 20, "internal": "d3" },
+    "5": { "name": "Context Management & Reliability", "weight": 15, "internal": "d5" }
+  },
+  "exam_format": {
+    "items": 60,
+    "item_format": "Multiple-choice and multiple-response; each item states how many responses to select",
+    "structure": "4 scenarios drawn from a bank of 6",
+    "time_limit_minutes": 120,
+    "score_scale": "100-1000 (scaled)",
+    "passing_score": 720,
+    "fee_usd": 125,
+    "validity_months": 12,
+    "retake_wait_days": [14, 30, 90]
+  },
+  "mapping": {
+    "1": "d1", "2": "d1", "3": "d1", "4": "d1", "5": "d1", "6": "d1", "7": "d1",
+    "8": "d2", "9": "d5", "10": "d1", "11": "d2", "12": "d2", "13": "d2", "14": "d2",
+    "15": "d2", "16": "d2", "17": "d4", "18": "d5", "19": "d5", "20": "d5", "21": "d5",
+    "22": "d5", "23": "d3", "24": "d3", "25": "d3", "26": "d3", "27": "d3", "28": "d3",
+    "29": "d3", "30": "d3", "31": "d3", "32": "d4", "33": "d4", "34": "d4", "35": "d4",
+    "36": "d4", "37": "d4"
+  },
+  "task_statements": {
+    "1": "1.3", "2": "1.7", "3": "1.3", "4": "1.3", "5": "1.3", "6": "1.3", "7": "1.6",
+    "8": "3.4", "9": "5.4", "10": "1.2", "11": "3.6", "12": "3.5", "13": "3.6", "14": "3.2",
+    "15": "3.6", "16": "3.1", "17": "2.5", "18": "5.6", "19": "5.6", "20": "5.4", "21": "5.1",
+    "22": "5.5", "23": "4.5", "24": "4.6", "25": "4.3", "26": "4.3", "27": "4.3", "28": "4.6",
+    "29": "4.2", "30": "4.1", "31": "4.1", "32": "2.5", "33": "2.3", "34": "2.4", "35": "2.4",
+    "36": "2.1", "37": "2.3"
+  },
+  "alternate_task_statements": {
+    "5": ["2.3"],
+    "10": ["1.6"],
+    "11": [],
+    "16": ["3.2", "3.3", "1.5"],
+    "17": ["5.4"],
+    "18": ["5.1"],
+    "24": ["4.2"],
+    "27": ["2.3"],
+    "28": ["1.6"],
+    "29": ["4.3"],
+    "30": ["3.6", "4.2"],
+    "37": ["4.3"]
+  },
+  "mapping_confidence": {
+    "1": "high", "2": "high", "3": "high", "4": "high", "5": "medium", "6": "high", "7": "high",
+    "8": "high", "9": "high", "10": "medium", "11": "high", "12": "high", "13": "high", "14": "high",
+    "15": "high", "16": "medium", "17": "medium", "18": "medium", "19": "high", "20": "high", "21": "high",
+    "22": "high", "23": "high", "24": "medium", "25": "high", "26": "high", "27": "medium", "28": "low",
+    "29": "medium", "30": "medium", "31": "high", "32": "high", "33": "high", "34": "high", "35": "high",
+    "36": "high", "37": "high"
+  },
+  "changed_vs_provisional": {
+    "2": { "from": "d5", "to": "d1" },
+    "9": { "from": "d1", "to": "d5" },
+    "12": { "from": "d3", "to": "d2" },
+    "17": { "from": "d5", "to": "d4" },
+    "18": { "from": "d1", "to": "d5" },
+    "27": { "from": "d4", "to": "d3" }
+  },
+  "notes": "Official guide found (PDF v1.0, July 2026, linked from the official Anthropic Partner Academy certification page). Weights, domain names, exam format and the 30 task statements (1.1-1.7, 2.1-2.5, 3.1-3.6, 4.1-4.6, 5.1-5.6) are VERIFIED verbatim. WARNING 1: the official domain NUMBERING differs from ours: official Domain 2 = Tool Design & MCP (our d4), Domain 3 = Claude Code (our d2), Domain 4 = Prompt Eng (our d3). Weights per internal id still match exactly. WARNING 2: NONE of the 37 objective texts in objectives.json appear verbatim in the guide (phrases like 'goal-oriented', 'sliding windows', 'cost and turn limits', 'prefilled responses', 'truncation', 'permission modes' are absent). The guide has 30 task statements, not 37. Therefore 'mapping' and 'task_statements' are INFERRED by content match against the guide's Knowledge/Skills bullets (verification.mapping=false); see mapping_confidence and alternate_task_statements. 6 objectives change domain vs the provisional assignment (see changed_vs_provisional)."
+}

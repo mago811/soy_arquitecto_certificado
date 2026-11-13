@@ -1,0 +1,285 @@
+{
+  "objective": 16,
+  "questions": [
+    {
+      "id": "o16-q01",
+      "objective": 16,
+      "pool": "practice",
+      "scenario": "Una fintech usa Claude Code en su repo. El CLAUDE.md del proyecto dice \"IMPORTANT: NUNCA leas el archivo .env\". Igual, en una sesión larga, Claude abrió `.env` para \"entender la configuración\". Compliance exige que eso no pueda volver a pasar, para nadie del equipo. ¿Cuál es el fix?",
+      "options": [
+        "Reescribir la línea del CLAUDE.md en mayúsculas, ponerla al principio del archivo y repetirla en un `CLAUDE.local.md`.",
+        "Crear una Skill `secrets-policy` con la regla y marcarla con `user-invocable: false` para que Claude la cargue sola.",
+        "Agregar `Read(./.env)` y `Read(./.env.*)` en `permissions.deny` de `.claude/settings.json` y commitear el archivo.",
+        "Mover la regla a `.claude/rules/security.md` con `paths: [\".env\"]` para que se cargue justo cuando toca ese archivo."
+      ],
+      "correct": 2,
+      "why_correct": "\"Que no pueda pasar\" es enforcement, no guía. Las reglas de `permissions.deny` las aplica Claude Code (el programa), no el modelo. Al estar en `.claude/settings.json` commiteado, aplica a todo el equipo.",
+      "why_wrong": {
+        "0": "Sigue siendo texto en CLAUDE.md: Claude lo trata como contexto, no como configuración obligatoria. Gritar más fuerte no lo convierte en garantía.",
+        "1": "Una Skill también es texto que Claude lee. Orienta, no bloquea ninguna herramienta.",
+        "3": "Una regla con `paths` solo cambia CUÁNDO se carga la instrucción. Sigue siendo guía, no bloqueo."
+      },
+      "rule": "\"Tiene que cumplirse siempre\" → permissions o hook, jamás CLAUDE.md.",
+      "source_url": "https://code.claude.com/docs/en/memory",
+      "source_quote": "Settings rules are enforced by the client regardless of what Claude decides to do. CLAUDE.md instructions shape Claude's behavior but are not a hard enforcement layer.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en memory (sección managed CLAUDE.md vs settings). permissions.deny con Read(./.env) respaldado en permissions; skills y rules con paths son contexto, no enforcement."
+      }
+    },
+    {
+      "id": "o16-q02",
+      "objective": 16,
+      "pool": "practice",
+      "scenario": "Un equipo de frontend tiene un CLAUDE.md de 450 líneas. 120 son convenciones que SOLO valen para los componentes en `src/components/**/*.tsx` (usar el design system, props tipadas). Notan que Claude sigue peor las instrucciones generales y que esas 120 líneas se cargan aunque toque archivos de backend. ¿Qué configuración resuelve esto?",
+      "options": [
+        "Mover esas convenciones a `.claude/rules/components.md` con frontmatter `paths: [\"src/components/**/*.tsx\"]`.",
+        "Pasarlas a un hook `PreToolUse` con matcher `Edit|Write` que imprima las convenciones antes de cada edición.",
+        "Moverlas a `~/.claude/CLAUDE.md` de cada desarrollador frontend para sacarlas del archivo del proyecto.",
+        "Dejarlas en el CLAUDE.md pero importarlas con `@docs/components.md` para que el archivo principal quede corto."
+      ],
+      "correct": 0,
+      "why_correct": "Una regla en `.claude/rules/` con `paths` se carga solo cuando Claude trabaja con archivos que matchean el glob. Así no ocupa contexto en el resto del código, y el CLAUDE.md queda corto, lo que mejora la adherencia.",
+      "why_wrong": {
+        "1": "El `matcher` filtra por herramienta, no por ruta: el hook correría también al editar archivos de backend. Además, en `PreToolUse` lo que el script imprime como texto plano va al debug log, no al contexto de Claude. Un hook es para controlar o bloquear herramientas, no para dar convenciones.",
+        "2": "Son estándares del equipo y de este repo: en el CLAUDE.md de usuario se cargarían en TODOS los proyectos de cada dev y no se comparten por git.",
+        "3": "Los imports con `@` se cargan junto con el CLAUDE.md que los importa: no reducen el costo de contexto."
+      },
+      "rule": "Convención solo para ciertos archivos → `.claude/rules/` con `paths`.",
+      "source_url": "https://code.claude.com/docs/en/memory",
+      "source_quote": "Rules can be scoped to specific files using YAML frontmatter with the `paths` field. These conditional rules only apply when Claude is working with files matching the specified patterns.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "Respuesta y cita (memory, path-specific rules) OK; imports no reducen contexto (memory). Se reescribió why_wrong de la opción 1: el matcher es por herramienta (no por ruta) y el stdout plano de PreToolUse no llega a Claude (hooks reference); la versión anterior era imprecisa porque un hook sí puede inyectar contexto vía JSON."
+      }
+    },
+    {
+      "id": "o16-q03",
+      "objective": 16,
+      "pool": "practice",
+      "scenario": "Diego trabaja en 6 repos distintos, de 3 clientes. En todos quiere que Claude le explique en español qué hace cada comando antes de correrlo. No quiere tocar los repos de los clientes ni que sus compañeros vean esa preferencia. ¿Dónde lo pone?",
+      "options": [
+        "En un `CLAUDE.local.md` en la raíz de uno de los repos, agregándolo al `.gitignore`.",
+        "En `.claude/rules/preferencias.md` de cada repo, sin `paths` para que se cargue siempre.",
+        "En el `CLAUDE.md` de proyecto de cada repo, en una sección \"Preferencias de Diego\".",
+        "En `~/.claude/CLAUDE.md`, el archivo de instrucciones de usuario."
+      ],
+      "correct": 3,
+      "why_correct": "`~/.claude/CLAUDE.md` es el scope de usuario: preferencias personales que aplican en todos tus proyectos y que solo ves vos. No toca ningún repo.",
+      "why_wrong": {
+        "0": "`CLAUDE.local.md` es personal pero de UN proyecto. Habría que copiarlo en los 6 repos.",
+        "1": "`.claude/rules/` del repo se comparte con el equipo por git y obliga a tocar cada repo del cliente.",
+        "2": "El CLAUDE.md de proyecto es para el equipo: todos verían la preferencia y estarías tocando los repos."
+      },
+      "rule": "Preferencia personal en todos los proyectos → `~/.claude/CLAUDE.md`.",
+      "source_url": "https://code.claude.com/docs/en/memory",
+      "source_quote": "Personal preferences for all projects",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Tabla de scopes en memory: ~/.claude/CLAUDE.md = 'Personal preferences for all projects', 'Only you (all projects)'. Distractores (CLAUDE.local.md un solo proyecto, rules/CLAUDE.md compartidos) claramente incorrectos."
+      }
+    },
+    {
+      "id": "o16-q04",
+      "objective": 16,
+      "pool": "practice",
+      "scenario": "En el repo de su equipo, una dev quiere que Claude use SU URL de sandbox (`https://sbx-lucia.internal`) y sus datos de prueba al correr tests de integración. Es solo para ella y solo para este proyecto; no debe terminar en git. ¿Qué hace?",
+      "options": [
+        "Lo agrega al `CLAUDE.md` del proyecto dentro de un comentario HTML para que el resto no lo lea.",
+        "Crea `CLAUDE.local.md` en la raíz del proyecto con esos datos y lo agrega al `.gitignore`.",
+        "Lo pone en `~/.claude/CLAUDE.md` para que esté disponible en todas sus sesiones.",
+        "Lo pone como `env` en `.claude/settings.json` y le pide al equipo que no lo pise."
+      ],
+      "correct": 1,
+      "why_correct": "`CLAUDE.local.md` es el scope local: preferencias personales de UN proyecto. Se carga junto con el `CLAUDE.md` y, al estar en el `.gitignore`, no se commitea.",
+      "why_wrong": {
+        "0": "Los comentarios HTML de bloque se eliminan antes de llegar al contexto: Claude no los vería. Y el archivo igual va a git.",
+        "2": "El CLAUDE.md de usuario aplica a TODOS sus proyectos; la URL de sandbox de este repo no tiene sentido en los demás.",
+        "3": "`.claude/settings.json` es el archivo compartido del equipo y se commitea: justo lo que no quiere."
+      },
+      "rule": "Personal + un solo proyecto + no commitear → `CLAUDE.local.md` (en `.gitignore`).",
+      "source_url": "https://code.claude.com/docs/en/memory",
+      "source_quote": "For private per-project preferences that shouldn't be checked into version control, create a `CLAUDE.local.md` at the project root.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en memory. Comentarios HTML de bloque se eliminan antes del contexto (confirmado); settings.json es compartido; ~/.claude/CLAUDE.md aplica a todos los proyectos."
+      }
+    },
+    {
+      "id": "o16-q05",
+      "objective": 16,
+      "pool": "practice",
+      "scenario": "Un tech lead pega en el chat, cada dos semanas, el mismo checklist de release de 12 pasos (tests, changelog, tag, publicar). El equipo quiere tenerlo versionado en el repo, que no ocupe contexto en las sesiones del día a día y que Claude NUNCA lo arranque por su cuenta. ¿Qué configuración elegís?",
+      "options": [
+        "Agregar el checklist al `CLAUDE.md` del proyecto bajo un título \"Release\" para que Claude siempre lo tenga.",
+        "Un hook `Stop` en `.claude/settings.json` que imprima el checklist cada vez que Claude termina de responder.",
+        "Una Skill en `.claude/skills/release/SKILL.md` con `disable-model-invocation: true`, invocada con `/release`.",
+        "Un archivo `.claude/rules/release.md` sin `paths`, para que esté disponible cuando haga falta."
+      ],
+      "correct": 2,
+      "why_correct": "Un procedimiento de varios pasos que se usa a veces es una Skill: su cuerpo se carga solo cuando se usa. Con `disable-model-invocation: true` Claude no la invoca por su cuenta; corre cuando alguien tipea `/release`. En `.claude/skills/` se commitea.",
+      "why_wrong": {
+        "0": "El CLAUDE.md se carga en cada sesión: 12 pasos que se usan cada dos semanas gastan contexto todos los días.",
+        "1": "Un hook corre en cada evento que matchea; no es una forma de tener un procedimiento a demanda.",
+        "3": "Una regla sin `paths` se carga al arrancar, igual que el CLAUDE.md: mismo problema de contexto."
+      },
+      "rule": "Procedimiento reutilizable bajo demanda → Skill (con `disable-model-invocation: true` si tiene efectos).",
+      "source_url": "https://code.claude.com/docs/en/skills",
+      "source_quote": "Use this for workflows with side effects or that you want to control timing, like `/commit`, `/deploy`, or `/send-slack-message`.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en skills (disable-model-invocation). Body de skill carga solo al usarse; rules sin paths cargan al arrancar (memory). Hook Stop no es a demanda."
+      }
+    },
+    {
+      "id": "o16-q06",
+      "objective": 16,
+      "pool": "practice",
+      "scenario": "Una startup suma 4 devs nuevos. Cada uno configura Claude Code distinto y Claude corre `npm` en un repo que usa `pnpm`, e ignora que los handlers van en `src/api/handlers/`. Quieren que TODOS arranquen con las mismas convenciones generales del repo, versionadas junto al código. ¿Qué hacen?",
+      "options": [
+        "Escribir los comandos de build y convenciones en `CLAUDE.md` (o `.claude/CLAUDE.md`) en la raíz del repo y commitearlo.",
+        "Pedirle a cada dev que copie las convenciones en su `~/.claude/CLAUDE.md` siguiendo un documento de onboarding.",
+        "Poner las convenciones en `CLAUDE.local.md` y commitearlo para que llegue a todos por git.",
+        "Guardarlas en `.claude/settings.local.json` bajo una clave de instrucciones para el equipo."
+      ],
+      "correct": 0,
+      "why_correct": "El CLAUDE.md de proyecto es para instrucciones del equipo: comandos de build y test, estándares, arquitectura, convenciones. Se comparte por control de versiones, así todos arrancan igual.",
+      "why_wrong": {
+        "1": "El CLAUDE.md de usuario no se versiona con el repo: cada copia se desactualiza por su lado.",
+        "2": "`CLAUDE.local.md` es para preferencias personales y va al `.gitignore`. Commitearlo contradice su propósito.",
+        "3": "`settings.local.json` es personal y no se comparte; además los settings no son el lugar de las instrucciones en lenguaje natural."
+      },
+      "rule": "Estándares del equipo → `CLAUDE.md` de proyecto, commiteado.",
+      "source_url": "https://code.claude.com/docs/en/memory",
+      "source_quote": "Create this file and add instructions that apply to anyone working on the project: build and test commands, coding standards, architectural decisions, naming conventions, and common workflows.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en memory (project CLAUDE.md). CLAUDE.local.md va al .gitignore; settings.local.json es personal."
+      }
+    },
+    {
+      "id": "o16-q07",
+      "objective": 16,
+      "pool": "practice",
+      "scenario": "El CLAUDE.md dice \"Después de editar cualquier archivo, corré `npx prettier --write` sobre ese archivo\". En la práctica, Claude lo hace 7 de cada 10 veces y el CI falla por formato. El equipo quiere que el formateo ocurra SIEMPRE después de cada edición. ¿Cuál es el fix?",
+      "options": [
+        "Mover la instrucción al principio del CLAUDE.md y agregar \"MUY IMPORTANTE\" para subir la adherencia.",
+        "Crear una Skill `format` con `user-invocable: false` para que Claude la cargue cuando edite archivos.",
+        "Agregar `Bash(npx prettier *)` en `permissions.allow` para que Claude no tenga que pedir permiso.",
+        "Un hook `PostToolUse` con `\"matcher\": \"Edit|Write\"` en `.claude/settings.json` que corra prettier."
+      ],
+      "correct": 3,
+      "why_correct": "Algo que tiene que pasar en un momento fijo (después de cada edición) es un hook. El `PostToolUse` con matcher `Edit|Write` corre después de cada edición, decida lo que decida Claude.",
+      "why_wrong": {
+        "0": "Sigue siendo guía: Claude puede volver a olvidarlo. Enfatizar no da garantía.",
+        "1": "Una Skill depende de que Claude decida cargarla y seguirla: sigue siendo orientación.",
+        "2": "Un `allow` solo evita el prompt de permiso. No hace que Claude corra prettier."
+      },
+      "rule": "\"Siempre después de X\" → hook, no CLAUDE.md.",
+      "source_url": "https://code.claude.com/docs/en/memory",
+      "source_quote": "Hooks execute as shell commands at fixed lifecycle events and apply regardless of what Claude decides to do.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en memory (troubleshooting). hooks-guide confirma PostToolUse con matcher Edit|Write para Prettier. allow solo evita prompt."
+      }
+    },
+    {
+      "id": "o16-q08",
+      "objective": 16,
+      "pool": "practice",
+      "scenario": "El `.claude/settings.json` commiteado de un proyecto tiene `\"deny\": [\"Bash(git push *)\"]`. Un dev senior agrega `\"allow\": [\"Bash(git push *)\"]` en su `~/.claude/settings.json` y, por las dudas, también en su `.claude/settings.local.json`. Le pide a Claude que haga push. ¿Qué pasa?",
+      "options": [
+        "Claude hace push, porque `.claude/settings.local.json` tiene más precedencia que `.claude/settings.json`.",
+        "El push queda bloqueado: un deny en cualquier nivel no lo puede revertir un allow de otro nivel.",
+        "Claude Code le muestra un prompt de confirmación, porque allow y deny en conflicto se resuelven como ask.",
+        "Claude hace push, porque la regla allow es igual de específica y la del usuario se evalúa al final."
+      ],
+      "correct": 1,
+      "why_correct": "Las reglas se evalúan deny → ask → allow, y la primera que matchea decide. Un deny en cualquier scope bloquea aunque otro scope tenga allow. La precedencia de archivos no cambia eso.",
+      "why_wrong": {
+        "0": "Es cierto que local tiene más precedencia para valores simples, pero las listas de permisos se combinan y deny se evalúa primero.",
+        "2": "No existe esa regla de \"conflicto → ask\". Primero se evalúa deny, y matchea.",
+        "3": "La especificidad no cambia el orden: deny se evalúa antes que allow."
+      },
+      "rule": "Deny gana siempre: ningún allow de otro scope lo levanta.",
+      "source_url": "https://code.claude.com/docs/en/permissions",
+      "source_quote": "If a tool is denied at any level, no other level can allow it.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en permissions. Orden deny→ask→allow, especificidad no cambia el orden; listas de permisos se combinan entre scopes (settings). No existe regla 'conflicto→ask'."
+      }
+    },
+    {
+      "id": "o16-q09",
+      "objective": 16,
+      "pool": "practice",
+      "scenario": "Un equipo quiere dos cosas: (1) que todos tengan el mismo `deny` sobre `Read(./secrets/**)` y el mismo hook de lint; (2) que Marta, solo en su máquina y solo en este repo, use otro modelo por defecto sin afectar a nadie. ¿Qué archivos usan?",
+      "options": [
+        "(1) en `~/.claude/settings.json` de cada dev; (2) en `.claude/settings.json` del repo.",
+        "(1) en `.claude/settings.local.json` commiteado; (2) en el `CLAUDE.local.md` de Marta.",
+        "(1) en `.claude/settings.json` commiteado; (2) en `.claude/settings.local.json` de Marta.",
+        "(1) en el `CLAUDE.md` del proyecto; (2) en `~/.claude/settings.json` de Marta."
+      ],
+      "correct": 2,
+      "why_correct": "`.claude/settings.json` es el archivo compartido del proyecto: commiteado, todos reciben los mismos permisos y hooks. `.claude/settings.local.json` es personal para ese proyecto, no va a git y pisa al compartido para ella.",
+      "why_wrong": {
+        "0": "Al revés: el archivo de usuario no se comparte, y el del repo afectaría a todo el equipo.",
+        "1": "`settings.local.json` es personal y no se commitea; y `CLAUDE.local.md` es texto para Claude, no configura el modelo.",
+        "3": "Un deny en CLAUDE.md no bloquea nada (es guía). Y `~/.claude/settings.json` cambiaría el modelo en TODOS los proyectos de Marta, no solo en este."
+      },
+      "rule": "Equipo → `.claude/settings.json` (commit). Personal en un proyecto → `.claude/settings.local.json`.",
+      "source_url": "https://code.claude.com/docs/en/settings",
+      "source_quote": "Commit `.claude/settings.json` so everyone who clones the repository gets the same permissions, hooks, and plugin settings. Each teammate can still override it for themselves in their own `.claude/settings.local.json`",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en settings. Precedencia local > project > user confirmada; ejemplo de model en settings.local.json en la doc."
+      }
+    },
+    {
+      "id": "o16-q10",
+      "objective": 16,
+      "pool": "practice",
+      "scenario": "El equipo de seguridad de una empresa con 300 devs exige que, en TODOS los repos y máquinas, Claude Code no pueda leer `~/.aws/credentials`. Los devs no deben poder desactivarlo, ni siquiera editando sus propios archivos. ¿Qué configuran?",
+      "options": [
+        "Un `CLAUDE.md` de managed policy en la ruta del sistema que diga que está prohibido leer credenciales de AWS.",
+        "Un `deny` de `Read(~/.aws/credentials)` en el `.claude/settings.json` de cada repo de la empresa.",
+        "Un `deny` de `Read(~/.aws/credentials)` en el `~/.claude/settings.json` de cada dev, instalado por script.",
+        "Un `deny` de `Read(~/.aws/credentials)` en managed settings, desplegado por la organización."
+      ],
+      "correct": 3,
+      "why_correct": "Hace falta enforcement (un deny) en un nivel que nadie pueda tocar. Managed settings está arriba de todo: ni los archivos de usuario ni los de proyecto lo pueden pisar, y aplica a todos los repos.",
+      "why_wrong": {
+        "0": "Un CLAUDE.md, aunque sea managed, es guía. La doc dice: usalo para guiar y aplicá las reglas con managed settings como `permissions.deny`.",
+        "1": "Cubre solo los repos donde esté el archivo; un repo nuevo o personal queda afuera, y cualquiera puede editar ese archivo.",
+        "2": "El dev puede editar o borrar su propio `~/.claude/settings.json`: no cumple \"no deben poder desactivarlo\"."
+      },
+      "rule": "Compliance de toda la organización, no desactivable → managed settings con `permissions.deny`.",
+      "source_url": "https://code.claude.com/docs/en/permissions",
+      "source_quote": "For organizations that need centralized control, administrators deploy managed settings that user and project settings can't override",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en permissions. memory dice usar managed CLAUDE.md para guía y managed settings permissions.deny para enforcement. Sintaxis Read(~/...) válida."
+      }
+    }
+  ]
+}

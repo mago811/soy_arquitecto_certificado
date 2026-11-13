@@ -1,0 +1,245 @@
+{
+  "objective": 25,
+  "questions": [
+    {
+      "id": "o25-q01",
+      "objective": 25,
+      "pool": "practice",
+      "scenario": "Una fintech extrae número y total de facturas con un prompt que dice \"Respondé SOLO con un JSON con las claves numero y total\" y después hace json.loads sobre el texto. Cerca del 2% de las respuestas viene envuelto en un bloque de código markdown o con una frase antes del '{', y el job nocturno se cae. ¿Cuál es el fix más confiable?",
+      "options": [
+        "Agregar al system prompt \"IMPORTANTE: nunca escribas nada fuera del JSON\" y dos ejemplos de salida correcta.",
+        "Bajar la temperatura a 0 para que el formato sea determinístico en todas las corridas.",
+        "Pasar el schema en output_config.format con type json_schema y leer el JSON del bloque de texto.",
+        "Envolver json.loads en un retry que reintente hasta 3 veces cuando falle el parseo."
+      ],
+      "correct": 2,
+      "why_correct": "El JSON lo consume código, así que hace falta una garantía, no una sugerencia. Structured outputs (output_config.format) usa constrained decoding: la respuesta siempre es JSON válido para tu schema. La doc dice que con esto no hay errores de parseo ni hacen falta reintentos por violaciones de schema.",
+      "why_wrong": {
+        "0": "Más instrucciones y ejemplos mejoran la probabilidad, pero siguen siendo guía. La doc avisa que aun con prompting cuidadoso podés tener errores de parseo.",
+        "1": "La temperatura no convierte un pedido en texto en una garantía de formato. El problema es de mecanismo, no de aleatoriedad.",
+        "3": "Los reintentos tapan el síntoma y suman costo y latencia. La doc presenta structured outputs justamente para no necesitar retries por schema."
+      },
+      "rule": "Si un JSON roto rompe el sistema: output_config.format, no un prompt más enérgico.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "source_quote": "Without structured outputs, Claude can generate malformed JSON responses or invalid tool inputs that break your applications. Even with careful prompting, you might encounter:",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o25-q02",
+      "objective": 25,
+      "pool": "practice",
+      "scenario": "Un equipo migra a claude-sonnet-5-5 un clasificador que usaba prefill: el último mensaje de messages era {\"role\": \"assistant\", \"content\": \"{\"} para obligar a Claude a arrancar con JSON. Desde la migración, todas las requests fallan con 400 invalid_request_error. ¿Qué hacen?",
+      "options": [
+        "Sacar el prefill y usar structured outputs (output_config.format) o una tool con un campo enum con las etiquetas.",
+        "Cambiar el prefill a \"```json\" para que el modelo lo acepte como inicio de bloque de código.",
+        "Mover el mensaje assistant con \"{\" al principio de la conversación, antes del mensaje del usuario.",
+        "Mantener el prefill y agregar el beta header de structured outputs para habilitarlo en este modelo."
+      ],
+      "correct": 0,
+      "why_correct": "Claude 4.6 y posteriores no aceptan prefill en el último turno del assistant: devuelven 400. La guía de migración de la doc dice que para forzar formato se usa structured outputs, y para clasificación una tool con enum o structured outputs.",
+      "why_wrong": {
+        "1": "Sigue siendo un prefill en el último turno del assistant. Cambia el texto, no el problema: 400 igual.",
+        "2": "Un assistant al principio no es un prefill del turno final y no fuerza el formato de la respuesta. No resuelve nada.",
+        "3": "Ningún header habilita el prefill en estos modelos. Además, la doc dice que el prefill es incompatible con JSON outputs."
+      },
+      "rule": "Prefill en Claude 4.6+ = 400. El reemplazo para formato es structured outputs.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Starting with Claude 4.6 models and Claude Mythos Preview, prefilled responses (providing a partial assistant message for Claude to continue from) on the last assistant turn are no longer supported.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o25-q03",
+      "objective": 25,
+      "pool": "practice",
+      "scenario": "Un agente de viajes llama a una tool search_flights y al final tiene que entregar un resumen en JSON con summary y next_steps para el frontend. Hoy fallan dos cosas: a veces search_flights recibe passengers como \"2\" (string) y a veces el resumen final no respeta el formato. ¿Qué configuración resuelve las dos cosas?",
+      "options": [
+        "tool_choice {\"type\": \"any\"} en todas las requests para que nunca conteste en texto libre.",
+        "Solo output_config.format con el schema del resumen; eso valida también los inputs de las tools.",
+        "Solo strict: true en search_flights; eso valida también el texto final de la respuesta.",
+        "strict: true en search_flights y output_config.format con el schema del resumen, en el mismo request."
+      ],
+      "correct": 3,
+      "why_correct": "Son dos problemas distintos. strict: true garantiza los inputs de la tool (cómo Claude llama tu función) y output_config.format garantiza la respuesta (lo que Claude dice). La doc dice que se pueden usar juntas en el mismo request para agentes que necesitan las dos cosas.",
+      "why_wrong": {
+        "0": "Forzar tools no arregla el tipo de passengers ni el formato del resumen. Y si nunca puede contestar sin tool, no hay resumen final.",
+        "1": "JSON outputs controla la respuesta, no los parámetros de las tools.",
+        "2": "Strict valida tool_use.input, no el texto final de la respuesta."
+      },
+      "rule": "output_config.format = lo que Claude responde; strict: true = cómo llama tus tools. Se combinan.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "source_quote": "When combined, Claude can call tools with guaranteed-valid parameters AND return structured JSON responses.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o25-q04",
+      "objective": 25,
+      "pool": "practice",
+      "scenario": "Un dev arma a mano un schema para output_config.format y le agrega \"minimum\": 0 al campo total y \"maxLength\": 20 al campo numero para asegurar los datos. La request vuelve con 400. Quiere mantener esas reglas. ¿Qué hace?",
+      "options": [
+        "Cambiar a type integer y dejar minimum, que sí está soportado para enteros.",
+        "Sacar los constraints del schema enviado (o usar el helper del SDK que los pasa a la description) y validarlos en su código.",
+        "Mandar el mismo schema como input_schema de una tool sin strict, que acepta cualquier constraint.",
+        "Pasar los constraints a una regla en el prompt y confiar en que structured outputs los cumpla."
+      ],
+      "correct": 1,
+      "why_correct": "Structured outputs no soporta constraints numéricos ni de largo de string: usarlos da 400. Los helpers del SDK sacan esos constraints, los agregan a la description del campo y validan la respuesta contra tu schema original. Si mandás el schema crudo, la validación la hacés vos.",
+      "why_wrong": {
+        "0": "Los constraints numéricos (minimum, maximum, multipleOf) no están soportados para ningún tipo numérico.",
+        "2": "Sin strict no hay ninguna garantía de schema. Perdés justamente lo que querías asegurar.",
+        "3": "Una regla en el prompt orienta pero no se garantiza, y nada valida la respuesta. El valor podría violarla igual."
+      },
+      "rule": "minimum/maximum/minLength/maxLength → 400 en structured outputs; el SDK los mueve a la description y valida en tu código.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "source_quote": "Numerical constraints (such as minimum, maximum, multipleOf)",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o25-q05",
+      "objective": 25,
+      "pool": "practice",
+      "scenario": "Un pipeline usa output_config.format para extraer listas largas de ítems de pedidos. La mayoría anda, pero algunos registros grandes llegan con el JSON cortado a la mitad y json.loads explota, aunque \"structured outputs garantiza el schema\". El equipo no entiende cómo puede pasar. ¿Cuál es el diagnóstico y el fix?",
+      "options": [
+        "Es un bug de constrained decoding: hay que pasar a una tool con strict: true que no tiene este problema.",
+        "El schema tiene demasiados campos opcionales; hay que marcarlos todos como required.",
+        "La respuesta cortó por max_tokens: chequear stop_reason antes de parsear y reintentar con max_tokens más alto.",
+        "Es por el cache de la gramática compilada: hay que cambiar la description del schema para invalidarlo."
+      ],
+      "correct": 2,
+      "why_correct": "La doc lista max_tokens como uno de los casos donde la salida puede no cumplir el schema: si se corta, el JSON queda incompleto. El fix es mirar stop_reason (\"max_tokens\") y reintentar con un max_tokens mayor.",
+      "why_wrong": {
+        "0": "Strict usa el mismo mecanismo de gramática y también se corta si se acaban los tokens. No es un bug.",
+        "1": "Los opcionales afectan la complejidad de compilación, no cortan la respuesta a la mitad.",
+        "3": "El cache de gramática solo afecta la latencia de la primera request. Y cambiar la description ni siquiera lo invalida."
+      },
+      "rule": "Antes de parsear un structured output, chequeá stop_reason: max_tokens y refusal rompen la garantía.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "source_quote": "Retry with a higher max_tokens value to get the complete structured output.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o25-q06",
+      "objective": 25,
+      "pool": "practice",
+      "scenario": "Un clasificador de tickets usa structured outputs con \"enum\": [\"Billing issue\", \"Login problem\", \"Other\"]. El código hace if categoria in ENUM_VALUES y cada tanto ningún if matchea: llega \"Billing Issue\" (con I mayúscula), sin error y con stop_reason end_turn. ¿Qué cambio recomienda la doc?",
+      "options": [
+        "Comparar los valores del enum sin distinguir mayúsculas y evitar enums que difieran solo en mayúsculas.",
+        "Agregar \"Billing Issue\" como valor extra del enum para cubrir las dos variantes.",
+        "Agregar strict: true al schema de output_config.format para que respete exacto el casing.",
+        "Pasar el enum a la description del campo y dejar el type como string libre."
+      ],
+      "correct": 0,
+      "why_correct": "La doc avisa que structured outputs no garantiza la capitalización de los valores string de enum y const. La respuesta termina normal, sin error. Recomienda comparar case-insensitive y evitar valores que solo difieran en mayúsculas.",
+      "why_wrong": {
+        "1": "Es justo lo que la doc dice que evites: enum values que difieren solo en capitalización.",
+        "2": "strict: true es una propiedad de la definición de tools, no de output_config.format. Y la advertencia de casing aplica también a strict tool use.",
+        "3": "Así perdés la restricción del enum y vas a recibir cualquier string. Empeora el problema."
+      },
+      "rule": "Enum en structured outputs: compará case-insensitive; la mayúscula no está garantizada.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "source_quote": "Compare enum values case-insensitively, and avoid enum values that differ only in capitalization.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o25-q07",
+      "objective": 25,
+      "pool": "practice",
+      "scenario": "Un equipo legal quiere extraer cláusulas de contratos a un JSON fijo y, además, que cada valor venga con la cita del documento. Activan citations en los documentos y mandan el schema en output_config.format. La API devuelve 400. ¿Qué pasa?",
+      "options": [
+        "Falta el beta header structured-outputs-2025-11-13 para combinar las dos features.",
+        "El documento es demasiado largo; hay que partirlo en chunks de menos de 20k tokens.",
+        "Hay que pasar el schema en output_format en vez de output_config.format cuando hay citations.",
+        "Citations y output_config.format son incompatibles; hay que elegir otro enfoque para tener datos con citas."
+      ],
+      "correct": 3,
+      "why_correct": "La doc lista Citations como incompatible con JSON outputs: las citas se intercalan con el texto y eso choca con el schema estricto. Con las dos activadas, la API devuelve 400. Para datos estructurados con cita, la doc remite a una guía aparte en la página de Citations.",
+      "why_wrong": {
+        "0": "Ningún header habilita la combinación. Ese header solo sirve para seguir usando el parámetro deprecado output_format.",
+        "1": "El 400 no viene del largo del documento, viene de la incompatibilidad de features.",
+        "2": "output_format está deprecado y no cambia la incompatibilidad: es la misma feature."
+      },
+      "rule": "output_config.format + citations = 400. No se combinan.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "source_quote": "The API returns a 400 error if citations are enabled with output_config.format.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o25-q08",
+      "objective": 25,
+      "pool": "practice",
+      "scenario": "Con el SDK de Python 1.x, un dev escribe client.messages.create(..., output_format={\"type\": \"json_schema\", \"schema\": schema}) copiando un ejemplo viejo de un blog. Obtiene un TypeError antes de que salga la request. ¿Cuál es la forma correcta hoy?",
+      "options": [
+        "Agregar el header anthropic-beta en default_headers y dejar el dict en output_format.",
+        "Pasar output_config={\"format\": {\"type\": \"json_schema\", \"schema\": schema}}, o usar parse() con un modelo Pydantic.",
+        "Pasar el schema como response_format={\"type\": \"json_object\"}, que es el nombre estable.",
+        "Mover el schema al system prompt como texto y pedirle a Claude que lo respete."
+      ],
+      "correct": 1,
+      "why_correct": "output_format pasó a output_config.format. En el SDK de Python 1.0+, un dict en output_format tira TypeError. Un modelo Pydantic en output_format sí funciona con parse(), porque el SDK lo manda como output_config.",
+      "why_wrong": {
+        "0": "El SDK tira TypeError con el dict antes de mandar nada; el header no lo arregla. La doc dice usar output_config.",
+        "2": "response_format no es un parámetro de la API de Claude. No lo inventes: el nombre es output_config.format.",
+        "3": "Eso es formateo por prompt: perdés la garantía de schema."
+      },
+      "rule": "El parámetro es output_config.format; output_format está deprecado.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "source_quote": "The output_format parameter has moved to output_config.format, and beta headers are no longer required. The output_format parameter is deprecated.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o25-q09",
+      "objective": 25,
+      "pool": "practice",
+      "scenario": "Un equipo de producto usa Claude para escribir resúmenes semanales de feedback que lee el equipo en Slack. Quieren que siempre tengan tres secciones (Lo bueno / Lo malo / Próximos pasos), pero aceptan variaciones de redacción y no hay código que los parsee. ¿Qué método es el adecuado?",
+      "options": [
+        "Structured outputs con un schema de tres campos string y additionalProperties false.",
+        "Una tool resumen_semanal con tool_choice forzado y strict: true.",
+        "Instrucciones claras de formato con un ejemplo o plantilla en el prompt.",
+        "Prefill del turno del assistant con \"Lo bueno:\" para fijar la estructura."
+      ],
+      "correct": 2,
+      "why_correct": "Elegís el método según cuánta garantía hace falta. Acá lo lee una persona y se acepta flexibilidad: no hace falta constrained decoding. La doc dice que las técnicas de prompting (especificar el formato, dar ejemplos) sirven para consistencia general o cuando necesitás flexibilidad más allá de un schema estricto.",
+      "why_wrong": {
+        "0": "Funciona, pero devuelve JSON que alguien tiene que convertir para Slack. Es sobreingeniería: nadie lo parsea.",
+        "1": "Forzar una tool para un texto que lee una persona agrega complejidad sin beneficio. Y algunos modelos actuales no aceptan forzar.",
+        "3": "El prefill del último turno da 400 en Claude 4.6 y posteriores. No es un método vigente."
+      },
+      "rule": "Lo lee una persona y se acepta variación → prompt con formato y ejemplos; lo parsea código → structured outputs.",
+      "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/increase-consistency",
+      "source_quote": "The techniques below are useful for general output consistency or when you need flexibility beyond strict JSON schemas.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o25-q10",
+      "objective": 25,
+      "pool": "practice",
+      "scenario": "Un moderador de contenido usa output_config.format con el schema {decision, motivo}. Con algunos inputs el parser de Pydantic explota: el texto no respeta el schema, y la respuesta viene con status 200 y stop_reason \"refusal\". El equipo pensaba que structured outputs garantizaba el formato siempre. ¿Qué hacen?",
+      "options": [
+        "Reintentar la misma request en loop hasta que vuelva con el schema correcto.",
+        "Agregar \"never refuse\" al system prompt para que siempre complete el schema.",
+        "Pasar a prefill con '{\"decision\":' para que Claude no pueda negarse.",
+        "Chequear stop_reason antes de parsear y tratar \"refusal\" como un caso aparte del pipeline."
+      ],
+      "correct": 3,
+      "why_correct": "La doc lista la negativa como excepción a la garantía: si Claude se niega por seguridad, la respuesta tiene stop_reason \"refusal\", status 200, y puede no cumplir el schema porque la negativa tiene prioridad. El código tiene que detectarlo y derivarlo, no parsear a ciegas.",
+      "why_wrong": {
+        "0": "Si se negó por seguridad, reintentar lo mismo en loop gasta tokens (te los cobran) y no cambia nada.",
+        "1": "Claude mantiene sus propiedades de seguridad con structured outputs. Un prompt no desactiva eso.",
+        "2": "El prefill da 400 en Claude 4.6+ y además es incompatible con JSON outputs."
+      },
+      "rule": "Structured outputs garantiza salvo refusal y max_tokens: mirá stop_reason antes de parsear.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "source_quote": "The output might not match your schema because the refusal message takes precedence over schema constraints.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

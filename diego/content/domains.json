@@ -1,0 +1,36 @@
+{
+  "verified": true,
+  "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
+  "domains": [
+    {
+      "id": "d1",
+      "name": "Arquitectura agéntica y orquestación",
+      "weight": 27,
+      "official_number": 1
+    },
+    {
+      "id": "d2",
+      "name": "Configuración de Claude Code",
+      "weight": 20,
+      "official_number": 3
+    },
+    {
+      "id": "d3",
+      "name": "Prompt engineering y salida estructurada",
+      "weight": 20,
+      "official_number": 4
+    },
+    {
+      "id": "d4",
+      "name": "Diseño de herramientas e integración MCP",
+      "weight": 18,
+      "official_number": 2
+    },
+    {
+      "id": "d5",
+      "name": "Gestión de contexto y confiabilidad",
+      "weight": 15,
+      "official_number": 5
+    }
+  ]
+}

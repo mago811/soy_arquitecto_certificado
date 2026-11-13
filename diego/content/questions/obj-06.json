@@ -1,0 +1,285 @@
+{
+  "objective": 6,
+  "questions": [
+    {
+      "id": "o06-q01",
+      "objective": 6,
+      "pool": "practice",
+      "scenario": "Fintech Río arma un pipeline con el Agent SDK. El coordinador corre con `permission_mode=\"dontAsk\"` y `allowed_tools=[\"Read\", \"Grep\", \"Glob\"]`, y define en `agents` un `sql-auditor` con `tools=[\"Read\", \"Grep\"]`. En los logs se ve que Claude intenta delegar, pero el subagente nunca corre y Claude termina auditando él mismo. ¿Cuál es el fix?",
+      "options": [
+        "Agregar `\"Agent\"` a los `tools` del `sql-auditor` para habilitar la delegación.",
+        "Subir `maxTurns` del `sql-auditor`, porque se queda sin turnos antes de arrancar.",
+        "Agregar `\"Agent\"` a `allowed_tools` del coordinador: en `dontAsk`, lo que no está pre-aprobado se deniega.",
+        "Reescribir la `description` del `sql-auditor` con \"USE ALWAYS\" para forzar la delegación."
+      ],
+      "correct": 2,
+      "why_correct": "Claude lanza subagentes con la herramienta `Agent`. En `dontAsk`, cualquier llamada que no esté pre-aprobada se deniega en vez de preguntar. Como `Agent` no está en `allowed_tools` del coordinador, el intento de delegar se rechaza. Los ejemplos oficiales siempre incluyen `\"Agent\"` en `allowedTools`.",
+      "why_wrong": {
+        "0": "Los `tools` del subagente controlan qué puede hacer EL subagente, no si el coordinador puede lanzarlo.",
+        "1": "El subagente ni arranca; `maxTurns` limita turnos de un subagente que ya corre.",
+        "3": "Claude ya intenta delegar; el problema es que la llamada se deniega, no que no la elija."
+      },
+      "rule": "¿El coordinador no puede lanzar? Revisá `Agent` en SU allowedTools / permisos.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/permissions",
+      "source_quote": "In `dontAsk` mode, this step is skipped and the tool is denied",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "descartada",
+        "notes": "Premisa falsa según agent-sdk/permissions: en dontAsk 'Calls that need no approval in default mode also run as normal, such as ... calls to Agent'. Agent no necesita estar en allowed_tools; la respuesta marcada no es el fix."
+      }
+    },
+    {
+      "id": "o06-q02",
+      "objective": 6,
+      "pool": "practice",
+      "scenario": "En Logística Andina un subagente `code-reviewer` dejó de arrancar. El Agent tool devuelve: `Agent 'code-reviewer' would be spawned with zero tools — refusing. Its tools list resolved to nothing: unrecognized [Grpe, Raed].` ¿Qué hacés?",
+      "options": [
+        "Corregir los nombres en `tools` a herramientas reales (`Grep`, `Read`).",
+        "Agregar `\"Agent\"` al `allowedTools` del coordinador.",
+        "Agregar `permissionMode: \"bypassPermissions\"` al `code-reviewer`.",
+        "Borrar `description` y `prompt` para que herede la configuración por defecto."
+      ],
+      "correct": 0,
+      "why_correct": "El error dice que ninguna entrada de `tools` resolvió a una herramienta: son typos. Claude Code se niega a lanzar un subagente con cero tools. El fix es corregir las entradas.",
+      "why_wrong": {
+        "1": "El coordinador sí lanzó el Agent tool; el rechazo viene de la definición del subagente.",
+        "2": "No es un tema de permisos: las herramientas no existen.",
+        "3": "`description` y `prompt` son obligatorios en `AgentDefinition`."
+      },
+      "rule": "\"zero tools\" = `tools` del subagente con nombres que no existen.",
+      "source_url": "https://code.claude.com/docs/en/errors",
+      "source_quote": "Every entry in the subagent's `tools` list failed to match a usable tool, so Claude Code refused to launch the subagent: with no tools, it couldn't act.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "errors 'Agent would be spawned with zero tools': cita casi textual (link); typos en tools; description y prompt obligatorios en AgentDefinition."
+      }
+    },
+    {
+      "id": "o06-q03",
+      "objective": 6,
+      "pool": "practice",
+      "scenario": "Un dev de Seguros Cuyo escribe en Python:\n\n```python\nAgentDefinition(\n    description=\"Revisa contratos\",\n    prompt=\"Sos revisor legal...\",\n    tools=[\"Read\"],\n    max_turns=5,\n)\n```\n\nEl script falla con `TypeError` antes de llamar a la API. ¿Cuál es el fix?",
+      "options": [
+        "Mover `max_turns=5` a `ClaudeAgentOptions`, porque `AgentDefinition` no acepta límites de turnos.",
+        "Pasar `tools` como string `\"Read\"` en vez de lista.",
+        "Agregar `model=\"sonnet\"`, que es obligatorio cuando se define `tools`.",
+        "Escribir `maxTurns=5`: los campos de `AgentDefinition` van en camelCase incluso en Python."
+      ],
+      "correct": 3,
+      "why_correct": "`AgentDefinition` es un dataclass cuyos campos usan camelCase (`maxTurns`, `disallowedTools`, `permissionMode`) para matchear el formato del wire. Un keyword snake_case tira `TypeError` al construirlo.",
+      "why_wrong": {
+        "0": "`AgentDefinition` sí tiene `maxTurns`; el problema es cómo se escribe.",
+        "1": "En Python `tools` es `list[str]`.",
+        "2": "`model` es opcional; si se omite, Claude Code elige el modelo."
+      },
+      "rule": "AgentDefinition en Python: camelCase. snake_case = TypeError.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/python",
+      "source_quote": "Because `AgentDefinition` is a dataclass, passing a snake_case keyword raises a `TypeError` at construction time.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "agent-sdk/python AgentDefinition: dataclass con campos camelCase (maxTurns); snake_case tira TypeError (cita textual)."
+      }
+    },
+    {
+      "id": "o06-q04",
+      "objective": 6,
+      "pool": "practice",
+      "scenario": "Retail Sur creó `.claude/agents/sql-auditor.md`:\n\n```\n---\nname: sql-auditor\ntools: Read, Grep\n---\nSos un auditor de SQL de solo lectura...\n```\n\nEl agente no aparece en ningún lado y no hay error en pantalla. ¿Cuál es el problema?",
+      "options": [
+        "El nombre del archivo debería ser exactamente `sql-auditor.agent.md`.",
+        "Falta `description`: con `name` pero sin `description`, Claude Code saltea el archivo y lo anota en el debug log.",
+        "Falta `model:`; sin modelo explícito el agente no se registra.",
+        "Hay que agregar `Agent(sql-auditor)` a `permissions.allow` para que se registre."
+      ],
+      "correct": 1,
+      "why_correct": "En un subagente de archivo solo `name` y `description` son obligatorios. Si hay `name` pero no `description`, Claude Code saltea el archivo sin avisar en la sesión y escribe el motivo en el debug log (`--debug`).",
+      "why_wrong": {
+        "0": "El nombre del archivo no tiene que coincidir; la identidad sale del campo `name`.",
+        "2": "`model` es opcional.",
+        "3": "Una regla de permisos aprueba llamadas; no registra definiciones. Los archivos en `.claude/agents/` se descubren solos."
+      },
+      "rule": "Subagente de archivo: `name` + `description` o no existe.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "**A `name` but no `description`**: Claude Code skips the file and writes the reason to the debug log.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "sub-agents 'Subagent files Claude Code skips': name sin description se saltea y va al debug log; filename no tiene que coincidir."
+      }
+    },
+    {
+      "id": "o06-q05",
+      "objective": 6,
+      "pool": "practice",
+      "scenario": "Agro Datos tiene el subagente `clima-analyst` definido en `.claude/agents/clima-analyst.md` (funciona en Claude Code). Su app con el Agent SDK usa `settingSources: []` para aislarse de configuraciones locales, y ahora Claude dice que no existe ningún agente `clima-analyst`. ¿Cuál es el fix más directo manteniendo el aislamiento?",
+      "options": [
+        "Agregar `\"Agent\"` a `allowedTools`.",
+        "Copiar el archivo a `~/.claude/agents/`, que se lee siempre.",
+        "Poner `permissionMode: \"bypassPermissions\"` para que cargue todas las definiciones.",
+        "Definir `clima-analyst` programáticamente en la opción `agents` de `query()`."
+      ],
+      "correct": 3,
+      "why_correct": "Con `settingSources: []` el SDK no lee los `.claude/` agents del filesystem: queda solo lo que configurás en código. La forma recomendada en el SDK es pasar la definición en `agents`, que además no depende del disco.",
+      "why_wrong": {
+        "0": "Sin definición cargada no hay nada que lanzar, aunque `Agent` esté aprobado.",
+        "1": "`~/.claude/agents/` es la fuente `user`, que también queda afuera con `settingSources: []`.",
+        "2": "Los modos de permiso no cargan definiciones."
+      },
+      "rule": "`settingSources: []` = sin agentes de archivo. Pasalos por `agents`.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/claude-code-features",
+      "source_quote": "To run without these, pass `settingSources: []`, which limits the agent to what you configure programmatically.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "agent-sdk/claude-code-features: settingSources [] limita a lo programático (incluye .claude/ agents de user y project)."
+      }
+    },
+    {
+      "id": "o06-q06",
+      "objective": 6,
+      "pool": "practice",
+      "scenario": "Salud Norte definió en el SDK un subagente con `description: \"Helper agent\"`. Está bien cableado (el coordinador tiene `Agent` aprobado y la definición es válida), pero cuando el usuario pide \"revisá los HL7 de hoy\" Claude hace todo él mismo y nunca delega. ¿Qué hacés primero?",
+      "options": [
+        "Agregar `\"Agent\"` a los `tools` del subagente.",
+        "Subir el `model` del subagente a `opus` para que Claude lo considere más capaz.",
+        "Bajar `maxTurns` del coordinador para obligarlo a delegar.",
+        "Reescribir `description` diciendo exactamente cuándo usarlo (o nombrar al agente en el prompt)."
+      ],
+      "correct": 3,
+      "why_correct": "Claude decide delegar según la `description`. \"Helper agent\" no le dice cuándo usarlo. La doc recomienda una descripción clara y, si hace falta garantizarlo, nombrar al agente en el prompt.",
+      "why_wrong": {
+        "0": "Eso permitiría que el subagente lance otros subagentes; no cambia la decisión del coordinador.",
+        "1": "El modelo del subagente no influye en si Claude elige delegarle.",
+        "2": "Recortar turnos no fuerza delegación; solo corta el trabajo antes."
+      },
+      "rule": "Cableado OK pero no delega → `description` clara o nombrarlo.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "source_quote": "**Write a clear description**: explain exactly when to use the subagent so Claude can match tasks appropriately",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "agent-sdk/subagents Troubleshooting: description clara o nombrar el subagente en el prompt."
+      }
+    },
+    {
+      "id": "o06-q07",
+      "objective": 6,
+      "pool": "practice",
+      "scenario": "Energía Andes monitorea su app del Agent SDK con este código:\n\n```ts\nif (block.type === \"tool_use\" && block.name === \"Task\") log(\"subagente!\")\n```\n\nDesde que actualizaron, el dashboard dice \"0 subagentes lanzados\", pero los resultados claramente incluyen trabajo de subagentes. ¿Cuál es el fix?",
+      "options": [
+        "Matchear `\"Agent\"` además de `\"Task\"`: hoy los `tool_use` se llaman `Agent`, aunque `system:init` lo siga listando como `Task`.",
+        "Agregar `\"Task\"` a `allowedTools`, porque la actualización lo quitó de la lista por defecto.",
+        "Buscar `parent_tool_use_id` en el mensaje `result` final.",
+        "Activar `CLAUDE_AGENT_SDK_DISABLE_BUILTIN_AGENTS=1` para que los nombres vuelvan a ser `Task`."
+      ],
+      "correct": 0,
+      "why_correct": "La herramienta se renombró de Task a Agent. En los bloques `tool_use` aparece como `\"Agent\"`, pero en la lista de tools de `system:init` sigue como `\"Task\"`. La doc recomienda matchear los dos nombres.",
+      "why_wrong": {
+        "1": "Los subagentes sí corren; el problema es solo la detección.",
+        "2": "`parent_tool_use_id` está en los mensajes de dentro del subagente, no es la forma de detectar el lanzamiento en el `result`.",
+        "3": "Esa variable quita los agentes built-in; no cambia nombres."
+      },
+      "rule": "Detectar subagentes: `block.name` en (\"Agent\", \"Task\").",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "source_quote": "To keep detection working across SDK versions, match both values in `block.name`.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "agent-sdk/subagents: tool_use dice 'Agent', system:init lista 'Task'; matchear ambos (cita textual)."
+      }
+    },
+    {
+      "id": "o06-q08",
+      "objective": 6,
+      "pool": "practice",
+      "scenario": "En Minera Austral, la sesión corre con `claude --agent coordinator`. El archivo del coordinador tiene `tools: Agent(worker), Read, Bash`. Existe también un subagente `researcher`, válido. Cada vez que el coordinador intenta lanzar `researcher`, la llamada falla. ¿Cuál es el fix?",
+      "options": [
+        "Agregar `Agent` a los `tools` de `researcher`.",
+        "Agregar `researcher` al allowlist: `tools: Agent(worker, researcher), Read, Bash`.",
+        "Agregar `permissions.allow: [\"Agent(researcher)\"]` en el archivo del `researcher`.",
+        "Quitar `Read` y `Bash` del coordinador para que `Agent` tenga prioridad."
+      ],
+      "correct": 1,
+      "why_correct": "Con un agente main-thread (`--agent`), `Agent(tipo)` en `tools` es un allowlist: solo puede lanzar los tipos listados. Cualquier otro falla. Hay que sumar `researcher` a la lista.",
+      "why_wrong": {
+        "0": "Eso le da a `researcher` la capacidad de lanzar subagentes; no cambia lo que el coordinador puede lanzar.",
+        "2": "`permissions` no es un campo del frontmatter de subagentes; los permisos van en settings.",
+        "3": "Las otras tools no compiten con `Agent`; el bloqueo es el allowlist."
+      },
+      "rule": "`Agent(a, b)` en el main-thread = solo a y b. Sumá el que falta.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "This is an allowlist: only the `worker` and `researcher` subagents can be spawned. If the agent tries to spawn any other type, the request fails and the agent sees only the allowed types in its prompt.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "sub-agents 'Restrict which subagents can be spawned': Agent(tipo) es allowlist con --agent; permissions no es campo de frontmatter."
+      }
+    },
+    {
+      "id": "o06-q09",
+      "objective": 6,
+      "pool": "practice",
+      "scenario": "Turismo Litoral corre un job headless con el Agent SDK y tiene seteado `CLAUDE_AGENT_SDK_DISABLE_BUILTIN_AGENTS=1`. No definieron ningún agente propio. Cada intento de delegar falla con `subagent_type is required: the general-purpose agent is not available in this session`. ¿Cuál es la causa?",
+      "options": [
+        "Falta `\"Task\"` en `allowedTools`; `\"Agent\"` solo sirve en Claude Code interactivo.",
+        "El coordinador no tiene `maxTurns` suficientes para elegir un `subagent_type`.",
+        "La variable quitó los subagentes built-in y no hay agentes propios: o la quitás o definís agentes en `agents`.",
+        "El modelo del coordinador no soporta subagentes; hay que pasar `model: \"opus\"`."
+      ],
+      "correct": 2,
+      "why_correct": "`CLAUDE_AGENT_SDK_DISABLE_BUILTIN_AGENTS=1` saca todos los built-in, incluido `general-purpose`, que es el fallback cuando Claude llama al Agent tool sin `subagent_type`. Sin agentes propios, no queda ninguno. El fix: sacar la variable o definir agentes.",
+      "why_wrong": {
+        "0": "`Agent` es el nombre actual en el SDK; `Task` es un alias.",
+        "1": "El error no tiene que ver con turnos.",
+        "3": "No hay restricción de modelo documentada para lanzar subagentes."
+      },
+      "rule": "Sin built-ins y sin agentes propios, no hay a quién delegar.",
+      "source_url": "https://code.claude.com/docs/en/errors",
+      "source_quote": "`CLAUDE_AGENT_SDK_DISABLE_BUILTIN_AGENTS=1` is set in non-interactive mode, which removes every built-in subagent",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "errors 'subagent_type is required' (cita casi textual, link) + agent-sdk/subagents nota sobre CLAUDE_AGENT_SDK_DISABLE_BUILTIN_AGENTS; Task es alias de Agent (agent-sdk/python)."
+      }
+    },
+    {
+      "id": "o06-q10",
+      "objective": 6,
+      "pool": "practice",
+      "scenario": "En Data Pampa, una dev abre Claude Code en un repo que NO tenía carpeta `.claude/agents/`. A mitad de sesión crea `.claude/agents/etl-checker.md` con `name` y `description` correctos. Pasan minutos y el agente no aparece. ¿Qué hacés?",
+      "options": [
+        "Reiniciar la sesión: el watcher solo cubre carpetas `agents` que existían al arrancar.",
+        "Esperar: Claude Code recarga las definiciones cada 10 minutos.",
+        "Agregar `model: inherit`, que es lo que registra el agente en caliente.",
+        "Renombrar el archivo a `etl-checker.agent.md` para forzar la recarga."
+      ],
+      "correct": 0,
+      "why_correct": "Claude Code vigila `.claude/agents/` y toma cambios en segundos, pero solo en directorios que existían cuando arrancó la sesión. El primer archivo en una carpeta nueva necesita reiniciar. La doc lo marca como la causa más común.",
+      "why_wrong": {
+        "1": "No hay recarga periódica documentada; el watcher no cubre la carpeta nueva.",
+        "2": "`model` es opcional y no tiene que ver con la carga.",
+        "3": "El nombre del archivo no importa (la identidad sale de `name`) y no cambia qué carpetas vigila el watcher."
+      },
+      "rule": "Carpeta `agents` nueva a mitad de sesión → reiniciar.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "source_quote": "**New `agents` directory**: the watcher covers only directories that existed when the session started, so the first file in a new directory needs a session restart. This is the most common cause.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "agent-sdk/subagents 'Filesystem-based agents not loading': cita textual sobre carpeta agents nueva."
+      }
+    }
+  ]
+}

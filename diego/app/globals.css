@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #f7f6f3;
+  --surface: #ffffff;
+  --ink: #1c1b19;
+  --muted: #6b6860;
+  --line: #e4e1da;
+  --accent: #c2410c;
+  --accent-soft: #fdeee6;
+  --ok: #15803d;
+  --ok-soft: #e7f5ec;
+  --bad: #b91c1c;
+  --bad-soft: #fbeaea;
+  --warn: #a16207;
+  --warn-soft: #fbf3dc;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141412;
+    --surface: #1d1c1a;
+    --ink: #ecebe7;
+    --muted: #a19e95;
+    --line: #34322e;
+    --accent: #fb923c;
+    --accent-soft: #3a2417;
+    --ok: #4ade80;
+    --ok-soft: #13291b;
+    --bad: #f87171;
+    --bad-soft: #2f1717;
+    --warn: #facc15;
+    --warn-soft: #2e2810;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-bad: var(--bad);
+  --color-bad-soft: var(--bad-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
+  border-radius: 10px; padding: .6rem 1rem; font-weight: 600; font-size: .95rem;
+  background: var(--accent); color: #fff; transition: opacity .15s;
+}
+.btn:hover { opacity: .9 }
+.btn:disabled { opacity: .5; cursor: not-allowed }
+.btn-ghost { background: transparent; color: var(--ink); border: 1px solid var(--line) }
+
+/* Markdown de lecciones y labs */
+.prose-c { line-height: 1.65; font-size: 1.02rem }
+.prose-c h2 { font-size: 1.2rem; font-weight: 700; margin: 1.8rem 0 .6rem }
+.prose-c h3 { font-size: 1.05rem; font-weight: 700; margin: 1.4rem 0 .5rem }
+.prose-c p { margin: .7rem 0 }
+.prose-c ul, .prose-c ol { margin: .7rem 0; padding-left: 1.3rem }
+.prose-c ul { list-style: disc } .prose-c ol { list-style: decimal }
+.prose-c li { margin: .3rem 0 }
+.prose-c a { color: var(--accent); text-decoration: underline }
+.prose-c strong { font-weight: 700 }
+.prose-c code { font-family: var(--font-mono); font-size: .88em; background: var(--accent-soft); padding: .1rem .3rem; border-radius: 5px }
+.prose-c pre { background: #1c1b19; color: #ecebe7; padding: .9rem 1rem; border-radius: 10px; overflow-x: auto; margin: .9rem 0; font-size: .85rem; line-height: 1.5 }
+.prose-c pre code { background: none; padding: 0; color: inherit }
+.prose-c table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: .9rem; display: block; overflow-x: auto }
+.prose-c th, .prose-c td { border: 1px solid var(--line); padding: .45rem .6rem; text-align: left; vertical-align: top }
+.prose-c th { background: var(--accent-soft) }
+.prose-c blockquote { border-left: 3px solid var(--accent); padding-left: .9rem; color: var(--muted); margin: .9rem 0 }

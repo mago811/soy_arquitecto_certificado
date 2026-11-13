@@ -1,0 +1,245 @@
+{
+  "objective": 26,
+  "questions": [
+    {
+      "id": "o26-q01",
+      "objective": 26,
+      "pool": "practice",
+      "scenario": "Un extractor de facturas con structured outputs define vencimiento como {\"type\": \"string\"} y lo pone en required. Un tercio de las facturas no tiene fecha de vencimiento. Contabilidad descubre que esas facturas llegan con vencimientos \"razonables\" (30 días después de la emisión) que nadie escribió. ¿Cuál es el fix de schema?",
+      "options": [
+        "Agregar a la description \"no inventes la fecha\" y dejar el tipo como string requerido.",
+        "Sacar vencimiento del schema y pedirlo en una segunda request solo cuando haga falta.",
+        "Hacer vencimiento nullable (\"type\": [\"string\", \"null\"]) e indicar que use null si la factura no lo dice.",
+        "Agregar \"format\": \"date\" al campo para que solo acepte fechas válidas."
+      ],
+      "correct": 2,
+      "why_correct": "Un string requerido obliga a escribir un valor, y con structured outputs la forma está garantizada: el valor aparece sí o sí. Si el schema acepta null, el modelo puede representar \"no está\" sin inventar. null es un tipo soportado y [\"string\", \"null\"] es una forma válida. Sumado a la instrucción de usar null, la doc dice que dar permiso para decir \"no sé\" reduce mucho la información falsa.",
+      "why_wrong": {
+        "0": "La instrucción ayuda, pero el schema sigue exigiendo un string. Si no puede poner null, tiene que poner algo.",
+        "1": "Te quedás sin el dato también en las facturas que sí lo tienen y sumás complejidad. No ataca la causa.",
+        "3": "format date valida la forma de la fecha, no que exista en el documento. Una fecha inventada pasa igual."
+      },
+      "rule": "Si el dato puede faltar, el schema tiene que poder decir null. Requerido + no-nullable = invitación a inventar.",
+      "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
+      "source_quote": "Allow Claude to say “I don’t know”: Explicitly give Claude permission to admit uncertainty. This technique can drastically reduce false information.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o26-q02",
+      "objective": 26,
+      "pool": "practice",
+      "scenario": "Un pipeline de pagos extrae medio_pago como string libre. En la base aparecen \"Visa\", \"tarjeta\", \"TC\", \"credit card\" y \"tarjeta de crédito Visa\" para lo mismo, y el dashboard de conciliación queda inutilizable. ¿Qué cambio de schema lo resuelve?",
+      "options": [
+        "Definir medio_pago con un enum de valores válidos (por ejemplo tarjeta, transferencia, efectivo, otro).",
+        "Agregar a la description una lista de ejemplos de cómo escribir cada medio de pago.",
+        "Hacer medio_pago opcional para que solo aparezca cuando el modelo esté seguro.",
+        "Normalizar después con una tabla de sinónimos en el ETL y dejar el string libre."
+      ],
+      "correct": 0,
+      "why_correct": "Cuando los valores posibles son un conjunto cerrado, el enum los restringe a esa lista. La doc recomienda enum para clasificación: tools con un campo enum con las etiquetas válidas, o structured outputs. Con un valor de escape (otro) no lo forzás a elegir mal.",
+      "why_wrong": {
+        "1": "Los ejemplos orientan, pero el campo sigue aceptando cualquier string. Las variantes van a seguir apareciendo.",
+        "2": "Opcional no resuelve la inconsistencia de los valores que sí vienen.",
+        "3": "Es un parche eterno: cada variante nueva rompe la tabla. Restringí el valor en el origen."
+      },
+      "rule": "Conjunto cerrado de valores → enum en el schema, no normalización después.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "For classification tasks, use either tools with an enum field containing your valid labels or structured outputs.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o26-q03",
+      "objective": 26,
+      "pool": "practice",
+      "scenario": "Un clasificador de reclamos usa \"enum\": [\"envio\", \"pago\", \"producto\"]. Llegan reclamos sobre el trato de un vendedor, que no encajan en ninguno, y el modelo los clasifica como \"producto\" porque es lo \"más parecido\". El equipo de calidad pierde esos casos. ¿Qué cambio de diseño hacés?",
+      "options": [
+        "Quitar el enum y dejar categoria como string libre para que el modelo describa el caso.",
+        "Pedir en el prompt que, si no encaja, no llame la tool.",
+        "Hacer categoria opcional para que el modelo la omita cuando no encaje.",
+        "Agregar un valor de escape al enum (por ejemplo \"otro\") y un campo de detalle nullable para describirlo."
+      ],
+      "correct": 3,
+      "why_correct": "Un enum sin salida obliga a elegir el valor más cercano aunque no corresponda. Agregar \"otro\" le da al modelo una forma válida de decir \"no encaja\", y el campo de detalle guarda la información para revisión. Los enums aceptan strings y nulls, así que el diseño es válido.",
+      "why_wrong": {
+        "0": "Volvés al problema de los valores inconsistentes y perdés la clasificación útil.",
+        "1": "Un reclamo sin clasificar desaparece del pipeline. Y si la tool está forzada, ni siquiera es posible.",
+        "2": "Una categoría ausente es ambigua (¿no encaja o se olvidó?). Un valor explícito es más claro y fácil de contar."
+      },
+      "rule": "Enum cerrado sin salida de escape = el modelo fuerza el valor más parecido. Agregá \"otro\".",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "source_quote": "enum (strings, numbers, booleans, or nulls only, no complex types).",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o26-q04",
+      "objective": 26,
+      "pool": "practice",
+      "scenario": "Un equipo arma un extractor de contratos con 3 tools strict y un schema en output_config.format. Para \"no obligar a inventar\", pusieron casi todos los campos como opcionales: 31 en total entre todos los schemas. La request da 400. ¿Qué recomienda la doc?",
+      "options": [
+        "Sacar strict de las tools y dejar los 31 opcionales: sin strict no hay límite de complejidad.",
+        "Pasar a required los campos que siempre tienen un valor razonable y simplificar los anidados, para bajar los opcionales.",
+        "Convertir todos los opcionales en type [\"string\", \"null\"]: los union types no cuentan para el límite.",
+        "Partir el schema en dos objetos anidados con 15 opcionales cada uno."
+      ],
+      "correct": 1,
+      "why_correct": "Hay un límite de 24 parámetros opcionales sumando todos los schemas strict y de JSON outputs del request. La doc sugiere marcar como required lo que puedas (si hay un default razonable, que Claude lo ponga explícito) y aplanar estructuras anidadas.",
+      "why_wrong": {
+        "0": "El límite aplica a las tools strict y al output_config.format. Sacar strict de las tools pierde garantías y el schema de JSON outputs sigue contando.",
+        "2": "Los union types (anyOf o type arrays como [\"string\", \"null\"]) tienen su propio límite de 16 y son los más caros de compilar.",
+        "3": "El límite es por el total del request, no por objeto. Y los anidados con opcionales suman complejidad."
+      },
+      "rule": "Strict/JSON outputs: máx. 24 opcionales y 16 union types por request. Hacé required lo que puedas.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "source_quote": "Make parameters required where possible. Each optional parameter roughly doubles a portion of the grammar’s state space.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o26-q05",
+      "objective": 26,
+      "pool": "practice",
+      "scenario": "Un dev de Python define class Pedido(BaseModel): numero: str; atributos: dict y lo pasa a client.messages.parse(output_format=Pedido). El texto trae sucursal, vendedor y caja, pero atributos llega siempre como {}. ¿Por qué y cuál es el fix?",
+      "options": [
+        "Es un límite de tokens; hay que subir max_tokens para que entren los atributos.",
+        "Falta additionalProperties: true en atributos para permitir keys libres.",
+        "El SDK manda el dict como objeto sin properties y Claude solo puede devolver {}; usar un modelo anidado con las keys o un array de {key, value}.",
+        "Hay que declarar atributos como Optional[dict] para que el modelo se anime a completarlo."
+      ],
+      "correct": 2,
+      "why_correct": "Con structured outputs, additionalProperties tiene que ser false, así que Claude solo puede devolver keys que estén listadas. Un dict no lista keys: el SDK lo manda con properties vacías y la única salida válida es {}. Si sabés las keys, usá un modelo anidado; si no, un array de pares key/value.",
+      "why_wrong": {
+        "0": "No es de tokens: el schema solo permite {}.",
+        "1": "additionalProperties distinto de false no está soportado. Da 400.",
+        "3": "Opcional o no, el objeto sigue sin properties: lo único válido es {} (o null)."
+      },
+      "rule": "En structured outputs, un dict sin keys solo puede volver {}: listá las keys o usá un array de key/value.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "source_quote": "The SDK sends a dict field as an object with empty properties, so Claude can only return {} for it.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o26-q06",
+      "objective": 26,
+      "pool": "practice",
+      "scenario": "Un servicio legacy lee la salida JSON de structured outputs por posición: espera las claves en el mismo orden en que están en el schema (cliente, telefono, email, notas). telefono es opcional, y desde que lo es, a veces llega después de email y el parser posicional falla. ¿Qué hacés?",
+      "options": [
+        "Marcar todas las propiedades como required (las que pueden faltar, nullable) o dejar de depender del orden.",
+        "Mover telefono al final del schema para que coincida con el orden en que llega.",
+        "Agregar \"order\": [...] en el schema para fijar el orden de las claves.",
+        "Pasar el schema por input_schema de una tool, donde el orden se respeta siempre."
+      ],
+      "correct": 0,
+      "why_correct": "La doc dice que el orden del schema se mantiene, salvo que las propiedades required salen primero y después las opcionales. Si el orden importa, marcá todo como required (los que pueden faltar, nullable) o adaptá el parseo.",
+      "why_wrong": {
+        "1": "Si telefono es el único opcional funcionaría por casualidad, pero con más opcionales el problema vuelve. El fix documentado es todo required o no depender del orden.",
+        "2": "\"order\" no es una keyword soportada. No inventes parámetros.",
+        "3": "La regla de ordenamiento aplica igual a strict tool use. No cambia nada."
+      },
+      "rule": "En structured outputs, las required salen primero. Si el orden importa: todo required (+ nullable).",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "source_quote": "If property order in the output is important to your application, mark all properties as required, or account for this reordering in your parsing logic.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o26-q07",
+      "objective": 26,
+      "pool": "practice",
+      "scenario": "Una mesa de ayuda tiene la tool crear_ticket con prioridad como parámetro opcional (enum baja/media/alta). El usuario casi nunca dice la prioridad, pero Claude manda prioridad \"media\" en el 90% de las llamadas, y los tickets urgentes quedan mal priorizados. Querés que la omita cuando el usuario no la dice. ¿Qué agregás?",
+      "options": [
+        "Mover prioridad a required para que el modelo la tenga que pensar más.",
+        "Agregar \"media\" como default en el schema para que no la escriba.",
+        "Cambiar tool_choice a any para que el modelo sea más preciso con los parámetros.",
+        "input_examples con llamadas sin prioridad cuando el pedido no la menciona, más una description que lo diga."
+      ],
+      "correct": 3,
+      "why_correct": "input_examples le muestra a Claude ejemplos concretos de llamadas válidas, y la doc dice que esos ejemplos indican cuándo incluir los parámetros opcionales. Con una description clara de cuándo omitirla, la prioridad deja de ser un valor de relleno.",
+      "why_wrong": {
+        "0": "Si es required tiene que poner un valor siempre: empeora el relleno.",
+        "1": "Un default no impide que el modelo la escriba, y fijar \"media\" es justo el sesgo que querés sacar.",
+        "2": "any obliga a llamar alguna tool. No dice nada sobre qué parámetros incluir."
+      },
+      "rule": "Para enseñar cuándo omitir un opcional: input_examples (few-shot) + description, no más required.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "source_quote": "These patterns indicate when to include optional parameters, what formats to use, and how to structure complex inputs.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o26-q08",
+      "objective": 26,
+      "pool": "practice",
+      "scenario": "Un extractor de contratos tiene plazo_pago_dias como integer requerido. Un contrato dice \"pago a 30 o 60 días según volumen\". El pipeline guarda 30 y nadie se entera de la condición. Legales quiere que estos casos queden visibles para revisión humana. ¿Cuál es el mejor diseño?",
+      "options": [
+        "Cambiar plazo_pago_dias a string para que el modelo copie la frase textual.",
+        "Hacer plazo_pago_dias nullable y agregar un campo de nota (nullable) para explicar la ambigüedad, con la instrucción de usarlo.",
+        "Mantener el integer y pedir en el prompt que elija siempre el plazo más largo, por las dudas.",
+        "Agregar un campo confianza (number de 0 a 1) y descartar automáticamente lo que tenga menos de 0.8."
+      ],
+      "correct": 1,
+      "why_correct": "Un integer requerido obliga a elegir un número. Si es nullable, el modelo puede decir \"no hay un único valor\", y el campo de nota guarda la frase para revisión. Es aplicar \"permitile decir no sé\" al schema: el dato ambiguo queda representado sin inventar un valor.",
+      "why_wrong": {
+        "0": "Perdés el tipo para todos los contratos claros y tenés que parsear texto libre después.",
+        "2": "Es una regla de negocio inventada que vuelve a ocultar la ambigüedad. Sigue fabricando un valor.",
+        "3": "Una autoconfianza numérica no está garantizada como calibrada, y descartar en automático pierde los casos que Legales quiere ver."
+      },
+      "rule": "Dato ambiguo → null + nota, no un número elegido a dedo.",
+      "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
+      "source_quote": "Explicitly give Claude permission to admit uncertainty.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o26-q09",
+      "objective": 26,
+      "pool": "practice",
+      "scenario": "Para normalizar monedas, un dev escribe en su schema de structured outputs: \"moneda\": {\"enum\": [{\"codigo\": \"ARS\", \"simbolo\": \"$\"}, {\"codigo\": \"USD\", \"simbolo\": \"US$\"}]}. La request da 400. ¿Cuál es el fix?",
+      "options": [
+        "Agregar \"type\": \"object\" al campo moneda para que el enum de objetos sea válido.",
+        "Cambiar enum por const con el objeto, que sí acepta tipos complejos.",
+        "Usar un enum de strings con los códigos (\"ARS\", \"USD\") y resolver el símbolo en el código.",
+        "Mover el enum a un $ref externo con la definición de monedas."
+      ],
+      "correct": 2,
+      "why_correct": "Los enums en structured outputs solo aceptan strings, numbers, booleans o nulls: los tipos complejos dentro de un enum no están soportados y dan 400. Se modela el código como enum de strings y lo derivado (el símbolo) se resuelve en tu código.",
+      "why_wrong": {
+        "0": "El type del campo no cambia la regla: complex types within enums no están soportados.",
+        "1": "Un const con un objeto no reemplaza un enum de varias opciones y no hay respaldo en la doc para eso.",
+        "3": "Los $ref externos tampoco están soportados."
+      },
+      "rule": "Enum = valores simples (string, number, boolean, null). Nada de objetos.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "source_quote": "enum (strings, numbers, booleans, or nulls only, no complex types).",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o26-q10",
+      "objective": 26,
+      "pool": "practice",
+      "scenario": "En una revisión de diseño, el tech lead dice: \"Pongamos strict: true en extraer_paciente y todos los campos como required no-nullable. Strict garantiza el schema, así que el modelo no puede inventar nada\". Varios documentos clínicos no traen fecha de nacimiento. ¿Qué le respondés?",
+      "options": [
+        "Strict garantiza la forma, no la verdad: un campo requerido no-nullable sin dato en el texto obliga a poner un valor; hay que permitir null o hacerlo opcional.",
+        "Tiene razón: con strict el modelo no puede fabricar valores que no estén en el documento.",
+        "Tiene razón a medias: alcanza con agregar \"format\": \"date\" para que no invente fechas.",
+        "Tiene razón si además se usa tool_choice tool, que obliga al modelo a usar solo datos del input."
+      ],
+      "correct": 0,
+      "why_correct": "strict: true restringe el muestreo a salidas válidas para el schema: tipos, campos required y valores permitidos. No verifica que el dato esté en el documento. Si el schema exige una fecha y no hay, la salida válida es una fecha cualquiera. La doc también avisa que Sonnet puede inferir valores que no le diste.",
+      "why_wrong": {
+        "1": "Strict no tiene ningún mecanismo para chequear contra el documento. Solo garantiza el schema.",
+        "2": "format date garantiza que tenga forma de fecha, no que sea la real.",
+        "3": "tool_choice decide si se llama la tool, no de dónde salen los valores."
+      },
+      "rule": "strict = forma garantizada, no verdad. El schema tiene que poder decir \"no está\".",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview",
+      "source_quote": "Claude Sonnet might ask, especially when prompted to think before outputting a tool request. But it might also infer a reasonable value.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

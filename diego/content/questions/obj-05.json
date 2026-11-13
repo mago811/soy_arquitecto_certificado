@@ -1,0 +1,173 @@
+{
+  "objective": 5,
+  "questions": [
+    {
+      "id": "o05-q01",
+      "objective": 5,
+      "pool": "practice",
+      "scenario": "Banco Patagonia tiene un subagente `doc-reviewer` en el Agent SDK. Su `prompt` dice \"Nunca modifiques archivos\" y no tiene campo `tools`. En una corrida, \"arregló\" un typo editando un README de producción. Necesitan que sea imposible que edite. ¿Qué cambiás?",
+      "options": [
+        "Reforzar el `prompt` con \"CRITICAL: NEVER use Edit or Write\".",
+        "Agregar `tools: [\"Read\", \"Grep\", \"Glob\"]` a su `AgentDefinition`.",
+        "Sacar `Edit` y `Write` del `allowedTools` del coordinador.",
+        "Cambiar su `description` a \"Solo lectura, nunca edita\"."
+      ],
+      "correct": 1,
+      "why_correct": "Sin `tools`, el subagente hereda todas las herramientas disponibles, incluido Edit. Con una allowlist de solo lectura, las tools que no están no existen en su sesión. Eso es enforcement; el prompt es guidance.",
+      "why_wrong": {
+        "0": "Sigue siendo guidance: el modelo puede ignorarla.",
+        "2": "`allowedTools` del coordinador auto-aprueba; no restringe, y no define las tools del subagente.",
+        "3": "`description` sirve para decidir cuándo delegar; no limita herramientas."
+      },
+      "rule": "Rol garantizado = `tools` allowlist, no frases en el prompt.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "source_quote": "A tool you leave out isn't in the subagent's session at all: Claude works without it, with no permission prompt or error.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "agent-sdk/subagents 'Tool restrictions': cita textual; omitir tools hereda todo; allowedTools auto-aprueba."
+      }
+    },
+    {
+      "id": "o05-q02",
+      "objective": 5,
+      "pool": "practice",
+      "scenario": "Fintech Río tiene un subagente `tester` que tiene que correr `npm test` con Bash pero nunca hacer `git push`. Le pusieron `disallowedTools: Bash(git push *)`. Ahora el tester no puede correr ningún test. ¿Cuál es la configuración correcta?",
+      "options": [
+        "Cambiar a `disallowedTools: Bash(git push)` sin asterisco para que matchee solo ese comando.",
+        "Mantener `disallowedTools` y agregar `permissionMode: acceptEdits` para recuperar Bash.",
+        "Poner \"no hagas git push\" en el system prompt y dejar Bash libre.",
+        "Quitar el `disallowedTools` y agregar `Bash(git push *)` a `permissions.deny` en settings."
+      ],
+      "correct": 3,
+      "why_correct": "Un `disallowedTools` con especificador saca la herramienta entera del subagente, no solo los comandos que matchean. Para conservar Bash y bloquear un comando, la doc indica una regla de deny en `permissions.deny`, que aplica a la sesión principal y a los subagentes.",
+      "why_wrong": {
+        "0": "Cualquier especificador en `disallowedTools` saca la herramienta entera: Bash seguiría afuera.",
+        "1": "El modo de permisos no devuelve una herramienta que `disallowedTools` sacó.",
+        "2": "Es guidance: no garantiza que no pushee."
+      },
+      "rule": "`disallowedTools: Bash(x)` saca TODO Bash. Bloqueo fino → `permissions.deny`.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "A `disallowedTools` entry with a specifier, such as `Bash(git push *)`, still removes the whole tool from the subagent, not only the matching commands.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "sub-agents: cita textual (especificador en disallowedTools saca toda la tool; usar permissions.deny). Reemplazada la opción A (tools: Bash(npm test *)): la doc no dice cómo trata especificadores en tools, así que era ambigua. Nueva A: mismo disallowedTools sin asterisco, que la doc descarta."
+      }
+    },
+    {
+      "id": "o05-q03",
+      "objective": 5,
+      "pool": "practice",
+      "scenario": "En Logística Andina, después de 40 minutos depurando con Claude, el coordinador delega al subagente `fixer` con el prompt \"Arreglá el bug que estuvimos viendo\". El `fixer` empieza a explorar todo el repo desde cero y propone cambios en un archivo que no tenía nada que ver. ¿Qué corregís?",
+      "options": [
+        "Poner en el prompt de delegación la ruta del archivo, el error y lo decidido: es lo único que recibe del padre.",
+        "Darle al `fixer` `omitClaudeMd: false` para que vea la conversación previa.",
+        "Agregar al `fixer` la tool `Read` sobre el transcript de la sesión principal.",
+        "Subir `maxTurns` del `fixer` para que tenga tiempo de reconstruir el contexto."
+      ],
+      "correct": 0,
+      "why_correct": "Un subagente (que no sea fork) arranca con contexto nuevo: no ve el historial. Lo único que pasa del padre es el string del prompt del Agent tool. Rutas, errores y decisiones tienen que ir ahí.",
+      "why_wrong": {
+        "1": "`omitClaudeMd` controla los CLAUDE.md, no el historial; y el default ya los carga.",
+        "2": "No es un mecanismo documentado; el canal es el prompt de delegación.",
+        "3": "Más turnos = más exploración a ciegas, no más contexto."
+      },
+      "rule": "El subagente sabe SOLO lo que va en el prompt de delegación.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "source_quote": "The only content you pass from parent to subagent is the Agent tool's prompt string, so include any file paths, error messages, or decisions the subagent needs directly in that prompt.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "agent-sdk/subagents 'What subagents inherit': cita textual; omitClaudeMd solo afecta CLAUDE.md. Acortada la opción correcta (era mucho más larga que los distractores)."
+      }
+    },
+    {
+      "id": "o05-q04",
+      "objective": 5,
+      "pool": "practice",
+      "scenario": "Retail Sur usa un MCP server de analytics con 60 tools. Solo lo necesita el subagente `reporter`, pero hoy está en `.mcp.json` y sus descripciones ocupan contexto en la conversación principal todo el tiempo. ¿Cómo lo acotás?",
+      "options": [
+        "Agregar `disallowedTools: mcp__analytics` al coordinador y `tools: mcp__analytics__*` al `reporter`.",
+        "Dejarlo en `.mcp.json` y escribir en CLAUDE.md que solo el `reporter` lo use.",
+        "Sacarlo de `.mcp.json` y definirlo inline en `mcpServers` del `reporter`.",
+        "Agregar `omitClaudeMd: true` al `reporter` para liberar contexto."
+      ],
+      "correct": 2,
+      "why_correct": "Un server definido inline en `mcpServers` del subagente se conecta cuando arranca el subagente. El subagente tiene las tools y la conversación principal no paga sus descripciones.",
+      "why_wrong": {
+        "0": "El server sigue configurado en la sesión principal; mezclar denylists no es el mecanismo que la doc recomienda para sacarlo del contexto principal.",
+        "1": "Las descripciones siguen cargadas en la conversación principal; CLAUDE.md es guidance.",
+        "3": "`omitClaudeMd` afecta los CLAUDE.md del subagente, no las tools MCP del principal."
+      },
+      "rule": "MCP que usa un solo subagente → inline en su `mcpServers`.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "To keep an MCP server out of the main conversation entirely and avoid its tool descriptions consuming context there, define it inline here rather than in `.mcp.json`. The subagent gets the tools; the parent conversation doesn't.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "sub-agents 'Scope MCP servers to a subagent': cita textual sobre definir inline en mcpServers."
+      }
+    },
+    {
+      "id": "o05-q05",
+      "objective": 5,
+      "pool": "practice",
+      "scenario": "Seguros Cuyo tiene un CLAUDE.md enorme con reglas de frontend. Su subagente `contract-parser` recibe todo lo que necesita en el prompt de delegación y esas reglas solo le agregan ruido. El resto de la sesión sí las necesita. ¿Qué configurás?",
+      "options": [
+        "`settingSources: []` en el `query()` principal.",
+        "Borrar el CLAUDE.md y pasar sus reglas en cada prompt.",
+        "`agent: Explore` en el frontmatter del `contract-parser`.",
+        "`omitClaudeMd: true` en la definición del `contract-parser`."
+      ],
+      "correct": 3,
+      "why_correct": "`omitClaudeMd: true` hace que ese subagente arranque sin los CLAUDE.md de user, project y local. Está pensado para subagentes que sacan todo del prompt de delegación. La sesión principal no cambia.",
+      "why_wrong": {
+        "0": "Afecta a toda la sesión: la principal también perdería sus reglas.",
+        "1": "Rompe la sesión principal, que sí las necesita.",
+        "2": "`agent` es un campo de skills con `context: fork`, no de una definición de subagente."
+      },
+      "rule": "Subagente que vive del prompt → `omitClaudeMd: true`.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "Set to `true` to start this subagent without the user, project, and local CLAUDE.md files in its initial context",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "sub-agents tabla de frontmatter: omitClaudeMd (cita casi textual, con link); agent no es campo de subagente."
+      }
+    },
+    {
+      "id": "o05-q06",
+      "objective": 5,
+      "pool": "practice",
+      "scenario": "Salud Norte definió `.claude/agents/triage.md` así: el frontmatter tiene `name: triage` y una `description` de 40 líneas con todo el protocolo clínico (\"Sos un enfermero de triage, clasificá por nivel 1–5, nunca diagnostiques...\"). El cuerpo está vacío. El subagente se comporta genérico y no sigue el protocolo. ¿Qué corregís?",
+      "options": [
+        "Pasar la `description` a `prompt:` dentro del frontmatter, que es donde los archivos guardan el rol.",
+        "Mover el protocolo al cuerpo del markdown (system prompt) y dejar `description` corta, diciendo cuándo delegar.",
+        "Agregar `skills: [triage]` para que el protocolo se cargue al arrancar.",
+        "Duplicar el protocolo en CLAUDE.md para que llegue al subagente."
+      ],
+      "correct": 1,
+      "why_correct": "En un subagente de archivo, el cuerpo del markdown es el system prompt; `description` le dice a Claude cuándo delegar. La doc pide descripciones cortas y el detalle en el system prompt, que solo se carga cuando el subagente corre.",
+      "why_wrong": {
+        "0": "En archivos, el system prompt es el cuerpo; `prompt` es el campo equivalente en `--agents` JSON y en el SDK.",
+        "2": "`skills` precarga skills existentes; no hay una skill `triage` y el rol sigue sin system prompt.",
+        "3": "CLAUDE.md es contexto compartido con todos; el rol del subagente va en su system prompt."
+      },
+      "rule": "`description` = cuándo delegar. Rol = cuerpo/`prompt`.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "The frontmatter defines the subagent's metadata and configuration. The body becomes the system prompt that guides the subagent's behavior.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "sub-agents 'Write subagent files': cuerpo = system prompt (cita textual); descripciones cortas y detalle en el system prompt; prompt es el equivalente en --agents JSON."
+      }
+    }
+  ]
+}

@@ -1,0 +1,245 @@
+{
+  "objective": 37,
+  "questions": [
+    {
+      "id": "o37-q01",
+      "objective": 37,
+      "pool": "practice",
+      "scenario": "Un agente de soporte tiene buscar_cliente(email) → customer_id y emitir_reembolso(customer_id, monto). Para \"asegurarse de que el reembolso salga\", el dev pone tool_choice {\"type\": \"tool\", \"name\": \"emitir_reembolso\"} desde el primer request (en un modelo que acepta forzar). Aparecen reembolsos a customer_id que no existen. ¿Cuál es el fix?",
+      "options": [
+        "Forzar las dos tools juntas en el mismo request con tool_choice any.",
+        "Agregar a la description de emitir_reembolso \"usá solo customer_id reales\".",
+        "Encadenar requests: primero que se llame buscar_cliente, devolver su tool_result y recién después pedir emitir_reembolso.",
+        "Agregar strict: true en emitir_reembolso para que el customer_id sea válido."
+      ],
+      "correct": 2,
+      "why_correct": "Forzar emitir_reembolso obliga a llamarla ya, sin el dato previo. Claude tiene que llenar customer_id igual, y la doc avisa que puede inferir valores que no le diste. El dato de buscar_cliente solo llega por el tool_result en el request siguiente: cada llamada es un round trip.",
+      "why_wrong": {
+        "0": "any obliga a llamar alguna tool, no ordena dependencias. Si salen las dos juntas, emitir_reembolso sigue sin el dato.",
+        "1": "Es guía. Si está forzado a llamar sin el dato, tiene que poner algo igual.",
+        "3": "strict garantiza que customer_id sea un string bien formado, no que exista."
+      },
+      "rule": "Dependencia entre tools = requests encadenados con tool_result, nunca forzar la tool dependiente.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
+      "source_quote": "The model can’t run your code, so every tool call is a round trip: the model asks, you execute, you report back, the model continues.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o37-q02",
+      "objective": 37,
+      "pool": "practice",
+      "scenario": "En un agente de logística, Claude a veces devuelve en la misma respuesta crear_envio y generar_etiqueta(envio_id). generar_etiqueta falla porque el envío todavía no existe. El equipo quiere que haya como mucho una tool por respuesta. ¿Qué configuran?",
+      "options": [
+        "disable_parallel_tool_use: true como parámetro top-level de la request.",
+        "tool_choice {\"type\": \"auto\", \"disable_parallel_tool_use\": true}.",
+        "tool_choice {\"type\": \"none\"} en los requests donde haya riesgo de paralelo.",
+        "tool_choice {\"type\": \"tool\", \"name\": \"crear_envio\"} en todos los requests."
+      ],
+      "correct": 1,
+      "why_correct": "disable_parallel_tool_use va dentro del objeto tool_choice. Con auto, hace que Claude llame como mucho una tool por respuesta (o conteste en texto). Así generar_etiqueta llega en un turno posterior, después del tool_result de crear_envio.",
+      "why_wrong": {
+        "0": "La doc es explícita: no es un parámetro top-level. Va dentro de tool_choice.",
+        "2": "none impide llamar tools: el agente deja de funcionar.",
+        "3": "Forzar crear_envio siempre impide llamar alguna vez a generar_etiqueta."
+      },
+      "rule": "disable_parallel_tool_use va DENTRO de tool_choice; con auto = máximo una tool por respuesta.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
+      "source_quote": "To turn it off, set disable_parallel_tool_use: true inside the tool_choice object. It is not a top-level request parameter.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o37-q03",
+      "objective": 37,
+      "pool": "practice",
+      "scenario": "Un agente consulta clima y hora en paralelo. El dev manda cada tool_result en su propio mensaje user, uno después del otro. Con el tiempo, Claude deja de hacer llamadas en paralelo y todo se vuelve más lento. ¿Qué corrige el problema?",
+      "options": [
+        "Agregar disable_parallel_tool_use: false explícito dentro de tool_choice.",
+        "Cambiar a tool_choice any para forzar varias tools por respuesta.",
+        "Mandar los tool_result en mensajes assistant, que es el rol de las tools.",
+        "Mandar todos los tool_result juntos en un solo mensaje user, antes de cualquier texto."
+      ],
+      "correct": 3,
+      "why_correct": "La doc lo nombra como el problema más común: mandar un mensaje user por cada resultado le \"enseña\" a Claude a no hacer llamadas paralelas. Lo correcto es devolver todos los tool_result en un solo mensaje user, matcheados por tool_use_id y antes de cualquier texto.",
+      "why_wrong": {
+        "0": "El paralelo ya está activo por default. El problema es el formato del historial.",
+        "1": "any obliga a usar al menos una tool, no varias. No arregla el formato.",
+        "2": "Los tool_result van en mensajes user. Los assistant llevan los tool_use."
+      },
+      "rule": "Resultados de tools paralelas: un solo mensaje user, con todos los tool_result primero.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
+      "source_quote": "Correct: all tool results together in a single user message",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o37-q04",
+      "objective": 37,
+      "pool": "practice",
+      "scenario": "Un orquestador recibe un tool_use de Claude, y antes de mandar el resultado inserta un mensaje user de texto (\"recordá ser breve\") y recién después el mensaje con el tool_result. La API responde 400: \"tool_use ids were found without tool_result blocks immediately after\". ¿Cuál es el fix?",
+      "options": [
+        "Mandar el tool_result inmediatamente después del tool_use, sin mensajes en el medio (el texto puede ir después de los tool_result, en el mismo mensaje).",
+        "Pasar el recordatorio al system prompt y mantener el mensaje intermedio vacío.",
+        "Duplicar el tool_use en un nuevo mensaje assistant justo antes del tool_result.",
+        "Cambiar tool_choice a none en el request del recordatorio."
+      ],
+      "correct": 0,
+      "why_correct": "Los tool_result tienen que venir inmediatamente después de su tool_use en el historial: no puede haber mensajes en el medio. En el mensaje user, los tool_result van primero y el texto después.",
+      "why_wrong": {
+        "1": "Un mensaje vacío en el medio sigue siendo un mensaje entre el tool_use y el tool_result.",
+        "2": "Duplicar el tool_use deja otro tool_use sin resultado y desordena el historial.",
+        "3": "tool_choice no arregla un historial mal armado."
+      },
+      "rule": "tool_use → tool_result inmediatamente después; nada en el medio; tool_result primero en el content.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "source_quote": "Tool result blocks must immediately follow their corresponding tool use blocks in the message history. You cannot include any messages between the assistant’s tool use message and the user’s tool result message.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o37-q05",
+      "objective": 37,
+      "pool": "practice",
+      "scenario": "Un pipeline de facturación en claude-haiku-5-5 tiene tres tools (facturar_a, facturar_b, nota_credito). En cada paso tiene que salir exactamente UNA llamada a alguna de ellas, nunca texto y nunca dos llamadas juntas. ¿Qué tool_choice usan?",
+      "options": [
+        "{\"type\": \"auto\", \"disable_parallel_tool_use\": true}",
+        "{\"type\": \"tool\", \"name\": \"facturar_a\", \"disable_parallel_tool_use\": true}",
+        "{\"type\": \"any\", \"disable_parallel_tool_use\": true}",
+        "{\"type\": \"any\"}"
+      ],
+      "correct": 2,
+      "why_correct": "Con any o tool, disable_parallel_tool_use: true hace que Claude llame exactamente una tool. any además deja elegir cuál de las tres. Haiku 5.5 acepta forced tool use.",
+      "why_wrong": {
+        "0": "Con auto es \"como mucho una\": Claude puede contestar en texto sin llamar ninguna.",
+        "1": "Es exactamente una, pero siempre facturar_a: elimina la elección entre las tres.",
+        "3": "Garantiza al menos una tool, pero puede devolver varias en paralelo."
+      },
+      "rule": "any/tool + disable_parallel_tool_use = exactamente una tool; auto + disable = como mucho una.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
+      "source_quote": "When the tool_choice type is any or tool, setting disable_parallel_tool_use: true means Claude calls exactly one tool.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o37-q06",
+      "objective": 37,
+      "pool": "practice",
+      "scenario": "Claude devuelve en una misma respuesta crear_usuario y asignar_rol(user_id). El orquestador las corre en paralelo y asignar_rol falla porque el usuario todavía no existía. El dev no sabe qué devolver para asignar_rol. ¿Qué indica la doc?",
+      "options": [
+        "No devolver nada para asignar_rol; Claude va a entender que falló.",
+        "Devolver un tool_result para asignar_rol con is_error: true y el mensaje de error; Claude la reintenta en el turno siguiente.",
+        "Reintentar asignar_rol en el orquestador hasta que funcione y devolver solo el éxito.",
+        "Devolver el error como texto en un mensaje user aparte, después de los tool_result."
+      ],
+      "correct": 1,
+      "why_correct": "La doc cubre este caso: si corrés en paralelo y una llamada falla porque su prerrequisito no había terminado, devolvés is_error: true con el mensaje de error natural, y Claude vuelve a emitir la llamada en el siguiente turno. Además, cada tool_use necesita su tool_result.",
+      "why_wrong": {
+        "0": "Cada tool_use necesita su tool_result. Si falta, la API da error.",
+        "2": "Puede funcionar por casualidad, pero esconde el error y depende del timing. La doc indica devolver el error.",
+        "3": "El resultado de cada tool va en su tool_result, no como texto suelto. Y el tool_result de asignar_rol seguiría faltando."
+      },
+      "rule": "Tool que falló por dependencia → tool_result con is_error: true; Claude la reintenta.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
+      "source_quote": "If you run in parallel and a call fails because its prerequisite hadn’t completed, return is_error: true with the natural error message. Claude will reissue the call on the next turn.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o37-q07",
+      "objective": 37,
+      "pool": "practice",
+      "scenario": "Un workflow de onboarding fuerza un paso por request: request 1 con tool_choice tool=crear_cuenta, request 2 con tool_choice tool=enviar_bienvenida (en un modelo que acepta forzar), devolviendo el tool_result entre medio. Funciona bien, pero la factura muestra que los bloques de mensajes no se están leyendo del prompt cache en el request 2. ¿Por qué?",
+      "options": [
+        "Forzar una tool desactiva el prompt caching en todo el request.",
+        "Los tool_result nunca se pueden cachear.",
+        "Hay que mover las definiciones de tools al system prompt para que se cacheen.",
+        "Cambiar tool_choice entre requests invalida los bloques de mensajes cacheados (tools y system siguen cacheados)."
+      ],
+      "correct": 3,
+      "why_correct": "La doc lo avisa: cuando usás prompt caching, cambiar tool_choice invalida los bloques de mensajes cacheados. Las definiciones de tools y el system prompt siguen en cache, pero el contenido de los mensajes se reprocesa. Es un costo esperable de forzar pasos distintos.",
+      "why_wrong": {
+        "0": "No se desactiva todo: tools y system prompt siguen cacheados.",
+        "1": "La doc no dice eso. La causa es el cambio de tool_choice.",
+        "2": "Las tools van en el parámetro tools, y ya se mantienen cacheadas. No es el problema."
+      },
+      "rule": "Cambiar tool_choice entre requests = se pierde el cache de los mensajes (no el de tools/system).",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "source_quote": "When using prompt caching, changes to the tool_choice parameter will invalidate cached message blocks. Tool definitions and system prompts remain cached, but message content must be reprocessed.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o37-q08",
+      "objective": 37,
+      "pool": "practice",
+      "scenario": "El loop de un agente es: request → si response.content[0].type == \"tool_use\", ejecutar esa tool y mandar el resultado; si no, terminar. A veces Claude escribe una frase antes de la tool (\"Voy a buscar el pedido...\") y el agente termina sin hacer nada. ¿Cómo se arregla el loop?",
+      "options": [
+        "Repetir mientras stop_reason == \"tool_use\", ejecutando todos los bloques tool_use de content.",
+        "Forzar tool_choice any en todos los requests para que content[0] sea siempre tool_use.",
+        "Agregar al system prompt \"no escribas texto antes de llamar una tool\".",
+        "Usar disable_parallel_tool_use para que el tool_use quede siempre primero en content."
+      ],
+      "correct": 0,
+      "why_correct": "El loop canónico de la doc se maneja por stop_reason: mientras sea \"tool_use\", ejecutás las tools y seguís. Claude suele comentar antes de llamar tools, así que no podés asumir que content[0] es el tool_use. Hay que recorrer todos los bloques.",
+      "why_wrong": {
+        "1": "Con any nunca podría terminar con una respuesta final en texto. El loop no tendría salida natural (y algunos modelos no aceptan forzar).",
+        "2": "Es guía: puede volver a pasar. La doc dice que tu código no dependa del formato del texto.",
+        "3": "Limita a una tool, pero no impide el texto previo."
+      },
+      "rule": "El loop se maneja con stop_reason == \"tool_use\", no con la posición del bloque.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
+      "source_quote": "In practice this reads as: while stop_reason == \"tool_use\", run the tools and continue the conversation.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o37-q09",
+      "objective": 37,
+      "pool": "practice",
+      "scenario": "Un asistente tiene la tool get_weather(location) con location required. El usuario pregunta \"¿Llevo paraguas hoy?\" sin decir dónde está, y Claude Sonnet llama get_weather con \"Buenos Aires\" sin que nadie lo haya dicho. La app sí conoce la ubicación del usuario desde su perfil. ¿Cuál es el mejor fix?",
+      "options": [
+        "Hacer location opcional para que get_weather use una ubicación por defecto.",
+        "Forzar get_weather con tool_choice tool para que el modelo sea más preciso.",
+        "Agregar una tool get_user_location para obtener el dato antes y dejar que el loop encadene (primero ubicación, después clima).",
+        "Agregar strict: true a get_weather para que no pueda inventar location."
+      ],
+      "correct": 2,
+      "why_correct": "Falta un prerrequisito. La doc avisa que cuando falta un parámetro requerido, Sonnet puede inferir un valor razonable. Si exponés una tool que trae el dato real, el loop agéntico permite obtenerlo primero y pasarlo a get_weather por el tool_result. Sin ese camino, el modelo adivina.",
+      "why_wrong": {
+        "0": "Una ubicación por defecto sigue siendo un dato inventado, solo que lo inventa tu código.",
+        "1": "Forzar la tool la obliga a llamarse ya, sin el dato: empeora la adivinanza.",
+        "3": "strict garantiza que location sea un string válido, no que sea la ubicación real."
+      },
+      "rule": "Si falta un prerrequisito, dale a Claude una forma de obtenerlo (otra tool o preguntar), no lo fuerces a adivinar.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview",
+      "source_quote": "Claude (particularly Claude Sonnet) might guess values you didn’t supply:",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o37-q10",
+      "objective": 37,
+      "pool": "practice",
+      "scenario": "Un equipo usa claude-opus-5-5 en un workflow donde el primer paso SIEMPRE tiene que ser llamar a validar_identidad. Probaron tool_choice {\"type\": \"tool\", \"name\": \"validar_identidad\"} y reciben 400. ¿Cuál es el enfoque correcto para este modelo?",
+      "options": [
+        "Usar tool_choice {\"type\": \"any\"} con una sola tool definida en el primer request.",
+        "tool_choice auto con strict: true, una instrucción clara en el prompt y una validación en código de que el primer tool_use sea validar_identidad.",
+        "Activar extended thinking manual, que habilita el forzado en Opus 5.5.",
+        "Usar prefill del turno del assistant con el bloque tool_use de validar_identidad."
+      ],
+      "correct": 1,
+      "why_correct": "Opus 5.5 rechaza forced tool use (any y tool dan 400). La doc indica auto con strict tool use para inputs válidos, y que el prompt sigue influyendo en qué tool elige auto. Como auto no garantiza la llamada, tu código chequea que el primer tool_use sea el esperado y, si no, reintenta o corta.",
+      "why_wrong": {
+        "0": "any también es forced tool use: Opus 5.5 da el mismo 400.",
+        "2": "Con extended thinking manual, any y tool tampoco están soportados.",
+        "3": "El prefill del último turno da 400 en Claude 4.6 y posteriores."
+      },
+      "rule": "Modelo sin forced tool use → auto + strict + prompt + validación en tu código.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "source_quote": "Prompting still influences which tool auto picks.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

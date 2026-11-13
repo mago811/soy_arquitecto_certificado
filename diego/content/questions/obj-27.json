@@ -1,0 +1,245 @@
+{
+  "objective": 27,
+  "questions": [
+    {
+      "id": "o27-q01",
+      "objective": 27,
+      "pool": "practice",
+      "scenario": "Un pipeline de facturas manda cada documento a claude-haiku-5-5 con una sola tool, registrar_factura, y tool_choice por defecto. El código siguiente hace response.content[0].input. En el 3% de los casos Claude contesta \"Esta factura parece incompleta, ¿querés que...\" en texto, y el pipeline explota con un error. ¿Cuál es el fix?",
+      "options": [
+        "Agregar al system prompt \"SIEMPRE usá registrar_factura, nunca contestes en texto\".",
+        "Poner tool_choice {\"type\": \"tool\", \"name\": \"registrar_factura\"} en la request.",
+        "Poner tool_choice {\"type\": \"auto\"} explícito para que el modelo priorice la tool.",
+        "Subir max_tokens para que el modelo tenga lugar de terminar el texto y llamar la tool."
+      ],
+      "correct": 1,
+      "why_correct": "Con auto (el default), Claude decide en cada turno si llama una tool o contesta directo. Si el texto rompe el downstream, hay que exigir la llamada: tool_choice tool fuerza esa tool específica. Haiku 5.5 acepta forced tool use.",
+      "why_wrong": {
+        "0": "El prompt sube la probabilidad pero no garantiza. La doc dice que para exigir la llamada, en vez de depender del prompt, se usa tool_choice.",
+        "2": "auto ya es el default cuando hay tools. Ponerlo explícito no cambia nada: sigue pudiendo contestar en texto.",
+        "3": "El problema no es de tokens. Claude decidió no llamar la tool."
+      },
+      "rule": "Si un texto en vez de tool_use rompe el pipeline → tool_choice any/tool, no un prompt más fuerte.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview",
+      "source_quote": "To require a tool call rather than rely on prompting, set tool_choice.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o27-q02",
+      "objective": 27,
+      "pool": "practice",
+      "scenario": "Un sistema de reservas fuerza la tool crear_reserva con tool_choice tool. La tool se llama siempre, pero el backend en Java falla cada tanto porque passengers llega como \"2\" o \"two\" en vez de un entero, y otras veces falta fecha (que es required). ¿Qué cambio corrige esto?",
+      "options": [
+        "Agregar a la description de passengers \"debe ser un entero, nunca un string\".",
+        "Cambiar tool_choice a {\"type\": \"any\"} para que el modelo elija mejor los tipos.",
+        "Validar en el backend y devolver un tool_result con is_error para que Claude reintente.",
+        "Agregar strict: true a la definición de crear_reserva (con additionalProperties false en el schema)."
+      ],
+      "correct": 3,
+      "why_correct": "tool_choice garantiza que se llame la tool, no que los inputs respeten el schema. strict: true usa grammar-constrained sampling: el input siempre sigue el input_schema, con los tipos correctos y los campos required. La doc usa este mismo ejemplo: con strict, passengers siempre es 2.",
+      "why_wrong": {
+        "0": "Una description mejor ayuda, pero sigue siendo guía. Sin strict, Claude puede mandar tipos incompatibles igual.",
+        "1": "any obliga a usar alguna tool; no dice nada sobre los tipos de los inputs.",
+        "2": "Sirve como red de seguridad, pero cuesta un round trip extra por error. La doc dice que strict elimina las llamadas inválidas sin tener que validar y reintentar."
+      },
+      "rule": "tool_choice = que la llame; strict: true = que los inputs respeten el schema.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/strict-tool-use",
+      "source_quote": "Without strict mode, Claude might return incompatible types (\"2\" instead of 2) or omit required fields, breaking your functions and causing runtime errors.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o27-q03",
+      "objective": 27,
+      "pool": "practice",
+      "scenario": "Un router de soporte en claude-haiku-5-5 tiene tres tools: crear_ticket, escalar_a_humano y cerrar_consulta. Cualquiera de las tres está bien según el caso, pero una respuesta en texto rompe el flujo, y los inputs tienen que respetar el schema sí o sí. ¿Qué configuración pide la doc para garantizar las dos cosas?",
+      "options": [
+        "tool_choice {\"type\": \"any\"} y strict: true en las tres tools.",
+        "tool_choice {\"type\": \"tool\", \"name\": \"crear_ticket\"} y strict: true solo en esa tool.",
+        "tool_choice {\"type\": \"auto\"} y strict: true en las tres tools.",
+        "tool_choice {\"type\": \"any\"} y output_config.format con el schema de las tres tools."
+      ],
+      "correct": 0,
+      "why_correct": "any obliga a llamar alguna tool sin forzar cuál, y strict: true garantiza que los inputs cumplan el schema. La doc lo recomienda textual: combinar any con strict para garantizar que se llame una tool y que los inputs sigan el schema.",
+      "why_wrong": {
+        "1": "Fuerza siempre crear_ticket, aunque el caso pida escalar o cerrar. Elimina la elección que el router necesita.",
+        "2": "Con auto, Claude puede contestar en texto. Garantiza inputs válidos pero no la llamada.",
+        "3": "output_config.format controla la respuesta de texto, no los inputs de las tools. Para eso es strict."
+      },
+      "rule": "Alguna tool sí o sí + inputs válidos → tool_choice any + strict: true.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "source_quote": "combine tool_choice: {\"type\": \"any\"} with strict tool use to guarantee both that one of your tools is called and that the tool inputs strictly follow your schema.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o27-q04",
+      "objective": 27,
+      "pool": "practice",
+      "scenario": "Un equipo migra su extractor de claude-haiku-5-5 a claude-sonnet-5-5 sin cambiar el código. La request, que usa tool_choice {\"type\": \"tool\", \"name\": \"extraer_datos\"}, ahora devuelve 400 invalid_request_error. Necesitan seguir teniendo inputs válidos para el schema. ¿Qué hacen?",
+      "options": [
+        "Cambiar a tool_choice {\"type\": \"any\"}, que sí está soportado en Sonnet 5.5.",
+        "Activar extended thinking manual para que el modelo acepte el forzado.",
+        "Usar tool_choice auto con strict: true (y prompt claro), o structured outputs si lo que buscan es la respuesta en JSON.",
+        "Agregar el beta header de forced tool use a la request."
+      ],
+      "correct": 2,
+      "why_correct": "Claude Sonnet 5.5 (igual que Opus 5.5 y otros modelos nuevos) no acepta forced tool use: any y tool dan 400. La doc indica usar auto con strict tool use para mantener inputs válidos, o structured outputs si querés la respuesta en un JSON fijo.",
+      "why_wrong": {
+        "0": "any también es forced tool use: Sonnet 5.5 lo rechaza con el mismo 400.",
+        "1": "Con extended thinking manual, any y tool tampoco están soportados. Empeora.",
+        "3": "La doc no menciona ningún header que habilite forzar en estos modelos. No lo inventes."
+      },
+      "rule": "Modelo que rechaza forzar (Opus/Sonnet 5.5) → auto + strict, o structured outputs.",
+      "source_url": "https://platform.claude.com/docs/en/api/errors",
+      "source_quote": "Use auto with strict tool use to keep tool inputs schema-valid, or structured outputs when you need the response itself in a fixed JSON shape.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o27-q05",
+      "objective": 27,
+      "pool": "practice",
+      "scenario": "Un asistente de compras fuerza la tool buscar_producto con tool_choice tool (en un modelo que lo soporta). El equipo de UX quiere que, antes de buscar, Claude le diga al usuario una frase tipo \"Dale, busco zapatillas talle 42\". Lo agregan al prompt pero la frase nunca aparece: la respuesta arranca directo con el tool_use. ¿Por qué y cuál es el fix?",
+      "options": [
+        "Es un bug del modelo; hay que pedir la frase en el system prompt en vez del mensaje del usuario.",
+        "Con any o tool la API prefillea el turno para forzar la tool; usar auto con la instrucción explícita en el mensaje del usuario.",
+        "Hay que agregar un campo frase_para_usuario al input_schema y mostrarlo en la UI.",
+        "Hay que poner disable_parallel_tool_use: true para que el modelo emita texto antes de la tool."
+      ],
+      "correct": 1,
+      "why_correct": "Con tool_choice any o tool, la API prefillea el mensaje del assistant para forzar la tool, así que no hay texto antes del tool_use aunque lo pidas. La doc indica usar auto y dar la instrucción explícita en el mensaje del usuario si querés explicación más la tool.",
+      "why_wrong": {
+        "0": "No es un bug, es el comportamiento documentado. Moverlo al system prompt no cambia el prefill.",
+        "2": "Puede funcionar como parche, pero mete en la tool un texto que no es un parámetro de la tool. El fix documentado es auto más instrucción.",
+        "3": "disable_parallel_tool_use limita cuántas tools se llaman; no habilita texto previo."
+      },
+      "rule": "Forzar = sin texto antes del tool_use. ¿Querés texto y tool? auto + instrucción.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "source_quote": "This means that the models will not emit a natural language response or explanation before tool_use content blocks, even if explicitly asked to do so.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o27-q06",
+      "objective": 27,
+      "pool": "practice",
+      "scenario": "Un agente de análisis financiero usa thinking: {\"type\": \"enabled\", \"budget_tokens\": 8000} (extended thinking manual) y, para asegurar la extracción, tool_choice {\"type\": \"any\"}. La request falla con error. ¿Cuál es la explicación correcta?",
+      "options": [
+        "El budget_tokens es demasiado bajo para forzar una tool; hay que subirlo por encima de 16000.",
+        "Falta strict: true en las tools; any solo funciona con tools strict.",
+        "Hay que mover el tool_choice adentro del objeto thinking.",
+        "Con extended thinking manual solo se aceptan tool_choice auto o none: any y tool dan error."
+      ],
+      "correct": 3,
+      "why_correct": "La doc es explícita: con thinking type enabled, tool_choice any y tool no están soportados porque fuerzan el uso de tools, y eso es incompatible con extended thinking manual. Solo auto o none.",
+      "why_wrong": {
+        "0": "El tamaño del budget no tiene nada que ver: es una incompatibilidad de modos.",
+        "1": "strict no es requisito de any. any funciona sin strict en los modelos que aceptan forzar.",
+        "2": "tool_choice es un parámetro propio de la request, no va dentro de thinking. Ese campo no existe."
+      },
+      "rule": "Extended thinking manual + tool_choice any/tool = error. Solo auto o none.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
+      "source_quote": "Using tool_choice: {\"type\": \"any\"} or tool_choice: {\"type\": \"tool\", \"name\": \"...\"} results in an error because these options force tool use, which is incompatible with manual extended thinking.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o27-q07",
+      "objective": 27,
+      "pool": "practice",
+      "scenario": "Un chatbot con tools de consulta de pedidos tiene un último paso: después de varias llamadas, tiene que escribirle al cliente un resumen final en texto, sin volver a llamar tools. Mantienen el mismo array de tools en la request para no romper el prompt caching de las definiciones. ¿Qué tool_choice usan en ese último request?",
+      "options": [
+        "{\"type\": \"none\"}",
+        "{\"type\": \"auto\", \"disable_parallel_tool_use\": true}",
+        "{\"type\": \"any\"}",
+        "Omitir tool_choice: sin el parámetro, Claude no llama tools."
+      ],
+      "correct": 0,
+      "why_correct": "none impide que Claude use cualquier tool, aunque las tools sigan definidas en la request. Es exactamente lo que se necesita para el turno de cierre.",
+      "why_wrong": {
+        "1": "Con auto y disable_parallel_tool_use, Claude todavía puede llamar una tool por respuesta.",
+        "2": "any obliga a llamar alguna tool: lo contrario de lo que se busca.",
+        "3": "Cuando hay tools, el default es auto, no none. none es el default solo si no hay tools."
+      },
+      "rule": "Tools definidas pero ninguna llamada permitida → tool_choice none.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "source_quote": "none prevents Claude from using any tools. This is the default value when no tools are provided.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o27-q08",
+      "objective": 27,
+      "pool": "practice",
+      "scenario": "Un banco usa una tool registrar_transferencia con strict: true y tool_choice any. Un auditor encuentra transferencias registradas con un CBU de 22 dígitos perfectamente formateado que no aparece en ningún lado del mensaje del cliente. El equipo responde: \"Imposible, strict garantiza el schema\". ¿Qué está pasando?",
+      "options": [
+        "Strict no se aplicó porque any lo desactiva; hay que usar tool_choice tool.",
+        "El grammar cache tenía un schema viejo; hay que cambiar el nombre de la tool.",
+        "Strict garantiza la forma del input, no que el valor sea real: si el campo es obligatorio y no hay dato, el modelo igual tiene que poner algo.",
+        "Fue un error de casing del enum; hay que comparar case-insensitive."
+      ],
+      "correct": 2,
+      "why_correct": "strict: true garantiza que el input cumpla el input_schema (tipos, campos requeridos). No dice nada sobre si el valor es verdadero. Si el schema exige un CBU y el mensaje no lo trae, la tool se llama igual con un valor bien formado. Hay que diseñar el schema para que pueda decir que falta (nullable u opcional) y validar.",
+      "why_wrong": {
+        "0": "La doc recomienda justamente any + strict juntos. any no desactiva strict.",
+        "1": "Cambiar el schema invalida el cache, pero el cache no inventa datos. Y no explica un valor que no está en el mensaje.",
+        "3": "No hay enum en juego: es un string con un valor inventado."
+      },
+      "rule": "strict y tool_choice garantizan forma y llamada, no verdad: el schema tiene que poder decir que falta.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/strict-tool-use",
+      "source_quote": "Setting strict: true on a tool definition guarantees Claude’s tool inputs match your JSON Schema by constraining the model’s token sampling to schema-valid outputs",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o27-q09",
+      "objective": 27,
+      "pool": "practice",
+      "scenario": "Un triage de mails le pide a Claude que \"termine con una línea 'Prioridad: alta|media|baja'\" y después usa una regex para leerla. Cada tanto Claude escribe \"Prioridad sugerida: media\" o \"prioridad — alta\" y la regex no matchea. ¿Qué dice la doc que hay que hacer?",
+      "options": [
+        "Mejorar la regex para que acepte variantes y mayúsculas/minúsculas.",
+        "Agregar tres ejemplos de la línea exacta en el prompt (few-shot) y mantener la regex.",
+        "Pedir la prioridad en un bloque XML <prioridad> y parsear el XML en vez de la línea.",
+        "Modelar la decisión como una tool (con un campo enum de prioridades) en vez de parsear texto libre."
+      ],
+      "correct": 3,
+      "why_correct": "La doc lo dice directo: si estás escribiendo una regex para sacar una decisión de la salida del modelo, esa decisión tendría que haber sido una tool call. La estructura va en el schema, y un enum limita los valores posibles.",
+      "why_wrong": {
+        "0": "Sigue parseando texto libre. Siempre va a aparecer una variante nueva.",
+        "1": "Los ejemplos mejoran la consistencia, pero no la garantizan. Seguís dependiendo de la regex.",
+        "2": "XML ayuda, pero sigue siendo texto sin garantía de schema ni de valores."
+      },
+      "rule": "¿Estás escribiendo una regex sobre la salida? Esa decisión es una tool call.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
+      "source_quote": "if you’re writing a regex to extract a decision from model output, that decision should have been a tool call.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o27-q10",
+      "objective": 27,
+      "pool": "practice",
+      "scenario": "Un extractor fuerza la tool guardar_contacto con tool_choice any. El código hace response.content[0].text para leer el resultado y explota con AttributeError, aunque stop_reason es \"tool_use\". ¿Cuál es la forma correcta de leer los datos?",
+      "options": [
+        "Leer response.stop_reason, que trae los datos de la tool cuando es tool_use.",
+        "Recorrer response.content, tomar el bloque de type tool_use y leer su input.",
+        "Agregar output_config.format para que los datos vengan también en el bloque de texto.",
+        "Cambiar a tool_choice auto para que haya un bloque de texto en content[0]."
+      ],
+      "correct": 1,
+      "why_correct": "Cuando Claude llama una tool, la respuesta trae bloques tool_use con id, name e input. El input es el objeto que respeta el input_schema. Ahí están los datos, no en un bloque de texto.",
+      "why_wrong": {
+        "0": "stop_reason solo dice por qué terminó la respuesta. No trae datos.",
+        "2": "Mezcla dos mecanismos para no arreglar el parseo. Los datos de la tool ya están en tool_use.input.",
+        "3": "Con auto podría no llamar la tool. Y no es seguro que content[0] sea texto."
+      },
+      "rule": "Los datos de una tool están en el bloque tool_use, campo input. No en .text.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "source_quote": "input: An object containing the input being passed to the tool, conforming to the tool’s input_schema.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

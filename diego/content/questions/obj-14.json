@@ -1,0 +1,285 @@
+{
+  "objective": 14,
+  "questions": [
+    {
+      "id": "o14-q01",
+      "objective": 14,
+      "pool": "practice",
+      "scenario": "Logística Andina tiene la skill `/auditar-deps`: lee cientos de `package.json`, corre `npm ls` y arma un informe. Corre inline. Después de usarla, la sesión queda llena de salidas de dependencias y Claude empieza a mezclar versiones viejas en respuestas sobre otros temas. Quieren que el trabajo intermedio no contamine la sesión. ¿Qué cambiás?",
+      "options": [
+        "Agregar `allowed-tools: Read Glob Bash(npm ls *)` para acotar lo que la skill puede tocar.",
+        "Agregar `context: fork` (y un `agent`) al frontmatter para que corra en un subagente aislado.",
+        "Agregar `disable-model-invocation: true` para que solo se ejecute cuando alguien escribe `/auditar-deps`.",
+        "Mover las instrucciones a CLAUDE.md con \"IMPORTANT: no mezcles resultados de auditorías\"."
+      ],
+      "correct": 1,
+      "why_correct": "`context: fork` hace que Claude Code arranque un subagente nuevo y le pase la skill como prompt. El trabajo pesado queda en el contexto del subagente y a tu sesión vuelve solo el resultado. Eso es exactamente evitar la contaminación del estado de la sesión.",
+      "why_wrong": {
+        "0": "`allowed-tools` solo pre-aprueba herramientas durante el turno; no aísla el contexto ni restringe nada.",
+        "2": "Controla quién invoca la skill, no dónde corre. Seguiría corriendo inline y ensuciando el contexto.",
+        "3": "Es guidance en un archivo que se carga siempre; no cambia que las salidas queden en la conversación."
+      },
+      "rule": "¿Una skill de tarea ensucia la sesión? `context: fork`.",
+      "source_url": "https://code.claude.com/docs/en/skills",
+      "source_quote": "Add `context: fork` to your frontmatter when you want a skill to run in isolation. Claude Code starts a new subagent of the type set in the `agent` field and gives it the skill content as its prompt.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "skills: cita textual; context: fork corre en subagente aislado; allowed-tools solo pre-aprueba, disable-model-invocation solo controla quién invoca."
+      }
+    },
+    {
+      "id": "o14-q02",
+      "objective": 14,
+      "pool": "practice",
+      "scenario": "En Banco Patagonia crearon la skill `api-conventions` con `context: fork`. Su contenido es solo una lista de guías: \"usá nombres REST, devolvé errores en formato RFC 7807, validá cada request\". Cuando Claude la usa mientras escribe un endpoint, el subagente vuelve sin nada útil y el endpoint no respeta las guías. ¿Cuál es el fix?",
+      "options": [
+        "Cambiar a `agent: general-purpose` para que el subagente tenga más herramientas.",
+        "Poner `background: false` para que Claude espere la respuesta del subagente.",
+        "Sacar `context: fork`: es contenido de referencia y tiene que correr inline, junto a la conversación.",
+        "Agregar `allowed-tools: Read Edit` para que el subagente pueda aplicar las guías al código."
+      ],
+      "correct": 2,
+      "why_correct": "`context: fork` solo tiene sentido para skills con una tarea explícita. Con solo guías, el subagente recibe las reglas pero ningún prompt accionable y vuelve sin resultado. El contenido de referencia corre inline para que Claude lo aplique sobre el trabajo en curso.",
+      "why_wrong": {
+        "0": "Cambiar de tipo de agente no le da una tarea; sigue recibiendo solo guías.",
+        "1": "Esperar el resultado no sirve si el resultado está vacío por falta de tarea.",
+        "3": "`allowed-tools` no restringe ni da tarea; además, el subagente no ve el endpoint que se está escribiendo en la charla."
+      },
+      "rule": "Skill de referencia → inline. Fork solo para tareas.",
+      "source_url": "https://code.claude.com/docs/en/skills",
+      "source_quote": "`context: fork` only makes sense for skills with explicit instructions. If your skill contains guidelines like \"use these API conventions\" without a task, the subagent receives the guidelines but no actionable prompt, and returns without meaningful output.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "skills: cita textual (nota sobre fork sin tarea); distractores no resuelven la falta de tarea."
+      }
+    },
+    {
+      "id": "o14-q03",
+      "objective": 14,
+      "pool": "practice",
+      "scenario": "Retail Sur tiene `/mapear-modulos` con `context: fork` y `agent: Explore`. El CLAUDE.md del proyecto dice \"ignorá siempre la carpeta `legacy/`\". En la sesión principal Claude respeta la regla, pero el informe de `/mapear-modulos` siempre incluye `legacy/`. ¿Cuál es la causa y el fix?",
+      "options": [
+        "El agente Explore arranca sin CLAUDE.md; hay que escribir la regla de `legacy/` dentro del SKILL.md.",
+        "El fork corre en background y se saltea el CLAUDE.md; hay que poner `background: false`.",
+        "CLAUDE.md no aplica a skills; hay que mover la regla a `.claude/settings.json` como `permissions.deny`.",
+        "Falta `allowed-tools: Glob(!legacy/**)` para que el subagente excluya esa carpeta."
+      ],
+      "correct": 0,
+      "why_correct": "Explore y Plan arrancan sin tus CLAUDE.md para mantener chico su contexto. Un fork con `agent: Explore` recibe solo el contenido de la skill y el system prompt del agente. Lo que la tarea necesite tiene que estar en el SKILL.md.",
+      "why_wrong": {
+        "1": "`background` cambia si se espera el resultado, no qué se carga al arrancar.",
+        "2": "CLAUDE.md sí llega a otros subagentes; el problema es específico de Explore/Plan. Y un deny de permisos es otra cosa que \"ignorar en el informe\".",
+        "3": "Esa sintaxis no existe en la doc, y `allowed-tools` no restringe herramientas."
+      },
+      "rule": "Fork con Explore/Plan = sin CLAUDE.md. Todo en el SKILL.md.",
+      "source_url": "https://code.claude.com/docs/en/skills",
+      "source_quote": "A forked skill using `agent: Explore` starts with that content and the agent's own system prompt, and none of your CLAUDE.md files.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "skills + sub-agents 'What loads at startup': Explore/Plan arrancan sin CLAUDE.md; otros subagentes sí lo cargan."
+      }
+    },
+    {
+      "id": "o14-q04",
+      "objective": 14,
+      "pool": "practice",
+      "scenario": "En Agro Datos, una dev pasa una hora hablando con Claude sobre un bug y después corre `/resumir-hallazgos`, una skill con `context: fork` que dice \"resumí lo que descubrimos en esta conversación\". El resultado siempre es \"no tengo información sobre hallazgos previos\". ¿Qué hacés?",
+      "options": [
+        "Subir el `model` de la skill a `opus` para que el subagente infiera mejor el contexto.",
+        "Agregar `agent: Plan`, que está pensado para leer el estado de la conversación.",
+        "Pasar la conversación como argumento: `/resumir-hallazgos $ARGUMENTS` con todo el historial pegado.",
+        "Sacar `context: fork` (correrla inline) o usar un fork de la conversación, porque el fork de skill no ve el historial."
+      ],
+      "correct": 3,
+      "why_correct": "Un subagente creado por `context: fork` no ve tu historial: arranca con la skill como prompt. La doc lo dice: si la tarea depende de lo que hablaste, forkeá la conversación (por ejemplo `/subtask`) en vez de usar `context: fork`, o corré la skill inline.",
+      "why_wrong": {
+        "0": "Ningún modelo puede resumir algo que no está en su contexto.",
+        "1": "Plan es un agente de investigación para plan mode; tampoco recibe tu historial.",
+        "2": "Es un parche manual y frágil; la herramienta correcta ya existe (inline o fork de conversación)."
+      },
+      "rule": "`context: fork` aísla: el subagente NO ve tu charla.",
+      "source_url": "https://code.claude.com/docs/en/skills",
+      "source_quote": "Despite the name, a skill with `context: fork` doesn't run in a fork of the current conversation, which would hand the subagent everything you've discussed so far. When the task depends on that history, fork the conversation instead of using `context: fork`.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "skills: cita casi textual (el original tiene un link markdown); /subtask existe en sub-agents 'Fork the current conversation'."
+      }
+    },
+    {
+      "id": "o14-q05",
+      "objective": 14,
+      "pool": "practice",
+      "scenario": "Salud Norte tiene `/revisar-config` con `context: fork` (sin campo `agent`) y `allowed-tools: Read Grep`. Esperaban un análisis de solo lectura, pero el subagente terminó editando un `.env`. ¿Cuál es el fix que garantiza que el fork no pueda editar?",
+      "options": [
+        "Cambiar `allowed-tools` a `Read Grep Glob` y agregar al cuerpo \"NUNCA edites archivos\".",
+        "Poner `agent:` apuntando a un agente de solo lectura (Explore o uno custom con `tools: Read, Grep, Glob`).",
+        "Agregar `disable-model-invocation: true` para que Claude no ejecute la skill sin permiso.",
+        "Poner `background: false` para poder aprobar cada edición a mano antes de que ocurra."
+      ],
+      "correct": 1,
+      "why_correct": "`allowed-tools` no restringe: solo pre-aprueba y todas las tools siguen disponibles. Sin `agent`, el fork usa `general-purpose`. El campo `agent` define el entorno del subagente (modelo, tools y permisos), así que apuntarlo a un agente read-only es lo que garantiza que no edite.",
+      "why_wrong": {
+        "0": "Ampliar la pre-aprobación no restringe nada, y una frase en el cuerpo es guidance, no enforcement.",
+        "2": "Controla quién la invoca, no qué tools tiene el fork.",
+        "3": "Esperar el resultado no quita herramientas; además depende de que alguien deniegue a mano."
+      },
+      "rule": "Para limitar tools en un fork: `agent` read-only. `allowed-tools` no limita.",
+      "source_url": "https://code.claude.com/docs/en/skills",
+      "source_quote": "It does not restrict which tools are available: every tool remains callable, and your permission settings still govern tools that are not listed.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "skills: allowed-tools no restringe; agent omitido = general-purpose; agent define modelo/tools/permisos; Explore deniega Write/Edit (sub-agents)."
+      }
+    },
+    {
+      "id": "o14-q06",
+      "objective": 14,
+      "pool": "practice",
+      "scenario": "Un equipo de Seguros Cuyo tiene comandos viejos en `.claude/commands/` (por ejemplo `release-notes.md`). Quieren que `/release-notes` corra aislado en un subagente. Alguien propone reescribirlo como subagente en `.claude/agents/`. ¿Qué es lo más directo?",
+      "options": [
+        "Agregar `context: fork` al frontmatter del mismo `.claude/commands/release-notes.md`.",
+        "Es imposible: `context: fork` solo funciona en `.claude/skills/<nombre>/SKILL.md`; hay que migrar.",
+        "Reescribirlo como subagente con `isolation: worktree`, que es el único modo de aislar un comando.",
+        "Invocarlo con `@release-notes` en vez de `/release-notes` para que corra como subagente."
+      ],
+      "correct": 0,
+      "why_correct": "Los custom commands se fusionaron con las skills: un archivo en `.claude/commands/` crea el mismo `/comando` y acepta los mismos campos de frontmatter, excepto `name` y `paths`. Así que `context: fork` se agrega ahí mismo.",
+      "why_wrong": {
+        "1": "Falso: la doc dice que los command files aceptan los mismos campos salvo `name` y `paths`.",
+        "2": "`isolation: worktree` aísla archivos del repo para un subagente, no es requisito para aislar contexto, y no hace falta migrar.",
+        "3": "Las @-mentions sirven para subagentes, no convierten un comando en subagente."
+      },
+      "rule": "Commands = skills: `context: fork` también va en `.claude/commands/*.md`.",
+      "source_url": "https://code.claude.com/docs/en/skills",
+      "source_quote": "A command file in `.claude/commands/` accepts the same fields except `name` and `paths`.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "skills: commands fusionados con skills; command file acepta los mismos campos salvo name y paths (cita casi textual, con link). Acortada la opción correcta (era mucho más larga que los distractores)."
+      }
+    },
+    {
+      "id": "o14-q07",
+      "objective": 14,
+      "pool": "practice",
+      "scenario": "En Minera Austral escribieron este SKILL.md:\n\n```\n<!-- skill v3 - mantenida por plataforma -->\n---\nname: inventario\ncontext: fork\nagent: Explore\n---\nListá todos los servicios...\n```\n\nLa skill corre, pero siempre inline: llena la sesión y ve todo el historial. No hay ningún error. ¿Cuál es el problema?",
+      "options": [
+        "`agent: Explore` no es compatible con `context: fork`; hay que usar `general-purpose`.",
+        "Falta `background: true`, que es lo que realmente activa el fork.",
+        "Falta `description`, y sin ella Claude Code ignora el resto del frontmatter.",
+        "El `---` de apertura no es la primera línea, así que todo el archivo se toma como contenido y no se lee el frontmatter."
+      ],
+      "correct": 3,
+      "why_correct": "Claude Code solo lee el frontmatter si el `---` de apertura es la primera línea del archivo. Si hay algo antes (como el comentario), trata todo como contenido de la skill y ningún campo se aplica, sin error. Por eso corre inline.",
+      "why_wrong": {
+        "0": "La doc usa `agent: Explore` con `context: fork` como ejemplo.",
+        "1": "`background` ya vale `true` por defecto y solo aplica con fork; no lo activa.",
+        "2": "`description` es recomendado, no obligatorio: \"All fields are optional\"."
+      },
+      "rule": "Frontmatter = `---` en la línea 1, o no existe.",
+      "source_url": "https://code.claude.com/docs/en/skills",
+      "source_quote": "Claude Code reads the frontmatter only when the opening `---` is the file's first line. Otherwise it treats the whole file, `---` markers included, as skill content.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "skills: frontmatter solo si '---' es la primera línea; 'All fields are optional'; background default true."
+      }
+    },
+    {
+      "id": "o14-q08",
+      "objective": 14,
+      "pool": "practice",
+      "scenario": "En Turismo Litoral, `/chequear-precios` tiene `context: fork` y `agent: Explore`. El dev lo invoca en la terminal interactiva y Claude sigue respondiendo otras cosas; el resultado aparece más tarde. Necesitan el informe antes de que Claude continúe en ese mismo turno. ¿Qué cambian?",
+      "options": [
+        "Sacar `context: fork`: un fork siempre corre en paralelo y no hay forma de esperarlo.",
+        "Poner `disable-model-invocation: true` para que la ejecución sea sincrónica.",
+        "Agregar `background: false` al frontmatter para esperar el resultado del subagente en el turno que invocó la skill.",
+        "Cambiar a `agent: Plan`, que siempre corre en foreground."
+      ],
+      "correct": 2,
+      "why_correct": "El subagente forkeado corre en background por defecto. `background: false` hace que Claude espere el resultado en el turno que invocó la skill, sin perder el aislamiento.",
+      "why_wrong": {
+        "0": "Sí hay forma de esperarlo (`background: false`), y sacar el fork pierde el aislamiento.",
+        "1": "Ese campo controla quién invoca la skill, no si se espera.",
+        "3": "La doc no dice que Plan corra siempre en foreground; el campo que lo controla es `background`."
+      },
+      "rule": "Fork que tenés que esperar → `background: false`.",
+      "source_url": "https://code.claude.com/docs/en/skills",
+      "source_quote": "Set `background: false` in the frontmatter to instead wait for the result in the turn that invoked the skill.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "skills: fork corre en background por defecto; background: false espera en el turno que invocó."
+      }
+    },
+    {
+      "id": "o14-q09",
+      "objective": 14,
+      "pool": "practice",
+      "scenario": "Data Pampa quiere que `/investigar` (con `context: fork` y `agent: general-purpose`) corra en un modelo más barato. La sesión principal tiene que seguir en el modelo actual y los demás subagentes no deben cambiar. ¿Qué configuración usás?",
+      "options": [
+        "Agregar `model: haiku` al frontmatter de la skill `/investigar`.",
+        "Ejecutar `/model haiku` antes de invocar `/investigar`.",
+        "Setear `CLAUDE_CODE_SUBAGENT_MODEL=haiku` en el `env` de settings.",
+        "Agregar `effort: low` a la skill, que en forks también baja de modelo."
+      ],
+      "correct": 0,
+      "why_correct": "El campo `model` de la skill, con `context: fork`, se aplica al subagente forkeado y no a tu sesión. Es el ajuste más acotado: cambia solo esta skill.",
+      "why_wrong": {
+        "1": "Cambia el modelo de la sesión principal, que tenía que quedar igual.",
+        "2": "Es el modelo por defecto para todos los subagentes que no fijan uno: cambiaría también a los demás.",
+        "3": "`effort` ajusta el nivel de esfuerzo, no el modelo."
+      },
+      "rule": "En un fork, `model` y `effort` de la skill van al subagente.",
+      "source_url": "https://code.claude.com/docs/en/skills",
+      "source_quote": "With `context: fork`, the value sets the forked subagent's model instead",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "skills: model con context: fork va al subagente (cita casi textual). Corregido why_wrong 2: CLAUDE_CODE_SUBAGENT_MODEL es un default para todos los subagentes (forzarlo requiere CLAUDE_CODE_SUBAGENT_MODEL_FORCE), no 'fuerza' por sí sola. Acortada la opción correcta (era mucho más larga que los distractores)."
+      }
+    },
+    {
+      "id": "o14-q10",
+      "objective": 14,
+      "pool": "practice",
+      "scenario": "En Energía Andes, `/generar-informe` usa `context: fork` y es una skill de tarea. Quieren usarla sin que contamine la sesión. Un dev pregunta qué tipo de subagente ejecuta la skill hoy, ya que nadie puso el campo `agent`. ¿Qué le respondés?",
+      "options": [
+        "Explore, porque es el agente por defecto para tareas forkeadas de solo lectura.",
+        "Ninguno: sin `agent`, `context: fork` se ignora y la skill corre inline.",
+        "El mismo agente de la sesión principal, con su historial completo.",
+        "`general-purpose`: si se omite `agent`, se usa ese tipo."
+      ],
+      "correct": 3,
+      "why_correct": "La doc dice que el campo `agent` elige la configuración del subagente y que, si se omite, se usa `general-purpose`. El fork igual corre aislado.",
+      "why_wrong": {
+        "0": "Explore hay que pedirlo explícitamente con `agent: Explore`.",
+        "1": "`context: fork` funciona sin `agent`; solo cae en el default.",
+        "2": "Eso describe un fork de la conversación, no `context: fork`, que arranca sin historial."
+      },
+      "rule": "`context: fork` sin `agent` → `general-purpose`.",
+      "source_url": "https://code.claude.com/docs/en/skills",
+      "source_quote": "Options include built-in agents (`Explore`, `Plan`, `general-purpose`) or any custom subagent from `.claude/agents/`. If omitted, uses `general-purpose`.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "skills: cita textual; agent omitido = general-purpose."
+      }
+    }
+  ]
+}
