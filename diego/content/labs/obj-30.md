@@ -12,7 +12,7 @@ sources:
     title: "Run Claude Code programmatically (bare mode)"
   - url: https://code.claude.com/docs/en/memory
     title: "How Claude remembers your project"
-status: no_verificado
+status: verificada
 ---
 
 ## Objetivo
@@ -116,4 +116,4 @@ Opcional: `/code-review low`. La doc: "At `low`, the review reports the findings
 - **`/code-review` no encuentra cambios**: con el repo sin upstream compara contra `main` o el commit anterior. Asegurate de que el cambio del paso 0 esté sin commitear.
 - **El ruido no desaparece del todo**: el modelo puede variar entre corridas. Escribí la regla más concreta ("no reportar nada en `src/gen/`") en vez de vaga ("ignorá lo irrelevante").
 - **`--bare` pide credenciales**: bare mode no usa tu login de claude.ai; exportá `ANTHROPIC_API_KEY`.
-- **Tu versión de Claude Code no tiene `/code-review`**: actualizá Claude Code; en versiones viejas el comando tenía otro nombre (ver la doc).
+- **Tu versión de Claude Code no tiene `/code-review`**: actualizá Claude Code. Antes de v2.1.147 el comando se llamaba `/simplify` y aplicaba los fixes por defecto.

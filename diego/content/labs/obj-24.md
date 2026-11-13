@@ -12,7 +12,9 @@ sources:
     title: "Structured outputs"
   - url: https://platform.claude.com/docs/en/build-with-claude/thinking
     title: "Thinking (cuenta para max_tokens)"
-status: no_verificado
+  - url: https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5
+    title: "Prompting Claude Opus 5 (code review)"
+status: verificada
 ---
 
 ## Objetivo
@@ -147,7 +149,7 @@ Corré `python b.py` 2 o 3 veces y marcá los 6 bugs.
 - B encuentra de forma más pareja los bugs de los tres temas que A (en especial los de negocio y seguridad).
 - La salida de B sale ordenada por severidad y sin duplicados, porque el merge lo hace tu código.
 - Paso 6: con ejemplos de API, la pasada de seguridad se desvía.
-- Paso 7: "sé conservador" baja hallazgos reales también.
+- Paso 7: compará cuántos bugs reales quedan. La doc de Opus 5 avisa que con "only report high-severity issues" o "be conservative" el modelo "might follow that instruction literally and report less" (el lab usa Opus 5.5: medilo vos).
 
 ## Si algo falla
 

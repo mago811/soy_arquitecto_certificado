@@ -10,7 +10,7 @@ sources:
     title: "Common workflows (Work with tests, Reference files)"
   - url: https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/increase-consistency
     title: "Increase output consistency"
-status: no_verificado
+status: verificada
 ---
 
 ## Objetivo
@@ -48,7 +48,7 @@ Hacé una función parsear_monto(texto) en montos.py para montos de extractos ba
 Probá vos a mano con un caso de la tabla. Cuando falle, respondé SOLO: `No anda bien con algunos montos, mejoralo.`
 Repetí hasta 3 vueltas. Anotá cuántas vueltas y cuántos casos de la tabla quedan bien (probalos vos).
 
-Después hacé `/clear`, y `git checkout -- . && git clean -fd -e tests` para volver a la base (no borra `tests/`).
+Después hacé `/clear`, y `git checkout -- . && git clean -fd -e tests -e .venv` para volver a la base (no borra `tests/` ni el venv).
 
 ### 2. Ronda B: ejemplos + check + lote (15 min)
 
@@ -66,7 +66,7 @@ Fijate qué tiene: ejemplos concretos (el CSV, pasado con `@`), un check pass/fa
 
 ### 3. Feedback puntual en lote (8 min)
 
-Agregá al CSV estos casos que seguro rompen algo:
+Agregá al CSV estos casos, que probablemente rompan algo:
 
 ```text
 "1.234.567,89",1234567.89
@@ -78,8 +78,8 @@ Corré vos `pytest tests/test_montos.py -q`. Copiá los fallos y mandalos **todo
 
 ```text
 Fallan estos 3 casos de montos.csv: <pegás la salida de pytest>.
-Los tres vienen de lo mismo: prefijos de moneda y espacios dentro de los paréntesis.
-Arreglalos juntos y volvé a correr pytest. Mostrame la salida.
+Miralos juntos: miles con más de un punto, prefijo "ARS " y espacios dentro de los paréntesis.
+Arreglalos en un solo cambio, sin romper los casos que ya pasaban, y volvé a correr pytest. Mostrame la salida.
 ```
 
 ### 4. Comparar (5 min)
