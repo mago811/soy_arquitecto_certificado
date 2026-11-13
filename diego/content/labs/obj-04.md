@@ -8,7 +8,7 @@ sources:
     title: "Create custom subagents"
   - url: https://www.anthropic.com/engineering/multi-agent-research-system
     title: "How we built our multi-agent research system"
-status: no_verificado
+status: verificada
 ---
 
 ## Objetivo

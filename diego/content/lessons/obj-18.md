@@ -15,7 +15,7 @@ sources:
     title: "How we built our multi-agent research system"
   - url: https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification
     title: "CCAR-F Exam Guide (PDF linkeado desde esta página), Task Statement 5.6"
-status: no_verificado
+status: verificada
 ---
 
 ## Qué es

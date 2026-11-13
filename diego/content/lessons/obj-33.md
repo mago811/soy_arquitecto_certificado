@@ -9,7 +9,7 @@ sources:
     title: "Subagents in the SDK"
   - url: https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool
     title: "Tool search tool"
-status: no_verificado
+status: verificada
 ---
 
 ## Qué es

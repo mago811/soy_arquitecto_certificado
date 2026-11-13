@@ -13,7 +13,7 @@ sources:
     title: "How we built our multi-agent research system"
   - url: https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification
     title: "CCAR-F Exam Guide (PDF linkeado desde esta página), Task Statement 1.3"
-status: no_verificado
+status: verificada
 ---
 
 ## Qué es
@@ -47,7 +47,7 @@ Escenario: el subagente de síntesis devuelve un texto genérico sin cifras, o p
 
 - "Darle más `maxTurns`" o "cambiar a un modelo más grande": no le falta capacidad, le falta **información**.
 - "Escribir en su `description` que use los resultados anteriores": la `description` solo sirve para que Claude decida cuándo delegar. No transporta datos.
-- "Activar memoria compartida entre subagentes": no existe tal cosa. Los subagentes no comparten memoria entre invocaciones.
+- "Activar memoria compartida entre subagentes": la guía del examen lo dice claro, los subagentes no heredan el contexto del padre ni comparten memoria entre invocaciones. (El campo `memory` de Claude Code le da a un subagente su propio directorio de aprendizajes entre sesiones, no los hallazgos de esta corrida.)
 
 El fix es casi siempre el mismo: **meter los hallazgos y sus metadatos en el prompt de delegación**.
 
@@ -81,7 +81,7 @@ no elijas una. Cada afirmación lleva el índice del documento que la respalda.
 Restricción del usuario: nada de proyecciones a 2030.
 ```
 
-Los documentos largos van arriba y la consulta al final: la doc de long context dice que eso mejora la calidad.
+Los documentos largos van arriba y la consulta al final: la sección de long context de la doc de prompting dice que eso mejora la calidad.
 
 ## Para recordar
 

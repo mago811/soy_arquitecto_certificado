@@ -7,7 +7,7 @@ sources:
     title: "Connect Claude Code to tools via MCP"
   - url: https://code.claude.com/docs/en/agent-sdk/mcp
     title: "Connect to external tools with MCP (Agent SDK)"
-status: no_verificado
+status: verificada
 ---
 
 ## Qué es

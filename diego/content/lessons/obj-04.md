@@ -13,7 +13,7 @@ sources:
     title: "Prompting best practices"
   - url: https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification
     title: "CCAR-F Exam Guide (PDF linkeado desde esta página), Task Statement 1.3"
-status: no_verificado
+status: verificada
 ---
 
 ## Qué es
@@ -43,7 +43,7 @@ Ojo: "por objetivo" **no** es "vago". El post cuenta que al principio el lead ag
 1. **Formato de salida obligatorio**: qué fuentes consultó, qué cubrió, qué huecos quedaron.
 2. **Presupuestos de esfuerzo** en el prompt (Anthropic: 1 agente y 3–10 tool calls para algo simple; 2–4 subagentes para comparaciones; 10+ para research complejo).
 3. **Límites que el SDK aplica**: `maxTurns` en el `AgentDefinition`, `max_budget_usd`, `CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`, `tools` restringidas. La doc lo dice claro: las instrucciones "only steer Claude, so set the limits as well".
-4. **Todo vuelve al coordinador**: cada subagente devuelve su resultado y el coordinador decide el próximo paso.
+4. **Todo vuelve al coordinador**: cada subagente devuelve su resultado (o, si es grande, una referencia liviana a donde lo guardó, como recomienda el post de Anthropic) y el coordinador decide el próximo paso.
 
 ## El error típico que el examen quiere que cometas
 
@@ -82,6 +82,6 @@ y una sección "no revisado" con lo que no llegaste a cubrir.
 
 - Objetivo + criterios de calidad + formato de salida + límites. Los pasos los elige el subagente.
 - Vago ≠ por objetivo. Vago produce duplicados y huecos.
-- Visibilidad = formato de reporte + todo vuelve al coordinador + tracing. Control = límites que aplica el SDK (`maxTurns`, presupuesto, `tools`).
+- Visibilidad = formato de reporte + todo vuelve al coordinador (dato o referencia) + tracing. Control = límites que aplica el SDK (`maxTurns`, presupuesto, `tools`).
 - Pasos explícitos solo cuando el orden importa o necesitás inspeccionar cada salida intermedia.
 - Evaluá el resultado final, no si siguió "tu" camino.

@@ -8,7 +8,7 @@ sources:
     title: "Define tools"
   - url: https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls
     title: "Handle tool calls"
-status: no_verificado
+status: verificada
 ---
 
 ## Objetivo
@@ -58,7 +58,7 @@ CASES = [
 def run(tools, idx):
     errors = 0
     for prompt, *expected in CASES:
-        r = client.messages.create(model=MODEL, max_tokens=512, tools=tools,
+        r = client.messages.create(model=MODEL, max_tokens=4096, tools=tools,
                                    messages=[{"role": "user", "content": prompt}])
         names = [b.name for b in r.content if b.type == "tool_use"]
         ok = expected[idx] in names
@@ -78,7 +78,7 @@ Con "Search records." y "Look up data." no hay forma de saber cuál es cuál: lo
 
 ### 2. Reescribir siguiendo la doc (15 min)
 
-Agregá `GOOD_TOOLS` aplicando las best practices de "Define tools": nombre con prefijo del servicio, qué hace, cuándo sí y cuándo no (nombrando a la otra tool), qué es cada parámetro y su formato, qué no devuelve. Mínimo 3–4 frases.
+Agregá `GOOD_TOOLS` aplicando las best practices de "Define tools": nombre con prefijo del servicio, qué hace, cuándo sí y cuándo no, qué es cada parámetro, qué no devuelve. Mínimo 3–4 frases. (En este lab, el "cuándo no" lo expresamos nombrando la otra tool; el paso 3 mide si eso ayuda.)
 
 ```python
 GOOD_TOOLS = [
@@ -137,5 +137,5 @@ Si un día tenés 15 tools `billing_*` (`billing_create`, `billing_void`, `billi
 
 ## Si algo falla
 
-- **Claude contesta sin llamar tool** (`end_turn`): con `tool_choice` `auto`, Claude puede responder directo. Agregá al pedido "Usá las herramientas para responder", como sugiere la doc de tool use.
+- **Claude contesta sin llamar tool** (`end_turn`): con `tool_choice` `auto`, Claude puede responder directo. Agregá una instrucción explícita en el mensaje `user` (por ejemplo, "Usá las herramientas para responder"): la doc de "Define tools" sugiere eso, con `tool_choice` en `auto`, cuando querés que use una tool sin forzarla. Ojo: `tool_choice` `any`/`tool` devuelve 400 en Claude Opus 5.5 y Sonnet 5.5.
 - **El modelo no existe en tu cuenta**: usá otro modelo de tu cuenta que soporte tool use.

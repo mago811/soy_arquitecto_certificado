@@ -1,7 +1,7 @@
 ---
 objective: 36
 title: "Descripciones de tools que no se confunden"
-rule: "La descripción es lo que Claude usa para elegir: qué hace, cuándo SÍ y cuándo NO (y qué tool usar en su lugar), qué significa cada parámetro y su formato, qué NO devuelve. 3–4 frases mínimo, lo crítico al principio."
+rule: "La descripción es lo que Claude usa para elegir: qué hace, cuándo SÍ y cuándo NO, qué significa cada parámetro, qué NO devuelve. 3–4 frases mínimo; en MCP con Claude Code, lo crítico al principio."
 sources:
   - url: https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools
     title: "Define tools"
@@ -11,19 +11,19 @@ sources:
     title: "Tools (spec 2025-11-25)"
   - url: https://code.claude.com/docs/en/mcp
     title: "Connect Claude Code to tools via MCP"
-status: no_verificado
+status: verificada
 ---
 
 ## Qué es
 
 Repaso (esto ya lo sabés). Claude decide qué tool llamar mirando el pedido y **la descripción de cada tool**. La doc lo dice sin vueltas: las descripciones detalladas son "by far the most important factor in tool performance".
 
-Una buena descripción cubre cuatro cosas:
+Una buena descripción cubre las cuatro cosas que lista la doc ("What the tool does", "When it should be used (and when it shouldn't)", "What each parameter means…", "Any important caveats or limitations, such as what information the tool does not return"), en al menos 3–4 frases:
 
 | Qué | Ejemplo |
 |---|---|
 | Qué hace | "Busca clientes en el CRM por nombre o email." |
-| Cuándo SÍ y cuándo NO | "Usala para datos de contacto. Para facturas, usá `billing_search_invoices`." |
+| Cuándo SÍ y cuándo NO | "Usala para datos de contacto. No la uses para facturas (para eso está `billing_search_invoices`)." |
 | Qué es cada parámetro y su formato | "`email`: dirección completa, en minúsculas." |
 | Límites: qué NO devuelve | "No devuelve historial de pagos." |
 
@@ -37,9 +37,9 @@ Y tres decisiones de diseño que ayudan a no confundir:
 
 Siempre que escribís una tool, y sobre todo cuando:
 
-- Hay **tools parecidas** (dos "search", dos "get"): cada descripción dice su frontera y nombra a la vecina.
-- Un parámetro tiene **formato** (fechas, ids, códigos): decilo en la descripción del parámetro.
-- Claude llama la tool **con parámetros que faltan o mal**: la doc dice que lo primero es mejorar las `description`.
+- Hay **tools parecidas** (dos "search", dos "get"): cada descripción deja claro cuándo usarla y cuándo no. Mencionar la tool vecina en ese "cuándo no" es una forma práctica de marcar la frontera (la doc pide el "cuándo no"; no exige nombrar la otra tool).
+- Un parámetro tiene **formato** (fechas, ids, códigos): explicá qué significa en su descripción y, si es complejo o sensible al formato, sumá `input_examples`.
+- Claude llama la tool **con parámetros que faltan o mal**: la doc dice que, en desarrollo, lo mejor es reintentar con `description` más detalladas.
 - En **Claude Code con MCP**: las descripciones largas se cortan (4.096 caracteres para tools cargadas de entrada y para las instrucciones del server; 16.384 para las que llegan por tool search). Lo crítico va **al principio**.
 
 ## El error típico que el examen quiere que cometas

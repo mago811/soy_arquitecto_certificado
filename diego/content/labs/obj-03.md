@@ -12,7 +12,7 @@ sources:
     title: "Agent SDK quickstart"
   - url: https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices
     title: "Prompting best practices"
-status: no_verificado
+status: verificada
 ---
 
 ## Objetivo

@@ -10,7 +10,7 @@ sources:
     title: "Agent SDK reference - Python"
   - url: https://platform.claude.com/docs/en/build-with-claude/citations
     title: "Citations"
-status: no_verificado
+status: verificada
 ---
 
 ## Objetivo

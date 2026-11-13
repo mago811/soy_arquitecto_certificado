@@ -11,7 +11,7 @@ sources:
     title: "Tools (spec 2025-11-25)"
   - url: https://code.claude.com/docs/en/mcp
     title: "Connect Claude Code to tools via MCP"
-status: no_verificado
+status: verificada
 ---
 
 ## Qué es
@@ -34,7 +34,7 @@ Los resources se descubren con `resources/list` y se leen con `resources/read`. 
 - **Acciones o consultas con parámetros que el modelo elige** (crear un issue, correr una query puntual, mandar un mensaje): van como tools.
 - **Un flujo armado que el humano dispara** ("revisá este PR con nuestro checklist"): prompt.
 
-¿Por qué importa para la eficiencia? Si el catálogo de tablas de tres sistemas solo existe detrás de tools como `list_tables` o `search_docs`, el agente gasta varias vueltas "tanteando" antes de hacer la consulta de verdad. Si el server expone ese catálogo como resource, la aplicación lo puede adjuntar de entrada (en Claude Code, con una @-mention) y el agente va directo a la tool correcta.
+¿Por qué importa para la eficiencia? Si el catálogo de tablas de tres sistemas solo existe detrás de tools como `list_tables` o `search_docs`, el agente depende de decidir llamarlas y gasta varias vueltas "tanteando" antes de hacer la consulta de verdad. La doc de MCP dice que los resources son *application-driven*: la aplicación decide cómo traerlos y dárselos al modelo como contexto. Si el server expone ese catálogo como resource, la aplicación lo puede adjuntar de entrada (en Claude Code, con una @-mention) y el agente arranca ya sabiendo qué hay. (La guía del examen lo resume como "menos tool calls exploratorias".)
 
 ## El error típico que el examen quiere que cometas
 
@@ -59,6 +59,6 @@ Los dos schemas se adjuntan al prompt y Claude va directo a las tools de consult
 ## Para recordar
 
 - Tool = acción, la decide el **modelo**. Resource = dato de solo lectura con URI, lo maneja la **aplicación**. Prompt = plantilla, la invoca el **usuario**.
-- Catálogos y schemas que el agente necesita para orientarse → resources: menos tool calls exploratorias.
+- Catálogos y schemas que el agente necesita para orientarse → resources: la app (o vos con `@`) los adjunta como contexto, en vez de depender de que el modelo salga a explorar con tools.
 - Claude Code: `@` lista los resources de los servers conectados; formato `@server:protocolo://ruta`; se adjuntan solos.
 - Datos parametrizables → resource template con URI template.

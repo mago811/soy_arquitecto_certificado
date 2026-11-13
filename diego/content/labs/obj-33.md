@@ -10,7 +10,7 @@ sources:
     title: "Subagents in the SDK"
   - url: https://code.claude.com/docs/en/permissions
     title: "Configure permissions"
-status: no_verificado
+status: verificada
 ---
 
 ## Objetivo
@@ -124,3 +124,4 @@ El mismo reparto en el Agent SDK sería un `AgentDefinition` por rol con su `too
 - **Claude no encuentra los subagentes**: reiniciá la sesión; un directorio `agents` creado durante la sesión puede no detectarse.
 - **El subagente no arranca y el error nombra entradas sin resolver**: algún nombre en `tools` está mal escrito y la lista quedó sin ninguna tool válida.
 - **Claude no delega**: nombrá el subagente explícitamente en el pedido ("Usá el subagente X…").
+- **"Igual se arregló el archivo"**: la conversación principal tiene su propio set de tools y, cuando el subagente vuelve diciendo que no pudo, Claude puede hacer el cambio él mismo. Para este lab mirá qué tools usó **el subagente** en la transcripción, no solo el resultado final.

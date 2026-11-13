@@ -13,7 +13,7 @@ sources:
     title: "How the agent loop works"
   - url: https://code.claude.com/docs/en/agent-sdk/subagents
     title: "Subagents in the SDK"
-status: no_verificado
+status: verificada
 ---
 
 ## Qué es

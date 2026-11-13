@@ -12,7 +12,7 @@ sources:
     title: "Get structured output from agents"
   - url: https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices
     title: "Prompting best practices"
-status: no_verificado
+status: verificada
 ---
 
 ## Objetivo
@@ -171,4 +171,5 @@ Pensá (o probá): si en el fork le pedís "corregí `repo/auth.py`", ¿el archi
 
 - **`structured_output` viene vacío:** chequeá `is_error` y el `subtype` del result (por ejemplo `error_max_structured_output_retries`). Simplificá el schema.
 - **La síntesis vuelve a leer el repo:** no es un error grave (tiene `Read`), pero muestra que el prompt no le dejó claro que ya tiene los resultados. Decíselo explícito.
+- **Una etapa termina con un subtype `error_*` y el script explota:** en un `query()` de una sola vuelta el SDK levanta una excepción después de entregar ese result message. El `session_id` ya quedó en el manifiesto, así que podés retomar esa etapa con `resume` y un límite más alto.
 - **`resume` no encuentra la sesión:** los archivos de sesión son locales a la máquina. Corré `retomar.py` en la misma máquina y desde la misma carpeta.

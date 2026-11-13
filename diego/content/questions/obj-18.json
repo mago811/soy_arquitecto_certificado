@@ -22,8 +22,12 @@
       "rule": "Datos para código → schema en `output_format` + leer `structured_output`. Nada de parsear prosa.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/structured-outputs",
       "source_quote": "When the agent finishes, the result message includes a `structured_output` field with validated data matching your schema.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual; `output_format`/`outputFormat`, `structured_output` y la tool `StructuredOutput` coinciden con la doc."
+      }
     },
     {
       "id": "o18-q02",
@@ -46,8 +50,12 @@
       "rule": "Campo que puede faltar en la fuente → opcional. Obligatorio = invitación a inventar.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/structured-outputs",
       "source_quote": "If the task might not have all the information your schema requires, make those fields optional.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual (make those fields optional); `error_max_structured_output_retries` existe."
+      }
     },
     {
       "id": "o18-q03",
@@ -70,8 +78,12 @@
       "rule": "`success` ≠ hay datos. Chequeá `is_error` y que exista `structured_output`.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/structured-outputs",
       "source_quote": "A `success` subtype doesn't by itself mean the run produced an answer. Treat a result as a failure when the result's `is_error` is `true` or `structured_output` is absent",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual (Error handling: success no alcanza, chequear is_error y structured_output)."
+      }
     },
     {
       "id": "o18-q04",
@@ -94,8 +106,12 @@
       "rule": "Citations + `output_config.format` = 400. Dato con cita → una línea por campo y parseo propio.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/citations",
       "source_quote": "If you enable citations on any user-provided document (`document` blocks or `search_result` blocks) and also include the `output_config.format` parameter (or the deprecated `output_format` parameter), the API returns a 400 error.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual (400 con citations + output_config.format) y la doc propone una línea por campo."
+      }
     },
     {
       "id": "o18-q05",
@@ -118,8 +134,12 @@
       "rule": "Con Citations, no pidas 'solo JSON': pedí línea por campo con cita y armá el JSON vos.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/citations",
       "source_quote": "Avoid user or system prompts that ask for only JSON, such as “Return only a JSON object, no other text.” A request with such a prompt succeeds, but the response might contain few or no citations.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual (evitar prompts de 'solo JSON')."
+      }
     },
     {
       "id": "o18-q06",
@@ -142,8 +162,12 @@
       "rule": "Salida de subagente = hallazgos tipados con su cita + resumen en campo aparte.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/structured-outputs",
       "source_quote": "Structured outputs give you typed data you can pass directly to your application logic, database, or UI components.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual (typed data); el diseño claim-source coincide con TS 5.6 de la guía del examen."
+      }
     },
     {
       "id": "o18-q07",
@@ -166,8 +190,12 @@
       "rule": "Metadata de un documento citado → `context` (el `title` es corto).",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/citations",
       "source_quote": "`title` is limited in length, so the `context` field is useful for storing document metadata as text or stringified JSON.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual (`title` limitado, `context` para metadata; ninguno es contenido citable)."
+      }
     },
     {
       "id": "o18-q08",
@@ -190,8 +218,12 @@
       "rule": "¿Querés la salida del subagente literal? Pedilo en el prompt del agente principal.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "To preserve subagent output verbatim in the user-facing response, include an instruction to do so in the prompt or `systemPrompt` option you pass to the main `query()` call.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual; la tabla de AgentDefinition confirma que no hay campo `output_format`."
+      }
     },
     {
       "id": "o18-q09",
@@ -214,8 +246,12 @@
       "rule": "Salida grande de subagente → archivo + referencia liviana, no copiarla por la conversación.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "Subagents call tools to store their work in external systems, then pass lightweight references back to the coordinator.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual del post (sección 'Subagent output to a filesystem')."
+      }
     },
     {
       "id": "o18-q10",
@@ -238,8 +274,12 @@
       "rule": "Citas que tienen que ser reales → feature Citations, no 'citá' en el prompt.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/citations",
       "source_quote": "Because the API parses citations into the response formats described in the following sections and extracts `cited_text` directly, citations are guaranteed to contain valid pointers to the provided documents.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual (citations garantizadas a punteros válidos)."
+      }
     }
   ]
 }

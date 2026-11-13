@@ -8,7 +8,7 @@ sources:
     title: "Connect Claude Code to tools via MCP"
   - url: https://code.claude.com/docs/en/agent-sdk/mcp
     title: "Connect to external tools with MCP (Agent SDK)"
-status: no_verificado
+status: verificada
 ---
 
 ## Objetivo
@@ -158,7 +158,7 @@ Probá sacar `allowed_tools`: Claude ve las tools pero no puede llamarlas sin pe
 - Viste el warning de variable faltante al sacar el default.
 - `claude mcp get files` mostró una sola definición cuando había dos scopes.
 - `cc-docs` apareció en otro proyecto y `files` no.
-- (Opcional) El mensaje `init` mostró `files` con `status` `connected` y tools `mcp__files__...`.
+- (Opcional) El mensaje `init` mostró `files` con `status` `connected` y tools `mcp__files__...`. Si lo ves en `pending`, no es una falla: los servers de `.mcp.json` muchas veces siguen conectando cuando sale el `init` (la doc dice que no tomes `pending` como error por sí solo); las fallas son `failed` o `needs-auth`.
 
 ## Si algo falla
 

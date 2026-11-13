@@ -10,7 +10,7 @@ sources:
     title: "Handle tool calls"
   - url: https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons
     title: "Stop reasons and fallback"
-status: no_verificado
+status: verificada
 ---
 
 ## Objetivo
@@ -76,7 +76,7 @@ async def main():
     messages = [{"role": "user", "content": "What's the weather in SF and NYC, and what time is it there?"}]
     calls_per_turn = []
     while True:
-        response = client.messages.create(model=MODEL, max_tokens=1024, tools=tools, messages=messages)
+        response = client.messages.create(model=MODEL, max_tokens=8000, tools=tools, messages=messages)
         print("stop_reason:", response.stop_reason)
         if response.stop_reason != "tool_use":
             break

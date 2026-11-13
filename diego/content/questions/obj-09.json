@@ -22,8 +22,12 @@
       "rule": "Crash recovery = estado por etapa en lugar conocido + manifiesto que dice qué está hecho.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "Instead, we built systems that can resume from where the agent was when the errors occurred.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual del post (resume from where the agent was); el patrón de manifiesto lo respalda además la guía del examen (TS 5.4)."
+      }
     },
     {
       "id": "o09-q02",
@@ -46,8 +50,12 @@
       "rule": "Muchos jobs o usuarios → guardá el `session_id` y usá `resume`; `continue` es solo 'la más reciente'.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
       "source_quote": "Required when you have multiple sessions (for example, one per user in a multi-user app) or want to return to one that isn't the most recent.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en agent-sdk/sessions (Continue vs Resume)."
+      }
     },
     {
       "id": "o09-q03",
@@ -70,8 +78,12 @@
       "rule": "Sesiones = archivos locales. Otro host → session store, o estado de la app inyectado en sesión nueva.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
       "source_quote": "Capture the results you need (analysis output, decisions, file diffs) as application state and pass them into a fresh session's prompt. This is often more robust than shipping transcript files around.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual; la doc lista session store, mover el archivo o no depender del resume para otro host."
+      }
     },
     {
       "id": "o09-q04",
@@ -94,8 +106,12 @@
       "rule": "Run cortado por límite → `resume` con el `session_id` y un límite mayor, no relanzar de cero.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
       "source_quote": "Recover from a limit. The first run ended with `error_max_turns` or `error_max_budget_usd`",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual ('Recover from a limit'); `session_id` presente en todo result 'regardless of success or error'."
+      }
     },
     {
       "id": "o09-q05",
@@ -118,8 +134,12 @@
       "rule": "Probar alternativas desde la misma base → `resume` + `fork_session=True`.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
       "source_quote": "Forking creates a new session that starts with a copy of the original's history but diverges from that point.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual sobre fork en agent-sdk/sessions; el fork tiene ID propio y el original sigue."
+      }
     },
     {
       "id": "o09-q06",
@@ -142,8 +162,12 @@
       "rule": "Fork = rama de conversación. Archivos compartidos siguen compartidos.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
       "source_quote": "Forking branches the conversation history, not the filesystem. If a forked agent edits files, those changes are real and visible to any session working in the same directory.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual ('Forking branches the conversation history, not the filesystem')."
+      }
     },
     {
       "id": "o09-q07",
@@ -157,7 +181,7 @@
         "Borrar los hallazgos de ayer y repetir el análisis completo del módulo desde cero, para no arrastrar errores."
       ],
       "correct": 2,
-      "why_correct": "Los resultados de tools de ayer quedaron viejos. La doc del SDK sugiere capturar los resultados como estado de la aplicación y pasarlos a una sesión nueva. Con la lista de archivos cambiados, el agente re-analiza solo eso y no repite el resto.",
+      "why_correct": "Los resultados de tools de ayer quedaron viejos. La doc del SDK propone (para retomar en otro host) capturar los resultados como estado de la aplicación y pasarlos a una sesión nueva, y lo considera más robusto que depender del transcript; acá aplica igual porque el transcript tiene lecturas de código que ya no existe. Con la lista de archivos cambiados, el agente re-analiza solo eso.",
       "why_wrong": {
         "0": "El agente arranca creyendo que el contexto viejo es válido. Más turnos no lo corrigen.",
         "1": "El fork copia el mismo historial viejo. No relee nada por sí solo.",
@@ -166,8 +190,12 @@
       "rule": "Contexto viejo (código cambió) → sesión nueva + resumen estructurado + qué cambió.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
       "source_quote": "Don't rely on session resume. Capture the results you need (analysis output, decisions, file diffs) as application state and pass them into a fresh session's prompt.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "Cita textual en agent-sdk/sessions, pero su contexto es retomar en otro host; ajusté why_correct para no atribuirle a la doc el caso de código cambiado. Respuesta sigue siendo la única defendible (guía del examen TS 1.7/5.4 respalda inyectar resúmenes)."
+      }
     },
     {
       "id": "o09-q08",
@@ -190,8 +218,12 @@
       "rule": "Plan y estado importantes → afuera del contexto (archivo o memoria externa), y se releen al retomar.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "The LeadResearcher begins by thinking through the approach and saving its plan to Memory to persist the context, since if the context window exceeds 200,000 tokens it will be truncated and it is important to retain the plan.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual del post (LeadResearcher guarda el plan en Memory)."
+      }
     },
     {
       "id": "o09-q09",
@@ -214,8 +246,12 @@
       "rule": "Estado de tareas → JSON con estados explícitos; prosa solo para notas.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "When tracking structured information (such as test results or task status), use JSON or other structured formats to make schema requirements explicit to Claude.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual; la misma sección dice 'Use unstructured text for progress notes'."
+      }
     },
     {
       "id": "o09-q10",
@@ -238,8 +274,12 @@
       "rule": "Retomar no re-ejecuta lo interrumpido: tu estado tiene que decir qué verificar y relanzar.",
       "source_url": "https://code.claude.com/docs/en/sessions",
       "source_quote": "Interrupted tool calls: a tool that was still running when the previous process ended, for example in a crash, doesn't get rerun when you resume.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en code.claude.com/docs/en/sessions ('What a resumed session restores')."
+      }
     }
   ]
 }

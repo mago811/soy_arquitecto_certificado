@@ -22,8 +22,12 @@
       "rule": "El subagente solo sabe lo que dice el prompt de delegación: pegá los hallazgos completos ahí.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "The only content you pass from parent to subagent is the Agent tool's prompt string, so include any file paths, error messages, or decisions the subagent needs directly in that prompt.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en agent-sdk/subagents ('What subagents inherit'); el padre no pasa historial ni tool results."
+      }
     },
     {
       "id": "o03-q02",
@@ -46,8 +50,12 @@
       "rule": "Regla dicha en el chat ≠ regla que el subagente conoce. Repetila en la delegación.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "If a rule must, such as \"ignore the `vendor/` directory,\" restate it in the prompt you give Claude when delegating.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en sub-agents ('Manage subagent context'); el subagente no ve la conversación y la regla se repite al delegar."
+      }
     },
     {
       "id": "o03-q03",
@@ -70,8 +78,12 @@
       "rule": "Al pasar contexto entre agentes: contenido y metadato de fuente separados y pegados a cada hallazgo.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "When using multiple documents, wrap each document in `<document>` tags with `<document_content>` and `<source>` (and other metadata) subtags for clarity.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual (document/document_content/source); coincide con TS 1.3 de la guía (separar contenido y metadatos)."
+      }
     },
     {
       "id": "o03-q04",
@@ -94,8 +106,12 @@
       "rule": "Si el subagente necesitaría 'toda la historia', usá un fork; si no, prompt de delegación completo.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "Use a fork when any other subagent would need too much background to be useful, or when you want to try several approaches in parallel from the same starting point.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual sobre forks en sub-agents; `memory`, `skills`, `effort` existen como campos y los distractores son correctamente incorrectos."
+      }
     },
     {
       "id": "o03-q05",
@@ -118,8 +134,12 @@
       "rule": "Delegación autosuficiente: todos los IDs, errores y decisiones van en el prompt, no 'pedilos si faltan'.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "Claude composes a delegation message that summarizes the task, and the subagent works from there.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual (delegation message); la marcada coincide con el objetivo 3."
+      }
     },
     {
       "id": "o03-q06",
@@ -142,8 +162,12 @@
       "rule": "Subagente nuevo = no vio lo que leíste. Pasale el análisis o aceptá que lo rehaga.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "Each subagent starts with a fresh, isolated context window. It doesn't see your conversation history, the skills you've already invoked, or the files Claude has already read.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual (fresh, isolated context; no ve archivos ya leídos); la doc también dice que un subagente no-fork puede tardar en juntar contexto."
+      }
     },
     {
       "id": "o03-q07",
@@ -166,8 +190,12 @@
       "rule": "Delegación con mucho material: documentos arriba con su `<source>`, pregunta al final.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Place your long documents and inputs near the top of your prompt, above your query, instructions, and examples.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual (long context: documentos arriba, consulta al final) y tags XML por documento en la misma página."
+      }
     },
     {
       "id": "o03-q08",
@@ -190,8 +218,12 @@
       "rule": "Prueba del colega: si alguien sin contexto no podría hacerlo, el prompt de delegación está incompleto.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Show your prompt to a colleague with minimal context on the task and ask them to follow it. If they’d be confused, Claude will be too.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual (Key test del colega) en prompting best practices."
+      }
     }
   ]
 }

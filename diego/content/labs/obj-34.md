@@ -12,7 +12,9 @@ sources:
     title: "Example Servers"
   - url: https://modelcontextprotocol.io/docs/tools/inspector/cli
     title: "MCP Inspector — CLI client"
-status: no_verificado
+  - url: https://modelcontextprotocol.io/docs/tools/inspector/configuration
+    title: "MCP Inspector — Configuration and flags"
+status: verificada
 ---
 
 ## Objetivo
@@ -33,18 +35,20 @@ En una carpeta de prueba:
 
 ```bash
 mkdir lab-obj34 && cd lab-obj34
-npx -y @modelcontextprotocol/inspector --cli npx -y @modelcontextprotocol/server-everything --method tools/list
-npx -y @modelcontextprotocol/inspector --cli npx -y @modelcontextprotocol/server-everything --method resources/list
-npx -y @modelcontextprotocol/inspector --cli npx -y @modelcontextprotocol/server-everything --method resources/templates/list
-npx -y @modelcontextprotocol/inspector --cli npx -y @modelcontextprotocol/server-everything --method prompts/list
+npx -y @modelcontextprotocol/inspector --cli npx -y @modelcontextprotocol/server-everything -- --method tools/list
+npx -y @modelcontextprotocol/inspector --cli npx -y @modelcontextprotocol/server-everything -- --method resources/list
+npx -y @modelcontextprotocol/inspector --cli npx -y @modelcontextprotocol/server-everything -- --method resources/templates/list
+npx -y @modelcontextprotocol/inspector --cli npx -y @modelcontextprotocol/server-everything -- --method prompts/list
 ```
+
+Ojo con el `--`: en el modo `--cli`, todo lo que va **antes** de `--` es el comando del server y todo lo que va **después** son opciones del Inspector. Sin el separador, el `-y` del `npx` interno se leería como opción del Inspector.
 
 Anotá: ¿qué campos tiene cada resource? (buscá `uri`, `name`, `mimeType`). ¿Y cada tool? (buscá `name`, `description`, `inputSchema`).
 
 Elegí una URI de la lista de resources y leela:
 
 ```bash
-npx -y @modelcontextprotocol/inspector --cli npx -y @modelcontextprotocol/server-everything --method resources/read --uri "<una-uri-de-la-lista>"
+npx -y @modelcontextprotocol/inspector --cli npx -y @modelcontextprotocol/server-everything -- --method resources/read --uri "<una-uri-de-la-lista>"
 ```
 
 ### 2. Conectarlo a Claude Code (5 min)
