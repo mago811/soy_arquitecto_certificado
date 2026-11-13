@@ -13,7 +13,7 @@ sources:
     title: "Prompting best practices (Use examples effectively)"
   - url: https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview
     title: "Tool use (missing required parameters)"
-status: no_verificado
+status: verificada
 ---
 
 ## Qué es (repaso)
@@ -33,7 +33,7 @@ Clave: structured outputs garantiza la **forma** ("Type safe: Guaranteed field t
 - **"Usá structured outputs y listo"** → el JSON es válido y el CUIT es inventado.
 - **"Agregá 'no inventes' en mayúsculas"** sin darle una salida (`null`) → el schema lo obliga igual.
 - **Ejemplos todos completos y del mismo proveedor** → no aprende el caso "falta" ni los otros formatos. La doc: "Diverse: Cover edge cases".
-- **Usar `minLength`/`maximum` para validar** → no están soportados en el schema de structured outputs (400). Validá en tu código.
+- **Usar `minLength`/`maximum` para validar** → no están soportados en el schema de structured outputs (400 si mandás el schema crudo; los helpers del SDK los pasan a la descripción y validan la respuesta). Validá en tu código.
 - **Normalizar "a ojo" en el post-proceso** sin decirle al modelo el formato → cada documento sale distinto.
 
 ## Ejemplo

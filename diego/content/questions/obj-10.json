@@ -1,0 +1,149 @@
+{
+  "objective": 10,
+  "questions": [
+    {
+      "id": "o10-q01",
+      "objective": 10,
+      "pool": "practice",
+      "scenario": "Un fondo de inversión tiene un coordinador que investiga empresas en cuatro frentes independientes: finanzas, litigios, prensa y regulación. Hoy lanza un subagente, espera que termine, lanza el siguiente, y así. El informe es bueno pero tarda 20 minutos y el negocio pide menos de 8. ¿Qué cambiás?",
+      "options": [
+        "Pasar a un solo agente con todas las herramientas, para ahorrar el tiempo que se pierde en coordinar a los subagentes.",
+        "Encadenar los cuatro subagentes para que cada uno reciba lo que encontró el anterior y no repita búsquedas ya hechas.",
+        "Mantener el orden en serie y bajar el límite de turnos de cada subagente para que cada frente termine más rápido.",
+        "Que el coordinador lance los cuatro subagentes a la vez, en la misma respuesta, y sintetice cuando vuelvan todos."
+      ],
+      "correct": 3,
+      "why_correct": "Los cuatro frentes no dependen entre sí, así que no hay motivo para esperarlos en fila. En paralelo terminan en el tiempo del más lento, no en la suma. En el sistema de Research de Anthropic, lanzar 3-5 subagentes en paralelo en vez de en serie bajó el tiempo hasta 90% en consultas complejas.",
+      "why_wrong": {
+        "0": "Un solo agente hace las búsquedas una detrás de otra: más lento todavía, y pierde la separación de contextos.",
+        "1": "Encadenar es para pasos que dependen uno del otro. Acá agrega dependencias que no existen y mantiene la latencia sumada.",
+        "2": "Recorta cada frente (menos cobertura) y la latencia sigue siendo la suma de los cuatro."
+      },
+      "rule": "Subtareas independientes + latencia → paralelo, no en serie.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "(1) the lead agent spins up 3-5 subagents in parallel rather than serially; (2) the subagents use 3+ tools in parallel.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o10-q02",
+      "objective": 10,
+      "pool": "practice",
+      "scenario": "Una consultora pide \"panorama de energías renovables en LATAM\". El coordinador crea tres subtareas: \"solar en Brasil\", \"solar en Chile\" y \"solar en México\". Cada subagente trae datos correctos y el sintetizador escribe un buen texto, pero el informe no dice nada de eólica, hidro ni del resto de los países. ¿Cuál es la causa raíz?",
+      "options": [
+        "El sintetizador no tiene instrucciones para detectar huecos de cobertura en lo que recibe de los subagentes.",
+        "El coordinador partió el tema demasiado angosto: las subtareas que asignó no cubren el alcance pedido.",
+        "Los subagentes usan búsquedas muy específicas y deberían ampliar sus consultas a otras tecnologías.",
+        "Faltan subagentes en paralelo: con más subagentes sobre solar la cobertura del informe habría sido mayor."
+      ],
+      "correct": 1,
+      "why_correct": "Cada subagente hizo bien lo que le tocó; el problema es lo que le tocó. La descomposición del coordinador dejó afuera tecnologías y países. Sin tareas bien delimitadas que cubran el alcance, los agentes duplican trabajo o dejan huecos.",
+      "why_wrong": {
+        "0": "El sintetizador solo puede escribir sobre lo que recibe; si nadie investigó eólica, no hay nada que sintetizar.",
+        "2": "Los subagentes cumplieron el alcance asignado (solar en un país). Si salieran de ese alcance, se pisarían entre ellos.",
+        "3": "Más subagentes sobre el mismo recorte solo duplican. El problema es el reparto, no la cantidad."
+      },
+      "rule": "Huecos en el informe con subagentes \"bien\" → revisá la descomposición del coordinador.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "Without detailed task descriptions, agents duplicate work, leave gaps, or fail to find necessary information.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o10-q03",
+      "objective": 10,
+      "pool": "practice",
+      "scenario": "Un pipeline de fact-checking tiene tres etapas: extraer las afirmaciones de un artículo, verificar cada afirmación y redactar el veredicto. Para bajar latencia, alguien lanzó las tres etapas en paralelo. Ahora la verificación corre sobre una lista vacía y el veredicto sale sin evidencia. ¿Qué estructura corresponde?",
+      "options": [
+        "Mantener las tres etapas en paralelo y agregar reintentos automáticos hasta que la verificación reciba datos.",
+        "Volver todo a un solo agente que haga las tres etapas en la misma conversación, sin subagentes de por medio.",
+        "Etapas en secuencia (extraer → verificar → redactar), con la verificación de cada afirmación en paralelo.",
+        "Lanzar las tres etapas en paralelo y dejar que el redactor espere y combine lo que llegue de las otras dos."
+      ],
+      "correct": 2,
+      "why_correct": "Cada etapa necesita la salida de la anterior: eso es un pipeline secuencial. El paralelo sirve solo cuando las tareas no dependen entre sí, como verificar afirmaciones distintas una vez que ya están extraídas. Así se gana latencia sin romper la dependencia.",
+      "why_wrong": {
+        "0": "Reintentar no crea la entrada que falta: la verificación necesita que la extracción haya terminado.",
+        "1": "Funciona, pero pierde el paralelo donde sí correspondía (afirmaciones independientes) y la separación de contextos.",
+        "3": "El redactor puede esperar, pero la verificación igual corrió sin afirmaciones. La dependencia está antes."
+      },
+      "rule": "Hay dependencia → secuencia; dentro de una etapa con ítems independientes → paralelo.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "Each subagent explores its area independently, then Claude synthesizes the findings. This works best when the research paths don't depend on each other.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o10-q04",
+      "objective": 10,
+      "pool": "practice",
+      "scenario": "En un sistema de due diligence, los subagentes se mandan resultados directamente entre ellos (el de búsqueda le pasa al de análisis, que le pasa al de síntesis) sin pasar por el coordinador. Cuando falla una búsqueda, el error se pierde, el coordinador no se entera y nadie sabe qué información llegó a cada agente. ¿Qué cambiás?",
+      "options": [
+        "Que toda la comunicación pase por el coordinador: recibe cada resultado, maneja los errores y le pasa a cada subagente su contexto.",
+        "Que cada subagente reintente por su cuenta con backoff exponencial y devuelva \"sin datos\" solo después de agotar los intentos.",
+        "Darle a cada subagente acceso al historial completo de los demás, para que todos vean lo mismo y detecten los errores.",
+        "Agregar un subagente monitor que lea los mensajes entre subagentes y le escriba al coordinador cuando vea un problema."
+      ],
+      "correct": 0,
+      "why_correct": "En el patrón coordinador-worker, los subagentes le devuelven sus resultados al coordinador, y es el coordinador el que pasa el contexto relevante al siguiente. Así hay un solo lugar para manejar errores, decidir qué hacer y ver por dónde pasó la información.",
+      "why_wrong": {
+        "1": "Reintentar dentro del subagente puede ayudar, pero devolver un \"sin datos\" genérico esconde qué falló y no le da al coordinador con qué decidir.",
+        "2": "Los subagentes trabajan con contexto aislado; meterles el historial de todos les quita foco y no centraliza el manejo de errores.",
+        "3": "Agrega otra pieza a la telaraña en vez de ordenarla: el flujo sigue sin pasar por quien decide."
+      },
+      "rule": "Comunicación entre subagentes → siempre a través del coordinador (hub-and-spoke).",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "Each subagent completes its task and returns results to Claude, which then passes relevant context to the next subagent.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o10-q05",
+      "objective": 10,
+      "pool": "practice",
+      "scenario": "Un asistente interno usa un coordinador multi-agente para todo. Ante \"¿en qué año se fundó nuestro proveedor X?\" lanza 8 subagentes, tarda 3 minutos y gasta 20 veces más tokens que una búsqueda simple. Para preguntas complejas el sistema anda muy bien. ¿Qué arreglo corresponde?",
+      "options": [
+        "Sacar el coordinador y usar siempre un solo agente, porque multi-agente demostró ser caro para este asistente.",
+        "Limitar por configuración a 2 el número máximo de subagentes para cualquier tipo de pregunta que entre.",
+        "Agregar reglas de escala al prompt del coordinador: dato simple → 1 agente con pocas llamadas; comparaciones y research → más.",
+        "Lanzar los 8 subagentes en paralelo en vez de en serie, para que la respuesta simple tarde menos que ahora."
+      ],
+      "correct": 2,
+      "why_correct": "El coordinador tiene que ajustar el esfuerzo a la complejidad de la consulta. Anthropic metió reglas explícitas en el prompt: un dato simple pide un agente con 3-10 llamadas; comparaciones, 2-4 subagentes; research complejo, más de 10. Así no pierde calidad en lo difícil ni derrocha en lo fácil.",
+      "why_wrong": {
+        "0": "Para preguntas complejas el multi-agente rinde mucho mejor. Sacarlo arregla lo simple y rompe lo difícil.",
+        "1": "Un tope fijo recorta también el research complejo, que sí necesita más subagentes.",
+        "3": "Baja la latencia, pero sigue gastando 8 subagentes en una pregunta de un dato."
+      },
+      "rule": "Escalá el esfuerzo a la consulta: lo simple, un agente; lo amplio, coordinador con varios.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "Simple fact-finding requires just 1 agent with 3-10 tool calls, direct comparisons might need 2-4 subagents with 10-15 calls each, and complex research might use more than 10 subagents with clearly divided responsibilities.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o10-q06",
+      "objective": 10,
+      "pool": "practice",
+      "scenario": "Un equipo quiere acelerar un refactor que cambia una interfaz usada en 25 módulos muy acoplados: cada cambio en un módulo obliga a ajustar otros. Lanzaron 6 subagentes en paralelo, uno por grupo de módulos. Terminan rápido, pero cada uno cambió la interfaz a su manera y el código no compila. ¿Qué decisión de arquitectura corresponde?",
+      "options": [
+        "Más subagentes en paralelo, uno por módulo, para que cada uno tenga menos código que tocar y cometa menos errores.",
+        "Un solo agente (o pasos en secuencia) que mantenga el contexto compartido de la interfaz a lo largo de todo el refactor.",
+        "Mantener los 6 subagentes y agregar un subagente final que unifique las seis versiones distintas de la interfaz.",
+        "Mantener los 6 subagentes y darle a cada uno un prompt más largo con la interfaz nueva descrita en detalle."
+      ],
+      "correct": 1,
+      "why_correct": "El trabajo está lleno de dependencias y todos necesitan el mismo contexto. El post de Anthropic dice que esos dominios no son buen caso para multi-agente hoy, y que la mayoría de las tareas de código tienen menos partes realmente paralelizables que el research. Acá conviene mantener el contexto en un solo hilo.",
+      "why_wrong": {
+        "0": "Más paralelo multiplica las versiones inconsistentes: el problema es la dependencia, no el tamaño de cada parte.",
+        "2": "Unificar seis interfaces distintas después es más caro y riesgoso que no divergir desde el principio.",
+        "3": "Ayuda un poco, pero cada subagente sigue sin ver los ajustes que hacen los demás en los módulos acoplados."
+      },
+      "rule": "Mucha dependencia y contexto compartido → un agente o secuencia; paralelo solo para lo independiente.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "some domains that require all agents to share the same context or involve many dependencies between agents are not a good fit for multi-agent systems today.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

@@ -37,13 +37,13 @@ Tres situaciones, tres respuestas:
 2. **El código cambió mucho (refactor grande, semanas).** Los tool results de la sesión vieja ya no sirven: son ruido que confunde. Sesión nueva + **inyección de contexto**: un resumen estructurado (decisiones, pendientes, archivos clave) o archivos de estado (`progress.txt`, `tests.json`, git log). La doc de prompting: "Claude’s latest models are extremely effective at discovering state from the local filesystem."
 3. **Querés comparar dos enfoques desde el mismo análisis.** Fork. El fork "starts with a copy of the original's history but diverges from that point" y tiene su propio ID. El original queda intacto.
 
-En producción con el SDK y hosts efímeros, la doc sugiere algo parecido al punto 2: "Capture the results you need (analysis output, decisions, file diffs) as application state and pass them into a fresh session's prompt."
+Con el SDK en hosts efímeros, igual: "Capture the results you need (analysis output, decisions, file diffs) as application state and pass them into a fresh session's prompt."
 
 ## El error típico que el examen quiere que cometas
 
 - **"Hacé `--continue`"** cuando el usuario tiene varias sesiones: `--continue` abre *la más reciente*, no la que querés. Para una puntual: `--resume <nombre>`.
 - **"Resume y listo"** después de que cambió el código: el agente razona sobre lecturas viejas. Falta avisarle qué cambió.
-- **"Empezá de cero y que explore todo de nuevo"** cuando cambiaron 2 archivos: funciona, pero repite trabajo. El objetivo dice *sin repetir trabajo previo*.
+- **"Empezá de cero y que explore todo"** cuando cambiaron 2 archivos: funciona, pero repite trabajo.
 - **"Fork para ver los cambios nuevos"**: el fork copia el mismo historial viejo. No refresca nada.
 - **Creer que el fork aísla archivos**: "Forking branches the conversation history, not the filesystem." Si las dos ramas editan, se pisan.
 - **Resumir la misma sesión en dos terminales sin fork**: "messages from both interleave into one transcript".
@@ -72,4 +72,3 @@ No vuelvas a leer el resto del módulo.
 - Pocos cambios → resume + lista de archivos cambiados (re-análisis dirigido).
 - Muchos cambios → sesión nueva + resumen estructurado.
 - `--continue` = la última. `--resume <nombre>` = una puntual. Fork = rama nueva con su propio ID.
-- `--fork-session` va junto con `--resume` o `--continue`.

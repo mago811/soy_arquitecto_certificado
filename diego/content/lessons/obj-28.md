@@ -1,7 +1,7 @@
 ---
 objective: 28
-title: "JSON cortado a la mitad: partí la tarea, no estires max_tokens"
-rule: "Si un review grande devuelve JSON truncado (stop_reason max_tokens) y el output crece con el tamaño del input, partilo en llamadas chicas (por archivo o módulo) con el mismo schema y uní los resultados en código."
+title: "JSON cortado a la mitad: cuándo subir max_tokens y cuándo partir la tarea"
+rule: "JSON truncado (stop_reason max_tokens): primero subí max_tokens, como dice la doc; si el output crece con el tamaño del input o toca el techo del modelo, partilo en llamadas chicas (por archivo o módulo) con el mismo schema y uní los resultados en código."
 sources:
   - url: https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons
     title: "Stop reasons and fallback"
@@ -13,7 +13,7 @@ sources:
     title: "Thinking (cuenta para max_tokens)"
   - url: https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/increase-consistency
     title: "Increase output consistency (Chain prompts)"
-status: no_verificado
+status: verificada
 ---
 
 ## Qué es (repaso)
@@ -27,9 +27,9 @@ Hay dos caminos y el examen quiere que sepas cuándo va cada uno:
 | Te quedaste un poco corto (pusiste 1024 y la respuesta pedía 3000) | Subir `max_tokens`. La doc lo recomienda como primer remedio |
 | El output **crece con el input** (más archivos → más hallazgos) o ya estás cerca del techo del modelo | **Partir**: una llamada por archivo o módulo, mismo schema, merge en código |
 
-¿Por qué no subir siempre? Porque hay un techo: Claude Opus 5.5 tiene **128K** tokens de salida máxima en la Messages API. Y el thinking **también cuenta** para `max_tokens`: "they count toward `max_tokens` alongside the response text". El PR del mes que viene va a ser más grande; subir es correr atrás del problema.
+¿Por qué no subir siempre? Porque hay un techo: Claude Opus 5.5 tiene **128K** tokens de salida máxima en la Messages API sincrónica. Y el thinking **también cuenta** para `max_tokens`: "they count toward `max_tokens` alongside the response text". El PR del mes que viene va a ser más grande; subir es correr atrás del problema.
 
-Partir tiene más ventajas: cada llamada mira menos código (más atención por archivo), podés reintentar solo la que falló y correrlas en paralelo. La doc: "Break down complex tasks into smaller, consistent subtasks."
+Partir tiene más ventajas prácticas: podés reintentar solo la llamada que falló y correrlas en paralelo. La doc: "Break down complex tasks into smaller, consistent subtasks."
 
 ## El error típico que el examen quiere que cometas
 
@@ -47,7 +47,7 @@ for archivo in archivos_del_pr:            # una llamada chica por archivo
         messages=[{"role": "user", "content": prompt_review(archivo)}],
         output_config={"format": {"type": "json_schema", "schema": SCHEMA}})
     if r.stop_reason == "max_tokens":
-        reintentar_partido(archivo)       # partir más fino, no estirar
+        reintentar(archivo)               # primero con más max_tokens; si toca el techo, partir más fino
         continue
     hallazgos += json.loads(texto(r))["hallazgos"]
 reporte = dedupe_y_ordenar(hallazgos)      # merge en código

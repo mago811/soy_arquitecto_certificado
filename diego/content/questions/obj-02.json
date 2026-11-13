@@ -1,0 +1,149 @@
+{
+  "objective": 2,
+  "questions": [
+    {
+      "id": "o02-q01",
+      "objective": 2,
+      "pool": "practice",
+      "scenario": "Una dev de un banco arrancó ayer `claude -n auth-audit` y Claude analizó el módulo de autenticación. Hoy, antes de volver, abrió otras dos sesiones para tareas cortas. Ahora corre `claude --continue` para seguir con la auditoría, pero aparece una de las tareas cortas. ¿Qué tendría que correr?",
+      "options": [
+        "`claude --continue --fork-session` para que abra una copia de la sesión de la auditoría.",
+        "`claude --resume auth-audit` para abrir directamente la sesión que tiene ese nombre.",
+        "`claude --session-id auth-audit` para fijar el ID de la sesión que quiere retomar.",
+        "`/clear auth-audit` dentro de la sesión actual para volver a la conversación de ayer."
+      ],
+      "correct": 1,
+      "why_correct": "`--continue` abre la sesión más reciente de la carpeta, y la más reciente ya no es la auditoría. Para una sesión puntual se usa `--resume` con su ID o su nombre; como la sesión se creó con `-n auth-audit`, `claude --resume auth-audit` la abre directo.",
+      "why_wrong": {
+        "0": "`--fork-session` copia la sesión que `--continue` encontró, que sigue siendo la más reciente (la tarea corta). Copia la equivocada.",
+        "2": "`--session-id` fija el ID de la conversación que arrancás y tiene que ser un UUID válido. No sirve para buscar una sesión por nombre.",
+        "3": "`/clear auth-audit` le pone ese nombre a la conversación que estás dejando y arranca una vacía. No vuelve a la de ayer."
+      },
+      "rule": "Sesión puntual (no la última) → `--resume <nombre o id>`; `--continue` es solo la más reciente.",
+      "source_url": "https://code.claude.com/docs/en/cli-reference",
+      "source_quote": "Set a display name for the session, shown in `/resume` and the terminal title. You can resume a named session with `claude --resume <name>`.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o02-q02",
+      "objective": 2,
+      "pool": "practice",
+      "scenario": "Un agente de Claude Code analizó ayer `billing/` (12 archivos) y dejó un plan de refactor. Esta mañana un compañero mergeó cambios en `billing/invoice.ts` y `billing/tax.ts`. La dev corre `claude --resume billing-plan` y pide \"ejecutá el plan\": Claude edita usando una función que ya no existe en `tax.ts`. ¿Cuál es el fix que restaura el estado sin repetir trabajo?",
+      "options": [
+        "Cerrar, arrancar una sesión nueva y pedirle que vuelva a explorar los 12 archivos de `billing/` desde cero antes de ejecutar.",
+        "Correr `claude --resume billing-plan --fork-session` para que la copia de la sesión cargue los archivos en su estado actual.",
+        "Correr `/compact` con foco en el plan para que el resumen reemplace las lecturas viejas de los archivos de `billing/`.",
+        "Retomar y avisarle que cambiaron `invoice.ts` y `tax.ts` (con el diff), pedirle que relea solo esos dos y ajuste el plan."
+      ],
+      "correct": 3,
+      "why_correct": "La sesión guarda la conversación, incluidas las lecturas de ayer: Claude \"recuerda\" `tax.ts` como era. Los otros 10 archivos siguen válidos, así que conviene retomar y decirle exactamente qué cambió para que relea solo eso. Es re-análisis dirigido: corrige lo viejo sin repetir lo que sigue sirviendo.",
+      "why_wrong": {
+        "0": "Funciona, pero repite el análisis de 10 archivos que no cambiaron. El objetivo es restaurar el estado sin repetir trabajo.",
+        "1": "El fork copia el mismo historial, con las mismas lecturas viejas. No refresca nada del filesystem.",
+        "2": "Compactar resume lo que ya está en el historial: el resumen seguiría basado en la versión vieja de `tax.ts`."
+      },
+      "rule": "Resume + \"cambiaron estos archivos, releé solo esos\" = re-análisis dirigido.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
+      "source_quote": "Returning to a session means the agent has full context from before: files it already read, analysis it already performed, decisions it already made.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o02-q03",
+      "objective": 2,
+      "pool": "practice",
+      "scenario": "Una startup corre un agente con el Agent SDK en contenedores efímeros. El paso 1 analiza un repo en un contenedor; el paso 2 (otro contenedor) hace `resume` con el `session_id` guardado y falla porque la sesión no está. No quieren montar infraestructura para mover transcripts. ¿Qué diseño recomienda la doc como el más robusto?",
+      "options": [
+        "Guardar los resultados del paso 1 (análisis, decisiones, diffs) como estado propio y pasarlos en el prompt de una sesión nueva.",
+        "En el paso 2 usar `continue: true` en vez de `resume`, así el SDK encuentra la sesión sin necesitar el ID guardado.",
+        "En el paso 2 pasar el mismo `session_id` con `fork_session=True` para crear una rama nueva a partir de la sesión del paso 1.",
+        "Subir `max_turns` en el paso 1 para que el análisis y la ejecución entren en una sola llamada en el mismo contenedor."
+      ],
+      "correct": 0,
+      "why_correct": "Los archivos de sesión son locales a la máquina que los creó. Sin un `SessionStore` ni mover el `.jsonl`, la doc propone no depender del resume: capturar lo que importa como estado de la app e inyectarlo en una sesión nueva. Lo describe como más robusto que andar moviendo transcripts.",
+      "why_wrong": {
+        "1": "`continue` busca la sesión más reciente en el disco local. En un contenedor nuevo no hay ninguna.",
+        "2": "El fork parte de una sesión existente: si el archivo no está en este host, no hay nada que forkear.",
+        "3": "Esquiva el problema en vez de resolverlo: junta dos pasos que el sistema separó y no ayuda cuando el proceso se corta."
+      },
+      "rule": "Sesión en otro host sin store → estado propio inyectado en una sesión nueva.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
+      "source_quote": "Capture the results you need (analysis output, decisions, file diffs) as application state and pass them into a fresh session's prompt. This is often more robust than shipping transcript files around.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o02-q04",
+      "objective": 2,
+      "pool": "practice",
+      "scenario": "Un equipo usa el Agent SDK en Python. Una sesión ya analizó el monolito. Quieren comparar dos refactors (A: extraer servicios; B: modularizar) partiendo del mismo análisis. Hoy hacen `resume=session_id` para A y después otra vez `resume=session_id` para B, y B arranca \"contaminado\" con todo lo que se habló de A. ¿Qué cambian?",
+      "options": [
+        "Usar `continue_conversation=True` en las dos llamadas para que cada una retome la sesión más reciente del directorio.",
+        "Hacer las dos en la misma sesión y agregar al prompt de B \"ignorá todo lo que discutimos sobre el enfoque A\".",
+        "Para cada alternativa, `resume=session_id` con `fork_session=True`, así cada una arranca de una copia del análisis.",
+        "Abrir dos sesiones nuevas sin `resume` y pedirle a cada una que vuelva a analizar el monolito antes de proponer su refactor."
+      ],
+      "correct": 2,
+      "why_correct": "El fork crea una sesión nueva con una copia del historial original y su propio ID. Las dos ramas comparten el análisis base pero no se ven entre sí, y la sesión original queda intacta.",
+      "why_wrong": {
+        "0": "`continue_conversation` agarra la más reciente: la segunda llamada caería justo en la sesión que ya tiene la charla de A.",
+        "1": "Pedir \"ignorá\" no saca nada del contexto: el historial de A sigue ahí y puede sesgar B.",
+        "3": "Funciona, pero repite el análisis dos veces. El fork existe para no hacer eso."
+      },
+      "rule": "Dos caminos desde la misma base → `fork_session=True` (TS: `forkSession: true`).",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
+      "source_quote": "Forking creates a new session that starts with a copy of the original's history but diverges from that point. The fork gets its own session ID; the original's ID and history stay unchanged.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o02-q05",
+      "objective": 2,
+      "pool": "practice",
+      "scenario": "Un dev retoma con `claude --resume pagos-v1` una sesión de hace tres semanas. Desde entonces hubo un refactor grande: casi todos los archivos del módulo cambiaron de nombre y estructura. Claude cita números de línea y funciones que ya no existen. ¿Qué es lo más confiable?",
+      "options": [
+        "Correr `claude --resume pagos-v1 --fork-session` para trabajar sobre una copia limpia de esa sesión y no tocar la original.",
+        "Sesión nueva con un resumen estructurado (decisiones y pendientes) y pedirle que descubra el estado leyendo repo y git log.",
+        "Seguir en la sesión vieja y correr `/compact` pidiendo que priorice las decisiones, para que las lecturas viejas pesen menos.",
+        "Seguir en la sesión vieja y pegarle el diff completo del refactor para que lo combine con todo lo que ya había leído."
+      ],
+      "correct": 1,
+      "why_correct": "Cuando casi todo lo que el agente leyó quedó viejo, retomar trae más ruido que ayuda. Conviene arrancar limpio e inyectar lo que vale (decisiones, pendientes). La doc de prompting dice que los modelos actuales descubren muy bien el estado desde el filesystem (archivos de progreso, tests, git log).",
+      "why_wrong": {
+        "0": "El fork copia el mismo historial viejo. Es una copia, no una versión \"limpia\".",
+        "2": "El resumen de `/compact` sale del mismo historial: sigue describiendo el código de antes del refactor.",
+        "3": "Con casi todo cambiado, sumar un diff enorme encima de lecturas viejas mezcla dos versiones del código. Re-análisis dirigido sirve cuando cambiaron pocos archivos."
+      },
+      "rule": "Tool results mayormente viejos → sesión nueva + resumen inyectado; pocos cambios → resume + aviso.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Claude’s latest models are extremely effective at discovering state from the local filesystem.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o02-q06",
+      "objective": 2,
+      "pool": "practice",
+      "scenario": "Dos devs comparten una máquina de staging. Los dos corren `claude --resume deploy-review` en terminales distintas para explorar cosas diferentes a partir del mismo análisis. Al rato, el transcript es un caos: hay mensajes de los dos mezclados. ¿Qué tendría que haber hecho el segundo?",
+      "options": [
+        "Correr `claude --continue` en vez de `--resume`, para que Claude Code le asigne una sesión propia de forma automática.",
+        "Correr `/rename deploy-review-2` apenas entró, así sus mensajes quedaban guardados bajo otro nombre de sesión.",
+        "Correr `claude --session-id` con un UUID nuevo, para tener un ID distinto y conservar el historial del análisis.",
+        "Correr `claude --resume deploy-review --fork-session` (o `/branch` adentro), para seguir en una copia con su propio ID."
+      ],
+      "correct": 3,
+      "why_correct": "Retomar la misma sesión en dos terminales sin forkear hace que los mensajes de las dos se intercalen en un único transcript. Con `--fork-session` (o `/branch`), el segundo trabaja en una copia con su propio ID y el original no se toca.",
+      "why_wrong": {
+        "0": "`--continue` abre la sesión más reciente de la carpeta, que es la misma. No crea una sesión propia.",
+        "1": "`/rename` le cambia el nombre a la misma sesión; no la separa. Además le cambiaría el nombre a la del compañero.",
+        "2": "`--session-id` arranca una conversación con ese ID, pero no copia el historial del análisis: perdés la base compartida."
+      },
+      "rule": "Mismo punto de partida, trabajo en paralelo → fork; nunca la misma sesión en dos terminales.",
+      "source_url": "https://code.claude.com/docs/en/sessions",
+      "source_quote": "If you resume the same session in two terminals without forking, messages from both interleave into one transcript.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

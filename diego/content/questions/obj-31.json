@@ -22,8 +22,12 @@
       "rule": "\"Solo lo importante\" → listá categorías a incluir y a excluir.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Claude responds well to clear, explicit instructions. Being specific about the output you want can help enhance results.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en best practices."
+      }
     },
     {
       "id": "o31-q02",
@@ -46,8 +50,12 @@
       "rule": "Reviewer que siempre encuentra algo → excluí explícitamente lo que no querés (\"skip style\").",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "A reviewer that's asked to find problems will always find something.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "best-practices: 'report gaps that affect correctness and skip style' y 'will always find something' textuales."
+      }
     },
     {
       "id": "o31-q03",
@@ -70,8 +78,12 @@
       "rule": "Exclusión verificable: nombrá la categoría (\"formato, nombres\"), no \"lo menor\".",
       "source_url": "https://code.claude.com/docs/en/memory",
       "source_quote": "Write instructions that are concrete enough to verify",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "memory: 'concrete enough to verify' + ejemplo 2-space; `/code-review` lee CLAUDE.md (code-review-local)."
+      }
     },
     {
       "id": "o31-q04",
@@ -89,13 +101,17 @@
       "why_wrong": {
         "1": "Sigue permitiendo inferir en el caso donde falla; \"con cuidado\" no es un límite.",
         "2": "Inventa un valor por defecto que va a estar mal para los gastos en dólares.",
-        "3": "La confianza autodeclarada no está calibrada; sigue generando el dato que no querías."
+        "3": "Un puntaje de confianza no pone el límite: el modelo sigue generando la moneda que el equipo decidió no querer cuando no está en el ticket."
       },
       "rule": "Categoría poco confiable → límite explícito: \"no infieras, devolvé null\".",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
       "source_quote": "Explicitly give Claude permission to admit uncertainty. This technique can drastically reduce false information.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "w3 afirmaba que la confianza autodeclarada 'no está calibrada' (no está en la doc); reformulado."
+      }
     },
     {
       "id": "o31-q05",
@@ -118,8 +134,12 @@
       "rule": "Categoría útil con falsos positivos → pedí evidencia, no la excluyas.",
       "source_url": "https://code.claude.com/docs/en/code-review-customize",
       "source_quote": "Findings that turn out to be wrong: require evidence before a class of finding is posted.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Receta `file:line` textual en code-review-customize."
+      }
     },
     {
       "id": "o31-q06",
@@ -142,8 +162,12 @@
       "rule": "Excluí por categoría lo que no querés; para severidad, reportá todo y filtrá aparte.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5",
       "source_quote": "If your review prompt says “only report high-severity issues” or “be conservative,” the model might follow that instruction literally and report less; ask it to report everything and filter in a separate pass instead.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita literal de Prompting Opus 5, tomada literal."
+      }
     }
   ]
 }

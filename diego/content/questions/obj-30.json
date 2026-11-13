@@ -8,7 +8,7 @@
       "scenario": "Una empresa con plan Team tiene activado el servicio Code Review en GitHub. En cada PR, el review comenta sobre archivos en `src/gen/` (generados) y sobre `package-lock.json`. Cada dev lo aclara a mano en el PR con un comentario, pero el problema vuelve en el siguiente. ¿Cuál es el fix persistente?",
       "options": [
         "Comentar `@claude review ignorá src/gen y los lockfiles` en cada PR, así el review recibe la aclaración justo cuando arranca.",
-        "Agregar a un `REVIEW.md` en la raíz una sección de exclusiones con `src/gen/` y `*.lock`, y mergearlo a la rama default protegida.",
+        "Agregar a un `REVIEW.md` en la raíz una sección de exclusiones con `src/gen/` y `package-lock.json`, y mergearlo a la rama default protegida.",
         "Pedirle a un Owner que baje el review level a Quick, porque una pasada más liviana comenta menos archivos y genera menos ruido.",
         "Agregar a cada archivo generado un comentario `// no revisar` en la primera línea, para que el review lo vea al leer el diff."
       ],
@@ -22,8 +22,12 @@
       "rule": "Ruido repetido en Code Review → exclusión en `REVIEW.md` (rama default protegida), no aclaraciones por PR.",
       "source_url": "https://code.claude.com/docs/en/code-review-customize",
       "source_quote": "Comments on generated files or on what CI already checks: list paths and finding categories where Claude should skip findings.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "`package-lock.json` no matchea `*.lock` (ejemplo de la doc); la opción ahora nombra el archivo explícitamente."
+      }
     },
     {
       "id": "o30-q02",
@@ -46,8 +50,12 @@
       "rule": "Regla que debe valer en Code Review Y en `/code-review` → `CLAUDE.md`.",
       "source_url": "https://code.claude.com/docs/en/code-review-customize",
       "source_quote": "Put guidance you want applied in both places in `CLAUDE.md`, and keep `REVIEW.md` for rules specific to pull request review.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Nota de code-review-customize: servicio lee CLAUDE.md y REVIEW.md, `/code-review` solo CLAUDE.md. `--comment` confirmado en code-review-local."
+      }
     },
     {
       "id": "o30-q03",
@@ -70,8 +78,12 @@
       "rule": "`REVIEW.md` del PR no cuenta: se lee de la rama base/default. Mergealo antes.",
       "source_url": "https://code.claude.com/docs/en/code-review-customize",
       "source_quote": "Code Review reads `REVIEW.md` from the pull request's base branch or from the default branch, never from the pull request's own changes. To change review behavior, merge the `REVIEW.md` change first.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita literal: REVIEW.md se lee de la rama base/default, nunca del PR."
+      }
     },
     {
       "id": "o30-q04",
@@ -94,8 +106,12 @@
       "rule": "`--bare` = sin CLAUDE.md. Pasá las reglas por flag o no uses `--bare`.",
       "source_url": "https://code.claude.com/docs/en/headless",
       "source_quote": "Add `--bare` to reduce startup time by skipping auto-discovery of hooks, skills, custom commands, subagents, installed plugins, MCP servers, auto memory, and CLAUDE.md.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "headless: `--bare` saltea CLAUDE.md; `--append-system-prompt(-file)` listados; sin --bare `-p` carga como sesión interactiva."
+      }
     },
     {
       "id": "o30-q05",
@@ -118,8 +134,12 @@
       "rule": "Hallazgos inventados por inferencia → exigí evidencia (`file:line`) para esa clase de hallazgo.",
       "source_url": "https://code.claude.com/docs/en/code-review-customize",
       "source_quote": "Findings that turn out to be wrong: require evidence before a class of finding is posted.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Instrucción `file:line` textual en code-review-customize."
+      }
     },
     {
       "id": "o30-q06",
@@ -142,8 +162,12 @@
       "rule": "GitHub Action: convenciones y criterios de review → `CLAUDE.md` en la raíz.",
       "source_url": "https://code.claude.com/docs/en/github-actions",
       "source_quote": "Create a `CLAUDE.md` file in your repository root to define code style guidelines, review criteria, project-specific rules, and preferred patterns.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "github-actions: CLAUDE.md en raíz para review criteria; `prompt` input → automation mode. Confirmado."
+      }
     },
     {
       "id": "o30-q07",
@@ -166,8 +190,12 @@
       "rule": "Carpeta de menor riesgo → subir la vara (\"near-certain and severe\"), no excluir.",
       "source_url": "https://code.claude.com/docs/en/code-review-customize",
       "source_quote": "For paths that warrant some review but not full scrutiny, set a higher bar instead",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "'only report if near-certain and severe' textual en code-review-customize; review level lo elige un Owner."
+      }
     },
     {
       "id": "o30-q08",
@@ -185,13 +213,17 @@
       "why_wrong": {
         "0": "Al revés: la doc dice que skills personales, bundled o de plugin no se pueden incluir directo.",
         "1": "Ese campo controla si Claude invoca la skill en Claude Code; Code Review solo toma el cuerpo de `SKILL.md`, y no cambia lo de las exclusiones.",
-        "3": "Los hooks son de Claude Code; el servicio corre en infraestructura de Anthropic y no ejecuta tus hooks."
+        "3": "No es el mecanismo documentado: la doc dice que las exclusiones y topes de nits se escriben en `REVIEW.md` o en un archivo al lado. El servicio corre en infraestructura de Anthropic, no en tu sesión de Claude Code."
       },
       "rule": "Exclusiones y topes de nits en `REVIEW.md` o archivo al lado, nunca en una skill incluida.",
       "source_url": "https://code.claude.com/docs/en/code-review-customize",
       "source_quote": "Write exclusions and Nit caps in `REVIEW.md` or a file beside it, not in an included skill.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "w3 afirmaba sin respaldo que el servicio 'no ejecuta tus hooks'; reformulado a lo que dice la doc."
+      }
     },
     {
       "id": "o30-q09",
@@ -205,7 +237,7 @@
         "Por defecto sigue las reglas de ESLint del repo; para cambiar qué marca hay que editar `.eslintrc` y volver a pedir el review."
       ],
       "correct": 0,
-      "why_correct": "La doc dice que por defecto Code Review se enfoca en correctitud: bugs que romperían producción, no preferencias de formato ni falta de cobertura. Para cambiar qué marca, se agregan archivos de guía (`CLAUDE.md`, `REVIEW.md`). Si comenta nombres y tests, probablemente alguna guía del repo se lo está pidiendo.",
+      "why_correct": "La doc dice que por defecto Code Review se enfoca en correctitud: bugs que romperían producción, no preferencias de formato ni falta de cobertura. Para cambiar qué marca, se agregan archivos de guía (`CLAUDE.md`, `REVIEW.md`) al repo.",
       "why_wrong": {
         "1": "El review level cambia lo profundo que revisa y el costo, no el foco por tema.",
         "2": "Invierte el default; y Deep es más exhaustivo, no cambia de foco.",
@@ -214,8 +246,12 @@
       "rule": "Code Review por defecto = correctitud. Qué marca se cambia con archivos de guía, no con el review level.",
       "source_url": "https://code.claude.com/docs/en/code-review",
       "source_quote": "By default, Code Review focuses on correctness: bugs that would break production, not formatting preferences or missing test coverage.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "Saqué la frase especulativa final del why_correct ('probablemente alguna guía lo pide')."
+      }
     },
     {
       "id": "o30-q10",
@@ -238,8 +274,12 @@
       "rule": "`CLAUDE.md` de subcarpeta = solo para PRs que tocan esa subcarpeta. Regla global → raíz.",
       "source_url": "https://code.claude.com/docs/en/code-review-customize",
       "source_quote": "A review reads the `CLAUDE.md` at your repository root and the `CLAUDE.md` files in the parent directories of each changed file.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita literal sobre CLAUDE.md raíz + padres de archivos cambiados."
+      }
     }
   ]
 }

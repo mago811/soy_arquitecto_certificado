@@ -22,8 +22,12 @@
       "rule": "Dato que puede faltar → nullable + permiso explícito de `null` + ejemplo con `null`.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview",
       "source_quote": "But it might also infer a reasonable value.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "tool-use overview: 'it might also infer a reasonable value' (contexto: parámetros requeridos faltantes). `[\"string\",\"null\"]` soportado en structured-outputs."
+      }
     },
     {
       "id": "o29-q02",
@@ -46,8 +50,12 @@
       "rule": "Formatos inconsistentes → decí el formato exacto de salida + ejemplos variados.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Be specific about the output format and constraints you want.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en best practices."
+      }
     },
     {
       "id": "o29-q03",
@@ -70,8 +78,12 @@
       "rule": "Few-shot de extracción: variado, con casos borde y con un `null`.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Diverse: Cover edge cases and vary enough that Claude doesn’t pick up unintended patterns.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual 'Diverse...'."
+      }
     },
     {
       "id": "o29-q04",
@@ -85,7 +97,7 @@
         "Los valores de `maximum` son demasiado grandes para la gramática; hay que bajarlos a menos de 1.000.000 para que compile."
       ],
       "correct": 2,
-      "why_correct": "La doc lista `minimum`/`maximum` y `minLength`/`maxLength` como no soportados en structured outputs, y usar algo no soportado da un 400. La validación de rangos va en tu código después de parsear (o se pide como reintento).",
+      "why_correct": "La doc lista `minimum`/`maximum` y `minLength`/`maxLength` como no soportados en structured outputs, y usar algo no soportado da un 400. Si mandás el schema crudo, sacalas y validá rangos en tu código (los helpers del SDK hacen eso solos: las pasan a la descripción y validan la respuesta).",
       "why_wrong": {
         "0": "Las limitaciones de JSON Schema son las mismas para JSON outputs y strict tool use.",
         "1": "El problema no es la cantidad de opcionales; son features no soportadas.",
@@ -94,8 +106,12 @@
       "rule": "Rangos y largos no van en el schema de structured outputs → validalos en código.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "If you use an unsupported feature, you’ll receive a 400 error with details.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "Agregué que los helpers del SDK transforman estas restricciones (las pasan a la descripción); el 400 aplica al schema enviado crudo."
+      }
     },
     {
       "id": "o29-q05",
@@ -118,8 +134,12 @@
       "rule": "Enums: un valor por categoría, sin variantes de mayúsculas, y comparación case-insensitive.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "Compare enum values case-insensitively, and avoid enum values that differ only in capitalization.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual sobre capitalización de enums."
+      }
     },
     {
       "id": "o29-q06",
@@ -142,8 +162,12 @@
       "rule": "Extracción = solo lo que dice el documento. Decilo explícito.",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
       "source_quote": "Explicitly instruct Claude to only use information from provided documents and not its general knowledge.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en reduce-hallucinations."
+      }
     }
   ]
 }

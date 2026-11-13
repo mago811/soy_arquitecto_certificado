@@ -15,14 +15,14 @@ sources:
     title: "Code Review"
   - url: https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification
     title: "CCAR-F Exam Guide (task 4.6: multi-instance and multi-pass review)"
-status: no_verificado
+status: verificada
 ---
 
 ## Qué es
 
 Tenés un bot que revisa PRs. Hoy usa **un solo prompt gigante** que dice: "buscá problemas de seguridad, errores de lógica de negocio y malas decisiones de diseño de API". Y trae ejemplos de los tres temas mezclados.
 
-Resultado típico: encuentra bastante de un tema (por ejemplo, estilo de API) y **se le escapan** cosas del otro (una inyección SQL). No es que "no sepa": es que tiene que repartir la atención entre criterios distintos que compiten.
+Resultado típico: encuentra bastante de un tema (por ejemplo, estilo de API) y **se le escapan** cosas del otro (una inyección SQL). La doc no explica el porqué con palabras como "atención" o "recall", pero sí respalda el remedio: partir la tarea en subtareas, una por prompt, con ejemplos relevantes para cada una.
 
 La solución es **una pasada por tema**:
 

@@ -15,7 +15,7 @@ sources:
     title: "Run Claude Code programmatically (bare mode)"
   - url: https://code.claude.com/docs/en/memory
     title: "How Claude remembers your project"
-status: no_verificado
+status: verificada
 ---
 
 ## Qué es

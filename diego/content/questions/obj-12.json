@@ -22,8 +22,12 @@
       "rule": "Formato que no sale con descripciones → mostrá ejemplos de entrada/salida.",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/increase-consistency",
       "source_quote": "Provide examples of the output you want. This is more effective than abstract instructions.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en increase-consistency; 3–5 ejemplos y `<examples>` en best practices."
+      }
     },
     {
       "id": "o12-q02",
@@ -46,8 +50,12 @@
       "rule": "Feedback útil = caso concreto + qué hizo + qué esperabas + cómo verificarlo.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "If you name the file, describe the symptom, and say what \"fixed\" looks like up front, you usually save yourself a round of corrections later.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en best-practices."
+      }
     },
     {
       "id": "o12-q03",
@@ -61,7 +69,7 @@
         "Seguir corrigiendo de a uno en el mismo hilo, porque así cada arreglo queda aislado y es más fácil ver qué rompió cada cambio."
       ],
       "correct": 0,
-      "why_correct": "La doc: después de corregir dos veces lo mismo, una tercera corrección suma a una conversación con dos intentos fallidos que Claude sigue releyendo. `/clear` más un prompt que junte lo aprendido funciona mejor. Juntar los casos en lote deja ver que son el mismo problema.",
+      "why_correct": "La doc: después de corregir dos veces lo mismo, una tercera corrección suma a una conversación con dos intentos fallidos que Claude sigue releyendo. `/clear` más un prompt nuevo que junte lo aprendido funciona mejor. Listar juntos todos los casos que fallaron es la forma concreta de sumar lo aprendido.",
       "why_wrong": {
         "1": "Es justo la tercera corrección que la doc desaconseja; el contexto ya está cargado de intentos fallidos.",
         "2": "Volver atrás y repetir lo mismo de a un caso reproduce el ping-pong: no considera los dos casos juntos.",
@@ -70,8 +78,12 @@
       "rule": "Dos correcciones fallidas → `/clear` + un prompt con TODOS los casos juntos.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "If you've corrected the same thing twice and it's still wrong, a third correction mostly adds to a conversation that already contains two failed attempts for Claude to keep re-reading.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "why_correct afirmaba que juntar casos 'deja ver que son el mismo problema' (no está en la doc); reformulado a 'un prompt nuevo que sume lo aprendido' (textual)."
+      }
     },
     {
       "id": "o12-q04",
@@ -94,8 +106,12 @@
       "rule": "Iterar rápido = darle un check pass/fail (tests, diff contra fixture) para que cierre el ciclo solo.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "If you give it something that comes back pass or fail, Claude can close that loop itself.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "best-practices: pass/fail check, 'A script that diffs output against a fixture'."
+      }
     },
     {
       "id": "o12-q05",
@@ -118,8 +134,12 @@
       "rule": "Lote grande → probá con pocos, ajustá el prompt, después escalá.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "Try it on three files first, see what goes wrong, fix the prompt, then run the rest.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual (try it on three files first)."
+      }
     },
     {
       "id": "o12-q06",
@@ -142,8 +162,12 @@
       "rule": "Si tenés el ejemplo (archivo, captura, salida), dáselo; no lo describas.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "If you already have the thing Claude needs, hand it over instead of describing it",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "best-practices: 'hand it over' + pegar screenshot del diseño."
+      }
     },
     {
       "id": "o12-q07",
@@ -166,8 +190,12 @@
       "rule": "Refinamiento auditable por API → chaining: borrador, revisión, refinamiento en llamadas separadas.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "The most common chaining pattern is self-correction: generate a draft → have Claude review it against criteria → have Claude refine based on the review.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Patrón self-correction de chaining, cita textual."
+      }
     },
     {
       "id": "o12-q08",
@@ -190,8 +218,12 @@
       "rule": "En cada vuelta, pedí evidencia (comando + salida), no un \"listo\".",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "Whichever option you use, ask Claude for evidence: the command it ran and its output, or the screenshot.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual sobre pedir evidencia."
+      }
     },
     {
       "id": "o12-q09",
@@ -214,8 +246,12 @@
       "rule": "Ejemplos que sesgan → 3–5 diversos que cubran casos distintos.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Include 3–5 examples for best results. You can also ask Claude to evaluate your examples for relevance and diversity, or to generate additional ones based on your initial set.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual 3–5 ejemplos + evaluar relevancia/diversidad."
+      }
     },
     {
       "id": "o12-q10",
@@ -238,8 +274,12 @@
       "rule": "Feedback vago cambia un default por otro: nombrá lo concreto y extendé la lista en cada vuelta.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5-5",
       "source_quote": "It responds well to instructions that name specific patterns to avoid, as in the following example. Work iteratively: check which styles the first result used instead, and extend the list if needed.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Prompting Opus 5.5, sección Frontend design defaults: cita textual."
+      }
     }
   ]
 }

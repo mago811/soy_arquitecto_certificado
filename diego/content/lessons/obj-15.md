@@ -11,9 +11,11 @@ sources:
     title: "How Claude remembers your project"
   - url: https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices
     title: "Prompting best practices (Avoid focusing on passing tests)"
+  - url: https://code.claude.com/docs/en/headless
+    title: "Run Claude Code programmatically (bare mode)"
   - url: https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification
     title: "CCAR-F Exam Guide (task 3.6)"
-status: no_verificado
+status: verificada
 ---
 
 ## Qué es (repaso)
@@ -23,7 +25,7 @@ Ya lo sabés: pedir "agregá tests" a secas da tests que **pasan pero no prueban
 | Palanca | Dónde va | Qué arregla |
 |---|---|---|
 | Tests existentes como modelo | En el prompt: `@tests/test_pagos.py` o "seguí el patrón de…" | Estilo, framework, asserts del repo. La doc: Claude "examines your existing test files to match the style" |
-| Convenciones de fixtures y comandos | `CLAUDE.md` (persistente) | Usa las fixtures que ya existen y sabe correr un test suelto |
+| Convenciones de fixtures y comandos | `CLAUDE.md` (persistente) | Usa las fixtures que ya existen y sabe correr un test suelto. La doc no nombra "fixtures": entran como convenciones del proyecto, junto a "build and test commands" |
 | Criterios de "test que vale" | En el prompt o en `CLAUDE.md` | Pide comportamiento y casos borde, no asserts triviales |
 
 ## El error típico que el examen quiere que cometas

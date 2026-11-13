@@ -13,7 +13,7 @@
         "Pedirle que escriba los tests en `unittest` y que después los convierta a pytest en un segundo paso automático."
       ],
       "correct": 2,
-      "why_correct": "Claude examina los tests existentes para copiar estilo, framework y patrones de assert. Darle uno concreto como modelo con `@` asegura que lo vea y lo siga, en vez de inventar su propia forma.",
+      "why_correct": "La doc dice que Claude examina los tests existentes para copiar estilo, framework y patrones de assert. Darle uno concreto como modelo con `@` lo pone directo en contexto, así sigue el patrón real del repo en vez de inventar su propia forma.",
       "why_wrong": {
         "0": "\"Buenas prácticas\" es vago; puede elegir algo distinto a lo que usa el repo.",
         "1": "Le hace razonar en abstracto en vez de mostrarle el patrón real del proyecto.",
@@ -22,8 +22,12 @@
       "rule": "Tests con el estilo del repo → dale un test existente como modelo.",
       "source_url": "https://code.claude.com/docs/en/common-workflows",
       "source_quote": "Claude examines your existing test files to match the style, frameworks, and assertion patterns already in use.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "'asegura que lo vea y lo siga' era demasiado fuerte; suavizado. Cita textual en common-workflows."
+      }
     },
     {
       "id": "o15-q02",
@@ -46,8 +50,12 @@
       "rule": "Pedí comportamientos a verificar, no porcentajes de cobertura.",
       "source_url": "https://code.claude.com/docs/en/common-workflows",
       "source_quote": "When asking for tests, be specific about what behavior you want to verify.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "common-workflows: 'be specific about what behavior you want to verify'. Lo de asserts triviales es razonamiento del escenario, no se atribuye a la doc."
+      }
     },
     {
       "id": "o15-q03",
@@ -64,14 +72,18 @@
       "why_correct": "El `CLAUDE.md` del proyecto es para instrucciones que aplican a cualquiera que trabaje en el repo: comandos de build y test, estándares, convenciones. Se lee al empezar cada sesión, así nadie tiene que repetirlo.",
       "why_wrong": {
         "0": "Claude solo lo ve si abre ese archivo; no está garantizado que lo lea antes de escribir el test.",
-        "1": "Un hook es para controlar herramientas, no para dar convenciones; y el texto plano de un `PreToolUse` no llega al contexto de Claude.",
+        "1": "No es el lugar para convenciones del equipo: la doc pone build, test y convenciones en el `CLAUDE.md` del proyecto, que se carga en cada sesión. Un hook agrega maquinaria para algo que es contexto.",
         "2": "Es una convención del equipo: en `CLAUDE.local.md` no se comparte por git."
       },
       "rule": "Convenciones de fixtures y comandos de test → `CLAUDE.md` del proyecto.",
       "source_url": "https://code.claude.com/docs/en/memory",
       "source_quote": "Create this file and add instructions that apply to anyone working on the project: build and test commands, coding standards, architectural decisions, naming conventions, and common workflows.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "w1 afirmaba un detalle de hooks (stdout de PreToolUse) no respaldado por la página citada; reformulado."
+      }
     },
     {
       "id": "o15-q04",
@@ -94,8 +106,12 @@
       "rule": "\"Hacé que pase\" invita a hardcodear: pedí la lógica general.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Tests are there to verify correctness, not to define the solution.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en best practices (tests verifican, no definen la solución)."
+      }
     },
     {
       "id": "o15-q05",
@@ -118,8 +134,12 @@
       "rule": "Tests solo de camino feliz → pedile casos borde: errores, límites, entradas raras.",
       "source_url": "https://code.claude.com/docs/en/common-workflows",
       "source_quote": "Claude can analyze your code paths and suggest tests for error conditions, boundary values, and unexpected inputs that are often overlooked.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en common-workflows (edge cases)."
+      }
     },
     {
       "id": "o15-q06",
@@ -142,8 +162,12 @@
       "rule": "En `CLAUDE.md`: el comando exacto para correr un test suelto.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "How to confirm work in this repo: the exact test, typecheck, and lint commands, and how to run a single test file",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en best-practices (how to run a single test file)."
+      }
     }
   ]
 }

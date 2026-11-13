@@ -13,7 +13,7 @@ sources:
     title: "Reduce hallucinations (Iterative refinement)"
   - url: https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification
     title: "CCAR-F Exam Guide (task 3.5: iterative refinement)"
-status: no_verificado
+status: verificada
 ---
 
 ## Qué es
@@ -26,7 +26,7 @@ Tres herramientas:
 |---|---|---|
 | **Ejemplos input → output** | "Para `'1.234,50'` espero `1234.5`; para `'USD 10'` espero `10.0`" | La doc: los ejemplos son "more effective than abstract instructions" |
 | **Feedback puntual** | "Falla con montos negativos entre paréntesis `(500)`: devuelve 500, debería ser -500" | Nombrás el caso, el síntoma y qué es "arreglado" |
-| **Problemas en lote** | Mandar los 4 casos que fallan juntos, en un mensaje | Si están relacionados, un arreglo los considera a todos; de a uno, arreglar uno rompe otro |
+| **Problemas en lote** | Mandar los 4 casos que fallan juntos, en un mensaje | Criterio del examen (task 3.5), no literal en la doc. Lo que la doc sí dice: tras dos correcciones fallidas, `/clear` + "one new prompt that folds in what you learned" |
 
 Y un cuarto ingrediente que lo hace andar solo: **un check que devuelva pass/fail** (tests, un script que compara contra un fixture). La doc: "If you give it something that comes back pass or fail, Claude can close that loop itself."
 

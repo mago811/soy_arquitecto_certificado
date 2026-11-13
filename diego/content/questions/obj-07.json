@@ -1,0 +1,149 @@
+{
+  "objective": 7,
+  "questions": [
+    {
+      "id": "o07-q01",
+      "objective": 7,
+      "pool": "practice",
+      "scenario": "Una aseguradora le pide a un agente \"agregá tests completos a nuestro backend legacy\". El prompt dice: \"recorré `src/` en orden alfabético y escribí tests para cada archivo\". Después de dos días, hay 300 tests sobre helpers triviales, ninguno sobre `claims/` (el módulo crítico), y el agente siguió de largo cuando descubrió que `claims/` depende de un singleton imposible de mockear. ¿Qué cambiás?",
+      "options": [
+        "Mantener el recorrido alfabético pero subir el presupuesto de turnos para que llegue a cubrir también `claims/`.",
+        "Pasar a una cadena fija de tres pasos por archivo (leer, escribir test, correr test) con un gate entre cada paso.",
+        "Pedir que primero mapee la estructura, rankee por impacto y arme un plan priorizado que reordena al encontrar dependencias.",
+        "Dividir `src/` en partes iguales y lanzar un subagente por parte, cada uno con el mismo recorrido alfabético dentro de su parte."
+      ],
+      "correct": 2,
+      "why_correct": "Es una tarea abierta: no sabés de antemano qué subtareas hacen falta ni en qué orden. Primero entender el terreno, después priorizar lo de mayor impacto, y dejar que el plan cambie cuando aparece algo como el singleton (que pide resolver la inyección antes de testear).",
+      "why_wrong": {
+        "0": "Más turnos con el mismo orden ciego sigue gastando primero en lo trivial y sigue ignorando la dependencia.",
+        "1": "Los gates mejoran cada archivo, pero la lista de archivos y su orden siguen fijos. El problema es qué se ataca y cuándo.",
+        "3": "Paraleliza el mismo error: ningún subagente prioriza por impacto ni adapta el plan a lo que encuentra."
+      },
+      "rule": "Tarea abierta → mapear, priorizar por impacto, y un plan que se rehace con cada descubrimiento.",
+      "source_url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "source_quote": "This workflow is well-suited for complex tasks where you can’t predict the subtasks needed",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o07-q02",
+      "objective": 7,
+      "pool": "practice",
+      "scenario": "Un sistema de research arma al inicio un plan de 4 subtareas y lanza un subagente por cada una. En la ronda 1, un subagente reporta que el tema depende de una regulación nueva que nadie había previsto. El reporte final la menciona en una línea y no la investiga. Los subagentes funcionan bien. ¿Dónde está el fix?",
+      "options": [
+        "Que el lead agent evalúe cada ronda de resultados y, si falta algo, cree subagentes nuevos o ajuste la estrategia.",
+        "Que el subagente que encontró la regulación siga investigándola por su cuenta hasta terminarla antes de devolver.",
+        "Que el plan inicial tenga más subtareas (por ejemplo, 10 en vez de 4) para cubrir de entrada los temas imprevistos.",
+        "Que el sintetizador tenga instrucciones de extender el reporte cuando un hallazgo aparezca mencionado en pocas líneas."
+      ],
+      "correct": 0,
+      "why_correct": "El plan quedó congelado en la ronda 0. En el sistema de Research de Anthropic, el lead agent sintetiza cada ronda y decide si hace falta más investigación: puede crear subagentes nuevos o cambiar la estrategia. Las subtareas de la ronda 2 salen de lo que se encontró en la ronda 1.",
+      "why_wrong": {
+        "1": "El subagente tiene un alcance acotado y no ve el resto. Decidir qué investigar después le toca al coordinador.",
+        "2": "Lo imprevisto no se puede listar de antemano, y un plan más largo sigue siendo fijo.",
+        "3": "El sintetizador no investiga: solo puede escribir sobre lo que ya tiene. Falta información, no redacción."
+      },
+      "rule": "Hallazgo nuevo → el coordinador re-planifica y lanza subtareas nuevas; el plan inicial no es sagrado.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "The LeadResearcher synthesizes these results and decides whether more research is needed—if so, it can create additional subagents or refine its strategy.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o07-q03",
+      "objective": 7,
+      "pool": "practice",
+      "scenario": "Una contadora procesa facturas siempre igual: extraer campos → validar contra el padrón → formatear para el ERP. El equipo armó un orquestador que decide los pasos en cada factura. Resultado: en algunas facturas se saltea la validación y en otras inventa un paso de \"enriquecimiento\". Las salidas son inconsistentes. ¿Qué estructura corresponde?",
+      "options": [
+        "Un orquestador con un prompt más detallado que liste las subtareas posibles y pida usar solo las que hagan falta.",
+        "Un agente autónomo con más herramientas, para que pueda resolver solo los casos raros de validación y formato.",
+        "Varias instancias del orquestador procesando la misma factura y una votación que elija la salida más repetida.",
+        "Una cadena fija de tres llamadas (extraer, validar, formatear) con un chequeo programático que corte si validar falla."
+      ],
+      "correct": 3,
+      "why_correct": "Los pasos son siempre los mismos y se conocen de antemano: es el caso de prompt chaining. Cada llamada hace una tarea más fácil y el gate programático garantiza que no se formatea nada sin validar. La flexibilidad del orquestador acá no suma: resta consistencia.",
+      "why_wrong": {
+        "0": "Sigue dejando que el modelo decida qué pasos usar; un prompt más largo no garantiza que siempre valide.",
+        "1": "Más autonomía es más variación, justo lo contrario de lo que necesita un proceso fijo.",
+        "2": "La votación sirve para confianza en una respuesta, no para asegurar que los tres pasos se ejecuten en orden."
+      },
+      "rule": "Pasos conocidos y siempre iguales → cadena fija con gates, no descomposición dinámica.",
+      "source_url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "source_quote": "This workflow is ideal for situations where the task can be easily and cleanly decomposed into fixed subtasks.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o07-q04",
+      "objective": 7,
+      "pool": "practice",
+      "scenario": "Un bot de code review recibe PRs de 40 archivos en una sola llamada con el prompt \"revisá todo\". Detecta bien problemas en los primeros archivos, pero se le pasan bugs obvios en los últimos y casi nunca marca inconsistencias entre archivos (por ejemplo, una firma cambiada y un llamador viejo). ¿Cómo lo reestructurás?",
+      "options": [
+        "Usar un modelo con ventana de contexto más grande y subir `max_tokens` para que entre todo el PR con margen.",
+        "Una pasada por archivo con foco local y, después, una pasada aparte solo para problemas de integración entre archivos.",
+        "Mantener una sola llamada y agregar al prompt \"sé exhaustivo y revisá con el mismo cuidado cada uno de los archivos\".",
+        "Que un agente decida en cada PR qué archivos son importantes y revise solo esos para no diluir la atención."
+      ],
+      "correct": 1,
+      "why_correct": "Una llamada con 40 archivos reparte la atención y pierde calidad. Partir en pasadas por archivo da foco; una pasada separada de integración se ocupa de lo que cruza archivos. Los modelos rinden mejor cuando cada consideración va en su propia llamada.",
+      "why_wrong": {
+        "0": "El PR ya entra en el contexto: el problema no es espacio, es foco. Más ventana no lo arregla.",
+        "2": "Pedir \"sé exhaustivo\" no cambia la estructura: sigue siendo una sola pasada con todo mezclado.",
+        "3": "Saltear archivos baja la cobertura justo donde se escapaban los bugs, y sigue sin haber pasada de integración."
+      },
+      "rule": "Review grande → pasadas locales por archivo + una pasada de integración.",
+      "source_url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "source_quote": "For complex tasks with multiple considerations, LLMs generally perform better when each consideration is handled by a separate LLM call, allowing focused attention on each specific aspect.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o07-q05",
+      "objective": 7,
+      "pool": "practice",
+      "scenario": "Un agente de soporte técnico tiene en el system prompt: \"para cada incidente: 1) revisá logs, 2) revisá la base, 3) revisá la config, 4) reportá\". En un incidente, el paso 1 muestra \"certificate expired\" en todos los errores. El agente igual hace 30 consultas a la base y revisa la config, y reporta \"sin causa raíz clara\". ¿Cuál es el fix?",
+      "options": [
+        "Pedirle que use lo que encuentra en cada paso para decidir el siguiente y que corte cuando tenga evidencia suficiente.",
+        "Agregar un paso 0 al checklist que revise certificados, así ese chequeo queda incluido en el orden fijo de pasos.",
+        "Subir el límite de turnos para que tenga tiempo de terminar los cuatro pasos y además analizar los resultados.",
+        "Pasar el paso 4 a un subagente sintetizador aparte que lea las salidas de los tres pasos anteriores y concluya."
+      ],
+      "correct": 0,
+      "why_correct": "Debugging es una investigación abierta: el siguiente paso depende de lo que encontraste. El checklist rígido hace que el agente ignore un hallazgo que ya explicaba el problema. El fix es que los resultados intermedios dirijan la investigación.",
+      "why_wrong": {
+        "1": "Arregla este incidente y no el próximo: el checklist sigue siendo fijo y la siguiente causa será otra.",
+        "2": "El agente no se quedó sin turnos; los gastó en pasos inútiles. Más turnos, más desperdicio.",
+        "3": "El sintetizador recibe el ruido de 30 consultas a la base. El problema está antes: en no adaptar el plan."
+      },
+      "rule": "Si el paso 1 ya encontró la pista, el plan tiene que poder cambiar.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "The model must operate autonomously for many turns, making decisions about which directions to pursue based on intermediate findings.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o07-q06",
+      "objective": 7,
+      "pool": "practice",
+      "scenario": "Un agente migra 30 endpoints de Express a Fastify. Al inicio escribió `TODO.md` con los 30 en orden. En el endpoint 4 descubre que todos usan un middleware de auth propio que hay que portar primero. Igual sigue con el 5, 6, 7… y cada uno queda con un parche distinto para la auth. ¿Qué instrucción le faltó?",
+      "options": [
+        "\"Seguí `TODO.md` al pie de la letra y no cambies el orden, así el progreso queda siempre trazable para el equipo\".",
+        "\"Antes de empezar, escribí un `TODO.md` más detallado con subpasos por endpoint, así no te encontrás sorpresas\".",
+        "\"Si aparece una dependencia que afecta a varios ítems, actualizá `TODO.md`, reordenalo y resolvé eso antes de seguir\".",
+        "\"Hacé cada endpoint en un subagente separado, así un problema en uno no se propaga a los endpoints que siguen\"."
+      ],
+      "correct": 2,
+      "why_correct": "El plan inicial se escribió sin saber lo del middleware. Un plan dinámico se reescribe cuando aparece información nueva: la dependencia compartida pasa a ser la primera tarea y el resto se reordena. Tener plan está bien; congelarlo es el error.",
+      "why_wrong": {
+        "0": "Es justamente el comportamiento roto: obedecer el orden escrito aunque la realidad cambió.",
+        "1": "Ningún plan previo anticipa todo; lo del middleware se descubre trabajando. Más detalle no lo vuelve adaptable.",
+        "3": "Aislar cada endpoint empeora el problema: cada subagente inventaría su propio parche de auth sin ver el patrón."
+      },
+      "rule": "Plan escrito ≠ plan congelado: dependencia descubierta → actualizar y reordenar.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "When people conduct research, they tend to continuously update their approach based on discoveries, following leads that emerge during investigation.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

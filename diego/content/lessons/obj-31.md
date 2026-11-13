@@ -13,12 +13,12 @@ sources:
     title: "Prompting Claude Opus 5 (code review)"
   - url: https://code.claude.com/docs/en/memory
     title: "How Claude remembers your project (Write effective instructions)"
-status: no_verificado
+status: verificada
 ---
 
 ## Qué es (repaso)
 
-Un modelo al que le pedís "encontrá problemas" siempre encuentra algo. La doc de Claude Code: "A reviewer that's asked to find problems will always find something." Si no le marcás los límites, reporta en categorías donde no es confiable o no te importan (estilo, naming, "podrías refactorizar").
+Un modelo al que le pedís "encontrá problemas" siempre encuentra algo. La doc de Claude Code: "A reviewer that's asked to find problems will always find something." Y avisa: si arreglás todo lo que reporta, terminás con "extra abstraction layers and tests for cases that can't happen". Si no le marcás los límites, el review se llena de cosas que no te importan (estilo, naming, "podrías refactorizar").
 
 El fix: **límites explícitos**.
 

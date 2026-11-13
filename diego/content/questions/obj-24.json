@@ -22,8 +22,12 @@
       "rule": "Un tema que se pierde en un review mezclado → una pasada por tema, con sus propios ejemplos.",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/increase-consistency",
       "source_quote": "Break down complex tasks into smaller, consistent subtasks. Each prompt then covers a single subtask, reducing inconsistency errors across scaled workflows.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en increase-consistency (chain prompts). Distractores coherentes."
+      }
     },
     {
       "id": "o24-q02",
@@ -46,8 +50,12 @@
       "rule": "Pasada separada = ejemplos separados. Ejemplos de otro tema enseñan el tema equivocado.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Relevant: Mirror your actual use case closely.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita 'Relevant: Mirror your actual use case closely' y '3–5 examples' en best practices."
+      }
     },
     {
       "id": "o24-q03",
@@ -70,8 +78,12 @@
       "rule": "Para bajar ruido sin perder bugs: buscá todo en una pasada, filtrá en otra.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5",
       "source_quote": "If your review prompt says “only report high-severity issues” or “be conservative,” the model might follow that instruction literally and report less; ask it to report everything and filter in a separate pass instead.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita literal de Prompting Opus 5; w2 respaldado por code-review-local ('At low, the review reports the findings it's most confident in')."
+      }
     },
     {
       "id": "o24-q04",
@@ -94,8 +106,12 @@
       "rule": "Review especializado en Claude Code → un subagente por tema, con prompt propio y tools de solo lectura.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "Each subagent runs in its own context window with a custom system prompt, specific tool access, and independent permissions.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en sub-agents; `tools: Read, Grep, Glob` aparece como ejemplo en la página."
+      }
     },
     {
       "id": "o24-q05",
@@ -118,8 +134,12 @@
       "rule": "Pasadas separadas → mismo formato de salida → merge en código.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Explicit prompt chaining (breaking a task into sequential API calls) is still useful when you need to inspect intermediate outputs or enforce a specific pipeline structure.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual sobre prompt chaining en best practices."
+      }
     },
     {
       "id": "o24-q06",
@@ -142,8 +162,12 @@
       "rule": "Code Review = varios agentes en paralelo + verificación + ranking. Multipasada, no prompt único.",
       "source_url": "https://code.claude.com/docs/en/code-review",
       "source_quote": "Verify: a verification step checks the candidate findings against the code and filters out false positives.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Las 4 etapas Find/Verify/Rank/Post y 'never approves or blocks' confirmadas en code-review."
+      }
     },
     {
       "id": "o24-q07",
@@ -166,8 +190,12 @@
       "rule": "Few-shot de una pasada: 3–5 ejemplos diversos DENTRO de su tema.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Diverse: Cover edge cases and vary enough that Claude doesn’t pick up unintended patterns.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita 'Diverse: Cover edge cases...' y `<examples>` confirmados."
+      }
     },
     {
       "id": "o24-q08",
@@ -190,8 +218,12 @@
       "rule": "¿Querés medir y tunear cada criterio? Cada criterio en su propia llamada.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Each step is a separate API call so you can log, evaluate, or branch at any point.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual sobre llamadas separadas para log/evaluate/branch."
+      }
     },
     {
       "id": "o24-q09",
@@ -214,8 +246,12 @@
       "rule": "Includes en REVIEW.md = organizar texto. Pasadas separadas = llamadas o agentes separados.",
       "source_url": "https://code.claude.com/docs/en/code-review-customize",
       "source_quote": "Code Review puts the file's contents in place of that line, so they apply as part of `REVIEW.md`.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Includes con `@` en root REVIEW.md, contenido en lugar de la línea; archivos al lado de REVIEW.md. Confirmado."
+      }
     },
     {
       "id": "o24-q10",
@@ -238,8 +274,12 @@
       "rule": "Más candidatos + falsos positivos → agregá una etapa de verificación, no restricciones en la búsqueda.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "Nested subagents suit a delegated task that itself splits into parallel subtasks, such as a reviewer subagent that dispatches a verifier per finding.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita literal de sub-agents (reviewer que despacha verifier por hallazgo)."
+      }
     }
   ]
 }
