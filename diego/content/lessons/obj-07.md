@@ -13,7 +13,7 @@ sources:
     title: "Create custom subagents"
   - url: https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification
     title: "CCAR-F Exam Guide (Task Statement 1.6)"
-status: no_verificado
+status: verificada
 ---
 
 ## Qué es
@@ -31,7 +31,7 @@ La frase clave del post de Anthropic: la investigación es "inherently dynamic a
 
 - **Investigación abierta, debugging, "agregá tests a un legacy"** → dinámica. Primero mapear la estructura, después identificar lo de mayor impacto, después un plan priorizado **que se ajusta** cuando descubrís dependencias.
 - **Review predecible con varios aspectos, extracción con pasos conocidos** → cadena fija. La doc de prompting: el chaining explícito sirve "when you need to inspect intermediate outputs or enforce a specific pipeline structure".
-- **Review grande de código** → cadena: una pasada por archivo + una pasada aparte de integración entre archivos. Cada llamada tiene foco; no se diluye la atención.
+- **Review grande de código** → partir en pasadas: una por archivo (el post lo llama *sectioning*: "each consideration is handled by a separate LLM call") + una pasada aparte de integración entre archivos. Cada llamada tiene foco; no se diluye la atención.
 
 En el sistema de Research de Anthropic, el lead agent arma un plan, lanza subagentes, junta resultados y "decides whether more research is needed—if so, it can create additional subagents or refine its strategy". Eso es dinámico: los subtasks de la ronda 2 no existían en la ronda 1.
 

@@ -15,7 +15,7 @@ sources:
     title: "Prompting best practices"
   - url: https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification
     title: "CCAR-F Exam Guide (Task Statement 1.2)"
-status: no_verificado
+status: verificada
 ---
 
 ## Qué es
@@ -33,9 +33,9 @@ En la práctica se combinan: el Research de Anthropic es un coordinador que lanz
 ## Cuándo se usa
 
 - **Cobertura** (tema amplio): coordinador que **parte el alcance en pedazos distintos**. Cada subagente necesita "an objective, an output format, guidance on the tools and sources to use, and clear task boundaries". Sin eso: "agents duplicate work, leave gaps".
-- **Latencia** (subtareas independientes): paralelo. En Claude Code / SDK, el coordinador emite varias llamadas a la tool `Agent` en la misma respuesta.
+- **Latencia** (subtareas independientes): paralelo. En Claude Code / SDK, el coordinador lanza varios subagentes (tool `Agent`) que corren a la vez: "spawn multiple subagents to work simultaneously".
 - **Dependencias** (extraer → verificar → redactar): secuencial. La doc de sub-agents: el paralelo "works best when the research paths don't depend on each other".
-- **Confiabilidad / observabilidad**: que todo pase por el coordinador. Ahí se manejan errores de forma consistente y se ve el flujo. Los subagentes no ven el historial del coordinador: hay que pasarles el contexto en el prompt.
+- **Confiabilidad / observabilidad**: que todo pase por el coordinador. Ahí se manejan errores de forma consistente y se ve el flujo. Los subagentes no ven el historial del coordinador (salvo un *fork*, que copia la conversación): hay que pasarles el contexto en el prompt de la tool `Agent`.
 - **Pregunta simple**: un agente. "Simple fact-finding requires just 1 agent with 3-10 tool calls". Y si las tareas comparten mucho estado (mucho código interdependiente), el post dice que no son buen caso para multi-agente.
 
 ## El error típico que el examen quiere que cometas

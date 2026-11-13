@@ -10,7 +10,7 @@ sources:
     title: "How we built our multi-agent research system"
   - url: https://www.anthropic.com/engineering/building-effective-agents
     title: "Building effective agents"
-status: no_verificado
+status: verificada
 ---
 
 ## Objetivo
@@ -88,5 +88,6 @@ Pedí: `¿Qué dice auth/f1.js?` Si lanza un subagente, es sobrecosto: para algo
 ## Si algo falla
 
 - Si en el paso 2 Claude igual lanza los tres juntos, repetí remarcando "esperá a que termine cada uno".
+- En una sesión interactiva los subagentes arrancan en background por defecto y, con fork mode prendido (el default), Claude no puede quedarse esperando a uno: el reporte llega en un turno posterior. Si en los pasos 2 o 4 no logra esperar, poné `"env": { "CLAUDE_CODE_FORK_SUBAGENT": "0" }` en `settings.json`, volvé a abrir `claude` y pedile "esperá el reporte" (doc: *Let Claude wait for a subagent*).
 - Si no ves el panel de subagentes, mirá los mensajes de la tool `Agent` en el transcript.
 - Los subagentes gastan tokens propios: con este repo chiquito es poco, pero en uno real tenelo en cuenta.

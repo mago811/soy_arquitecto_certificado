@@ -22,8 +22,12 @@
       "rule": "Sesión puntual (no la última) → `--resume <nombre o id>`; `--continue` es solo la más reciente.",
       "source_url": "https://code.claude.com/docs/en/cli-reference",
       "source_quote": "Set a display name for the session, shown in `/resume` and the terminal title. You can resume a named session with `claude --resume <name>`.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "cli-reference: --name/-n y quote textual; sessions: --continue = más reciente del directorio, --resume <name> directo; /clear [name] etiqueta la conversación que dejás; --session-id exige UUID."
+      }
     },
     {
       "id": "o02-q02",
@@ -46,14 +50,18 @@
       "rule": "Resume + \"cambiaron estos archivos, releé solo esos\" = re-análisis dirigido.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
       "source_quote": "Returning to a session means the agent has full context from before: files it already read, analysis it already performed, decisions it already made.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "agent-sdk/sessions: quote textual (línea 11) + \"Sessions persist the conversation, not the filesystem\"; sessions: lo restaurado incluye tool calls y results; fork copia el historial (\"not the filesystem\"); /compact resume el historial existente. El aviso dirigido de archivos cambiados es la práctica de la guía (re-análisis dirigido); ningún distractor cumple \"sin repetir trabajo\"."
+      }
     },
     {
       "id": "o02-q03",
       "objective": 2,
       "pool": "practice",
-      "scenario": "Una startup corre un agente con el Agent SDK en contenedores efímeros. El paso 1 analiza un repo en un contenedor; el paso 2 (otro contenedor) hace `resume` con el `session_id` guardado y falla porque la sesión no está. No quieren montar infraestructura para mover transcripts. ¿Qué diseño recomienda la doc como el más robusto?",
+      "scenario": "Una startup corre un agente con el Agent SDK en contenedores efímeros. El paso 1 analiza un repo en un contenedor; el paso 2 (otro contenedor) hace `resume` con el `session_id` guardado y falla porque la sesión no está. No quieren montar infraestructura para mover transcripts. ¿Qué diseño, según la doc, suele ser el más robusto en este caso?",
       "options": [
         "Guardar los resultados del paso 1 (análisis, decisiones, diffs) como estado propio y pasarlos en el prompt de una sesión nueva.",
         "En el paso 2 usar `continue: true` en vez de `resume`, así el SDK encuentra la sesión sin necesitar el ID guardado.",
@@ -61,7 +69,7 @@
         "Subir `max_turns` en el paso 1 para que el análisis y la ejecución entren en una sola llamada en el mismo contenedor."
       ],
       "correct": 0,
-      "why_correct": "Los archivos de sesión son locales a la máquina que los creó. Sin un `SessionStore` ni mover el `.jsonl`, la doc propone no depender del resume: capturar lo que importa como estado de la app e inyectarlo en una sesión nueva. Lo describe como más robusto que andar moviendo transcripts.",
+      "why_correct": "Los archivos de sesión son locales a la máquina que los creó. Para otro host la doc da tres caminos: un `SessionStore`, mover el `.jsonl`, o no depender del resume. Sin infraestructura, queda el tercero: capturar lo que importa como estado de la app e inyectarlo en una sesión nueva, que la doc describe como \"often more robust\" que mover transcripts.",
       "why_wrong": {
         "1": "`continue` busca la sesión más reciente en el disco local. En un contenedor nuevo no hay ninguna.",
         "2": "El fork parte de una sesión existente: si el archivo no está en este host, no hay nada que forkear.",
@@ -70,8 +78,12 @@
       "rule": "Sesión en otro host sin store → estado propio inyectado en una sesión nueva.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
       "source_quote": "Capture the results you need (analysis output, decisions, file diffs) as application state and pass them into a fresh session's prompt. This is often more robust than shipping transcript files around.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "agent-sdk/sessions \"Resume across hosts\": quote textual. Se suavizó \"el más robusto\" (la doc dice \"often more robust\") y se mencionan las tres opciones documentadas."
+      }
     },
     {
       "id": "o02-q04",
@@ -94,8 +106,12 @@
       "rule": "Dos caminos desde la misma base → `fork_session=True` (TS: `forkSession: true`).",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
       "source_quote": "Forking creates a new session that starts with a copy of the original's history but diverges from that point. The fork gets its own session ID; the original's ID and history stay unchanged.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "agent-sdk/sessions: quote textual del fork; continue_conversation = sesión más reciente del directorio; fork_session=True (Py) / forkSession (TS) confirmados en los ejemplos."
+      }
     },
     {
       "id": "o02-q05",
@@ -109,7 +125,7 @@
         "Seguir en la sesión vieja y pegarle el diff completo del refactor para que lo combine con todo lo que ya había leído."
       ],
       "correct": 1,
-      "why_correct": "Cuando casi todo lo que el agente leyó quedó viejo, retomar trae más ruido que ayuda. Conviene arrancar limpio e inyectar lo que vale (decisiones, pendientes). La doc de prompting dice que los modelos actuales descubren muy bien el estado desde el filesystem (archivos de progreso, tests, git log).",
+      "why_correct": "Cuando casi todo lo que el agente leyó quedó viejo, retomar trae más ruido que ayuda. Conviene arrancar limpio e inyectar lo que vale (decisiones, pendientes). La doc de prompting, para trabajo que cruza ventanas de contexto, sugiere considerar una ventana nueva en vez de compactar, porque los modelos actuales descubren muy bien el estado desde el filesystem, y da como ejemplo revisar `progress.txt`, `tests.json` y el git log.",
       "why_wrong": {
         "0": "El fork copia el mismo historial viejo. Es una copia, no una versión \"limpia\".",
         "2": "El resumen de `/compact` sale del mismo historial: sigue describiendo el código de antes del refactor.",
@@ -118,8 +134,12 @@
       "rule": "Tool results mayormente viejos → sesión nueva + resumen inyectado; pocos cambios → resume + aviso.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Claude’s latest models are extremely effective at discovering state from the local filesystem.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "prompting best practices (\"Choose between starting fresh and compacting\"): quote textual. Se ajustó why_correct para reflejar el contexto real de la cita (ventana nueva vs. compactar) y sus ejemplos. sessions: fork copia historial; /compact resume historial."
+      }
     },
     {
       "id": "o02-q06",
@@ -137,13 +157,17 @@
       "why_wrong": {
         "0": "`--continue` abre la sesión más reciente de la carpeta, que es la misma. No crea una sesión propia.",
         "1": "`/rename` le cambia el nombre a la misma sesión; no la separa. Además le cambiaría el nombre a la del compañero.",
-        "2": "`--session-id` arranca una conversación con ese ID, pero no copia el historial del análisis: perdés la base compartida."
+        "2": "`--session-id` solo fija el ID (un UUID válido) de la conversación que arrancás. La doc no lo presenta como forma de retomar ni de copiar una sesión: para seguir con el historial y un ID propio, el mecanismo documentado es `--fork-session` (o `/branch`)."
       },
       "rule": "Mismo punto de partida, trabajo en paralelo → fork; nunca la misma sesión en dos terminales.",
       "source_url": "https://code.claude.com/docs/en/sessions",
       "source_quote": "If you resume the same session in two terminals without forking, messages from both interleave into one transcript.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "sessions: quote textual (línea \"If you resume the same session in two terminals...\"); /branch y --fork-session dan IDs propios. why_wrong de la opción 2 reformulado: ya no afirma como dato que --session-id \"no copia el historial\" (la doc no lo dice), sino que no es el mecanismo documentado para copiar."
+      }
     }
   ]
 }

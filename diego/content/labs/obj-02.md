@@ -12,7 +12,7 @@ sources:
     title: "Commands"
   - url: https://code.claude.com/docs/en/agent-sdk/sessions
     title: "Work with sessions (Agent SDK)"
-status: no_verificado
+status: verificada
 ---
 
 ## Objetivo

@@ -22,8 +22,12 @@
       "rule": "Tarea abierta → mapear, priorizar por impacto, y un plan que se rehace con cada descubrimiento.",
       "source_url": "https://www.anthropic.com/engineering/building-effective-agents",
       "source_quote": "This workflow is well-suited for complex tasks where you can’t predict the subtasks needed",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "building-effective-agents (orchestrator-workers): quote textual. Mapear→priorizar→plan adaptable coincide con descomposición dinámica; distractores fijos o paralelos no priorizan."
+      }
     },
     {
       "id": "o07-q02",
@@ -46,8 +50,12 @@
       "rule": "Hallazgo nuevo → el coordinador re-planifica y lanza subtareas nuevas; el plan inicial no es sagrado.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "The LeadResearcher synthesizes these results and decides whether more research is needed—if so, it can create additional subagents or refine its strategy.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "multi-agent-research-system: quote textual sobre el LeadResearcher que decide si hace falta más investigación y crea subagentes."
+      }
     },
     {
       "id": "o07-q03",
@@ -70,8 +78,12 @@
       "rule": "Pasos conocidos y siempre iguales → cadena fija con gates, no descomposición dinámica.",
       "source_url": "https://www.anthropic.com/engineering/building-effective-agents",
       "source_quote": "This workflow is ideal for situations where the task can be easily and cleanly decomposed into fixed subtasks.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "building-effective-agents (prompt chaining): quote textual; el post describe gates programáticos entre pasos. Votación = variante de parallelization, no garantiza orden."
+      }
     },
     {
       "id": "o07-q04",
@@ -85,7 +97,7 @@
         "Que un agente decida en cada PR qué archivos son importantes y revise solo esos para no diluir la atención."
       ],
       "correct": 1,
-      "why_correct": "Una llamada con 40 archivos reparte la atención y pierde calidad. Partir en pasadas por archivo da foco; una pasada separada de integración se ocupa de lo que cruza archivos. Los modelos rinden mejor cuando cada consideración va en su propia llamada.",
+      "why_correct": "Una sola llamada con 40 archivos mezcla todo y diluye la atención. Partir en pasadas por archivo da foco local; una pasada separada de integración se ocupa de lo que cruza archivos. El post de Anthropic: con varias consideraciones, los LLM suelen rendir mejor cuando cada una va en su propia llamada (sectioning).",
       "why_wrong": {
         "0": "El PR ya entra en el contexto: el problema no es espacio, es foco. Más ventana no lo arregla.",
         "2": "Pedir \"sé exhaustivo\" no cambia la estructura: sigue siendo una sola pasada con todo mezclado.",
@@ -94,8 +106,12 @@
       "rule": "Review grande → pasadas locales por archivo + una pasada de integración.",
       "source_url": "https://www.anthropic.com/engineering/building-effective-agents",
       "source_quote": "For complex tasks with multiple considerations, LLMs generally perform better when each consideration is handled by a separate LLM call, allowing focused attention on each specific aspect.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "building-effective-agents (parallelization/sectioning): quote textual. Se aclaró en why_correct que es el patrón sectioning; la pasada de integración aparte es la práctica de la guía (Task 1.6). Ningún distractor defendible."
+      }
     },
     {
       "id": "o07-q05",
@@ -118,8 +134,12 @@
       "rule": "Si el paso 1 ya encontró la pista, el plan tiene que poder cambiar.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "The model must operate autonomously for many turns, making decisions about which directions to pursue based on intermediate findings.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "multi-agent-research-system: quote textual (\"operate autonomously for many turns... based on intermediate findings\")."
+      }
     },
     {
       "id": "o07-q06",
@@ -142,8 +162,12 @@
       "rule": "Plan escrito ≠ plan congelado: dependencia descubierta → actualizar y reordenar.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "When people conduct research, they tend to continuously update their approach based on discoveries, following leads that emerge during investigation.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "multi-agent-research-system: quote textual (\"continuously update their approach based on discoveries\")."
+      }
     }
   ]
 }

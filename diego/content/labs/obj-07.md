@@ -10,7 +10,7 @@ sources:
     title: "How we built our multi-agent research system"
   - url: https://code.claude.com/docs/en/sessions
     title: "Manage sessions"
-status: no_verificado
+status: verificada
 ---
 
 ## Objetivo
