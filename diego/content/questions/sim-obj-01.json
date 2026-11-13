@@ -55,7 +55,7 @@
       "pool": "sim",
       "scenario": "Viajes Delta automatiza el check-in web de sus pasajeros con el browser use tool. Para bajar la latencia, un dev cambió el ejecutor: cuando Claude devuelve en un mismo turno `left_click` sobre el campo de búsqueda, `type` con el código de reserva y `key` con Enter, el ejecutor lanza los tres con `Promise.all`. Desde el cambio, a veces el código se tipea en el campo equivocado y otras veces se presiona Enter antes de terminar de escribir. ¿Cómo tiene que ejecutar el harness estas llamadas?",
       "options": [
-        "En el orden en que aparecen, frenando en la primera que falle y respondiendo las siguientes con `is_error: true` y el texto de corte que define la tool.",
+        "En el orden en que aparecen, frenando en la primera que falle y respondiendo las siguientes con `is_error: true` y el texto de corte de la tool.",
         "En paralelo, como cualquier otro lote de tool calls, pero devolviendo los tres `tool_result` en mensajes `user` separados para que Claude vea cada paso.",
         "En paralelo, y si alguna falla, reintentarla automáticamente dentro del mismo turno sin avisarle a Claude, para no sumar una ida y vuelta extra.",
         "Ejecutar solo la primera llamada de cada turno y descartar las otras sin devolverles resultado, para que Claude las vuelva a pedir de a una."

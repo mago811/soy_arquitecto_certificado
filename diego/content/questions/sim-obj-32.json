@@ -22,8 +22,12 @@
       "rule": "En Linux/macOS sin flags, las búsquedas de Claude son llamadas a `Bash`: hooks y permisos se escriben contra `Bash`.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "In Claude's shell those two commands run embedded versions of `bfs` and `ugrep`, and the searches reach your hooks and permission rules as `Bash` calls.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "tools-reference: en macOS/Linux/WSL Glob/Grep fuera del set por defecto, búsquedas llegan a hooks/permisos como Bash; allow rule en settings no las restaura. Escenario explicita Linux sin flags."
+      }
     },
     {
       "id": "o32-s02",
@@ -46,8 +50,12 @@
       "rule": "Patrón que tiene que cruzar líneas → Grep con `multiline: true`.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "By default, patterns match within a single line. Claude can set `multiline: true` to match across line boundaries.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "tools-reference: 'By default, patterns match within a single line... multiline: true'. Ripgrep rechazado => error con diagnóstico (v2.1.208+). Escenario deja claro que Grep está (subagente sin Bash). Distinto de o32-q06."
+      }
     },
     {
       "id": "o32-s03",
@@ -70,8 +78,12 @@
       "rule": "Read rechaza binarios como `.parquet` o `.xlsx` → leelos con un comando o script por Bash.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "Read refuses a file whose extension it treats as binary, such as `.xlsx`, `.parquet`, `.heic`, or `.zip`.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "tools-reference: Read rechaza .parquet por extensión; el error sugiere comando/script de shell; allow_large solo cambia límites de texto. Distinto de o32-q03 (directorio)."
+      }
     },
     {
       "id": "o32-s04",
@@ -89,13 +101,17 @@
       "why_wrong": {
         "0": "Write no tiene modo append: siempre deja en el archivo exactamente el contenido que recibe. El prompt no cambia eso.",
         "2": "`replace_all` reemplaza todas las ocurrencias de un texto; el título aparece una vez y la entrada quedaría arriba, no al final.",
-        "3": "Leer antes es un requisito para poder sobrescribir un archivo existente, no algo que evite la sobrescritura."
+        "3": "Según el modelo, leer antes puede ser requisito para sobrescribir un archivo existente; pero leerlo no evita que Write lo pise entero."
       },
       "rule": "Write sobrescribe todo; para agregar o cambiar una parte de un archivo, Edit con un `old_string` único.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "The Write tool creates a new file or overwrites an existing one with the full content provided. It doesn't append or merge.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "tools-reference: Write 'doesn't append or merge'; Edit para cambios parciales. Corregido why_wrong[3]: la lectura previa obligatoria depende del modelo (Opus 4.6/Haiku 4.5 y anteriores sí; modelos nuevos no siempre)."
+      }
     }
   ]
 }

@@ -33,7 +33,7 @@
       "options": [
         "Mantener el enum de pacientes pero cifrar los nombres con un hash, así el schema no contiene datos legibles y el enum sigue validando.",
         "Mover la lista de pacientes a una regex `pattern` en el campo `paciente`, porque los patterns no se cachean como el resto del schema.",
-        "Dejar `paciente` como string, mandar la agenda en el contenido del mensaje y validar en el código que el paciente extraído exista en la agenda.",
+        "Dejar `paciente` como string, mandar la agenda en el mensaje y validar en el código que el paciente extraído esté en esa agenda.",
         "Mantener el enum y sacar `strict: true`, porque sin strict el schema no pasa por la compilación de gramáticas y no se cachea."
       ],
       "correct": 2,

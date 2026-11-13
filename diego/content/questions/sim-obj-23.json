@@ -22,8 +22,12 @@
       "rule": "Alguien esperando la respuesta (o `stream`) → Messages API. Volumen sin apuro → Batches API.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
       "source_quote": "This approach is well-suited to tasks that do not require immediate responses, with most batches finishing in less than 1 hour while reducing costs by 50 percent and increasing throughput.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "batch-processing: stream y speed devuelven validation error en batch; most batches < 1 h, hasta 24 h; 50%. Cita textual. Distinto de o23-q01 (CI)."
+      }
     },
     {
       "id": "o23-s02",
@@ -46,8 +50,12 @@
       "rule": "Pasos encadenados + deadline duro → Messages API. El batch no promete tiempo.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
       "source_quote": "Batches might take up to 24 hours for processing, but many complete sooner.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "batch-processing FAQ: 'Batches might take up to 24 hours... many complete sooner', textual. Pasos dependientes + deadline => Messages."
+      }
     },
     {
       "id": "o23-s03",
@@ -70,8 +78,12 @@
       "rule": "Batch + contexto compartido → `cache_control` idéntico en todas las requests y cache de 1 hora.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
       "source_quote": "Include identical `cache_control` blocks in every Message request within your batch.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "batch-processing: caching soportado, descuentos se suman, best-effort, cache_control idéntico, 1-hour cache por >5 min. Cita textual."
+      }
     },
     {
       "id": "o23-s04",
@@ -94,8 +106,12 @@
       "rule": "Batches no le come rate limit a la Messages API; respetá el tope de 100.000 requests / 256 MB por batch.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
       "source_quote": "Usage of the Batches API does not affect rate limits in the Messages API.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "batch-processing: 'Usage of the Batches API does not affect rate limits in the Messages API' textual; tope 100.000 requests / 256 MB; system messages se batchean."
+      }
     }
   ]
 }

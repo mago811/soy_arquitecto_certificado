@@ -32,7 +32,7 @@
       "scenario": "Un estudio contable pasó su sistema de research tributario a delegación por objetivo con el Agent SDK (TypeScript), y la calidad de los informes mejoró. Pero compliance exige poder reconstruir, para cada informe, qué subagente produjo cada mensaje y cuándo arrancó y terminó cada uno. Un gerente propone volver a instrucciones paso a paso \"así sabemos qué hizo cada uno\". ¿Qué proponés?",
       "options": [
         "Volver a pasos fijos solo en los subagentes que tocan normativa, y dejar por objetivo el resto, así se audita al menos la parte crítica.",
-        "Mantener la delegación por objetivo y rastrear la ejecución: `parent_tool_use_id` y `agent_id` en los mensajes, más hooks `SubagentStart` y `SubagentStop`.",
+        "Mantener la delegación por objetivo y rastrear la ejecución con `parent_tool_use_id`/`agent_id` y hooks `SubagentStart`/`SubagentStop`.",
         "Pedirle a cada subagente que cierre su informe con una bitácora en prosa de los pasos que siguió, y archivar esa bitácora junto al informe.",
         "Desactivar los subagentes y que el coordinador haga todo él mismo, así queda una sola traza lineal y simple de auditar de punta a punta."
       ],
@@ -55,7 +55,7 @@
       "pool": "sim",
       "scenario": "Un think tank usa un sistema multiagente para producir informes de políticas públicas. En la revisión manual detectan un sesgo: los subagentes eligen sistemáticamente sitios optimizados para SEO por encima de papers académicos y documentos oficiales menos posicionados. Un analista propone darle a cada subagente una secuencia fija: \"1) buscá en estos 12 dominios, 2) si no hay nada, buscá en Google Scholar, 3)...\". El problema es que los temas cambian cada semana y las mejores fuentes también. ¿Qué cambio recomienda Anthropic?",
       "options": [
-        "Agregar al prompt heurísticas de calidad de fuentes (preferir fuentes primarias y autorizadas por sobre las secundarias) y mantener la delegación por objetivo.",
+        "Sumar al prompt heurísticas de calidad de fuentes (preferir primarias y autorizadas sobre secundarias) y seguir delegando por objetivo.",
         "Adoptar la lista fija de dominios y pasos, porque es la única forma de asegurar que todos los subagentes usen siempre las mismas fuentes.",
         "Aumentar la cantidad de subagentes por consulta, así la mayor cobertura compensa que algunos subagentes elijan fuentes de baja calidad.",
         "Sumar un juez LLM al final que puntúe la calidad de las fuentes y descarte los informes con nota baja, sin tocar los prompts de los subagentes."
@@ -106,7 +106,7 @@
         "Pasar a instrucciones paso a paso, con la lista exacta de archivos y cambios para cada subagente, armada por el coordinador antes de delegar.",
         "Correr los subagentes uno después del otro, así el segundo ve los cambios del primero y no hay conflictos en los archivos de `src/shared/`.",
         "Darle a cada subagente `isolation: worktree`, así trabajan en copias separadas del repo y no se pisan los archivos mientras corren.",
-        "Que cada encargo tenga, además del objetivo, límites claros (qué carpetas toca cada uno y quién es dueño de `src/shared/`) y un formato de salida."
+        "Que cada encargo traiga, además del objetivo, límites claros (qué carpetas toca y quién es dueño de `src/shared/`) y formato de salida."
       ],
       "correct": 3,
       "why_correct": "Anthropic aprendió que cada subagente necesita un objetivo, un formato de salida, guía sobre tools y fuentes, y límites claros de la tarea. Sin descripciones detalladas, los agentes duplican trabajo, dejan huecos o se pisan. Definir quién es dueño de qué carpeta resuelve el choque en `src/shared/` y el hueco en `src/checkout/` sin pasar a pasos rígidos.",

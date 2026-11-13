@@ -22,8 +22,12 @@
       "rule": "El ruteo a revisión no puede depender de la capitalización exacta de un enum: compará sin distinguir mayúsculas.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "Compare enum values case-insensitively, and avoid enum values that differ only in capitalization.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "structured-outputs (Invalid outputs): no garantiza capitalización de enum, termina normal sin stop_reason especial, aplica a strict tool use. Cita textual."
+      }
     },
     {
       "id": "o22-s02",
@@ -46,8 +50,12 @@
       "rule": "Juez binario sin salida = adivina. Dale 'Unknown' y ruteá esos campos a humanos.",
       "source_url": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
       "source_quote": "To avoid hallucinations, give the LLM a way out, like providing an instruction to return “Unknown” when it doesn’t have enough information.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Blog demystifying evals: 'give the LLM a way out... Unknown' y juez aislado por dimensión, textual. Aplicación a un verificador de extracción es directa (es un LLM-as-judge). Distinto de práctica obj-22."
+      }
     },
     {
       "id": "o22-s03",
@@ -61,7 +69,7 @@
         "Precisión y recall del ruteo contra casos etiquetados: qué errores reales atrapa y cuántos de los enviados lo necesitaban."
       ],
       "correct": 3,
-      "why_correct": "Que baje la tasa de revisión no dice si el ruteo es mejor: puede estar dejando pasar errores. La doc recomienda evaluar el sistema en forma regular con métricas como precisión y recall. Recall muestra cuántos errores reales llegan a revisión; precisión, cuánto trabajo se gasta en casos que estaban bien.",
+      "why_correct": "Que baje la tasa de revisión no dice si el ruteo es mejor: puede estar dejando pasar errores. La guía de Anthropic de content moderation, otro clasificador que manda casos dudosos a revisión humana, recomienda evaluar el sistema en forma regular con métricas como precisión y recall. Recall muestra qué parte de los errores reales llega a revisión; precisión, qué parte de lo enviado realmente lo necesitaba.",
       "why_wrong": {
         "0": "El tiempo de cierre depende de muchas cosas y no mide los errores que nunca llegaron a un analista.",
         "1": "Es la misma métrica que generó la confusión: mide volumen enviado, no calidad del ruteo.",
@@ -70,8 +78,12 @@
       "rule": "Ruteo a revisión se evalúa con precisión y recall contra etiquetas, no con 'cuánto mandamos'.",
       "source_url": "https://platform.claude.com/docs/en/about-claude/use-case-guides/content-moderation",
       "source_quote": "Regularly assess the performance of your content moderation system using metrics such as precision and recall tracking.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "content-moderation: cita textual (precision and recall) y risk levels flagged for human review. Se apoya por analogía: why_correct ahora lo dice explícito y no presenta la guía como si hablara de extracciones. Ajustada la definición de precisión (era 1-precisión). Distinto de o22-q04/q10."
+      }
     },
     {
       "id": "o22-s04",
@@ -94,8 +106,12 @@
       "rule": "Precisión global alta puede esconder un segmento malo: medí por característica del documento (idioma, tipo) y ruteá ese segmento.",
       "source_url": "https://platform.claude.com/docs/en/about-claude/use-case-guides/ticket-routing",
       "source_quote": "Measure the routing accuracy across different languages, aiming for no more than a 5–10 percent drop in accuracy for non-primary languages.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "descartada",
+        "notes": "Casi igual a o22-q02 (precisión global alta esconde un segmento malo → medir por segmento y dejar revisión ahí; acá el segmento es el idioma). Además la cita de ticket-routing solo habla de medir accuracy de ruteo de tickets por idioma; 'mandar ese idioma a revisión humana' no está en la doc. Reemplazar por un escenario nuevo."
+      }
     }
   ]
 }

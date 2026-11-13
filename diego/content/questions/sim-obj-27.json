@@ -32,7 +32,7 @@
       "scenario": "Un e-commerce extrae datos de pedidos con Claude Haiku 5.5, una tool `registrar_pedido` con `strict: true` y `tool_choice: {\"type\": \"tool\", \"name\": \"registrar_pedido\"}`. Funciona perfecto. Para los picos de tráfico configuraron un fallback: si Haiku 5.5 devuelve error de sobrecarga, la misma request se reenvía a Claude Sonnet 5.5. Durante el último Hot Sale, todas las requests de fallback fallaron con `invalid_request_error`. ¿Qué cambiás en la ruta de fallback?",
       "options": [
         "Reenviar a Sonnet 5.5 con `tool_choice: {\"type\": \"any\"}` en vez de `tool`, porque `any` es menos restrictivo y los modelos 5.5 sí lo aceptan.",
-        "En el fallback a Sonnet 5.5, usar `tool_choice` en `auto` con la tool estricta y verificar en código que haya `tool_use`, o pasar a structured outputs.",
+        "En el fallback a Sonnet 5.5, usar `auto` con la tool estricta y verificar en código que llegue `tool_use`, o pasar a structured outputs.",
         "Agregar al fallback un prefill del turno de asistente que arranque la llamada a la tool, para obligar a Sonnet 5.5 a responder con un `tool_use`.",
         "Reintentar el fallback con backoff exponencial, porque durante los picos los 400 son una forma de rate limiting de los modelos más grandes."
       ],

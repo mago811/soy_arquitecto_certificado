@@ -31,7 +31,7 @@
       "pool": "sim",
       "scenario": "Un banco procesa cada noche 180.000 resúmenes de tarjeta con Claude Sonnet 5.5 para extraer movimientos a un JSON que un loader en Java carga a la base. El loader se rompe con cualquier JSON inválido, nadie necesita los resultados antes de la mañana y Finanzas pidió recortar el costo de este proceso. Hoy usan la Messages API, un prompt que pide JSON y reintentos cuando el parseo falla. ¿Qué cambiás?",
       "options": [
-        "Pasar a la Message Batches API con `output_config.format` y el schema del loader: JSON garantizado con un 50% de descuento sobre el costo.",
+        "Pasar a la Message Batches API con `output_config.format` y el schema del loader: JSON garantizado y 50% de descuento en el costo.",
         "Mantener la Messages API, agregar `output_config.format` y subir la concurrencia para terminar antes y bajar el costo por documento.",
         "Pasar a la Message Batches API manteniendo el prompt que pide JSON, y mandar en un segundo batch solo los documentos que no parseen.",
         "Pasar a la Message Batches API con una tool `guardar_movimientos` con `strict: true` y `tool_choice: {\"type\": \"any\"}` en cada request."

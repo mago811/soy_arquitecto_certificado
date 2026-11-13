@@ -22,8 +22,12 @@
       "rule": "Context editing rompe el cache: con `clear_at_least` hacés que cada limpieza valga la pena.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
       "source_quote": "Use the `clear_at_least` parameter to ensure a minimum number of tokens is cleared each time.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "context-editing: clear_at_least, invalidación de cache, trigger default 100k, keep = pares a conservar. Cita textual."
+      }
     },
     {
       "id": "o21-s02",
@@ -46,8 +50,12 @@
       "rule": "Antes de que se limpien resultados importantes, que Claude los guarde: context editing + memory tool.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
       "source_quote": "When your conversation context approaches the configured clearing threshold, Claude receives an automatic warning to preserve important information.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "context-editing: combinación con memory tool, aviso automático cerca del umbral; clear_tool_inputs borra también las llamadas. Cita textual."
+      }
     },
     {
       "id": "o21-s03",
@@ -70,14 +78,18 @@
       "rule": "Con context editing, tu historial local queda completo: la API edita del lado del servidor.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
       "source_quote": "Your client application maintains the full, unmodified conversation history. You do not need to sync your client state with the edited version.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "context-editing: server-side, cliente mantiene historial completo; en modelos con preserved thinking (Opus 5.5 incluido) ediciones del cliente pueden invalidar thinking; keep de thinking > 0 o 'all'."
+      }
     },
     {
       "id": "o21-s04",
       "objective": 21,
       "pool": "sim",
-      "scenario": "Una fintech corre el mismo agente de análisis con thinking sobre dos modelos: Claude Opus 4.1 para clientes legacy y Claude Opus 5.5 para el resto. En Opus 5.5 el contexto crece mucho más rápido turno a turno, porque se conservan los thinking de turnos anteriores; en Opus 4.1 eso no pasa. Quieren el mismo comportamiento de retención en los dos modelos y controlar cuánto thinking viejo queda en la ventana. ¿Qué hacen?",
+      "scenario": "Una fintech corre el mismo agente de análisis con extended thinking sobre dos modelos: Claude Haiku 4.5 para consultas simples y Claude Opus 5.5 para el resto. En Opus 5.5 el contexto crece mucho más rápido turno a turno, porque se conservan los thinking de turnos anteriores; en Haiku 4.5 eso no pasa. Quieren el mismo comportamiento de retención en los dos modelos y controlar cuánto thinking viejo queda en la ventana. ¿Qué hacen?",
       "options": [
         "Apagar thinking en Opus 5.5, porque es la única forma de que ese modelo no acumule bloques de turnos anteriores.",
         "Incluir `clear_thinking_20251015` en `context_management` con `keep` explícito, en vez de depender del default de cada modelo.",
@@ -85,7 +97,7 @@
         "Borrar en el cliente los thinking de turnos anteriores antes de cada request, con la misma lógica para los dos modelos."
       ],
       "correct": 1,
-      "why_correct": "Sin la estrategia `clear_thinking_20251015`, cada clase de modelo usa su default: Opus 4.5 en adelante conserva todo el thinking previo; Opus 4.1 y anteriores, solo el del turno en curso. La doc recomienda incluir la estrategia con `keep` explícito si el código corre sobre varias clases de modelo.",
+      "why_correct": "Sin la estrategia `clear_thinking_20251015`, cada clase de modelo usa su default: Opus 4.5 en adelante conserva todo el thinking previo; Haiku 4.5 y anteriores, solo el del turno en curso. La doc recomienda incluir la estrategia con `keep` explícito si el código corre sobre varias clases de modelo.",
       "why_wrong": {
         "0": "Apagar thinking pierde razonamiento; existe una estrategia justamente para controlar cuánto se conserva.",
         "2": "`clear_tool_uses_20250919` limpia resultados (y opcionalmente llamadas) de tools, no bloques de thinking.",
@@ -94,8 +106,12 @@
       "rule": "Varias clases de modelo → `clear_thinking_20251015` con `keep` explícito, no el default de cada una.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
       "source_quote": "If your code runs across multiple model classes, include this strategy and set `keep` explicitly rather than relying on the per-model default.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "context-editing: tabla de defaults por clase y cita textual. Cambiado Opus 4.1 (retirado el 5/8/2026 según model-deprecations) por Haiku 4.5 (activo, extended thinking, conserva solo el turno en curso); además así son dos clases de modelo, como dice la cita."
+      }
     }
   ]
 }

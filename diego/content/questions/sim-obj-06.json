@@ -8,7 +8,7 @@
       "scenario": "Para recortar costos, el equipo de una edtech seteó `CLAUDE_CODE_SUBAGENT_MODEL=haiku` en el bloque `env` de `.claude/settings.json`, esperando que todos los subagentes corran en Haiku. En `/tasks` ven que `security-auditor` (que tiene `model: opus` en su frontmatter) sigue corriendo en Opus, y que a veces Claude pasa `model: sonnet` al lanzar otros subagentes. Finanzas quiere que no haya ninguna excepción. ¿Cuál es el diagnóstico y el fix?",
       "options": [
         "La variable solo aplica a subagentes de usuario: hay que mover `security-auditor` a `~/.claude/agents/` para que tome el modelo de la variable.",
-        "La variable es un default que pierde contra el frontmatter y el parámetro de cada invocación: hay que sumar `CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1`.",
+        "La variable es un default que pierde contra el frontmatter y el parámetro de la invocación: hay que sumar `CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1`.",
         "La variable se lee solo al iniciar la sesión principal: hay que pasar también `--model haiku` en el comando que lanza Claude Code.",
         "La variable necesita un ID completo de modelo: con el alias `haiku` se ignora y cada subagente cae al orden normal de resolución."
       ],
@@ -79,7 +79,7 @@
       "pool": "sim",
       "scenario": "Una plataforma de e-learning lanza unos 30 subagentes en paralelo con el Agent SDK de TypeScript y veía errores `Concurrent subagent limit reached`. Para subir el límite, agregaron a las opciones de `query()` `env: { CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS: \"30\" }`. Desde ese deploy el error de concurrencia desapareció, pero los subagentes fallan al correr `git` y `node` por Bash con \"command not found\". ¿Qué pasó?",
       "options": [
-        "En TypeScript, `env` reemplaza todo el entorno del subproceso: hay que esparcir `process.env` en ese objeto para conservar `PATH`.",
+        "En TypeScript, `env` reemplaza el entorno del subproceso: hay que esparcir `process.env` en ese objeto para conservar `PATH`.",
         "La variable de concurrencia apaga los subagentes en background, que son los únicos que tienen Bash: hay que volver a bajarla a 20.",
         "En TypeScript, `env` se fusiona con el entorno, pero los subagentes no heredan `PATH`: hay que pasarlo en cada `AgentDefinition`.",
         "El valor 30 supera el máximo permitido y el SDK cae a un modo restringido sin Bash: hay que repartir el trabajo en tandas de 20."

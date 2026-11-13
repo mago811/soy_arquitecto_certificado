@@ -7,7 +7,7 @@
       "pool": "sim",
       "scenario": "En Banco Litoral corren Claude Code en modo no interactivo para revisar pull requests. El agente principal delega en un subagente `pr-reviewer`, y este, por cada hallazgo, lanza un subagente `verifier` anidado para confirmarlo. El principal le pasa a `pr-reviewer` el SHA del commit, la rama y la lista de archivos tocados. Pero los `verifier` descartan hallazgos reales: revisan el código de `main`, no el del PR. El `pr-reviewer` tiene todos esos datos en su contexto. ¿Dónde está el problema y cuál es el fix?",
       "options": [
-        "Cada subagente arranca solo con el mensaje que le escribe quien lo lanza: el prompt de `pr-reviewer` tiene que exigirle pasar SHA, rama, archivos y hallazgo a cada `verifier`.",
+        "Cada subagente arranca solo con lo que le escribe quien lo lanza: el prompt de `pr-reviewer` debe exigirle pasar SHA, rama, archivos y hallazgo.",
         "Los `verifier` heredan el contexto de `pr-reviewer` pero lo pierden al compactar: hay que subir el `autoCompactWindow` en la definición del `verifier`.",
         "Los subagentes anidados no reciben información del repo: hay que escribir el SHA del PR en el CLAUDE.md del proyecto antes de cada corrida del pipeline.",
         "El anidamiento viene apagado por defecto: hay que setear `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` en 2 para que los `verifier` reciban el contexto del revisor."
@@ -80,7 +80,7 @@
       "scenario": "En Claude Code, un subagente custom `perf-auditor` pasó 25 minutos perfilando el checkout de una tienda online: definió métricas base, descartó dos hipótesis y devolvió un informe con tres cuellos de botella. El dev le pide al agente principal: \"ahora que el auditor revise también el carrito con el mismo criterio\". El principal hace una nueva llamada al Agent tool con `perf-auditor` y el prompt \"revisá también el carrito\". El nuevo auditor vuelve a medir el checkout desde cero e ignora las métricas base. ¿Qué tendría que haber hecho el principal?",
       "options": [
         "Relanzar `perf-auditor` con `isolation: worktree`, para que trabaje en una copia del repo y no se mezcle con lo que hizo la corrida anterior.",
-        "Retomar el mismo `perf-auditor` con `SendMessage` usando su agent ID, porque cada invocación nueva crea una instancia que no ve la corrida anterior.",
+        "Retomar el mismo `perf-auditor` con `SendMessage` y su agent ID, porque cada invocación nueva crea una instancia sin la corrida anterior.",
         "Lanzar el subagente built-in `Explore`, que conserva lo explorado por otros subagentes de la sesión y sale más barato para seguir el análisis.",
         "Subir `maxTurns` en la definición de `perf-auditor`, porque el auditor nuevo se quedó sin turnos antes de llegar a leer el informe anterior."
       ],
@@ -105,7 +105,7 @@
       "options": [
         "Agregar `AskUserQuestion` a la lista `tools` de `db-fixer`, para que le pregunte a la analista cada vez que tenga dudas sobre el entorno.",
         "Escribir en el CLAUDE.md del proyecto que staging es el entorno por defecto, así todos los subagentes lo leen al arrancar.",
-        "Que el principal resuelva la ambigüedad antes de delegar e incluya en el prompt el entorno, el ticket, el monto y por qué se descartó el del correo.",
+        "Que el principal resuelva la ambigüedad antes de delegar y ponga en el prompt el entorno, el ticket, el monto y por qué descartó el del correo.",
         "Correr `db-fixer` en primer plano, para que sus dudas pasen a la analista como pasan los pedidos de permiso mientras el subagente trabaja."
       ],
       "correct": 2,
@@ -127,7 +127,7 @@
       "pool": "sim",
       "scenario": "Telco Patagonia tiene un agente de soporte con el Agent SDK. El coordinador ya verificó la identidad del cliente (OTP por SMS, validado a las 10:42), consultó la factura en disputa y confirmó que existe un cargo duplicado. Después delega en el subagente `refund-agent` con el texto \"cliente verificado, procesá el reintegro del cargo duplicado\". El `refund-agent` vuelve a mandar un OTP (el cliente se queja), vuelve a consultar la factura y a veces reintegra el cargo equivocado, porque había dos cargos del mismo monto. ¿Qué cambiás en la delegación?",
       "options": [
-        "Pasar en el prompt un bloque estructurado con lo ya hecho: método y hora de verificación, ID de factura, ID exacto del cargo duplicado y qué falta hacer.",
+        "Pasar en el prompt un bloque estructurado con lo ya hecho: verificación (método y hora), ID de factura, ID exacto del cargo y qué falta.",
         "Agregar al `prompt` del `AgentDefinition` la regla \"si el coordinador dice que el cliente está verificado, no vuelvas a verificar identidad\".",
         "Activar `continue_conversation=True` en el coordinador, así el subagente comparte la sesión y ve las consultas que el coordinador ya hizo.",
         "Agregar al coordinador un hook `PostToolUse` que copie cada `tool_result` al contexto del subagente en el momento en que lo lanza."

@@ -31,7 +31,7 @@
       "pool": "sim",
       "scenario": "En un equipo de plataforma, los devs trabajan en Claude Code en modo `acceptEdits` para no aprobar cada edición. Definieron `.claude/agents/arch-reviewer.md` con `permissionMode: plan`, para que el revisor de arquitectura solo lea y proponga. Pero en una sesión el revisor editó tres archivos de configuración. El equipo no quiere cambiar el modo de la sesión principal. ¿Qué hacés para que el revisor no pueda editar?",
       "options": [
-        "Darle una lista `tools` sin `Edit` ni `Write` (por ejemplo `Read, Grep, Glob`), porque con la sesión en `acceptEdits` se ignora su `permissionMode`.",
+        "Darle una lista `tools` sin `Edit` ni `Write` (por ejemplo `Read, Grep, Glob`): con la sesión en `acceptEdits`, su `permissionMode` se ignora.",
         "Cambiar a `permissionMode: dontAsk`, que deniega cualquier llamada que pediría permiso aunque la sesión principal esté en `acceptEdits`.",
         "Agregar al cuerpo del archivo \"Estás en modo plan: nunca edites archivos\", para reforzar el `permissionMode` con una instrucción explícita.",
         "Mover el archivo a `~/.claude/agents/`, porque los subagentes de usuario tienen prioridad y en ellos el `permissionMode` se respeta siempre."

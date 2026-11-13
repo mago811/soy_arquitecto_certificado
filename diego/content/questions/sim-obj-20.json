@@ -22,8 +22,12 @@
       "rule": "Tras compactar, `Referenced file` = solo la ruta. Releé la sección que necesitás, no supongas.",
       "source_url": "https://code.claude.com/docs/en/context-window",
       "source_quote": "A file over 5,000 tokens comes back as a path reference without its content, shown as `Referenced file` instead of `Read`.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "context-window: re-lee hasta 5 archivos; >5.000 tokens vuelve como `Referenced file`. tools-reference: Read 25.000 tokens por defecto, offset/limit. Sin afirmaciones falsas."
+      }
     },
     {
       "id": "o20-s02",
@@ -46,8 +50,12 @@
       "rule": "Contexto crítico que tiene que volver tras cada compactación → hook `SessionStart` con matcher `compact`.",
       "source_url": "https://code.claude.com/docs/en/hooks-guide",
       "source_quote": "Use a `SessionStart` hook with a `compact` matcher to re-inject critical context after every compaction.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "hooks-guide: cita textual SessionStart+compact; context-window: salida del hook se agrega al contexto compactado; reglas con paths: se resumen al compactar. Distinto de o20-q05."
+      }
     },
     {
       "id": "o20-s03",
@@ -70,8 +78,12 @@
       "rule": "Querés resumir solo una parte de la sesión → `/rewind` + Summarize from here / up to here.",
       "source_url": "https://code.claude.com/docs/en/checkpointing",
       "source_quote": "summarize a verbose debugging session from the midpoint forward, keeping your initial instructions intact",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "checkpointing: Summarize from here comprime desde el punto elegido; caso de uso textual (midpoint forward). /autocompact existe (commands). Distinto de o20-q03."
+      }
     },
     {
       "id": "o20-s04",
@@ -94,8 +106,12 @@
       "rule": "Explore no lee CLAUDE.md: lo que tenga que respetar, ponelo en el pedido de delegación.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "If a rule must, such as \"ignore the `vendor/` directory,\" restate it in the prompt you give Claude when delegating.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "sub-agents: Explore/Plan arrancan sin CLAUDE.md (todos los niveles); restate en el prompt de delegación con ejemplo vendor/. Glob no respeta .gitignore. Distinto de o20-q10."
+      }
     }
   ]
 }

@@ -31,7 +31,7 @@
       "pool": "sim",
       "scenario": "Un estudio de auditoría corre con el Agent SDK un coordinador que delega en subagentes custom el análisis de cada área de un cliente, y guarda los transcripts en un `SessionStore` propio sobre Redis que implementa solo `append` y `load`. Cuando un worker se cae, otro host retoma la sesión con `resume`: el coordinador vuelve con todo su historial, pero cuando intenta retomar a sus subagentes para que terminen el análisis, ninguno conserva su trabajo previo y arrancan de cero. ¿Qué falta?",
       "options": [
-        "Implementar `listSubkeys` en el adaptador: si no está, al retomar desde el store solo se restaura el transcript principal y no los de subagentes.",
+        "Implementar `listSubkeys` en el adaptador: sin ese método, al retomar desde el store solo se restaura el transcript principal.",
         "Implementar `listSessionSummaries`, porque sin ese método el SDK no puede listar los subagentes que pertenecen a cada sesión principal.",
         "Pasar `continue_conversation=True` en vez de `resume`, porque `continue` restaura la sesión más reciente junto con todos sus subagentes.",
         "Implementar `delete` en el adaptador, porque sin él los transcripts de subagentes quedan huérfanos y el SDK los descarta al retomar."

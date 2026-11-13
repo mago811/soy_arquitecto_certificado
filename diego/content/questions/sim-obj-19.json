@@ -22,8 +22,12 @@
       "rule": "Si el riesgo es colapsar o atribuir mal, el rubric tiene que medir afirmación vs. fuente y cita vs. afirmación.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "factual accuracy (do claims match sources?), citation accuracy (do the cited sources match the claims?)",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Blog multi-agent research system: rubric con factual accuracy y citation accuracy, cita textual. Distinto de o19-q01."
+      }
     },
     {
       "id": "o19-s02",
@@ -46,8 +50,12 @@
       "rule": "Citations + `output_config.format` = 400. Para estructura con citas: una línea por campo y parseo propio.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/citations",
       "source_quote": "If you enable citations on any user-provided document (`document` blocks or `search_result` blocks) and also include the `output_config.format` parameter (or the deprecated `output_format` parameter), the API returns a 400 error.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "citations: incompatibilidad con output_config.format => 400 (incluye search_result); workaround 'one line per field' y parseo en código. Distinto de o19-q04."
+      }
     },
     {
       "id": "o19-s03",
@@ -70,8 +78,12 @@
       "rule": "RAG con atribución confiable → fragmentos como `search_result` con `source`/`title` y citas activas.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/search-results",
       "source_quote": "Search result content blocks let Claude cite your own content the same way it cites web search results: each citation carries the source and title you provided.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "search-results: cita textual; cada cita lleva source y title. Distractores sin respaldo."
+      }
     },
     {
       "id": "o19-s04",
@@ -94,8 +106,12 @@
       "rule": "Para no aplanar la certeza: criterios de éxito + verificación cruzada + marcar lo de fuente única.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Ask Claude to verify information across multiple sources.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "claude-prompting-best-practices, sección research: success criteria + 'Ask Claude to verify information across multiple sources'. Distinto de o19-q09 (calidad de fuente)."
+      }
     },
     {
       "id": "o19-s05",
@@ -118,8 +134,12 @@
       "rule": "Ninguna técnica anti-alucinación elimina el riesgo: lo crítico y de alto impacto se valida con humanos.",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
       "source_quote": "Remember, although these techniques significantly reduce hallucinations, they don’t eliminate them entirely. Always validate critical information, especially for high-stakes decisions.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "reduce-hallucinations: cita textual; best-of-N es para detectar inconsistencias. Distinto de o19-q07/q08."
+      }
     }
   ]
 }

@@ -5,7 +5,7 @@
       "id": "o17-s01",
       "objective": 17,
       "pool": "sim",
-      "scenario": "Una aseguradora tiene un agente del Agent SDK con las tools Read, Grep y Glob que audita las llamadas a `legacyCrypto.encrypt(` en un monorepo antes de dar por cerrada una migración. Para no inundar el contexto, pagina un Grep en modo `content` con `head_limit: 50` y va subiendo `offset` de a 50. Las tres primeras páginas traen coincidencias; en la cuarta recibe `No entries at this offset`. El informe concluye: 'el patrón ya no aparece en el repo, la migración está completa'. ¿Qué tendría que haber hecho el agente?",
+      "scenario": "Una aseguradora tiene un agente del Agent SDK con las tools Read, Grep y Glob (nombradas en `allowedTools`, así Grep y Glob están disponibles) que audita las llamadas a `legacyCrypto.encrypt(` en un monorepo antes de dar por cerrada una migración. Para no inundar el contexto, pagina un Grep en modo `content` con `head_limit: 50` y va subiendo `offset` de a 50. Las tres primeras páginas traen coincidencias; en la cuarta recibe `No entries at this offset`. El informe concluye: 'el patrón ya no aparece en el repo, la migración está completa'. ¿Qué tendría que haber hecho el agente?",
       "options": [
         "Volver a correr la búsqueda sin `head_limit`, porque el modo `content` sin paginar es la única forma confiable de ver si quedan llamadas.",
         "Leer el mensaje como que el `offset` pasó la última coincidencia, y ajustar o reiniciar el `offset` en vez de concluir que no hay matches.",
@@ -22,8 +22,12 @@
       "rule": "`No entries at this offset` = te pasaste de la última coincidencia, no 'el patrón no existe'.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "When the tool's `offset` parameter points past the last match for a pattern that has matches, Grep returns `No entries at this offset`, so Claude widens or resets the offset instead of concluding the pattern doesn't match.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "tools-reference: cita textual de `No entries at this offset` y count. Se aclaró en el escenario que Grep/Glob están porque se nombran en `allowedTools` (en Linux/macOS no vienen por defecto)."
+      }
     },
     {
       "id": "o17-s02",
@@ -46,8 +50,12 @@
       "rule": "Pedido vago → escaneo amplio. Nombrá la función y el archivo para que la exploración arranque en el lugar justo.",
       "source_url": "https://code.claude.com/docs/en/costs",
       "source_quote": "Vague requests like \"improve this codebase\" trigger broad scanning. Specific requests like \"add input validation to the login function in auth.ts\" let Claude work efficiently with minimal file reads.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "costs.md: cita textual (Vague requests...). Distinto de o17-q01 (prompt de leer todo vs pedido vago)."
+      }
     },
     {
       "id": "o17-s03",
@@ -70,8 +78,12 @@
       "rule": "Code intelligence (LSP) acelera la exploración, pero en sesiones en la nube queda inactivo.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "Claude Code doesn't start plugin language servers, so the LSP tool stays inactive there.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "tools-reference: 'In cloud sessions, Claude Code doesn't start plugin language servers, so the LSP tool stays inactive there'; el binario lo instala uno. Distractores sin respaldo. `memory` es campo de subagentes (sub-agents). Distinto de o17-q07."
+      }
     },
     {
       "id": "o17-s04",
@@ -94,8 +106,12 @@
       "rule": "Índice que se pone viejo + contexto lleno → navegación just-in-time con Glob/Grep/Read sobre el repo vivo.",
       "source_url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
       "source_quote": "primitives like glob and grep allow it to navigate its environment and retrieve files just-in-time, effectively bypassing the issues of stale indexing and complex syntax trees.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Blog de ingeniería de Anthropic (effective context engineering): cita textual sobre glob/grep just-in-time y stale indexing. En el Agent SDK darle Glob/Grep = nombrarlas en las opciones."
+      }
     },
     {
       "id": "o17-s05",
@@ -118,8 +134,12 @@
       "rule": "Primera pasada: rutas (`files_with_matches`) acotadas; contenido solo de los archivos que valen la pena.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "`files_with_matches`: file paths only, no line content. This is the default.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "tools-reference: files_with_matches es el default; Glob capado a 100 por mtime; multiline cruza líneas. Subagente con tools Read, Grep, Glob y sin Bash => Grep/Glob disponibles en Linux/macOS."
+      }
     }
   ]
 }

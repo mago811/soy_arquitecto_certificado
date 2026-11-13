@@ -55,7 +55,7 @@
       "pool": "sim",
       "scenario": "En una consultora, cada worker del Agent SDK devuelve su informe de mercado con `output_format` y un schema (cifras, conclusiones y fuentes). El coordinador no espera al resultado: recorre el stream, toma el primer bloque `tool_use` llamado `StructuredOutput` y usa su `input` como informe. En producción, uno de cada veinte informes llega sin el campo `fuentes` o con tipos incorrectos, aunque el schema los exige. ¿Cuál es el fix?",
       "options": [
-        "Leer el dato validado del campo `structured_output` del mensaje de resultado, y no del bloque `tool_use`, y tratar como falla un resultado con `is_error` o sin ese campo.",
+        "Leer el dato validado de `structured_output` en el mensaje de resultado, no del `tool_use`, y tratar como falla un resultado con `is_error`.",
         "Tomar el último bloque `StructuredOutput` del stream en vez del primero, porque siempre es el que pasó la validación contra el schema.",
         "Agregar `fuentes` a `required` en todos los niveles del schema, porque el SDK solo valida los campos requeridos del primer nivel.",
         "Definir una tool propia `report_output` con el mismo schema y pedirle al worker que la llame al final, en lugar de usar `output_format`."
@@ -104,7 +104,7 @@
       "scenario": "Una consultora de energía tiene un sistema de research: cinco subagentes buscan en paralelo y devuelven hallazgos con sus documentos fuente, y un sintetizador escribe el informe final y, en la misma pasada, agrega las citas. En la revisión, el 15% de las afirmaciones tiene una cita que apunta a un documento que no la respalda: el sintetizador mezcla fuentes mientras redacta. El informe tiene que salir con cada afirmación bien atribuida. ¿Qué cambio de arquitectura recomienda Anthropic?",
       "options": [
         "Pedirle a cada subagente que escriba sus hallazgos ya redactados como párrafos finales con citas en prosa, y que el sintetizador solo los concatene.",
-        "Agregar al final una pasada aparte, un agente de citas, que procese los documentos y el informe para identificar dónde está la fuente de cada afirmación.",
+        "Sumar al final una pasada aparte, un agente de citas, que procese los documentos y el informe para ubicar la fuente de cada afirmación.",
         "Darle al sintetizador un modelo con ventana más grande, así tiene todos los documentos completos en contexto mientras redacta y cita.",
         "Agregar al prompt del sintetizador \"verificá dos veces cada cita antes de escribirla\" y bajar la temperatura para que mezcle menos fuentes."
       ],
