@@ -1,0 +1,197 @@
+{
+  "objective": 23,
+  "questions": [
+    {
+      "id": "o23-q01",
+      "objective": 23,
+      "pool": "practice",
+      "scenario": "Un equipo tiene un check de CI que revisa cada pull request con Claude y bloquea el merge hasta recibir el resultado. Para ahorrar, lo migraron a la Message Batches API. El costo bajó a la mitad, pero ahora los devs esperan desde minutos hasta varias horas para poder mergear. ¿Qué hacés?",
+      "options": [
+        "Mantener batches y reducir cada batch a un solo request, así se procesa primero y el resultado vuelve en segundos.",
+        "Mantener batches y pollear cada 5 segundos en lugar de cada 60, para enterarse antes de que el resultado está listo.",
+        "Volver a la Messages API para el check que bloquea el merge, y dejar la Batches API para análisis que nadie espera.",
+        "Mantener batches y activar `stream: true` en cada request para ir recibiendo el resultado a medida que se genera."
+      ],
+      "correct": 2,
+      "why_correct": "La Batches API conviene para tareas que no necesitan respuesta inmediata; un batch puede tardar hasta 24 horas. Un check que bloquea el merge es un flujo bloqueante: necesita la Messages API síncrona. El ahorro del 50% se aprovecha en trabajos tolerantes a la latencia, como reportes nocturnos.",
+      "why_wrong": {
+        "0": "Un batch chico no tiene latencia garantizada: se procesa de forma asíncrona y puede tardar igual.",
+        "1": "Pollear más seguido no acelera el procesamiento; solo te enterás antes cuando ya terminó.",
+        "3": "`stream: true` no está soportado en batches: devuelve un error de validación."
+      },
+      "rule": "¿Alguien está bloqueado esperando? → Messages API. Batches es para lo que puede esperar hasta 24 h.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "source_quote": "This approach is well-suited to tasks that do not require immediate responses, with most batches finishing in less than 1 hour while reducing costs by 50 percent and increasing throughput.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o23-q02",
+      "objective": 23,
+      "pool": "practice",
+      "scenario": "Una aseguradora clasifica 40.000 siniestros por noche con un loop que llama a la Messages API uno por uno. Los resultados se leen recién a la mañana siguiente. El loop pega seguido en los rate limits y la factura mensual es alta. ¿Qué cambio propone un arquitecto?",
+      "options": [
+        "Pasar el trabajo nocturno a la Message Batches API: el costo de uso baja a la mitad y nadie necesita la respuesta al instante.",
+        "Activar fast mode con `speed` en cada request para terminar antes y liberar los rate limits más rápido durante la noche.",
+        "Paralelizar el loop con 200 threads contra la Messages API para terminar en menos tiempo y pagar menos horas de servidor.",
+        "Juntar los 40.000 siniestros en un único prompt gigante para hacer una sola llamada a la Messages API por noche."
+      ],
+      "correct": 0,
+      "why_correct": "Es el caso de libro para batches: mucho volumen, nadie espera la respuesta y el costo importa. En la Batches API todo el uso se cobra al 50% del precio estándar, y su uso no afecta los rate limits de la Messages API.",
+      "why_wrong": {
+        "1": "Fast mode apunta a bajar la latencia síncrona, que acá no importa; no baja el costo.",
+        "2": "Más threads chocan más rápido contra los rate limits y se sigue pagando precio completo.",
+        "3": "Un prompt con 40.000 siniestros no entra en la ventana de contexto y mezclaría los resultados."
+      },
+      "rule": "Volumen grande + nadie espera + importa el costo → Message Batches API (50% del precio).",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "source_quote": "All usage is charged at 50 percent of the standard API prices.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o23-q03",
+      "objective": 23,
+      "pool": "practice",
+      "scenario": "Un pipeline manda un batch con 5.000 requests de resumen de contratos. Al terminar, lee el `.jsonl` de resultados y asigna el resumen de la línea N al contrato N de la lista original. Los abogados encuentran resúmenes que no corresponden a su contrato. ¿Cuál es el fix?",
+      "options": [
+        "Ordenar el archivo de resultados alfabéticamente antes de asignarlos, para que coincida con el orden de la lista original.",
+        "Darle a cada request un `custom_id` con el id del contrato y emparejar cada resultado por ese `custom_id`, no por posición.",
+        "Mandar los contratos en batches de 1 request cada uno, así cada resultado corresponde siempre al único contrato enviado.",
+        "Pedir en el prompt que el resumen empiece con el nombre del contrato y emparejar los resultados buscando ese nombre."
+      ],
+      "correct": 1,
+      "why_correct": "Los resultados de un batch pueden volver en cualquier orden, distinto del de envío. La doc dice que para emparejar resultados con requests siempre hay que usar `custom_id`. Usar el id del contrato como `custom_id` hace el emparejamiento directo.",
+      "why_wrong": {
+        "0": "Reordenar alfabéticamente no reconstruye el orden de envío; el orden no está garantizado.",
+        "2": "Funciona, pero tira la ventaja de agrupar y multiplica requests y polling. El mecanismo pensado para esto es `custom_id`.",
+        "3": "Depende de que el modelo escriba bien el nombre: es frágil y no es el mecanismo de la API."
+      },
+      "rule": "Resultados de batch → se emparejan por `custom_id`, nunca por posición.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "source_quote": "Batch results can be returned in any order, and might not match the ordering of requests when the batch was created.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o23-q04",
+      "objective": 23,
+      "pool": "practice",
+      "scenario": "Un cliente exige que cada documento recibido tenga su análisis listo en 30 horas como máximo. El equipo usa la Message Batches API y junta los documentos durante todo el día para mandar un único batch a la medianoche. Algunos documentos llegados a las 00:05 recién tienen resultado casi 48 horas después. ¿Qué cambio respeta el SLA?",
+      "options": [
+        "Cambiar todo a la Messages API síncrona, porque la Batches API no se puede usar cuando hay un SLA de por medio.",
+        "Mandar el batch dos veces por día con todos los documentos acumulados, así cada documento tiene dos oportunidades.",
+        "Pedir prioridad de procesamiento en el batch con un parámetro de urgencia para que termine en menos de 6 horas.",
+        "Mandar batches más seguido (por ejemplo, cada 4 horas), para que espera más procesamiento no supere las 30 horas."
+      ],
+      "correct": 3,
+      "why_correct": "Un batch puede tardar hasta 24 horas. Si un documento espera casi 24 horas a que salga el batch, el total llega a ~48. Mandando cada 4 horas, la espera máxima es 4 + 24 = 28 horas, dentro de las 30. La frecuencia de envío se calcula con el peor caso del batch.",
+      "why_wrong": {
+        "0": "Se puede usar batch con SLA si el SLA tolera la ventana de procesamiento. Pasar todo a síncrono pierde el 50% sin necesidad.",
+        "1": "Con envíos cada 12 horas el peor caso es 12 + 24 = 36 horas: sigue fuera del SLA.",
+        "2": "No existe un parámetro de prioridad para batches. Inventarlo no cambia la ventana de hasta 24 horas."
+      },
+      "rule": "SLA con batch → espera hasta el próximo envío + 24 h ≤ SLA; ajustá la frecuencia de envío.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "source_quote": "Batches might take up to 24 hours for processing, but many complete sooner.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o23-q05",
+      "objective": 23,
+      "pool": "practice",
+      "scenario": "Un batch de 10.000 extracciones termina con 9.700 `succeeded`, 200 `errored` con `invalid_request_error` (documentos demasiado largos) y 100 `expired`. El script actual, si ve cualquier falla, vuelve a mandar el batch completo de 10.000. ¿Qué cambiás?",
+      "options": [
+        "Mandar de nuevo el batch completo pero con `max_tokens` más alto, para que los 300 fallidos tengan más margen esta vez.",
+        "Reenviar los 300 juntos tal cual están, porque la API reintenta sola los errores de validación en la segunda pasada.",
+        "Pasar los 300 fallidos a la Messages API síncrona, que acepta documentos más largos que la Batches API.",
+        "Reenviar solo los fallidos por `custom_id`: corregir antes los 200 inválidos (por ejemplo, partiendo el documento) y reenviar los 100 vencidos."
+      ],
+      "correct": 3,
+      "why_correct": "La falla de un request no afecta a los demás, así que los 9.700 exitosos ya están. Se manejan los resultados según su `custom_id` y su tipo: un `invalid_request_error` necesita corregir el request antes de reenviarlo, y un `expired` se puede reenviar. Reenviar todo paga dos veces lo que ya salió bien.",
+      "why_wrong": {
+        "0": "Pagás otra vez los 9.700 exitosos, y `max_tokens` no arregla documentos demasiado largos para la entrada.",
+        "1": "Un `invalid_request_error` no se arregla reintentando: la doc dice que hay que corregir el request antes de reenviarlo.",
+        "2": "Un batch acepta casi cualquier request de la Messages API. Cambiar de API no hace que un documento demasiado largo entre: hay que achicarlo igual."
+      },
+      "rule": "Batch con fallas → reenviar solo los fallidos por `custom_id`; los inválidos se corrigen antes.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "source_quote": "Note that the failure of one request in a batch does not affect the processing of other requests.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o23-q06",
+      "objective": 23,
+      "pool": "practice",
+      "scenario": "Un dev arma un batch de 50.000 requests copiando parámetros de un ejemplo viejo, sin probarlo. Lo manda a la noche. A la mañana el batch está `ended` y los 50.000 resultados son `errored` por un parámetro mal escrito en `params`. Perdió una noche de procesamiento. ¿Qué tendría que haber hecho?",
+      "options": [
+        "Mandar primero un batch de 50.000 con `max_tokens: 0` como prueba en seco, para validar los parámetros sin generar texto.",
+        "Probar el shape del request con una llamada a la Messages API antes de armar el batch, y recién después mandar los 50.000.",
+        "Activar `stream: true` en el batch para ver los errores de validación en tiempo real a medida que se procesan los requests.",
+        "Mandar el batch más temprano, para tener tiempo de corregir y volver a mandarlo antes de la mañana si fallaba."
+      ],
+      "correct": 1,
+      "why_correct": "La Batches API valida los `params` de forma asíncrona y devuelve los errores recién cuando termina todo el batch. Por eso la doc recomienda verificar primero el shape del request con la Messages API, que falla de inmediato. Un request de prueba de segundos evita perder horas.",
+      "why_wrong": {
+        "0": "`max_tokens: 0` no está soportado dentro de un batch: daría error de validación.",
+        "2": "`stream: true` tampoco se acepta en batches; los resultados vienen como un archivo.",
+        "3": "Sigue sin saber si el request está bien hasta que termina el batch; solo cambia cuándo se entera."
+      },
+      "rule": "Antes de un batch grande → probá el request con la Messages API (la validación del batch es asíncrona).",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "source_quote": "The API validates the `params` object of each message request asynchronously, and returns validation errors when processing of the entire batch has ended.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o23-q07",
+      "objective": 23,
+      "pool": "practice",
+      "scenario": "Un equipo de auditoría corre cada trimestre un batch de 20.000 análisis y guarda solo el id del batch, pensando en bajar los resultados \"cuando haga falta\". 40 días después de crearlo intentan descargarlos para un informe y ya no están disponibles. ¿Qué cambio de proceso evita esto?",
+      "options": [
+        "Descargar o streamear los resultados apenas el batch termina y guardarlos en almacenamiento propio, dentro de los 29 días desde la creación.",
+        "Pedir una extensión de la retención al cancelar el batch, que mantiene los resultados disponibles por más tiempo.",
+        "Volver a crear el batch con los mismos requests: la API detecta que es igual y devuelve los resultados guardados sin costo.",
+        "Guardar el id del batch y el `results_url`, porque el link de resultados no vence aunque el batch sea viejo."
+      ],
+      "correct": 0,
+      "why_correct": "Los resultados de un batch están disponibles 29 días desde su creación. Después se puede ver el batch, pero sus resultados ya no se descargan. Si los necesitás después, tenés que guardarlos vos mientras están disponibles.",
+      "why_wrong": {
+        "1": "Cancelar no extiende nada: corta el procesamiento y deja resultados parciales. No hay extensión de retención.",
+        "2": "Un batch nuevo se procesa y se cobra de nuevo; no hay deduplicación de resultados viejos.",
+        "3": "El `results_url` apunta a los mismos resultados, que dejan de estar disponibles a los 29 días."
+      },
+      "rule": "Resultados de batch → disponibles 29 días desde la creación; guardalos vos si los vas a necesitar después.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "source_quote": "Batch results are available for 29 days after creation. After that, you can still view the batch, but its results are no longer available for download.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o23-q08",
+      "objective": 23,
+      "pool": "practice",
+      "scenario": "Un batch nocturno usa la tool de web search (server tool) para investigar 2.000 empresas. Casi todos los resultados terminan bien, pero algunos vuelven con `stop_reason: \"pause_turn\"`. El pipeline los toma como finales y publica informes a medio terminar. ¿Cuál es el fix?",
+      "options": [
+        "Sacar la web search del batch y hacer esas búsquedas siempre con la Messages API, porque en batch las server tools no funcionan.",
+        "Subir `max_tokens` en todos los requests del batch, porque `pause_turn` aparece cuando la respuesta se queda sin tokens.",
+        "Detectar `pause_turn` y continuar ese turno con un request de seguimiento que incluya el contenido del asistente pausado.",
+        "Tratar los `pause_turn` como `errored` y reenviar esos requests desde cero en el próximo batch nocturno."
+      ],
+      "correct": 2,
+      "why_correct": "Las server tools funcionan en batch con el mismo loop agéntico del lado del servidor. Si un resultado vuelve con `pause_turn`, el turno no terminó: la doc dice que se continúa mandando el contenido pausado del asistente en un request de seguimiento (batch o síncrono).",
+      "why_wrong": {
+        "0": "La doc dice lo contrario: todas las server tools funcionan en batch.",
+        "1": "Quedarse sin tokens es `stop_reason: \"max_tokens\"`, no `pause_turn`.",
+        "3": "Reenviar desde cero tira el trabajo ya hecho y paga de nuevo; el turno se puede continuar."
+      },
+      "rule": "`pause_turn` en un resultado de batch → el turno no terminó; se continúa con un request de seguimiento.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "source_quote": "If a batch result comes back with `pause_turn`, the turn did not complete; you can continue it by submitting the paused assistant content in a follow-up request (batch or synchronous)",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

@@ -1,0 +1,245 @@
+{
+  "objective": 21,
+  "questions": [
+    {
+      "id": "o21-q01",
+      "objective": 21,
+      "pool": "practice",
+      "scenario": "Un agente de soporte de una aerolínea resume la conversación cada 10 turnos para no crecer sin límite. Después de dos resúmenes, el cliente pregunta por \"el reembolso que me prometieron\" y el agente responde \"un reembolso de alrededor de mil dólares, en los próximos días\". El dato real era USD 1.247,83, reserva QX-88213, a acreditar el 14/11. ¿Cuál es el fix?",
+      "options": [
+        "Agregar al prompt del resumidor la frase \"sé preciso con los números\" y resumir cada 20 turnos en vez de cada 10.",
+        "Pasar a un modelo con ventana de 1M tokens y desactivar el resumen, así el historial completo siempre entra entero.",
+        "Extraer montos, fechas, IDs y estados a un bloque JSON de \"datos del caso\" que va en cada request, fuera del historial resumido.",
+        "Subir `max_tokens` del resumidor para que el resumen sea más largo y tenga lugar para todos los detalles del caso."
+      ],
+      "correct": 2,
+      "why_correct": "Cada resumen progresivo vuelve a condensar números y fechas, y los va volviendo vagos. Los datos transaccionales tienen que vivir en un bloque estructurado que no se resume nunca y viaja en cada prompt. La doc recomienda formatos estructurados (JSON) para el estado.",
+      "why_wrong": {
+        "0": "Sigue confiando en que un resumen en prosa conserve números exactos. Resumir menos seguido solo demora el problema.",
+        "1": "Más contexto no es automáticamente mejor: la precisión y el recall bajan a medida que crece (context rot). Y el costo por request sube.",
+        "3": "`max_tokens` limita la salida, no arregla que el resumen reescriba los datos con sus palabras. El problema es dónde viven los datos, no el largo del resumen."
+      },
+      "rule": "Números, fechas e IDs del caso → bloque estructurado persistente fuera del resumen, en cada request.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "When tracking structured information (such as test results or task status), use JSON or other structured formats to make schema requirements explicit to Claude.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o21-q02",
+      "objective": 21,
+      "pool": "practice",
+      "scenario": "Un agente de devoluciones llama a `lookup_order` varias veces por conversación. Cada resultado trae 45 campos (dirección de facturación, historial de envíos, flags internos…), pero para decidir una devolución solo importan 5: `order_id`, `status`, `total`, `delivered_at` y `return_window_days`. A los 15 turnos el contexto está lleno de resultados viejos y el agente empieza a mezclar pedidos. ¿Qué cambio de diseño ataca la causa?",
+      "options": [
+        "Que la implementación de la tool devuelva solo los campos relevantes para devoluciones antes de que el resultado entre al contexto.",
+        "Agregar al system prompt \"ignorá los campos que no tengan que ver con la devolución\" para que el modelo filtre al leer.",
+        "Pasar los resultados de `lookup_order` como un mensaje `system` a mitad de conversación para darles más autoridad.",
+        "Activar prompt caching sobre el historial, así los resultados viejos de `lookup_order` dejan de contar en la ventana."
+      ],
+      "correct": 0,
+      "why_correct": "Los resultados de tools se acumulan y gastan tokens en proporción a su tamaño, no a su relevancia. La doc de Anthropic sobre diseño de tools dice que la implementación debe devolver solo información de alta señal. Recortar en la tool evita que el ruido entre al contexto.",
+      "why_wrong": {
+        "1": "Los 45 campos igual entran al contexto y ocupan la ventana. Pedirle al modelo que los ignore no libera ni un token.",
+        "2": "Cambiar el rol del mensaje no cambia su tamaño. El problema es volumen irrelevante, no autoridad.",
+        "3": "El caching cambia lo que pagás, no si los tokens cuentan: los prefijos cacheados siguen ocupando la ventana de contexto."
+      },
+      "rule": "Tool que devuelve 45 campos y usás 5 → recortá en la tool, antes de que entre al contexto.",
+      "source_url": "https://www.anthropic.com/engineering/writing-tools-for-agents",
+      "source_quote": "tool implementations should take care to return only high signal information back to agents.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o21-q03",
+      "objective": 21,
+      "pool": "practice",
+      "scenario": "Un sistema de research arma un prompt así: primero la pregunta y las instrucciones, después los informes de 12 subagentes pegados uno detrás del otro sin separadores (unos 90k tokens). La síntesis final cita bien el primer y el último informe, pero omite hallazgos de los del medio. ¿Cuál es el fix más directo según la guía de prompting de Anthropic?",
+      "options": [
+        "Repetir las instrucciones en mayúsculas al principio y al final del prompt para que el modelo no las pierda de vista.",
+        "Dividir los 12 informes en 12 requests separados y pedir en cada uno una síntesis completa de todo el tema.",
+        "Bajar la temperatura a 0 para que el modelo recorra los informes de forma más determinística y no saltee secciones.",
+        "Poner los informes arriba, cada uno en `<document>` con su `<source>`, un resumen de hallazgos clave, y la pregunta al final."
+      ],
+      "correct": 3,
+      "why_correct": "La doc pide poner los datos largos arriba y la consulta al final, y envolver cada documento en tags con su metadata. Las secciones explícitas y un resumen de hallazgos al principio atacan el efecto de posición (lo del medio se pierde).",
+      "why_wrong": {
+        "0": "El problema no es que olvide las instrucciones, sino que pierde contenido del medio. Gritar las instrucciones no estructura los informes.",
+        "1": "Cada request vería solo un informe: no puede sintetizar entre todos. Además multiplica costo sin resolver la posición.",
+        "2": "La temperatura controla la aleatoriedad de la salida, no cómo el modelo atiende a un input largo y sin estructura."
+      },
+      "rule": "Input largo → documentos arriba con tags y fuente, hallazgos clave al principio, pregunta al final.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Queries at the end can improve response quality by up to 30 percent in tests, especially with complex, multidocument inputs.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o21-q04",
+      "objective": 21,
+      "pool": "practice",
+      "scenario": "Un estudio jurídico le pasa a Claude un contrato de 140 páginas (ya arriba en el prompt, con la pregunta al final) y pregunta qué cláusulas de penalidad aplican a un atraso de entrega. La respuesta mezcla cláusulas de otras secciones y a veces parafrasea mal una penalidad que está en la página 70. ¿Qué técnica de prompting agregás?",
+      "options": [
+        "Pedirle que responda en una sola oración, así no tiene espacio para mezclar cláusulas de otras secciones del contrato.",
+        "Pedirle que primero copie en `<quotes>` los fragmentos textuales relevantes y recién después responda basándose en ellos.",
+        "Mandar el contrato dos veces en el mismo request, una al principio y otra al final, para reforzar la sección del medio.",
+        "Mover el contrato al system prompt, porque ahí el modelo le presta más atención que a los mensajes de usuario."
+      ],
+      "correct": 1,
+      "why_correct": "\"Ground responses in quotes\": en tareas de documentos largos, pedir primero las citas relevantes hace que Claude se enfoque en lo pertinente e ignore el resto. Además la respuesta queda anclada a texto real, no a una paráfrasis.",
+      "why_wrong": {
+        "0": "Acortar la salida no mejora cómo encuentra la cláusula correcta. Solo esconde el error en menos palabras.",
+        "2": "Duplica el costo y el ruido. Más contexto no es mejor contexto: no le dice qué parte es relevante.",
+        "3": "La doc no dice que el system prompt mejore el recall de documentos largos; la recomendación es datos arriba, pregunta al final y citas primero."
+      },
+      "rule": "Documento largo y respuestas imprecisas → pedí las citas textuales primero, la respuesta después.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "For long document tasks, ask Claude to quote relevant parts of the documents first before carrying out its task. This helps Claude focus on the relevant content and ignore the rest of the document.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o21-q05",
+      "objective": 21,
+      "pool": "practice",
+      "scenario": "Un dev arma un chatbot con la Messages API. Para ahorrar tokens, en cada request manda solo el último mensaje del usuario, y guarda el historial en su base \"por si acaso\". En el turno 3 el usuario dice \"¿y el segundo producto que te pasé?\" y Claude responde que no sabe de qué producto habla. ¿Cuál es el fix?",
+      "options": [
+        "Mandar el `id` de la respuesta anterior en el request siguiente para que la API recupere la conversación del servidor.",
+        "Usar la Message Batches API, que agrupa los mensajes de una misma sesión y conserva el estado entre ellos.",
+        "Mandar en cada request el historial completo en `messages`, y si crece demasiado, compactar o recortar de forma explícita.",
+        "Activar prompt caching en el system prompt para que Claude recuerde la conversación entre requests sucesivos."
+      ],
+      "correct": 2,
+      "why_correct": "La Messages API es stateless: no guarda nada entre requests. Siempre hay que mandar el historial completo. Si eso es caro, se gestiona del lado del cliente (compaction, context editing, estado estructurado), pero nunca omitiendo el historial.",
+      "why_wrong": {
+        "0": "No existe un mecanismo así en la Messages API: no hay memoria server-side que se recupere con el id de una respuesta.",
+        "1": "Batches procesa requests independientes de forma asíncrona. No encadena conversaciones ni guarda estado.",
+        "3": "El caching abarata un prefijo que vos MANDÁS. Si no mandás el historial, no hay nada que cachear ni recordar."
+      },
+      "rule": "Messages API = stateless: cada request lleva el historial completo. Memoria server-side → opción falsa.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/working-with-messages",
+      "source_quote": "The Messages API is stateless, which means that you always send the full conversational history to the API.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o21-q06",
+      "objective": 21,
+      "pool": "practice",
+      "scenario": "Un agente de investigación hace 60 búsquedas web y lecturas de archivos por tarea. Los resultados viejos ya fueron procesados pero siguen ocupando la ventana, y el agente se vuelve lento y desenfocado. El equipo quiere que la API saque automáticamente los resultados de tools más viejos, sin resumir nada y dejando visibles las llamadas que hizo Claude. ¿Qué configuran?",
+      "options": [
+        "Thinking block clearing (`clear_thinking_20251015`) con `keep` bajo, para liberar espacio de los turnos anteriores.",
+        "Una ventana deslizante en el cliente que borre los 20 mensajes más viejos completos, incluida la consigna inicial.",
+        "Subir `max_tokens` para que el agente tenga más espacio de salida aunque la entrada siga creciendo con cada tool.",
+        "Context editing con la estrategia `clear_tool_uses_20250919`, que reemplaza los resultados viejos por un placeholder."
+      ],
+      "correct": 3,
+      "why_correct": "Tool result clearing está hecho para esto: cuando el contexto pasa el umbral, la API borra los resultados de tools más viejos en orden cronológico y deja un placeholder. Por defecto solo borra los resultados, no las llamadas.",
+      "why_wrong": {
+        "0": "Esa estrategia administra bloques de thinking, no resultados de tools. El volumen está en las búsquedas y archivos.",
+        "1": "Una ventana FIFO cruda tira también la consigna y las decisiones del principio. El agente pierde el objetivo de la tarea.",
+        "2": "`max_tokens` es el techo de la salida. No saca nada de la entrada, que es lo que se está llenando."
+      },
+      "rule": "Muchos resultados de tools viejos que ya no sirven → context editing con `clear_tool_uses_20250919`.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
+      "source_quote": "Older tool results (such as file contents or search results) are no longer needed once Claude has processed them.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o21-q07",
+      "objective": 21,
+      "pool": "practice",
+      "scenario": "Un agente usa context editing con `clear_tool_uses_20250919`. Funciona bien, salvo por un detalle: la tool `get_case_facts`, que devuelve los datos confirmados del cliente al inicio de la sesión, también se borra cuando el contexto supera el umbral, y después el agente pregunta de nuevo cosas que ya sabía. ¿Qué ajuste hacés?",
+      "options": [
+        "Agregar `get_case_facts` en `exclude_tools` de la estrategia, para que sus llamadas y resultados no se borren nunca.",
+        "Poner `clear_tool_inputs: true` para que se borren también los parámetros y quede más lugar para los datos del caso.",
+        "Subir `keep` a 50 tool uses, así es menos probable que el resultado de `get_case_facts` caiga entre los borrados.",
+        "Bajar `trigger` a 10.000 tokens para que la limpieza corra antes de que el resultado de `get_case_facts` quede viejo."
+      ],
+      "correct": 0,
+      "why_correct": "`exclude_tools` es la lista de tools cuyas llamadas y resultados nunca se borran. Es la forma de retener selectivamente lo importante mientras el resto se limpia.",
+      "why_wrong": {
+        "1": "`clear_tool_inputs` borra MÁS cosas (los parámetros de las llamadas). No protege ningún resultado.",
+        "2": "Solo retrasa el problema: con suficientes tool calls igual se borra. Y conserva mucho ruido que querías limpiar.",
+        "3": "Un `trigger` más bajo hace que se limpie ANTES y más seguido. Empeora el problema."
+      },
+      "rule": "Context editing borra algo que necesitás siempre → `exclude_tools` con esa tool.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
+      "source_quote": "List of tool names whose tool uses and results should never be cleared. Useful for preserving important context.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o21-q08",
+      "objective": 21,
+      "pool": "practice",
+      "scenario": "Un asistente de onboarding conversa durante horas. Para no pasarse del límite, el equipo implementó una ventana deslizante: siempre manda solo los últimos 30 mensajes. Ahora, después de un rato, el asistente contradice requisitos que el usuario fijó en los primeros mensajes, aunque las últimas respuestas siguen siendo fluidas. ¿Qué cambio arregla esto sin perder la fluidez reciente?",
+      "options": [
+        "Aumentar la ventana a los últimos 300 mensajes, porque los modelos actuales tienen ventana de 1M tokens.",
+        "Compactar: reemplazar los turnos viejos por un resumen y mantener textuales los turnos más recientes.",
+        "Guardar los primeros mensajes en la base y volver a mandarlos solo cuando el usuario mencione un requisito.",
+        "Mandar los primeros 30 mensajes en lugar de los últimos 30, porque ahí están los requisitos importantes."
+      ],
+      "correct": 1,
+      "why_correct": "La ventana deslizante cruda tira lo viejo sin dejar rastro. La compactación reemplaza los turnos viejos por un resumen y puede conservar los últimos turnos palabra por palabra. Así quedan los requisitos (en el resumen o en un bloque de estado) y la fluidez reciente.",
+      "why_wrong": {
+        "0": "Solo agranda la ventana: tarde o temprano vuelve a cortar, y mientras tanto más contexto degrada recall y cuesta más.",
+        "2": "Depende de que el usuario mencione el requisito. Si no lo menciona, el asistente lo viola igual.",
+        "3": "Pierde toda la conversación reciente. Rompe justamente la fluidez que querías conservar."
+      },
+      "rule": "Ventana deslizante que pierde lo del principio → compactación (resumen de lo viejo + turnos recientes textuales).",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/compaction",
+      "source_quote": "when the last few turns must reach Claude word for word. The summary covers only the older turns.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o21-q09",
+      "objective": 21,
+      "pool": "practice",
+      "scenario": "Una app usa compactación con el resumen por defecto. Funciona, pero cada vez que compacta se pierde lo que el cliente dijo que esperaba (\"necesito la respuesta antes del viernes porque viajo\"), y el agente después propone plazos que no sirven. ¿Qué hacés?",
+      "options": [
+        "Compactar el doble de seguido para que cada resumen tenga menos turnos y así no tenga que descartar nada.",
+        "Dejar de compactar y pasar a un modelo con ventana de 1M tokens para no resumir esa parte nunca.",
+        "Usar thinking block clearing en vez de compactación, porque los razonamientos viejos son lo que más ocupa.",
+        "Escribir tu propio prompt de resumen que exija conservar expectativas, plazos y compromisos con el cliente."
+      ],
+      "correct": 3,
+      "why_correct": "La doc de compactación tiene una salida específica para esto: cuando el resumen por defecto descarta algo que un turno posterior necesita, escribís tu propio prompt de resumen, que reemplaza al default.",
+      "why_wrong": {
+        "0": "Compactar más seguido significa resumir más veces: las expectativas se diluyen igual o peor.",
+        "1": "No compactar nunca lleva a más contexto, con más degradación y costo. Y tarde o temprano hay que gestionar el largo.",
+        "2": "Ataca otra cosa (bloques de thinking). No decide qué conserva el resumen de la conversación."
+      },
+      "rule": "El resumen descarta algo crítico → prompt de resumen propio que diga qué conservar.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/compaction",
+      "source_quote": "when the default summary drops something a later turn needs. Your prompt replaces the default one.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o21-q10",
+      "objective": 21,
+      "pool": "practice",
+      "scenario": "En un sistema multi-agente, 6 subagentes investigan y cada uno devuelve su transcripción completa: razonamientos, búsquedas fallidas y hallazgos (unos 25k tokens cada uno). El agente sintetizador, que corre con un presupuesto de contexto chico, produce informes que omiten hallazgos. ¿Qué cambiás?",
+      "options": [
+        "Darle al sintetizador `max_tokens` más alto para que tenga espacio de escribir un informe que cubra los 6 informes.",
+        "Que el sintetizador lea las 6 transcripciones de a una y vaya resumiendo en prosa lo que va acumulando.",
+        "Que cada subagente devuelva datos estructurados y condensados: hallazgos clave, citas con fuente y relevancia.",
+        "Eliminar los subagentes y que un solo agente haga toda la investigación para que no haya que pasar resultados."
+      ],
+      "correct": 2,
+      "why_correct": "El patrón de subagentes funciona porque cada uno explora mucho pero devuelve un resumen condensado y destilado (a menudo 1.000–2.000 tokens). Si el downstream tiene poco presupuesto, el upstream tiene que devolver estructura, no transcripciones.",
+      "why_wrong": {
+        "0": "`max_tokens` es la salida. El cuello de botella es la entrada: 150k tokens de transcripciones.",
+        "1": "Resumir en prosa en cadena es resumen progresivo: los datos precisos se van diluyendo en cada paso.",
+        "3": "Un solo agente acumula toda la exploración en su propia ventana. Es justo lo que el aislamiento en subagentes evita."
+      },
+      "rule": "Downstream con poco contexto → el upstream devuelve datos estructurados y condensados, no transcripciones.",
+      "source_url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+      "source_quote": "Each subagent might explore extensively, using tens of thousands of tokens or more, but returns only a condensed, distilled summary of its work (often 1,000-2,000 tokens).",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

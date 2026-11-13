@@ -1,0 +1,149 @@
+{
+  "objective": 15,
+  "questions": [
+    {
+      "id": "o15-q01",
+      "objective": 15,
+      "pool": "practice",
+      "scenario": "Un equipo usa pytest con fixtures en `conftest.py` y asserts con mensajes descriptivos. Le piden a Claude Code \"escribí tests para `services/pagos.py`\" y obtienen tests con `unittest.TestCase`, datos armados a mano y asserts sin mensaje. ¿Qué cambio en el pedido tiene más impacto?",
+      "options": [
+        "Agregar al pedido \"usá buenas prácticas de testing en Python\" para que elija el framework más moderno disponible.",
+        "Pedirle que primero liste todos los frameworks de test posibles y que después elija el más adecuado para el proyecto.",
+        "Darle como modelo un test existente del repo (por ejemplo `@tests/test_facturas.py`) y pedirle que siga ese estilo y esas fixtures.",
+        "Pedirle que escriba los tests en `unittest` y que después los convierta a pytest en un segundo paso automático."
+      ],
+      "correct": 2,
+      "why_correct": "Claude examina los tests existentes para copiar estilo, framework y patrones de assert. Darle uno concreto como modelo con `@` asegura que lo vea y lo siga, en vez de inventar su propia forma.",
+      "why_wrong": {
+        "0": "\"Buenas prácticas\" es vago; puede elegir algo distinto a lo que usa el repo.",
+        "1": "Le hace razonar en abstracto en vez de mostrarle el patrón real del proyecto.",
+        "3": "Duplica trabajo y sigue sin usar las fixtures del repo."
+      },
+      "rule": "Tests con el estilo del repo → dale un test existente como modelo.",
+      "source_url": "https://code.claude.com/docs/en/common-workflows",
+      "source_quote": "Claude examines your existing test files to match the style, frameworks, and assertion patterns already in use.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o15-q02",
+      "objective": 15,
+      "pool": "practice",
+      "scenario": "Un líder técnico le pide a Claude Code \"subí la cobertura de `billing/` al 90%\". Lo logra, pero en la revisión ven tests como `assert calcular_total(items) is not None` y tests que solo llaman funciones sin verificar nada. ¿Qué pedido hubiera dado tests que valen?",
+      "options": [
+        "Pedir los comportamientos concretos a verificar (descuento aplicado, total con IVA, monto negativo → error) en lugar de un porcentaje de cobertura.",
+        "Pedir 95% de cobertura en lugar de 90%, para forzar que los tests recorran más ramas del código y verifiquen más cosas.",
+        "Pedir que cada test tenga al menos cinco asserts, para que ninguno quede con una sola verificación débil.",
+        "Pedir que use mocks para todas las dependencias, así los tests corren más rápido y se pueden escribir más en el mismo tiempo."
+      ],
+      "correct": 0,
+      "why_correct": "La doc pide ser específico sobre qué comportamiento verificar. Un porcentaje se cumple con asserts triviales; una lista de comportamientos obliga a asserts que comprueban resultados reales.",
+      "why_wrong": {
+        "1": "Sigue siendo una métrica de cobertura: se puede cumplir con más asserts vacíos.",
+        "2": "Cinco asserts triviales siguen siendo triviales; contar asserts no mide si verifican comportamiento.",
+        "3": "Mockear todo puede hacer que los tests verifiquen los mocks en vez del comportamiento."
+      },
+      "rule": "Pedí comportamientos a verificar, no porcentajes de cobertura.",
+      "source_url": "https://code.claude.com/docs/en/common-workflows",
+      "source_quote": "When asking for tests, be specific about what behavior you want to verify.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o15-q03",
+      "objective": 15,
+      "pool": "practice",
+      "scenario": "En un repo, cada vez que alguien le pide tests a Claude Code tiene que explicar en el prompt que existen las fixtures `cliente_demo` y `factura_basica` en `conftest.py` y que no hay que crear datos a mano. Si se olvidan, Claude inventa datos. ¿Dónde va esa convención?",
+      "options": [
+        "En un comentario al principio de `conftest.py`, porque Claude lo va a leer siempre que genere un test nuevo.",
+        "En un hook `PreToolUse` que imprima la lista de fixtures cada vez que Claude intente escribir un archivo de test.",
+        "En un `CLAUDE.local.md` de cada desarrollador, para que cada uno la ajuste según los tests que suele escribir.",
+        "En el `CLAUDE.md` del proyecto, junto a los comandos de test, para que se cargue en cada sesión de todo el equipo."
+      ],
+      "correct": 3,
+      "why_correct": "El `CLAUDE.md` del proyecto es para instrucciones que aplican a cualquiera que trabaje en el repo: comandos de build y test, estándares, convenciones. Se lee al empezar cada sesión, así nadie tiene que repetirlo.",
+      "why_wrong": {
+        "0": "Claude solo lo ve si abre ese archivo; no está garantizado que lo lea antes de escribir el test.",
+        "1": "Un hook es para controlar herramientas, no para dar convenciones; y el texto plano de un `PreToolUse` no llega al contexto de Claude.",
+        "2": "Es una convención del equipo: en `CLAUDE.local.md` no se comparte por git."
+      },
+      "rule": "Convenciones de fixtures y comandos de test → `CLAUDE.md` del proyecto.",
+      "source_url": "https://code.claude.com/docs/en/memory",
+      "source_quote": "Create this file and add instructions that apply to anyone working on the project: build and test commands, coding standards, architectural decisions, naming conventions, and common workflows.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o15-q04",
+      "objective": 15,
+      "pool": "practice",
+      "scenario": "Un dev le dio a Claude un test que fallaba y le pidió \"hacé que pase\". Claude agregó un `if` que devuelve el valor esperado justo para la entrada del test. El test pasa, pero el bug sigue para otras entradas. ¿Qué agregás al prompt?",
+      "options": [
+        "\"Hacé que pase este test y también los demás del archivo, sin tocar ninguno de los tests existentes.\"",
+        "\"Implementá la lógica general para cualquier entrada válida; los tests verifican, no definen la solución. No hardcodees valores.\"",
+        "\"Hacé que pase el test usando la menor cantidad de líneas posible, para que el cambio sea fácil de revisar.\"",
+        "\"Si no podés hacer que pase en tres intentos, marcá el test como `skip` y dejá un comentario explicando el motivo.\""
+      ],
+      "correct": 1,
+      "why_correct": "La doc de prompting tiene un prompt para esto: pedir una solución general, no valores hardcodeados para entradas de test, porque los tests están para verificar correctitud, no para definir la solución.",
+      "why_wrong": {
+        "0": "Más tests que pasar no impide hardcodear para cada uno.",
+        "2": "\"Mínimas líneas\" empuja justo al atajo del `if`.",
+        "3": "Esconde el problema en vez de arreglar el comportamiento."
+      },
+      "rule": "\"Hacé que pase\" invita a hardcodear: pedí la lógica general.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Tests are there to verify correctness, not to define the solution.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o15-q05",
+      "objective": 15,
+      "pool": "practice",
+      "scenario": "Los tests que genera Claude para un módulo de fechas cubren solo el camino feliz. En producción fallan con 29 de febrero, fechas vacías y años de dos dígitos. ¿Qué pedido sigue la receta de la doc?",
+      "options": [
+        "Pedirle que identifique los casos borde que falten (condiciones de error, valores límite, entradas inesperadas) y escriba tests para ellos.",
+        "Pedirle que duplique cada test existente con datos aleatorios, para cubrir más combinaciones sin pensar cada caso.",
+        "Pedirle que agregue asserts de tipo (`isinstance`) a cada test, para que fallen si una función devuelve algo raro.",
+        "Pedirle que reescriba el módulo de fechas con una librería externa, así no hace falta testear casos borde propios."
+      ],
+      "correct": 0,
+      "why_correct": "La doc sugiere pedirle a Claude que identifique casos borde que se te pasaron: analiza los caminos del código y propone tests de errores, límites y entradas inesperadas.",
+      "why_wrong": {
+        "1": "Datos al azar no garantizan pegarle a los bordes que importan (29/2, vacío).",
+        "2": "Chequear tipos no verifica que la fecha sea la correcta.",
+        "3": "Cambia el código en vez de mejorar los tests; y el comportamiento igual hay que verificarlo."
+      },
+      "rule": "Tests solo de camino feliz → pedile casos borde: errores, límites, entradas raras.",
+      "source_url": "https://code.claude.com/docs/en/common-workflows",
+      "source_quote": "Claude can analyze your code paths and suggest tests for error conditions, boundary values, and unexpected inputs that are often overlooked.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o15-q06",
+      "objective": 15,
+      "pool": "practice",
+      "scenario": "Claude Code genera tests correctos, pero para verificarlos corre toda la suite (12 minutos) en cada vuelta, porque no sabe cómo correr un archivo suelto en este repo. ¿Qué agregás al `CLAUDE.md`?",
+      "options": [
+        "\"Corré los tests lo menos posible, porque la suite es lenta y consume tiempo de CI del equipo.\"",
+        "\"No corras tests; el CI los va a correr cuando abras el PR, así ahorramos tiempo en cada sesión.\"",
+        "El comando exacto para correr un solo archivo, por ejemplo `pytest tests/test_x.py -q`, junto a los de lint y typecheck.",
+        "Una lista de todos los archivos de test del repo, para que elija cuál correr según el módulo que esté tocando."
+      ],
+      "correct": 2,
+      "why_correct": "La doc dice que en `CLAUDE.md` va cómo confirmar el trabajo en el repo: los comandos exactos de test, typecheck y lint, y cómo correr un solo archivo. Con eso verifica rápido y sigue iterando.",
+      "why_wrong": {
+        "0": "Es vago y empuja a no verificar.",
+        "1": "Le saca el check: Claude no puede cerrar el ciclo de corregir y verificar.",
+        "3": "Claude puede encontrar los archivos solo; lo que no sabe es el comando, que es lo que falta."
+      },
+      "rule": "En `CLAUDE.md`: el comando exacto para correr un test suelto.",
+      "source_url": "https://code.claude.com/docs/en/best-practices",
+      "source_quote": "How to confirm work in this repo: the exact test, typecheck, and lint commands, and how to run a single test file",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

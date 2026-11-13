@@ -1,0 +1,245 @@
+{
+  "objective": 24,
+  "questions": [
+    {
+      "id": "o24-q01",
+      "objective": 24,
+      "pool": "practice",
+      "scenario": "Una fintech revisa cada PR con un solo prompt que pide \"buscá problemas de seguridad, errores de lógica de negocio y fallas de diseño de API\", con 6 ejemplos de los tres temas mezclados. En las métricas, los hallazgos de diseño de API salen bien, pero el bot se pierde de forma consistente queries sin filtro por tenant. ¿Cuál es el fix de arquitectura?",
+      "options": [
+        "Agregar al mismo prompt una sección \"IMPORTANT: priorizá seguridad\" y sumar 4 ejemplos más de vulnerabilidades al bloque de ejemplos compartido.",
+        "Pedirle al prompt que sea conservador y solo reporte hallazgos de severidad alta, así la atención se concentra en lo más grave.",
+        "Partir el review en tres pasadas separadas (seguridad, negocio, API), cada una con su propio prompt y sus propios ejemplos, y unir los hallazgos en código.",
+        "Correr el mismo prompt mezclado tres veces seguidas sobre el PR y quedarse con la unión de todos los hallazgos que aparezcan en alguna corrida."
+      ],
+      "correct": 2,
+      "why_correct": "El problema es que un solo prompt reparte la atención entre criterios distintos. Separar en subtareas hace que cada prompt cubra un solo tema, con ejemplos relevantes para ese tema. El merge se hace en código, donde podés deduplicar y ordenar.",
+      "why_wrong": {
+        "0": "Sigue siendo un prompt que mezcla temas; agregar texto y ejemplos agranda la mezcla en vez de separarla.",
+        "1": "\"Sé conservador\" baja lo que reporta en TODOS los temas. La doc avisa que el modelo puede tomarlo literal y reportar menos.",
+        "3": "Repetir el mismo prompt no separa los criterios: en cada corrida compiten igual. Solo multiplicás costo."
+      },
+      "rule": "Un tema que se pierde en un review mezclado → una pasada por tema, con sus propios ejemplos.",
+      "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/increase-consistency",
+      "source_quote": "Break down complex tasks into smaller, consistent subtasks. Each prompt then covers a single subtask, reducing inconsistency errors across scaled workflows.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o24-q02",
+      "objective": 24,
+      "pool": "practice",
+      "scenario": "Un equipo ya separó su review en tres pasadas (seguridad, negocio, API). Para \"ahorrar tokens\", las tres comparten el MISMO bloque de 5 ejemplos: dos de API, dos de estilo y uno de negocio. La pasada de seguridad empezó a reportar nombres de endpoints \"poco RESTful\". ¿Qué cambiás?",
+      "options": [
+        "Darle a cada pasada sus propios ejemplos, relevantes a su tema: la de seguridad lleva 3 a 5 casos de vulnerabilidades reales del repo, incluido uno limpio.",
+        "Sacar los ejemplos de las tres pasadas y reemplazarlos por una descripción en prosa más larga de qué cuenta como hallazgo en cada tema.",
+        "Mantener el bloque compartido, pero ponerlo al final del prompt y aclarar en mayúsculas que la pasada de seguridad debe ignorar los de API.",
+        "Unir de nuevo las tres pasadas en un prompt único, ya que los ejemplos compartidos demuestran que los temas en realidad se solapan."
+      ],
+      "correct": 0,
+      "why_correct": "Los ejemplos tienen que reflejar el caso de uso real de ESA pasada. Ejemplos de API en la pasada de seguridad le enseñan a buscar problemas de API. Con ejemplos propios, cada pasada aprende el formato y el tipo de hallazgo que le toca.",
+      "why_wrong": {
+        "1": "La doc dice que los ejemplos son más efectivos que las instrucciones abstractas. Sacarlos empeora la consistencia.",
+        "2": "El modelo copia patrones de los ejemplos. Decirle \"ignorá estos\" es pelear contra lo que vos mismo le mostraste.",
+        "3": "Volver al prompt único reintroduce la competencia entre temas. El fix es ejemplos dedicados, no deshacer la separación."
+      },
+      "rule": "Pasada separada = ejemplos separados. Ejemplos de otro tema enseñan el tema equivocado.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Relevant: Mirror your actual use case closely.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o24-q03",
+      "objective": 24,
+      "pool": "practice",
+      "scenario": "Para bajar ruido, un equipo agregó a su prompt único de review: \"Sé conservador y reportá solo issues de severidad alta\". Los falsos positivos bajaron, pero ahora se escapan bugs reales de lógica de negocio que antes sí aparecían. Usan Claude Opus 5. ¿Qué recomienda la doc?",
+      "options": [
+        "Subir el effort a `max` manteniendo la instrucción, porque con más thinking el modelo distingue mejor qué es severidad alta.",
+        "Reemplazar la frase por \"IMPORTANT: reportá solo lo grave, pero no te pierdas nada importante\" para equilibrar las dos cosas.",
+        "Bajar el effort a `low`, que según la doc reporta solo los hallazgos más confiables y así se puede sacar la instrucción.",
+        "Pedirle que reporte todo lo que encuentre y filtrar por severidad en una pasada separada, en vez de restringir dentro del mismo prompt."
+      ],
+      "correct": 3,
+      "why_correct": "La doc de Opus 5 advierte que instrucciones como \"be conservative\" se pueden tomar literal y el modelo reporta menos. La recomendación es reportar todo y filtrar en otra pasada. Así no perdés recall en la etapa que busca.",
+      "why_wrong": {
+        "0": "El problema no es falta de razonamiento sino una instrucción que el modelo sigue al pie de la letra. Más effort no la deshace.",
+        "1": "Es una instrucción contradictoria; sigue siendo restrictiva dentro del mismo prompt y no separa buscar de filtrar.",
+        "2": "Eso es del comando `/code-review` de Claude Code, no de un prompt propio por API; y también reduce cobertura, que es justo lo que se perdió."
+      },
+      "rule": "Para bajar ruido sin perder bugs: buscá todo en una pasada, filtrá en otra.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5",
+      "source_quote": "If your review prompt says “only report high-severity issues” or “be conservative,” the model might follow that instruction literally and report less; ask it to report everything and filter in a separate pass instead.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o24-q04",
+      "objective": 24,
+      "pool": "practice",
+      "scenario": "En Claude Code, un equipo tiene un único subagente `reviewer` cuyo system prompt cubre seguridad, performance y accesibilidad, con herramientas completas. Quieren especializar el review por tema y que el revisor no pueda editar código. ¿Qué configuración usan?",
+      "options": [
+        "Agregar al CLAUDE.md del proyecto tres secciones (seguridad, performance, accesibilidad) y pedirle al subagente `reviewer` que las lea antes de revisar.",
+        "Crear en `.claude/agents/` un subagente por tema, cada uno con su system prompt y ejemplos, y `tools: Read, Grep, Glob` para que solo lea.",
+        "Crear una Skill `review` con tres secciones y `disable-model-invocation: true`, para que el revisor la cargue solo al invocarla.",
+        "Mantener el subagente único y agregar en su prompt \"no edites archivos\", separando los temas con encabezados Markdown más claros."
+      ],
+      "correct": 1,
+      "why_correct": "Cada subagente corre en su propio contexto con un system prompt propio y acceso a herramientas específico. Uno por tema da prompts enfocados, y `tools: Read, Grep, Glob` hace que el límite de no editar lo aplique Claude Code, no el prompt.",
+      "why_wrong": {
+        "0": "Sigue siendo un solo revisor mezclando tres temas, y el CLAUDE.md no restringe herramientas.",
+        "2": "Una Skill sigue siendo un solo procedimiento para un mismo contexto; no separa pasadas ni restringe herramientas por sí sola.",
+        "3": "\"No edites\" en el prompt es guía, no límite; y los encabezados no evitan que los tres temas compitan en el mismo prompt."
+      },
+      "rule": "Review especializado en Claude Code → un subagente por tema, con prompt propio y tools de solo lectura.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "Each subagent runs in its own context window with a custom system prompt, specific tool access, and independent permissions.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o24-q05",
+      "objective": 24,
+      "pool": "practice",
+      "scenario": "Un pipeline corre tres pasadas de review por API (seguridad, negocio, API) y concatena los textos libres que devuelve cada una en un comentario. Los devs se quejan de hallazgos duplicados y de que no se puede ordenar por severidad. ¿Qué arreglás?",
+      "options": [
+        "Hacer que las tres pasadas devuelvan el mismo formato estructurado (archivo, línea, severidad, descripción) y hacer el merge, la deduplicación y el orden en código.",
+        "Volver a un solo prompt con los tres temas, así el modelo no repite hallazgos porque ve todo de una vez en la misma respuesta.",
+        "Agregar una cuarta pasada que reciba los tres textos y reescriba un comentario final, sin cambiar el formato libre de cada pasada.",
+        "Pedirle a cada pasada que \"no repita lo que podrían haber encontrado las otras\", aunque cada una no vea la salida de las demás."
+      ],
+      "correct": 0,
+      "why_correct": "Separar en pasadas funciona si después podés juntar los resultados de forma confiable. Con un formato común podés deduplicar por archivo+línea y ordenar por severidad en tu código, y cada paso queda inspeccionable.",
+      "why_wrong": {
+        "1": "Volver al prompt único reintroduce la competencia entre temas, que era el problema original.",
+        "2": "Puede servir como verificación, pero si la salida de cada pasada sigue siendo texto libre, el merge depende otra vez de un modelo y no se puede ordenar de forma determinística.",
+        "3": "Cada pasada no ve a las otras: no puede saber qué encontraron. La instrucción no tiene cómo cumplirse."
+      },
+      "rule": "Pasadas separadas → mismo formato de salida → merge en código.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Explicit prompt chaining (breaking a task into sequential API calls) is still useful when you need to inspect intermediate outputs or enforce a specific pipeline structure.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o24-q06",
+      "objective": 24,
+      "pool": "practice",
+      "scenario": "Una empresa con plan Enterprise usa el servicio Code Review de Claude Code. Un arquitecto propone desactivarlo y armar un workflow propio con un solo prompt \"revisá todo\" porque \"un único agente es más consistente\". ¿Qué le respondés, según cómo funciona el servicio?",
+      "options": [
+        "Que tiene razón: el servicio usa un único agente con un prompt genérico, así que un prompt propio con más contexto va a ser igual o mejor.",
+        "Que da igual: el servicio y un prompt único producen lo mismo, la única diferencia es dónde corren y cómo se factura.",
+        "Que el servicio ya usa varios agentes que revisan el diff en paralelo y una verificación que filtra falsos positivos; un prompt único pierde esa separación.",
+        "Que conviene el servicio porque su review aprueba o bloquea el PR automáticamente, cosa que un workflow propio no puede hacer."
+      ],
+      "correct": 2,
+      "why_correct": "La doc describe el servicio en etapas: varios agentes buscan en paralelo, una verificación filtra falsos positivos y después se deduplica y ordena por severidad. Es justo una arquitectura multipasada, no un prompt único.",
+      "why_wrong": {
+        "0": "Es falso: la doc dice que varios agentes examinan el diff en paralelo, no uno solo.",
+        "1": "No es lo mismo: el servicio separa búsqueda y verificación en etapas distintas.",
+        "3": "La doc dice lo contrario: un review nunca aprueba ni bloquea el PR; la decisión de mergear queda en el equipo."
+      },
+      "rule": "Code Review = varios agentes en paralelo + verificación + ranking. Multipasada, no prompt único.",
+      "source_url": "https://code.claude.com/docs/en/code-review",
+      "source_quote": "Verify: a verification step checks the candidate findings against the code and filters out false positives.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o24-q07",
+      "objective": 24,
+      "pool": "practice",
+      "scenario": "Una pasada de review de seguridad por API trae 2 ejemplos: los dos son inyección SQL en el mismo archivo, con el mismo formato de hallazgo. Ahora la pasada solo encuentra inyecciones SQL y nunca reporta problemas de autorización ni secretos en logs. ¿Qué ajustás en esa pasada?",
+      "options": [
+        "Sacar los ejemplos y dejar solo la instrucción \"buscá cualquier problema de seguridad\", para no sesgar al modelo hacia un tipo.",
+        "Agregar al prompt \"no te limites a SQL injection\" y mantener los mismos dos ejemplos, que ya muestran bien el formato esperado.",
+        "Duplicar los mismos dos ejemplos para que pesen más y sumar una lista de 20 categorías de vulnerabilidades al final del prompt.",
+        "Usar 3 a 5 ejemplos diversos dentro del tema seguridad (inyección, authz, secretos en logs, un caso limpio), envueltos en `<examples>`."
+      ],
+      "correct": 3,
+      "why_correct": "La doc pide ejemplos diversos que cubran casos borde y varíen lo suficiente para que Claude no tome patrones no deseados. Dos ejemplos casi iguales le enseñaron \"seguridad = SQL injection\". Con 3–5 variados dentro del tema, la pasada cubre todo su alcance.",
+      "why_wrong": {
+        "0": "Sacar ejemplos pierde una de las formas más confiables de guiar formato y tipo de hallazgo.",
+        "1": "Los ejemplos pesan más que una aclaración suelta; si siguen siendo iguales, el sesgo sigue.",
+        "2": "Duplicar ejemplos refuerza el sesgo, y una lista larga al final no reemplaza ejemplos variados."
+      },
+      "rule": "Few-shot de una pasada: 3–5 ejemplos diversos DENTRO de su tema.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Diverse: Cover edge cases and vary enough that Claude doesn’t pick up unintended patterns.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o24-q08",
+      "objective": 24,
+      "pool": "practice",
+      "scenario": "Un equipo tiene un review en una sola llamada y no sabe qué tema genera más falsos positivos: solo ven el total. Quieren poder medir y ajustar cada criterio por separado, y cambiar uno sin tocar los otros. ¿Qué diseño se los permite?",
+      "options": [
+        "Mantener una sola llamada pero pedir que cada hallazgo incluya una etiqueta de tema, y ajustar el prompt único según las etiquetas.",
+        "Encadenar llamadas separadas, una por tema, para poder loguear, evaluar y cambiar cada paso de forma independiente.",
+        "Activar thinking resumido en la llamada única y leer el razonamiento para deducir qué criterio produjo cada falso positivo.",
+        "Correr la llamada única con dos modelos distintos y comparar resultados para inferir qué tema es el más ruidoso."
+      ],
+      "correct": 1,
+      "why_correct": "Con prompt chaining cada paso es una llamada aparte, que podés loguear, evaluar o modificar sin afectar las demás. Eso convierte \"el review\" en piezas medibles: ves qué pasada mete ruido y ajustás solo esa.",
+      "why_wrong": {
+        "0": "Las etiquetas ayudan a medir, pero cualquier ajuste sigue tocando un prompt donde todos los temas compiten; no podés cambiar uno aislado.",
+        "2": "Leer el razonamiento sirve para depurar un caso, pero no separa criterios ni permite ajustar uno sin tocar los otros.",
+        "3": "Compara modelos, no criterios; el prompt mezclado sigue igual en los dos."
+      },
+      "rule": "¿Querés medir y tunear cada criterio? Cada criterio en su propia llamada.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Each step is a separate API call so you can log, evaluate, or branch at any point.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o24-q09",
+      "objective": 24,
+      "pool": "practice",
+      "scenario": "Un equipo usa el servicio Code Review. Su `REVIEW.md` creció mucho, así que lo partieron en `review-security.md` y `review-api.md` y los incluyen desde el root `REVIEW.md` con líneas `@review-security.md` y `@review-api.md`. Un dev dice: \"Listo, ahora tenemos pasadas separadas por tema\". ¿Es correcto?",
+      "options": [
+        "Sí: cada archivo incluido se ejecuta como un agente independiente con su propio contexto, una pasada por tema.",
+        "Sí, pero solo si los archivos incluidos están en `.claude/agents/`, que es donde Code Review busca pasadas especializadas.",
+        "No: los includes organizan las instrucciones de un mismo `REVIEW.md`; su contenido se pone en lugar de la línea `@` y aplica como parte de ese archivo.",
+        "No: los includes con `@` nunca funcionan en `REVIEW.md`; solo funcionan en `CLAUDE.md`, así que esos archivos se ignoran."
+      ],
+      "correct": 2,
+      "why_correct": "La doc dice que Code Review pone el contenido del archivo en lugar de la línea `@`, así que aplica como parte de `REVIEW.md`. Es organización de instrucciones, no una arquitectura de pasadas separadas.",
+      "why_wrong": {
+        "0": "La doc no dice eso: el contenido se inserta en `REVIEW.md`, no se convierte en un agente aparte.",
+        "1": "Los archivos incluidos van en la raíz, al lado de `REVIEW.md`; `.claude/agents/` es para subagentes de Claude Code, no para includes de Code Review.",
+        "3": "Falso: `REVIEW.md` sí soporta includes con `@` (en la raíz y leyendo desde una rama protegida)."
+      },
+      "rule": "Includes en REVIEW.md = organizar texto. Pasadas separadas = llamadas o agentes separados.",
+      "source_url": "https://code.claude.com/docs/en/code-review-customize",
+      "source_quote": "Code Review puts the file's contents in place of that line, so they apply as part of `REVIEW.md`.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o24-q10",
+      "objective": 24,
+      "pool": "practice",
+      "scenario": "Un equipo separó el review en pasadas de seguridad, negocio y API. Ahora cada pasada genera bastantes candidatos, y algunos son falsos. No quieren volver a decirle a cada pasada \"sé conservador\". ¿Qué agregás a la arquitectura?",
+      "options": [
+        "Un paso de verificación separado que reciba cada hallazgo candidato y lo chequee contra el código antes de publicarlo.",
+        "Un límite de `max_tokens` más bajo en cada pasada, para que el modelo tenga que priorizar y escriba solo los hallazgos más sólidos.",
+        "Una instrucción en cada pasada de reportar como máximo tres hallazgos, para forzarla a quedarse solo con los más seguros.",
+        "Juntar las tres pasadas otra vez en una sola, ya que más pasadas siempre producen más falsos positivos que un prompt único."
+      ],
+      "correct": 0,
+      "why_correct": "La doc de subagentes da justo este patrón: un revisor que despacha un verificador por hallazgo. Buscar y verificar quedan como etapas distintas, igual que en el servicio Code Review. Así mantenés el recall de las pasadas y filtrás después.",
+      "why_wrong": {
+        "1": "`max_tokens` corta la salida; no hace que el modelo elija mejor, y puede dejar el output truncado.",
+        "2": "Un tope arbitrario es otra forma de \"sé conservador\": recorta hallazgos reales junto con los falsos.",
+        "3": "No hay base para eso; volver al prompt único recupera el problema de temas que compiten."
+      },
+      "rule": "Más candidatos + falsos positivos → agregá una etapa de verificación, no restricciones en la búsqueda.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "Nested subagents suit a delegated task that itself splits into parallel subtasks, such as a reviewer subagent that dispatches a verifier per finding.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

@@ -1,0 +1,197 @@
+{
+  "objective": 17,
+  "questions": [
+    {
+      "id": "o17-q01",
+      "objective": 17,
+      "pool": "practice",
+      "scenario": "Un agente basado en el Agent SDK tiene que explicar cómo funciona el flujo de reembolsos en un repo de 1.200 archivos. Su prompt dice: \"Primero leé todos los archivos de `src/` para tener el panorama completo, después respondé\". Se queda sin contexto antes de terminar de leer y la respuesta es genérica. ¿Qué estrategia de exploración corresponde?",
+      "options": [
+        "Leer primero los archivos más grandes de `src/`, porque suelen concentrar la lógica de negocio importante.",
+        "Concatenar todo `src/` en un solo archivo con Bash y leerlo de una vez con Read, para hacer una sola llamada.",
+        "Buscar con Grep los puntos de entrada (`refund`, la ruta del endpoint), leer esos archivos y seguir sus imports.",
+        "Listar con Glob todos los `**/*.ts` y leerlos en orden alfabético hasta que se llene la ventana de contexto."
+      ],
+      "correct": 2,
+      "why_correct": "La exploración incremental arranca por los puntos de entrada (Grep por contenido), lee solo esos archivos y va siguiendo imports. Es el enfoque \"just in time\": cargar al contexto solo lo que hace falta, cuando hace falta, en vez de todo de entrada.",
+      "why_wrong": {
+        "0": "El tamaño no dice si el archivo participa del flujo de reembolsos. Sigue siendo leer a ciegas.",
+        "1": "Mismo volumen en una sola llamada: Read además rechaza archivos de más de 256 KB enteros y te manda a paginar o a usar Grep.",
+        "3": "Glob sirve para encontrar archivos por nombre, pero leerlos todos en orden alfabético es leer todo de entrada con otro nombre."
+      },
+      "rule": "Entender un flujo → Grep el punto de entrada, Read de esos archivos, seguir imports. Nunca \"leé todo primero\".",
+      "source_url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+      "source_quote": "CLAUDE.md files are naively dropped into context up front, while primitives like glob and grep allow it to navigate its environment and retrieve files just-in-time",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o17-q02",
+      "objective": 17,
+      "pool": "practice",
+      "scenario": "Hay que encontrar todos los usos de `sendEmail` antes de cambiarle la firma. Un Grep por `sendEmail` da solo 3 resultados, pero en producción se manda mail desde muchos más lugares. Resulta que `lib/notify/index.ts` re-exporta la función como `notifyUser` y `notifyAdmin`, y casi todo el código importa esos nombres. ¿Cómo seguís?",
+      "options": [
+        "Leer `lib/notify/index.ts` para sacar todos los nombres que exporta y después hacer un Grep por cada uno en el repo.",
+        "Repetir el Grep por `sendEmail` con `multiline: true` para que encuentre también las llamadas partidas en varias líneas.",
+        "Hacer un Glob `**/*notify*` y asumir que todos los archivos con \"notify\" en el nombre son los que llaman a la función.",
+        "Cambiar la firma igual y dejar que el build marque los errores, así no hace falta explorar los usos de antemano."
+      ],
+      "correct": 0,
+      "why_correct": "Con módulos wrapper, el nombre original no aparece en los llamadores. Primero identificás todos los nombres exportados por el wrapper (Read del `index.ts`) y después buscás cada nombre por contenido con Grep en todo el código.",
+      "why_wrong": {
+        "1": "`multiline` sirve para patrones que cruzan líneas. El problema es que los llamadores usan OTRO nombre.",
+        "2": "Glob busca por nombre de archivo, no por uso. Un archivo puede llamar a `notifyUser` sin tener \"notify\" en el nombre.",
+        "3": "No es una estrategia de exploración: no encuentra usos dinámicos ni en código sin tipos, y te deja sin entender el impacto antes de cambiar."
+      },
+      "rule": "Función re-exportada por un wrapper → sacá los nombres exportados y Grep por cada uno.",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "The Grep tool searches file contents for patterns.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o17-q03",
+      "objective": 17,
+      "pool": "practice",
+      "scenario": "Claude necesita entender la función `reconcileLedger` dentro de `legacy/ledger.js`, un archivo generado de 9.000 líneas. El Read del archivo entero vuelve con un aviso `PARTIAL view` y solo las primeras líneas; la función está mucho más abajo. ¿Qué es lo más eficiente?",
+      "options": [
+        "Pedirle a Claude que lea el archivo entero varias veces seguidas hasta que el aviso `PARTIAL view` desaparezca.",
+        "Grep por `reconcileLedger` en modo `content` para obtener el número de línea, y después Read con `offset` y `limit` alrededor.",
+        "Copiar el archivo a `.md` con Bash para que Read lo trate como documentación y lo devuelva sin límites.",
+        "Hacer un Glob de `legacy/**/*.js` para ver si hay una versión más corta del archivo con la misma función."
+      ],
+      "correct": 1,
+      "why_correct": "Read devuelve como máximo 25.000 tokens por llamada; un archivo más grande se lee por páginas con `offset` y `limit`. Grep en modo `content` te da archivo y número de línea, así leés solo la ventana que te interesa.",
+      "why_wrong": {
+        "0": "Repetir la misma llamada devuelve la misma primera página. Hay que paginar o buscar.",
+        "2": "La extensión no cambia los límites de Read para texto. Es un workaround inventado.",
+        "3": "Busca otro archivo por nombre; no te lleva a la función dentro del que ya encontraste."
+      },
+      "rule": "Archivo enorme → Grep `content` para la línea, Read con `offset`/`limit` alrededor.",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "so Claude reads a larger file in pages with `offset` and `limit`.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o17-q04",
+      "objective": 17,
+      "pool": "practice",
+      "scenario": "Antes de refactorizar un hook `useAuth`, Claude quiere saber qué archivos lo usan más, para leer primero esos y no los 80 que lo mencionan una vez. Un Grep con la configuración por defecto le devuelve solo la lista de rutas. ¿Qué ajusta en la llamada a Grep?",
+      "options": [
+        "Poner `multiline: true` para que Grep agrupe las coincidencias de un mismo archivo en un solo resultado.",
+        "Usar `output_mode: \"content\"` y contar a mano las líneas que vuelven para cada archivo de la lista.",
+        "Cambiar a Glob con el patrón `**/*useAuth*` para ordenar los archivos por cantidad de usos del hook.",
+        "Usar `output_mode: \"count\"`, que devuelve la cantidad de coincidencias por archivo y un total."
+      ],
+      "correct": 3,
+      "why_correct": "El modo por defecto (`files_with_matches`) da solo rutas. El modo `count` da coincidencias por archivo y el total: con eso priorizás qué leer sin cargar las líneas al contexto.",
+      "why_wrong": {
+        "0": "`multiline` cambia si el patrón puede cruzar líneas, no cómo se agrupan los resultados.",
+        "1": "Funciona, pero trae todas las líneas al contexto solo para contarlas. Es justo el gasto que querías evitar.",
+        "2": "Glob busca por nombre de archivo (ordenado por fecha de modificación), no por usos dentro del código."
+      },
+      "rule": "Priorizar qué leer → Grep `count`; ver las líneas → `content`; solo rutas → `files_with_matches`.",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "`count`: match count per file, followed by a total across all matching files.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o17-q05",
+      "objective": 17,
+      "pool": "practice",
+      "scenario": "Un subagente de solo lectura (`tools: Read, Grep, Glob`) investiga por qué en producción aparece el string `LEGACY_PRICE_V2`. Grep sobre todo el repo da 0 resultados. El string sí está en `build/generated/prices.js`, y `build/` está en `.gitignore`. ¿Qué hace el subagente?",
+      "options": [
+        "Concluir que el string ya no existe en el código y que el bug viene de una variable de entorno de producción.",
+        "Pasarle a Grep la ruta del archivo o carpeta ignorada (`build/generated/`) directamente como `path`.",
+        "Repetir el Grep con `type: \"js\"` para que incluya los archivos JavaScript generados en la búsqueda.",
+        "Pedir que alguien saque `build/` del `.gitignore` y lo commitee, así Grep lo puede indexar."
+      ],
+      "correct": 1,
+      "why_correct": "Grep respeta `.gitignore` y saltea los archivos ignorados. Para buscar en uno, se le pasa la ruta directamente. Un 0 en Grep no prueba que el string no exista.",
+      "why_wrong": {
+        "0": "Saca una conclusión falsa de un resultado vacío: Grep ni siquiera miró `build/`.",
+        "2": "`type` filtra por lenguaje dentro de lo que Grep ya recorre. Los ignorados siguen afuera.",
+        "3": "Rompe el repo para resolver una búsqueda. Basta con pasar la ruta."
+      },
+      "rule": "Grep da 0 en archivos generados o ignorados → pasale la ruta directamente.",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "Grep respects `.gitignore`, so gitignored files are skipped. To search a gitignored file, Claude passes its path directly.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o17-q06",
+      "objective": 17,
+      "pool": "practice",
+      "scenario": "Para arrancar a entender un monorepo, un agente hace Glob con el patrón `**/*`. El resultado trae 100 archivos, mayormente `.lock`, `.snap` y assets modificados ayer, y un aviso de truncamiento. El agente concluye que el repo \"casi no tiene código\". ¿Qué tendría que hacer?",
+      "options": [
+        "Volver a correr el mismo Glob varias veces, porque cada llamada devuelve otros 100 archivos del repo.",
+        "Leer los 100 archivos que vinieron para deducir desde ahí la estructura del resto del monorepo.",
+        "Achicar el patrón a lo que busca, por ejemplo `packages/*/src/**/*.ts`, y explorar de a un paquete.",
+        "Cambiar a Grep con el patrón `.*` para listar todos los archivos sin el límite de resultados de Glob."
+      ],
+      "correct": 2,
+      "why_correct": "Glob ordena por fecha de modificación y corta en 100 archivos. Si se llega al tope, el agente ve el aviso de truncamiento y tiene que ajustar el patrón. Un patrón más específico es la exploración incremental bien hecha.",
+      "why_wrong": {
+        "0": "Mismo patrón, mismo resultado: los 100 modificados más recientemente. No pagina.",
+        "1": "Son los 100 más recientes, no una muestra representativa. Llena el contexto con locks y snapshots.",
+        "3": "Matchear `.*` contra el contenido de todo el repo es la búsqueda más cara posible y no te dice la estructura."
+      },
+      "rule": "Glob truncado en 100 → patrón más específico, no repetir ni leer lo que vino.",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "Results are sorted by modification time and capped at 100 files. If the cap is hit, Claude sees a truncation flag in the result and can narrow the pattern.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o17-q07",
+      "objective": 17,
+      "pool": "practice",
+      "scenario": "En un monorepo TypeScript grande, Claude busca la definición del método `handle` que usa `OrderController`. Un Grep por `handle(` devuelve 400 coincidencias en 120 archivos, y Claude empieza a leer candidatos uno por uno. ¿Qué mejora la exploración en este tipo de proyecto?",
+      "options": [
+        "Instalar un plugin de code intelligence para TypeScript, que permite saltar a la definición del símbolo en una llamada.",
+        "Subir el límite de lectura con `CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS` para leer más candidatos por llamada.",
+        "Pedirle a Claude que lea los 120 archivos en paralelo con varios subagentes y que cada uno informe si está ahí.",
+        "Repetir el Grep con `output_mode: \"count\"` y leer primero el archivo que tenga más coincidencias de `handle(`."
+      ],
+      "correct": 0,
+      "why_correct": "Con un nombre tan común, la búsqueda de texto genera demasiados candidatos. Los plugins de code intelligence dan navegación precisa por símbolos: un \"go to definition\" reemplaza un grep seguido de leer varios archivos candidatos.",
+      "why_wrong": {
+        "1": "Más tokens por lectura no reduce la cantidad de candidatos. Solo gasta más contexto por archivo.",
+        "2": "Muchos subagentes leyendo 120 archivos cuesta muchos tokens para algo que una navegación por símbolos resuelve en una llamada.",
+        "3": "El archivo con más `handle(` no es necesariamente el que define el método que usa `OrderController`."
+      },
+      "rule": "Símbolo ambiguo en lenguaje tipado → code intelligence (go to definition) antes que grep + leer candidatos.",
+      "source_url": "https://code.claude.com/docs/en/costs",
+      "source_quote": "A single \"go to definition\" call replaces what might otherwise be a grep followed by reading multiple candidate files.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o17-q08",
+      "objective": 17,
+      "pool": "practice",
+      "scenario": "Claude busca dónde se llama a `trackEvent` en los componentes React de un repo. El Grep devuelve 300 resultados, la mayoría en `docs/*.md`, fixtures `.json` y tests de Python que mencionan el nombre en strings. ¿Cómo acota la búsqueda sin perder los componentes?",
+      "options": [
+        "Agregar al prompt \"ignorá los resultados de documentación y de tests\" y dejar la búsqueda igual que antes.",
+        "Usar Glob `**/*.tsx` y después leer cada componente buscando a ojo las llamadas a `trackEvent`.",
+        "Cambiar el patrón por `trackEvent\\(` con `multiline: true` para que solo matchee llamadas reales a la función.",
+        "Pasarle a Grep el parámetro `glob` con `**/*.tsx` para limitar la búsqueda a los componentes."
+      ],
+      "correct": 3,
+      "why_correct": "Grep acepta el parámetro `glob` (por ejemplo `**/*.tsx`) o `type` (por lenguaje) para acotar en qué archivos busca. Así los resultados ya vienen filtrados y no entra ruido al contexto.",
+      "why_wrong": {
+        "0": "Los 300 resultados entran igual al contexto. Pedir que los ignore no ahorra tokens.",
+        "1": "Leer todos los componentes es mucho más caro que buscar por contenido en ellos.",
+        "2": "`multiline` es para patrones que cruzan líneas, y un string `trackEvent(` en un `.md` sigue matcheando."
+      },
+      "rule": "Grep con mucho ruido de otros tipos de archivo → `glob` o `type` en la llamada.",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "Claude can scope results by file with the `glob` parameter, such as `**/*.tsx`, or by language with the `type` parameter, such as `py` or `rust`.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

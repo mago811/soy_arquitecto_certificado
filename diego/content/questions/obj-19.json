@@ -1,0 +1,245 @@
+{
+  "objective": 19,
+  "questions": [
+    {
+      "id": "o19-q01",
+      "objective": 19,
+      "pool": "practice",
+      "scenario": "Un sistema de research multi-agente arma informes de mercado. Un subagente trae \"mercado local de IA: USD 4.200 M\" de un informe sectorial y otro trae \"USD 3.100 M\" de la estadística oficial, los dos de 2023. El informe final dice: \"El mercado vale USD 3.650 M\". El cliente se queja de que esa cifra no está en ninguna fuente. ¿Cuál es el fix?",
+      "options": [
+        "Instruir al sintetizador para que, ante cifras distintas, use siempre la fuente oficial y descarte la del sector sin mencionarla.",
+        "Pedirle al sintetizador una única cifra final \"redondeada y conservadora\" para que el informe sea claro para el cliente.",
+        "Pedir que cada afirmación lleve su fuente y que, si las fuentes no coinciden, muestre los dos valores atribuidos y marcados como disputados.",
+        "Bajar la temperatura del sintetizador a 0 para que deje de inventar números intermedios y elija siempre el mismo valor."
+      ],
+      "correct": 2,
+      "why_correct": "El sintetizador colapsó dos datos en conflicto en una cifra que nadie publicó. El fix es hacer el informe auditable: cada afirmación con su fuente y, si hay desacuerdo, los dos valores atribuidos en una sección de disputados. Así el lector ve el conflicto en vez de una certeza falsa.",
+      "why_wrong": {
+        "0": "Elegir una fuente en silencio sigue escondiendo el desacuerdo. Puede ser una buena preferencia, pero el lector tiene que ver que hubo dos valores.",
+        "1": "Es el bug pedido como feature: una sola cifra \"clara\" es justo colapsar datos en conflicto en una afirmación segura.",
+        "3": "La temperatura no hace que el modelo atribuya fuentes ni que muestre el conflicto. Solo lo vuelve más repetible, y podría repetir el mismo número inventado."
+      },
+      "rule": "Fuentes creíbles en conflicto → mostrar ambos valores con su fuente, nunca promediar ni elegir en silencio.",
+      "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
+      "source_quote": "Make Claude’s response auditable by having it cite quotes and sources for each of its claims.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o19-q02",
+      "objective": 19,
+      "pool": "practice",
+      "scenario": "Un agente de due diligence redacta informes sobre empresas a partir de documentos internos. En una auditoría ven que, cuando los documentos no dicen nada sobre litigios, el informe igual afirma \"no hay litigios relevantes\" con el mismo tono que los datos verificados. ¿Qué cambio hacés en el prompt?",
+      "options": [
+        "Darle permiso explícito para decir que la información no alcanza, y separar en el informe lo respaldado, lo disputado y lo que falta.",
+        "Agregar ejemplos few-shot de informes completos donde todas las secciones tienen una conclusión firme, para que el formato sea parejo.",
+        "Subir `max_tokens` y el nivel de `effort` para que el agente tenga más espacio para investigar cada sección antes de concluir.",
+        "Pedirle que cierre cada sección con un puntaje de confianza del 1 al 10 y publicar solo las secciones con puntaje 7 o más."
+      ],
+      "correct": 0,
+      "why_correct": "El agente rellena huecos porque nada le permite decir \"no sé\". La doc dice que dar permiso explícito para admitir incertidumbre reduce mucho la información falsa. Separar respaldado / disputado / faltante hace visible esa incertidumbre en el informe.",
+      "why_wrong": {
+        "1": "Ejemplos donde todo tiene conclusión firme le enseñan justamente a no dejar huecos: empeora el problema.",
+        "2": "Más tokens o más esfuerzo no crean información que los documentos no tienen. Sin permiso para decir \"no sé\", sigue concluyendo igual.",
+        "3": "Un puntaje que el modelo se pone a sí mismo, con un umbral a ojo, no está calibrado y no reemplaza decir explícitamente que falta información."
+      },
+      "rule": "El modelo inventa para llenar huecos → permiso explícito para decir \"no tengo información suficiente\".",
+      "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
+      "source_quote": "Explicitly give Claude permission to admit uncertainty. This technique can drastically reduce false information.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o19-q03",
+      "objective": 19,
+      "pool": "practice",
+      "scenario": "En un sistema de research, 5 subagentes leen fuentes y le devuelven al coordinador un resumen en prosa. El coordinador resume esos resúmenes y se los pasa al sintetizador. En el informe final, varias afirmaciones citan la fuente equivocada y se pierden los matices (\"según una encuesta chica…\"). ¿Qué cambio de arquitectura lo resuelve?",
+      "options": [
+        "Pedirle al coordinador que resuma con más cuidado y que copie textual cada nombre de fuente que aparezca en los resúmenes.",
+        "Que cada subagente guarde sus hallazgos con fuente, extracto y fecha en un almacenamiento externo y le pase al coordinador solo referencias.",
+        "Pedirle a cada subagente que devuelva un único párrafo más corto, para que el coordinador tenga menos texto para mezclar.",
+        "Darle al coordinador un modelo con ventana de contexto más grande para que entren todos los resúmenes sin recortar nada."
+      ],
+      "correct": 1,
+      "why_correct": "Cada paso de resumen es un \"teléfono descompuesto\" que pierde la relación afirmación-fuente. El post de Anthropic propone que los subagentes guarden su trabajo en sistemas externos y pasen referencias livianas, lo que evita la pérdida de información entre etapas. Guardar fuente y extracto con cada hallazgo conserva el mapeo hasta la síntesis.",
+      "why_wrong": {
+        "0": "Sigue habiendo una etapa de resumen sobre resúmenes. Pedir cuidado es guía, no arregla la pérdida estructural de información.",
+        "2": "Comprimir más es justo lo que hace perder la atribución y los matices.",
+        "3": "El problema no es que no entre: es que cada resumen intermedio descarta el mapeo afirmación-fuente."
+      },
+      "rule": "Atribución que se pierde entre agentes → hallazgos estructurados con fuente y extracto, pasados por referencia, sin re-resumir.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "Subagents call tools to store their work in external systems, then pass lightweight references back to the coordinator. This prevents information loss during multi-stage processing",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o19-q04",
+      "objective": 19,
+      "pool": "practice",
+      "scenario": "Un equipo arma con la Messages API informes de compliance a partir de 6 PDFs. Hoy el prompt dice \"después de cada afirmación copiá la frase textual del documento entre comillas\". Los auditores encuentran comillas con frases levemente parafraseadas que no existen en el PDF. ¿Cuál es el fix?",
+      "options": [
+        "Agregar `output_config.format` con un campo `quote` por afirmación y, a la vez, activar `citations` en los documentos para obtener las dos cosas.",
+        "Mover los PDFs al final del prompt, después de las instrucciones, para que el modelo los tenga más frescos al copiar las frases.",
+        "Bajar la temperatura a 0 y agregar al system prompt \"copiá las frases EXACTAMENTE, sin cambiar ni una palabra\" en mayúsculas.",
+        "Activar `citations: {\"enabled\": true}` en cada document block y usar el `cited_text` que devuelve la API como cita de cada afirmación."
+      ],
+      "correct": 3,
+      "why_correct": "Con la feature de Citations, la API extrae `cited_text` directamente de los documentos, así que las citas siempre apuntan a texto real. Además `cited_text` no cuenta como tokens de salida. Las citas armadas por prompt dependen de que el modelo copie bien.",
+      "why_wrong": {
+        "0": "Citations y structured outputs no se pueden usar juntos: si activás citations y mandás `output_config.format`, la API devuelve 400.",
+        "1": "La doc recomienda lo contrario (documentos largos arriba, pregunta al final), y de todos modos no garantiza copias textuales.",
+        "2": "Sigue siendo una cita generada por el modelo. Gritar más fuerte no la convierte en un puntero válido al documento."
+      },
+      "rule": "Citas que tienen que existir textualmente en la fuente → Citations API (`cited_text`), no citas pedidas por prompt.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/citations",
+      "source_quote": "Because the API parses citations into the response formats described in the following sections and extracts `cited_text` directly, citations are guaranteed to contain valid pointers to the provided documents.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o19-q05",
+      "objective": 19,
+      "pool": "practice",
+      "scenario": "Un agente de research sintetiza adopción de pagos digitales. Una fuente dice \"18% de los comercios acepta QR\" y otra \"63%\". El informe los pone en la sección \"Datos contradictorios\". Revisando a mano, ves que una fuente es de 2018 y la otra de 2025: no se contradicen, la adopción creció. Los documentos llegan al modelo como texto plano sin metadata. ¿Qué cambiás?",
+      "options": [
+        "Pedirle al sintetizador que, ante dos porcentajes distintos, use siempre el más alto porque probablemente es el más actualizado.",
+        "Sacar la sección \"Datos contradictorios\" del informe y que el sintetizador elija el valor que le parezca más plausible en cada caso.",
+        "Pasar cada documento con su metadata (fuente y fecha de publicación) en tags, y pedir que compare valores teniendo en cuenta las fechas.",
+        "Agregar un paso que descarte automáticamente toda fuente con más de 3 años de antigüedad antes de que llegue al sintetizador."
+      ],
+      "correct": 2,
+      "why_correct": "Sin la fecha, el modelo no puede distinguir un cambio en el tiempo de una contradicción real. La doc recomienda envolver cada documento con su contenido y su metadata (`<source>` y otros subtags). Con la fecha a la vista, 18% (2018) y 63% (2025) se leen como una tendencia.",
+      "why_wrong": {
+        "0": "\"El más alto es el más nuevo\" es una suposición que falla seguido. Además decide en silencio en vez de mostrar el dato con su fecha.",
+        "1": "Sacar la sección de conflictos hace que los conflictos reales también se escondan.",
+        "3": "Tirar fuentes viejas pierde contexto histórico útil (la tendencia) y no resuelve el problema: el modelo sigue sin ver las fechas."
+      },
+      "rule": "Valores de años distintos no son contradicción → la fecha de cada fuente viaja como metadata hasta la síntesis.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "When using multiple documents, wrap each document in `<document>` tags with `<document_content>` and `<source>` (and other metadata) subtags for clarity.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o19-q06",
+      "objective": 19,
+      "pool": "practice",
+      "scenario": "Un asistente responde preguntas de inversores usando 20 informes trimestrales que se le pasan en el prompt. Cuando preguntan por un país que no aparece en ningún informe, el asistente igual da una cifra de ventas \"aproximada\" que sale de su conocimiento general, mezclada con las cifras reales. ¿Qué agregás al prompt?",
+      "options": [
+        "Que use solo la información de los informes y no su conocimiento general, y que diga explícitamente cuando los informes no tienen el dato.",
+        "Darle una tool de búsqueda web para que, cuando el país no aparezca, complete el dato con la fuente pública más reciente.",
+        "Ejemplos few-shot donde el asistente estima cifras faltantes a partir de países parecidos, marcadas como \"aproximado\".",
+        "Pedirle que redondee las cifras que no están en los informes para que se note que son estimaciones y no datos duros."
+      ],
+      "correct": 0,
+      "why_correct": "El asistente mezcla conocimiento general con los documentos y no distingue una cosa de la otra. La doc propone restringir explícitamente a la información provista y no al conocimiento general. Sumado a permitir \"no hay dato\", la falta de información queda visible en vez de rellenada.",
+      "why_wrong": {
+        "1": "Cambia el alcance del sistema (ya no responde sobre los informes) y no enseña a decir \"no está\"; puede traer fuentes de calidad dudosa mezcladas igual.",
+        "2": "Es entrenarlo a inventar con etiqueta. Una estimación por analogía no es un dato de los informes.",
+        "3": "Un número redondeado sigue pareciendo un dato. No separa lo respaldado de lo inventado."
+      },
+      "rule": "Mezcla de documentos y conocimiento general → \"usá solo los documentos\" + permiso para decir que el dato no está.",
+      "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
+      "source_quote": "Explicitly instruct Claude to only use information from provided documents and not its general knowledge.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o19-q07",
+      "objective": 19,
+      "pool": "practice",
+      "scenario": "Un pipeline genera notas de prensa a partir de briefs de producto. Antes de publicar, quieren atrapar afirmaciones que no salen de los briefs (\"líder del mercado\", \"30% más rápido\"). Hoy un humano lee todo y no da abasto. ¿Qué paso automático agregás antes de la revisión humana?",
+      "options": [
+        "Pedirle al mismo modelo que asigne una nota de confianza del 1 al 10 a cada frase y borrar automáticamente las de nota menor a 5.",
+        "Agregar al system prompt \"sé preciso y no exageres\" y repetirlo en mayúsculas al final del mensaje del usuario.",
+        "Generar la nota tres veces con temperatura 0 y quedarse con la versión más corta, porque tiene menos afirmaciones.",
+        "Una pasada de verificación: por cada afirmación, buscar una cita de los briefs que la respalde; si no hay, sacarla y marcar el hueco."
+      ],
+      "correct": 3,
+      "why_correct": "La doc describe exactamente este patrón: después de generar, verificar cada afirmación buscando una cita que la respalde, y retirarla si no la encuentra. Las afirmaciones sin respaldo quedan marcadas y el humano revisa solo esos huecos.",
+      "why_wrong": {
+        "0": "Un puntaje que el modelo se pone a sí mismo no está respaldado por ninguna fuente: no prueba que la frase salga de los briefs.",
+        "1": "Es guía genérica; no verifica nada ni marca qué afirmación no tiene respaldo.",
+        "2": "Que sea más corta no la hace más fiel. Una versión corta puede traer justo la frase inventada."
+      },
+      "rule": "Afirmaciones sin respaldo → pasada de verificación: cita que la sostenga o se retira.",
+      "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
+      "source_quote": "You can also have Claude verify each claim by finding a supporting quote after it generates a response. If it can’t find a quote, it must retract the claim.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o19-q08",
+      "objective": 19,
+      "pool": "practice",
+      "scenario": "Un analista corre el mismo prompt de síntesis, con los mismos documentos, varias veces durante el día. Un dato (\"tasa de churn del sector\") sale 8% en una corrida, 11% en otra y 9,5% en la tercera. El tech lead propone fijar `temperature: 0` \"para que siempre dé lo mismo\". ¿Qué hacés?",
+      "options": [
+        "Fijar `temperature: 0`, porque si siempre da lo mismo el dato se puede publicar con tranquilidad en el informe.",
+        "Tratar la variación como señal de posible alucinación: revisar si ese dato está en las fuentes y, si no está firme, marcarlo como incierto.",
+        "Publicar el promedio de las tres corridas (9,5%), porque combina la información de todas y reduce el error de cada una.",
+        "Quedarse con la primera corrida del día y guardarla en caché para que todos los analistas vean el mismo número."
+      ],
+      "correct": 1,
+      "why_correct": "La doc llama a esto best-of-N: correr el mismo prompt varias veces y comparar. Si las salidas no coinciden, puede ser una alucinación. La respuesta correcta es investigar el dato contra las fuentes, no esconder la variación.",
+      "why_wrong": {
+        "0": "Hacer el resultado repetible no lo hace correcto: podés fijar un número inventado. Se pierde la señal de alerta.",
+        "2": "Promediar números que pueden ser inventados produce otro número inventado, con apariencia de precisión.",
+        "3": "Cachear la primera respuesta congela un dato no verificado y elimina la evidencia de inconsistencia."
+      },
+      "rule": "Mismo prompt, distintos números → señal de alucinación; se investiga, no se tapa con temperatura 0.",
+      "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
+      "source_quote": "Run Claude through the same prompt multiple times and compare the outputs. Inconsistencies across outputs could indicate hallucinations.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o19-q09",
+      "objective": 19,
+      "pool": "practice",
+      "scenario": "Un agente de research marca como \"hallazgo establecido\" todo lo que repiten 3 o más fuentes. Un experto nota que varios \"hallazgos establecidos\" vienen de 5 sitios de contenido optimizado para SEO que se copian entre sí, mientras un paper académico que dice lo contrario quedó como \"opinión minoritaria\". ¿Qué cambio aplicás?",
+      "options": [
+        "Subir el mínimo a 5 fuentes coincidentes para considerar un hallazgo como establecido, así hace falta más evidencia.",
+        "Limitar la búsqueda a los 3 primeros resultados de cada consulta, que suelen ser las fuentes más confiables y visitadas.",
+        "Agregar al prompt heurísticas de calidad de fuente (preferir fuentes primarias y autorizadas) y registrar el tipo de cada fuente.",
+        "Lanzar más subagentes en paralelo para que encuentren más fuentes y el conteo de coincidencias sea más representativo."
+      ],
+      "correct": 2,
+      "why_correct": "Contar coincidencias no mide calidad: cinco copias SEO valen como una. Anthropic vio que sus agentes elegían granjas de contenido SEO antes que PDFs académicos, y lo resolvió con heurísticas de calidad de fuente en los prompts. Registrar el tipo de fuente permite que \"establecido\" signifique bien respaldado.",
+      "why_wrong": {
+        "0": "Con más copias SEO también llegás a 5. El problema es la calidad, no la cantidad.",
+        "1": "Los primeros resultados son justamente donde aparece el contenido optimizado para SEO.",
+        "3": "Más subagentes encuentran más de lo mismo; sin criterio de calidad, el conteo sigue sesgado."
+      },
+      "rule": "\"Muchas fuentes lo dicen\" no es \"establecido\" → heurísticas de calidad de fuente, primarias sobre secundarias.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "Adding source quality heuristics to our prompts helped resolve this issue.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o19-q10",
+      "objective": 19,
+      "pool": "practice",
+      "scenario": "Un agente de investigación de incidentes revisa logs, tickets y postmortems. Siempre se queda con la primera explicación que encuentra (\"fue el deploy del martes\") y redacta el informe como certeza, aunque más adelante aparezcan datos que apuntan a otra causa. ¿Qué instrucción agregás para tareas de research complejas?",
+      "options": [
+        "Que defina una hipótesis al principio y la sostenga hasta el final, para que el informe sea consistente y no confunda al lector.",
+        "Que use `tool_choice: {\"type\": \"any\"}` para obligarlo a llamar más herramientas antes de escribir la conclusión.",
+        "Que escriba el informe primero y después busque evidencia que lo respalde, para no perder tiempo en caminos muertos.",
+        "Que desarrolle varias hipótesis en competencia, registre su nivel de confianza en notas de progreso y critique su propio plan."
+      ],
+      "correct": 3,
+      "why_correct": "La doc de prompting propone para research complejo desarrollar hipótesis en competencia y llevar registro del nivel de confianza para calibrarse. Así la evidencia contraria se pondera en vez de ignorarse, y el informe puede mostrar qué tan firme es cada conclusión.",
+      "why_wrong": {
+        "0": "Fijar una hipótesis temprano es exactamente el sesgo que hay que evitar.",
+        "1": "`tool_choice: any` obliga a usar alguna tool en ese turno, pero no cambia cómo pondera la evidencia ni cómo expresa la incertidumbre.",
+        "2": "Es sesgo de confirmación por diseño: busca solo lo que respalda lo que ya escribió."
+      },
+      "rule": "Research complejo → hipótesis en competencia + nivel de confianza registrado, no la primera explicación como certeza.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "As you gather data, develop several competing hypotheses. Track your confidence levels in your progress notes to improve calibration.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

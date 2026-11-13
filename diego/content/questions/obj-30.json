@@ -1,0 +1,245 @@
+{
+  "objective": 30,
+  "questions": [
+    {
+      "id": "o30-q01",
+      "objective": 30,
+      "pool": "practice",
+      "scenario": "Una empresa con plan Team tiene activado el servicio Code Review en GitHub. En cada PR, el review comenta sobre archivos en `src/gen/` (generados) y sobre `package-lock.json`. Cada dev lo aclara a mano en el PR con un comentario, pero el problema vuelve en el siguiente. ¿Cuál es el fix persistente?",
+      "options": [
+        "Comentar `@claude review ignorá src/gen y los lockfiles` en cada PR, así el review recibe la aclaración justo cuando arranca.",
+        "Agregar a un `REVIEW.md` en la raíz una sección de exclusiones con `src/gen/` y `*.lock`, y mergearlo a la rama default protegida.",
+        "Pedirle a un Owner que baje el review level a Quick, porque una pasada más liviana comenta menos archivos y genera menos ruido.",
+        "Agregar a cada archivo generado un comentario `// no revisar` en la primera línea, para que el review lo vea al leer el diff."
+      ],
+      "correct": 1,
+      "why_correct": "`REVIEW.md` es el archivo de instrucciones solo para reviews, y la doc recomienda listar paths y categorías donde saltear hallazgos (código generado, lockfiles). Al estar en la rama default protegida, se aplica en todos los reviews siguientes.",
+      "why_wrong": {
+        "0": "Sirve para un PR, no es persistente: el problema vuelve en el siguiente.",
+        "2": "El review level cambia lo profundo que revisa, no qué paths excluir. Seguiría comentando en `src/gen/`.",
+        "3": "No es un mecanismo documentado y obliga a tocar archivos que se regeneran. La doc da `REVIEW.md` para esto."
+      },
+      "rule": "Ruido repetido en Code Review → exclusión en `REVIEW.md` (rama default protegida), no aclaraciones por PR.",
+      "source_url": "https://code.claude.com/docs/en/code-review-customize",
+      "source_quote": "Comments on generated files or on what CI already checks: list paths and finding categories where Claude should skip findings.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o30-q02",
+      "objective": 30,
+      "pool": "practice",
+      "scenario": "Un equipo escribió en `REVIEW.md` que el patrón `Result<T, E>` es la convención aceptada y no debe marcarse. El servicio Code Review lo respeta. Pero cuando los devs corren `/code-review` en su terminal antes de abrir el PR, Claude sigue sugiriendo reemplazar `Result` por excepciones. ¿Qué hacés?",
+      "options": [
+        "Agregar `--comment` al comando local, así usa la misma configuración que el servicio de GitHub y lee `REVIEW.md`.",
+        "Copiar `REVIEW.md` a `.claude/REVIEW.md`, que es donde el comando local de Claude Code busca las instrucciones de review.",
+        "Correr el comando local con effort `low` para que reporte solo lo más confiable y así no aparezca esa sugerencia.",
+        "Mover la convención a `CLAUDE.md`, que leen tanto el servicio como `/code-review`, y dejar en `REVIEW.md` solo lo específico de PRs."
+      ],
+      "correct": 3,
+      "why_correct": "El comando `/code-review` lee `CLAUDE.md` y no `REVIEW.md`. La doc dice que lo que quieras aplicar en los dos lugares va en `CLAUDE.md`, y `REVIEW.md` queda para reglas específicas del review de PRs.",
+      "why_wrong": {
+        "0": "`--comment` solo publica los hallazgos en el PR; no cambia qué archivos de instrucciones lee.",
+        "1": "No existe ese lugar en la doc; el comando local directamente no lee `REVIEW.md`.",
+        "2": "Puede bajar ruido en general, pero no le enseña la convención; la sugerencia podría seguir apareciendo."
+      },
+      "rule": "Regla que debe valer en Code Review Y en `/code-review` → `CLAUDE.md`.",
+      "source_url": "https://code.claude.com/docs/en/code-review-customize",
+      "source_quote": "Put guidance you want applied in both places in `CLAUDE.md`, and keep `REVIEW.md` for rules specific to pull request review.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o30-q03",
+      "objective": 30,
+      "pool": "practice",
+      "scenario": "Un dev abre un PR que, además del código, agrega a `REVIEW.md` una línea \"no reportes hallazgos en `legacy/`\". El review de Code Review de ESE PR igual comenta sobre `legacy/`. La rama default está protegida. ¿Por qué?",
+      "options": [
+        "Porque Code Review lee `REVIEW.md` de la rama base o default, nunca de los cambios del propio PR; hay que mergear ese cambio primero.",
+        "Porque `REVIEW.md` solo admite exclusiones de archivos generados y lockfiles; carpetas como `legacy/` se excluyen desde `.gitignore`.",
+        "Porque las exclusiones de `REVIEW.md` solo se aplican al review level Deep; en Standard se ignoran para no perder bugs.",
+        "Porque el cambio tarda 24 horas en propagarse a la infraestructura de Anthropic después de cada push al PR."
+      ],
+      "correct": 0,
+      "why_correct": "La doc es explícita: `REVIEW.md` se lee de la rama base o default, nunca de los cambios del PR. Así nadie puede apagar el review desde su propio PR. Para cambiar el comportamiento, primero se mergea el cambio de `REVIEW.md`.",
+      "why_wrong": {
+        "1": "Falso: la doc permite excluir paths, archivos o clases de issue en general, no solo generados y lockfiles.",
+        "2": "La doc no ata las exclusiones a un review level.",
+        "3": "No hay ningún retraso documentado; el motivo es de qué rama se lee el archivo."
+      },
+      "rule": "`REVIEW.md` del PR no cuenta: se lee de la rama base/default. Mergealo antes.",
+      "source_url": "https://code.claude.com/docs/en/code-review-customize",
+      "source_quote": "Code Review reads `REVIEW.md` from the pull request's base branch or from the default branch, never from the pull request's own changes. To change review behavior, merge the `REVIEW.md` change first.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o30-q04",
+      "objective": 30,
+      "pool": "practice",
+      "scenario": "Un pipeline de CI corre `claude --bare -p \"Revisá el diff y reportá problemas\"` en cada PR. El repo tiene un `CLAUDE.md` con las convenciones del equipo y los patrones aceptados, pero el review igual los marca como problemas. ¿Cuál es la causa y el fix?",
+      "options": [
+        "`-p` nunca lee `CLAUDE.md`; hay que pasar a modo interactivo dentro del runner de CI para que lo cargue.",
+        "El `CLAUDE.md` es demasiado largo; hay que partirlo con imports `@` para que el modelo lo procese entero.",
+        "`--bare` saltea la carga de `CLAUDE.md`; pasá las convenciones con `--append-system-prompt-file` o sacá `--bare`.",
+        "Las convenciones deben ir en `.claude/settings.json` bajo `permissions`, porque en CI solo se leen settings."
+      ],
+      "correct": 2,
+      "why_correct": "La doc dice que `--bare` saltea la auto-detección de hooks, skills, MCP y `CLAUDE.md`, entre otros. En ese modo, el contexto se pasa con flags como `--append-system-prompt` o `--append-system-prompt-file`. O sacás `--bare` para que lo cargue.",
+      "why_wrong": {
+        "0": "Sin `--bare`, `claude -p` sí descubre y carga lo mismo que una sesión interactiva, incluido `CLAUDE.md`.",
+        "1": "Los imports no reducen el costo de contexto y no es la causa: el archivo ni se está cargando.",
+        "3": "`permissions` controla qué herramientas puede usar Claude, no le enseña convenciones de código. No baja falsos positivos."
+      },
+      "rule": "`--bare` = sin CLAUDE.md. Pasá las reglas por flag o no uses `--bare`.",
+      "source_url": "https://code.claude.com/docs/en/headless",
+      "source_quote": "Add `--bare` to reduce startup time by skipping auto-discovery of hooks, skills, custom commands, subagents, installed plugins, MCP servers, auto memory, and CLAUDE.md.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o30-q05",
+      "objective": 30,
+      "pool": "practice",
+      "scenario": "El servicio Code Review de una empresa publica hallazgos tipo \"esta función probablemente no valida el input\" basados solo en el nombre de la función. Muchos resultan falsos y cada uno le cuesta al autor una vuelta de respuesta. ¿Qué instrucción agregás en `REVIEW.md`?",
+      "options": [
+        "\"Sé conservador: reportá solo los hallazgos de los que estés muy seguro y omití cualquier cosa dudosa.\"",
+        "\"Behavior claims need a `file:line` citation in the source, not an inference from naming.\"",
+        "\"Report at most five findings per review, prioritizing the ones with the highest severity.\"",
+        "\"Do not report any finding about input validation, since our API gateway already handles it.\""
+      ],
+      "correct": 1,
+      "why_correct": "La doc da esta instrucción exacta para hallazgos que resultan falsos: exigir evidencia antes de publicar una clase de hallazgo. Ataca la causa (inferir por nombres) sin tapar hallazgos reales.",
+      "why_wrong": {
+        "0": "Una orden vaga baja todo el recall, incluidos los bugs reales; no ataca la causa.",
+        "2": "Un tope general recorta hallazgos válidos junto con los falsos; la doc pone topes para nits, no como cura para hallazgos sin evidencia.",
+        "3": "Excluir toda la categoría tapa también los casos reales; y no sabés si el gateway cubre todo."
+      },
+      "rule": "Hallazgos inventados por inferencia → exigí evidencia (`file:line`) para esa clase de hallazgo.",
+      "source_url": "https://code.claude.com/docs/en/code-review-customize",
+      "source_quote": "Findings that turn out to be wrong: require evidence before a class of finding is posted.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o30-q06",
+      "objective": 30,
+      "pool": "practice",
+      "scenario": "Un equipo usa la GitHub Action de Claude Code para responder a `@claude` en PRs. Cuando le piden un review, marca como error que el código use `snake_case` en las columnas SQL, que es su convención. Ponen la aclaración en el body de cada pedido, y se olvidan seguido. ¿Qué hacen según la doc de GitHub Actions?",
+      "options": [
+        "Definir en un `CLAUDE.md` en la raíz del repo las convenciones, los criterios de review y los patrones preferidos.",
+        "Crear un `REVIEW.md` en la raíz con la convención, que es el archivo que lee la GitHub Action para cada review.",
+        "Agregar la convención al input `prompt` del workflow, así la Action pasa a modo automatización en cada PR.",
+        "Guardar la convención como un GitHub Secret y referenciarla en `claude_args` para que no quede expuesta."
+      ],
+      "correct": 0,
+      "why_correct": "La doc de GitHub Actions dice: creá un `CLAUDE.md` en la raíz para definir guías de estilo, criterios de review, reglas del proyecto y patrones preferidos. Claude los sigue en cada corrida, sin depender de que alguien se acuerde.",
+      "why_wrong": {
+        "1": "`REVIEW.md` configura el servicio Code Review gestionado; la doc de la Action habla de `CLAUDE.md`.",
+        "2": "Poner `prompt` cambia el modo de la Action (deja de esperar `@claude`). No es la forma de dar convenciones.",
+        "3": "Los Secrets son para credenciales, no para convenciones de código."
+      },
+      "rule": "GitHub Action: convenciones y criterios de review → `CLAUDE.md` en la raíz.",
+      "source_url": "https://code.claude.com/docs/en/github-actions",
+      "source_quote": "Create a `CLAUDE.md` file in your repository root to define code style guidelines, review criteria, project-specific rules, and preferred patterns.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o30-q07",
+      "objective": 30,
+      "pool": "practice",
+      "scenario": "Un equipo quiere que el servicio Code Review revise `scripts/` (utilidades internas), pero no con el mismo nivel que el código de producción: hoy cada PR trae 10 comentarios menores ahí. Tampoco quieren excluir la carpeta del todo. ¿Qué escriben en `REVIEW.md`?",
+      "options": [
+        "\"Do not report anything under `scripts/`.\"",
+        "\"Treat everything under `scripts/` as Important.\"",
+        "\"Review `scripts/` with the Deep review level.\"",
+        "\"In `scripts/`, only report if near-certain and severe.\""
+      ],
+      "correct": 3,
+      "why_correct": "La doc propone esto para paths que merecen algo de review pero no escrutinio completo: subir la vara en vez de excluir. Así siguen apareciendo los problemas graves y seguros, y desaparece el ruido menor.",
+      "why_wrong": {
+        "0": "Eso excluye la carpeta del todo, que es lo que no querían.",
+        "1": "Haría lo contrario: más severidad para todo lo de `scripts/`.",
+        "2": "El review level lo elige un Owner en la configuración (por organización o repo), no se pone por carpeta en `REVIEW.md`."
+      },
+      "rule": "Carpeta de menor riesgo → subir la vara (\"near-certain and severe\"), no excluir.",
+      "source_url": "https://code.claude.com/docs/en/code-review-customize",
+      "source_quote": "For paths that warrant some review but not full scrutiny, set a higher bar instead",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o30-q08",
+      "objective": 30,
+      "pool": "practice",
+      "scenario": "Un equipo puso en `.claude/skills/api-review/SKILL.md` la lista de cosas que el review NO debe reportar y un tope de 5 nits, e incluyó la skill en el root `REVIEW.md` con `@.claude/skills/api-review/SKILL.md`. La rama default está protegida. El servicio aplica las guías de API de la skill, pero ignora las exclusiones y el tope. ¿Qué cambian?",
+      "options": [
+        "Mover la skill a `~/.claude/skills/`, porque Code Review solo acepta exclusiones desde skills personales de cada dev.",
+        "Agregar `disable-model-invocation: true` al frontmatter de la skill para que sus exclusiones se apliquen siempre.",
+        "Escribir las exclusiones y el tope de nits en `REVIEW.md` (o en un archivo al lado), no en la skill incluida.",
+        "Agregar un hook `PostToolUse` que borre los comentarios de las categorías excluidas después de cada review."
+      ],
+      "correct": 2,
+      "why_correct": "La doc dice que Code Review no acepta el texto de una skill como motivo para excluir hallazgos o topear nits. Esas instrucciones van en `REVIEW.md` o en un archivo al lado de él.",
+      "why_wrong": {
+        "0": "Al revés: la doc dice que skills personales, bundled o de plugin no se pueden incluir directo.",
+        "1": "Ese campo controla si Claude invoca la skill en Claude Code; Code Review solo toma el cuerpo de `SKILL.md`, y no cambia lo de las exclusiones.",
+        "3": "Los hooks son de Claude Code; el servicio corre en infraestructura de Anthropic y no ejecuta tus hooks."
+      },
+      "rule": "Exclusiones y topes de nits en `REVIEW.md` o archivo al lado, nunca en una skill incluida.",
+      "source_url": "https://code.claude.com/docs/en/code-review-customize",
+      "source_quote": "Write exclusions and Nit caps in `REVIEW.md` or a file beside it, not in an included skill.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o30-q09",
+      "objective": 30,
+      "pool": "practice",
+      "scenario": "Un equipo nota que el servicio Code Review comenta cosas como \"falta un test para este caso\" y \"podrías renombrar esta variable\". Se preguntan si el servicio está mal configurado, porque creían que por defecto apuntaba a otra cosa. ¿Qué dice la doc sobre el foco por defecto y cómo se cambia?",
+      "options": [
+        "Por defecto se enfoca en correctitud (bugs que romperían producción, no formato ni cobertura de tests); para cambiar qué marca, se agregan archivos de guía al repo.",
+        "Por defecto revisa todo con el mismo peso (estilo, tests, seguridad); para enfocarlo hay que elegir el review level Quick en la configuración.",
+        "Por defecto se enfoca en estilo y cobertura de tests; para que priorice bugs hay que activar el review level Deep, que cambia el foco.",
+        "Por defecto sigue las reglas de ESLint del repo; para cambiar qué marca hay que editar `.eslintrc` y volver a pedir el review."
+      ],
+      "correct": 0,
+      "why_correct": "La doc dice que por defecto Code Review se enfoca en correctitud: bugs que romperían producción, no preferencias de formato ni falta de cobertura. Para cambiar qué marca, se agregan archivos de guía (`CLAUDE.md`, `REVIEW.md`). Si comenta nombres y tests, probablemente alguna guía del repo se lo está pidiendo.",
+      "why_wrong": {
+        "1": "El review level cambia lo profundo que revisa y el costo, no el foco por tema.",
+        "2": "Invierte el default; y Deep es más exhaustivo, no cambia de foco.",
+        "3": "La doc no dice que lea la config de ESLint; lo que se personaliza son `CLAUDE.md` y `REVIEW.md`."
+      },
+      "rule": "Code Review por defecto = correctitud. Qué marca se cambia con archivos de guía, no con el review level.",
+      "source_url": "https://code.claude.com/docs/en/code-review",
+      "source_quote": "By default, Code Review focuses on correctness: bugs that would break production, not formatting preferences or missing test coverage.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o30-q10",
+      "objective": 30,
+      "pool": "practice",
+      "scenario": "Un monorepo tiene un `CLAUDE.md` en la raíz y otro en `services/billing/CLAUDE.md` con la regla \"los montos se guardan en centavos como enteros, es el patrón aceptado\". En un PR que solo toca `services/billing/invoice.ts`, el servicio Code Review sí respeta la regla. En otro PR que solo toca `web/`, alguien esperaba que también la aplicara y no lo hizo. ¿Qué pasa?",
+      "options": [
+        "Es un bug: Code Review siempre lee todos los `CLAUDE.md` del repo, en cualquier carpeta, en cada review.",
+        "Es esperado solo con el review level Quick; con Standard o Deep lee todos los `CLAUDE.md` del repositorio.",
+        "Es esperado: Code Review nunca lee `CLAUDE.md` de subdirectorios, solo `REVIEW.md` de subdirectorios.",
+        "Es esperado: lee el `CLAUDE.md` de la raíz y los de las carpetas padre de cada archivo cambiado; si vale para todo el repo, va en la raíz."
+      ],
+      "correct": 3,
+      "why_correct": "La doc dice que un review lee el `CLAUDE.md` de la raíz y los de los directorios padre de cada archivo cambiado. El de `services/billing/` se lee solo si el PR toca algo debajo de esa ruta. Una regla de todo el repo va en la raíz.",
+      "why_wrong": {
+        "0": "La doc no dice que lea todos; lee la raíz y los de los padres de los archivos cambiados.",
+        "1": "La doc no ata la lectura de `CLAUDE.md` al review level.",
+        "2": "Falso: sí lee `CLAUDE.md` de subdirectorios cuando el PR cambia algo debajo de esa ruta."
+      },
+      "rule": "`CLAUDE.md` de subcarpeta = solo para PRs que tocan esa subcarpeta. Regla global → raíz.",
+      "source_url": "https://code.claude.com/docs/en/code-review-customize",
+      "source_quote": "A review reads the `CLAUDE.md` at your repository root and the `CLAUDE.md` files in the parent directories of each changed file.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

@@ -1,0 +1,245 @@
+{
+  "objective": 20,
+  "questions": [
+    {
+      "id": "o20-q01",
+      "objective": 20,
+      "pool": "practice",
+      "scenario": "Diego lleva tres horas explorando un monolito de 2.000 archivos con Claude Code para entender el flujo de reembolsos. Al principio Claude nombraba clases concretas (`RefundSaga`, `LedgerAdjuster`). Ahora responde con cosas como \"normalmente en estos sistemas hay un servicio de pagos que…\" y se contradice con lo que había encontrado. ¿Qué práctica previene esto?",
+      "options": [
+        "Agregar al prompt \"pensá más profundo y sé exhaustivo\" para que Claude vuelva a mirar el código antes de contestar.",
+        "Que Claude mantenga un archivo de notas (`NOTES.md`) con los hallazgos concretos y lo consulte antes de cada respuesta.",
+        "Subir el modelo a uno con más ventana de contexto para que nunca se compacte ni se pierda lo que encontró antes.",
+        "Pedirle que relea los 2.000 archivos cada vez que tenga una duda, así siempre contesta sobre código actual."
+      ],
+      "correct": 1,
+      "why_correct": "Es degradación de contexto en una sesión larga: los hallazgos concretos se diluyen y aparecen \"patrones típicos\". La toma de notas estructurada persiste los hallazgos fuera de la ventana y los vuelve a traer cuando hacen falta. Un `NOTES.md` es el ejemplo que da Anthropic.",
+      "why_wrong": {
+        "0": "Frases como \"think harder\" son texto de prompt, no un mecanismo. No recuperan lo que se perdió en la compactación.",
+        "2": "Más ventana no evita la degradación: con más tokens el recall baja (context rot). Y las sesiones largas igual compactan.",
+        "3": "Releer todo es lo opuesto a la lectura dirigida: llena la ventana y empeora la degradación."
+      },
+      "rule": "Sesión larga que empieza a hablar de \"patrones típicos\" → scratchpad de hallazgos que se consulta.",
+      "source_url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+      "source_quote": "Structured note-taking, or agentic memory, is a technique where the agent regularly writes notes persisted to memory outside of the context window. These notes get pulled back into the context window at later times.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o20-q02",
+      "objective": 20,
+      "pool": "practice",
+      "scenario": "En una sesión de Claude Code, Diego pide: \"encontrá todos los lugares donde se valida un CUIT en el repo\". Claude hace 40 búsquedas y lee 25 archivos en la conversación principal. La respuesta es correcta, pero toda esa salida queda en el contexto y ensucia las siguientes tareas de la sesión. ¿Qué tendría que haber hecho?",
+      "options": [
+        "Correr `/compact` antes de la búsqueda para dejar lugar a los 25 archivos que iba a leer después.",
+        "Pegar en el prompt la lista completa de archivos del repo para que Claude no tenga que buscar nada.",
+        "Delegar la búsqueda a un subagente (por ejemplo Explore), que explora en su propia ventana y devuelve un resumen.",
+        "Usar `/btw` para hacer la pregunta, porque las respuestas de `/btw` no se agregan al historial de la sesión."
+      ],
+      "correct": 2,
+      "why_correct": "Un subagente trabaja en su propia ventana de contexto: la salida verbosa (búsquedas, archivos) queda allá y a la conversación principal vuelve solo el resumen. Explore es el subagente built-in de solo lectura para buscar en codebases.",
+      "why_wrong": {
+        "0": "Compactar antes no evita que las 40 búsquedas entren después. El ruido vuelve a llenar la conversación principal.",
+        "1": "Agrega miles de líneas de ruido al contexto y no dice dónde se valida un CUIT: igual hay que buscar.",
+        "3": "`/btw` no tiene acceso a tools: responde solo con lo que ya está en la conversación. No puede buscar en el repo."
+      },
+      "rule": "Búsqueda amplia con mucha salida que no vas a volver a mirar → subagente, vuelve solo el resumen.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "By delegating these to a subagent, the verbose output stays in the subagent's context while only the relevant summary returns to your main conversation.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o20-q03",
+      "objective": 20,
+      "pool": "practice",
+      "scenario": "Diego pasó la mañana investigando un bug de autenticación con Claude Code y ya tiene claro el fix. Ahora va a arrancar, en la misma sesión, una tarea larga para implementarlo. La conversación está llena de logs y archivos que ya no importan, pero quiere conservar las conclusiones sobre el bug. ¿Qué corre?",
+      "options": [
+        "`/clear`, porque libera todo el contexto sin costo y las conclusiones quedan en el historial del picker.",
+        "`/context`, porque además de mostrar el uso de la ventana borra las categorías que superan el límite.",
+        "`/autocompact 100k`, para que la sesión compacte sola cuando llegue a ese tamaño de ventana.",
+        "`/compact focus on the auth bug fix`, para que el resumen conserve lo que elige él y no lo que adivina el pase automático."
+      ],
+      "correct": 3,
+      "why_correct": "`/compact` con instrucciones resume la conversación y libera espacio, pero vos decidís qué se conserva. La doc lo recomienda justo antes de empezar una tarea larga nueva.",
+      "why_wrong": {
+        "0": "`/clear` arranca una conversación vacía: las conclusiones no quedan en el contexto de la tarea nueva. Sirve para tareas NO relacionadas.",
+        "1": "`/context` solo muestra el uso de la ventana y sugerencias. No borra nada.",
+        "2": "Cambia el umbral del pase automático, pero ese pase decide solo qué guardar. No asegura que se conserven las conclusiones."
+      },
+      "rule": "Seguir la misma línea de trabajo con menos ruido → `/compact <foco>`. Tarea no relacionada → `/clear`.",
+      "source_url": "https://code.claude.com/docs/en/context-window",
+      "source_quote": "The summary keeps what you choose instead of what the automatic pass guesses is important.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o20-q04",
+      "objective": 20,
+      "pool": "practice",
+      "scenario": "Diego terminó de migrar el módulo de pagos con Claude Code. En la misma sesión arranca algo sin relación: traducir los textos de la UI. Nota que Claude menciona archivos de pagos en las respuestas, y `/usage` le marca \"long context\". Quiere poder volver más tarde a la sesión de pagos. ¿Qué hace?",
+      "options": [
+        "`/clear pagos`, que empieza una conversación vacía y deja la anterior nombrada para retomarla con `/resume`.",
+        "`/compact keep only i18n`, que resume la sesión de pagos y deja espacio para la traducción en la misma conversación.",
+        "Pedirle a Claude \"olvidate de todo lo de pagos\", así deja de considerarlo en las respuestas siguientes.",
+        "`/rewind` hasta el primer mensaje de la sesión y seguir desde ahí con la tarea de traducción."
+      ],
+      "correct": 0,
+      "why_correct": "Para trabajo no relacionado, `/clear` es lo indicado: no cuesta nada y la tarea nueva no paga el historial de la anterior. Con un nombre, la conversación anterior queda etiquetada para `/resume`.",
+      "why_wrong": {
+        "1": "`/compact` es en sí un request grande (lee toda la conversación) y deja un resumen de pagos que no necesitás para traducir.",
+        "2": "Esa frase es un mensaje más: el historial de pagos sigue en el contexto y se reenvía en cada request.",
+        "3": "Rebobinar la conversación pierde el punto de la sesión de pagos al que quería volver. No es para cambiar de tarea."
+      },
+      "rule": "Tarea nueva sin relación → `/clear [nombre]`; para volver, `/resume`.",
+      "source_url": "https://code.claude.com/docs/en/best-practices",
+      "source_quote": "It costs nothing, and it means the next task doesn't keep paying for the previous one's history.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o20-q05",
+      "objective": 20,
+      "pool": "practice",
+      "scenario": "Al principio de una sesión larga, Diego le dijo a Claude en el chat: \"en este repo siempre usá `pnpm`, nunca `npm`\". Horas después, tras una compactación automática, Claude vuelve a correr `npm install`. Quiere que la instrucción sobreviva a futuras compactaciones. ¿Dónde la pone?",
+      "options": [
+        "En `.claude/rules/package-manager.md` con `paths: [\"package.json\"]`, para que cargue al tocar ese archivo.",
+        "En el `CLAUDE.md` de la raíz del proyecto, que se relee del disco y se reinyecta después de compactar.",
+        "En un mensaje fijado al principio de la conversación, repitiéndola cada vez que Claude se equivoca.",
+        "En las instrucciones de `/compact` de esta sesión, para que el próximo resumen la incluya."
+      ],
+      "correct": 1,
+      "why_correct": "Lo que se dijo solo en la conversación se resume con el resto y se puede perder. El `CLAUDE.md` de la raíz sobrevive a la compactación: Claude Code lo vuelve a leer del disco y lo reinyecta.",
+      "why_wrong": {
+        "0": "Las reglas con `paths:` se cargan en el historial cuando se toca el archivo, así que la compactación también las resume. Solo vuelven cuando se vuelve a tocar un archivo que matchea.",
+        "2": "Sigue siendo conversación: la próxima compactación la resume igual. Repetirla agranda el problema.",
+        "3": "Sirve para UNA compactación manual. La siguiente compactación automática no conoce esas instrucciones."
+      },
+      "rule": "Instrucción que tiene que sobrevivir a la compactación → `CLAUDE.md` de la raíz, no el chat.",
+      "source_url": "https://code.claude.com/docs/en/memory",
+      "source_quote": "Project-root CLAUDE.md survives compaction: after `/compact`, Claude re-reads it from disk and re-injects it into the session.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o20-q06",
+      "objective": 20,
+      "pool": "practice",
+      "scenario": "Claude delegó a Explore el mapeo del módulo de facturación y devolvió un buen resumen. Diego quiere ahora que \"ese mismo agente siga desde donde quedó\" y profundice en las notas de crédito, sin repetir la exploración. Claude le dice que no puede retomarlo. ¿Cuál es el fix para la próxima vez?",
+      "options": [
+        "Pedirle a Explore que use thoroughness \"very thorough\", así la primera pasada cubre también las notas de crédito.",
+        "Correr `/compact` en la sesión principal para que Explore herede el resumen la próxima vez que se invoque.",
+        "Usar el subagente `general-purpose` o uno custom: devuelven un agent ID y se pueden retomar con su historial completo.",
+        "Agregarle `maxTurns: 100` a Explore para que no termine antes de cubrir las notas de crédito."
+      ],
+      "correct": 2,
+      "why_correct": "Explore y Plan son one-shot: no devuelven agent ID y no se pueden retomar. Si necesitás continuar el trabajo, usás `general-purpose` o un subagente custom; al retomarlo conserva todo su historial (tool calls, resultados y razonamiento).",
+      "why_wrong": {
+        "0": "Te obliga a adivinar todo de antemano. No resuelve poder continuar una exploración.",
+        "1": "Un subagente arranca con ventana fresca: no ve la conversación principal ni su resumen (salvo un fork).",
+        "3": "Explore es built-in; además, más turnos no lo vuelven retomable."
+      },
+      "rule": "Necesitás retomar al subagente → `general-purpose` o custom (Explore y Plan son one-shot).",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "The built-in Explore and Plan agents are one-shot and return no agent ID, so Claude can't resume them.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o20-q07",
+      "objective": 20,
+      "pool": "practice",
+      "scenario": "El equipo tiene un subagente custom `arch-explorer` que mapea la arquitectura antes de cada tarea grande. Cada sesión nueva redescubre desde cero dónde están los módulos clave y qué decisiones de diseño hay. Quieren que acumule ese conocimiento entre conversaciones y que lo comparta todo el equipo por git. ¿Qué agregan?",
+      "options": [
+        "`memory: local` en su frontmatter, para guardar lo aprendido en `.claude/agent-memory-local/` del repo.",
+        "Un hook `SessionStart` que pegue en el contexto la salida del último `arch-explorer` de cada developer.",
+        "`memory: user` en su frontmatter, que guarda las notas en `~/.claude/agent-memory/` de cada developer.",
+        "`memory: project` en su frontmatter, que le da un directorio persistente en `.claude/agent-memory/` versionable."
+      ],
+      "correct": 3,
+      "why_correct": "El campo `memory` le da al subagente un directorio persistente que sobrevive entre conversaciones. Con scope `project` vive en `.claude/agent-memory/<nombre>/` y se comparte por control de versiones; la doc lo recomienda como default.",
+      "why_wrong": {
+        "0": "`local` es específico del proyecto pero NO se commitea: el equipo no lo comparte.",
+        "1": "Mezcla salidas de distintas máquinas, no persiste nada versionado y no le da al subagente dónde escribir lo que aprende.",
+        "2": "`user` es personal y para todos los proyectos de un dev: no se comparte con el equipo por git."
+      },
+      "rule": "Subagente que debe acumular conocimiento del repo para el equipo → `memory: project`.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "`project` is the recommended default scope. It makes subagent knowledge shareable via version control.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o20-q08",
+      "objective": 20,
+      "pool": "practice",
+      "scenario": "Una migración de 140 módulos va a llevar varios días con Claude. El primer día todo bien; el segundo, en una sesión nueva, Claude no sabe cuáles migró ya, rehace dos y se saltea uno. ¿Qué diseño arregla la continuidad entre ventanas de contexto?",
+      "options": [
+        "Mantener abierta una sola sesión durante toda la semana y confiar en la compactación automática para recordar el estado.",
+        "Llevar el estado en un archivo estructurado (por ejemplo `migration.json`) más notas de progreso y git, y empezar cada sesión leyéndolos.",
+        "Escribir al final de cada día, en el chat, un resumen del avance para que la próxima sesión lo tenga en el historial.",
+        "Subir el umbral de auto-compactación con `/autocompact` para que la sesión de cada día entre entera sin resumirse."
+      ],
+      "correct": 1,
+      "why_correct": "Las sesiones son independientes: cada una arranca con ventana fresca. El estado tiene que vivir en el filesystem: JSON para el estado estructurado, notas libres para el progreso, git como log. La doc sugiere arrancar cada ventana pidiendo revisar esos archivos.",
+      "why_wrong": {
+        "0": "La compactación resume: no es buena para mantener estado exacto de 140 elementos. Y cada resumen puede perder detalle.",
+        "2": "Una sesión nueva no ve el historial de la anterior. Lo escrito en el chat de ayer no llega.",
+        "3": "Solo cambia cuándo compacta la sesión actual. No pasa nada de una sesión a la siguiente."
+      },
+      "rule": "Trabajo de varios días → estado en archivos (JSON + notas + git), no en la conversación.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Claude’s latest models are extremely effective at discovering state from the local filesystem.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o20-q09",
+      "objective": 20,
+      "pool": "practice",
+      "scenario": "Diego le pide a Claude: \"investigá en paralelo los módulos de auth, billing, search, notificaciones, reportes y admin con un subagente cada uno\". Los seis vuelven con informes detallados de varias páginas, y la conversación principal queda casi tan llena como si hubiera explorado todo él mismo. ¿Qué ajuste hace?",
+      "options": [
+        "Pedir que cada subagente devuelva un resumen corto con lo esencial (archivos clave y hallazgos), no un informe completo.",
+        "Hacer las seis investigaciones en la conversación principal, que así al menos no paga los tokens de seis subagentes.",
+        "Correr los seis subagentes en foreground en vez de background para que sus resultados no se acumulen todos juntos.",
+        "Definir los seis subagentes con `model: opus` para que sus informes sean más precisos y no hagan falta tantas páginas."
+      ],
+      "correct": 0,
+      "why_correct": "Los resultados de los subagentes vuelven a la conversación principal. Si cada uno devuelve un informe largo, el aislamiento se pierde. La doc dice explícitamente: pedí resúmenes cortos para que veinte resultados no llenen tu contexto.",
+      "why_wrong": {
+        "1": "Toda la salida de las búsquedas quedaría en la conversación principal: peor que seis informes largos.",
+        "2": "Foreground o background cambia si esperás, no cuánto texto vuelve. Los seis informes llegan igual.",
+        "3": "Un modelo más grande no acorta el informe. El largo se controla con lo que pedís que devuelvan."
+      },
+      "rule": "Subagentes que devuelven informes enormes → pedí resúmenes cortos de vuelta.",
+      "source_url": "https://code.claude.com/docs/en/best-practices",
+      "source_quote": "Ask for short summaries back, so twenty results don't fill your context anyway.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o20-q10",
+      "objective": 20,
+      "pool": "practice",
+      "scenario": "En la fase 1, Claude mapeó con Diego el flujo de checkout y anotaron en la conversación que el precio final lo calcula `PricingEngine`, no `CartService`. En la fase 2, Claude lanza un subagente custom (no un fork) para \"revisar bugs de redondeo en el cálculo de precios\". El subagente vuelve analizando `CartService`. ¿Qué cambio evita esto?",
+      "options": [
+        "Agregar `maxTurns: 200` al subagente para que tenga tiempo de descubrir por su cuenta dónde se calcula el precio.",
+        "Escribirle al subagente en su prompt \"acordate de lo que encontramos en la fase 1\" para que lo tenga presente.",
+        "Incluir en el mensaje de delegación un resumen de los hallazgos de la fase 1 (`PricingEngine`, archivos y líneas clave).",
+        "Darle `model: opus` al subagente para que razone mejor qué servicio calcula el precio final del checkout."
+      ],
+      "correct": 2,
+      "why_correct": "Un subagente (que no es fork) arranca con una ventana nueva y aislada: no ve la conversación ni los archivos que ya se leyeron. Trabaja con lo que le llega en el mensaje de delegación. Por eso hay que resumir los hallazgos de la fase anterior e inyectarlos ahí.",
+      "why_wrong": {
+        "0": "Más turnos no le dan el dato; solo le permiten explorar más (y quizás seguir mirando el servicio equivocado).",
+        "1": "No puede \"acordarse\": nunca vio esa conversación. La frase no le pasa ningún dato.",
+        "3": "El problema es falta de información, no de razonamiento. Un modelo más grande tampoco ve la fase 1."
+      },
+      "rule": "Subagente de la fase siguiente → resumen de hallazgos previos dentro del prompt de delegación.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "It doesn't see your conversation history, the skills you've already invoked, or the files Claude has already read.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

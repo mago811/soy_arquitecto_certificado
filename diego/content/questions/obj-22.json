@@ -1,0 +1,245 @@
+{
+  "objective": 22,
+  "questions": [
+    {
+      "id": "o22-q01",
+      "objective": 22,
+      "pool": "practice",
+      "scenario": "Una empresa extrae datos de 20.000 facturas por mes con Claude. Para controlar calidad, dos revisores miran un 5% elegido al azar. Casi todo lo que ven son PDFs digitales limpios, mientras que los errores reales (facturas escaneadas, montos ilegibles) llegan a contabilidad sin que nadie los haya visto. ¿Qué cambio de diseño hacés?",
+      "options": [
+        "Subir el muestreo aleatorio al 15% para que los revisores tengan más chances de cruzarse con las facturas problemáticas.",
+        "Pedirle al modelo un nivel de riesgo o confianza por extracción y mandar a revisión humana lo de nivel medio o bajo; lo alto pasa solo.",
+        "Revisar primero las facturas más viejas de cada mes, porque son las que más tiempo llevan esperando en la cola de pago.",
+        "Reprocesar con Claude todas las facturas escaneadas una segunda vez y, si las dos corridas coinciden, aprobarlas sin revisión."
+      ],
+      "correct": 1,
+      "why_correct": "El muestreo al azar gasta la revisión en documentos fáciles. La guía de content moderation propone niveles de riesgo basados en la confianza del modelo: lo de riesgo alto se resuelve automático y lo intermedio va a revisión humana. Así la atención humana va a donde está la duda.",
+      "why_wrong": {
+        "0": "Triplica el costo y sigue sin apuntar a lo dudoso: la mayoría de lo revisado seguirá siendo fácil.",
+        "2": "La antigüedad en la cola no tiene relación con la probabilidad de error de la extracción.",
+        "3": "Dos corridas pueden coincidir en el mismo error sobre un escaneo ilegible; coincidir no es lo mismo que estar bien."
+      },
+      "rule": "Revisión humana por riesgo/confianza, no por muestra al azar.",
+      "source_url": "https://platform.claude.com/docs/en/about-claude/use-case-guides/content-moderation",
+      "source_quote": "Creating multiple risk levels allows you to adjust the aggressiveness of your moderation.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o22-q02",
+      "objective": 22,
+      "pool": "practice",
+      "scenario": "Un pipeline de extracción de recibos tiene 97% de precisión general sobre 5.000 documentos etiquetados. El gerente quiere eliminar la revisión humana. Al desglosar, los recibos escritos a mano (8% del volumen) tienen 70% de precisión y el campo `cuit_emisor` falla mucho más que el resto. ¿Qué hacés antes de reducir la revisión?",
+      "options": [
+        "Eliminar la revisión: con 97% general el impacto de los errores restantes es bajo y el ahorro justifica el riesgo.",
+        "Eliminar la revisión y sumar ejemplos few-shot de recibos manuscritos al prompt, que con eso alcanza para cerrar la brecha.",
+        "Bajar el umbral de confianza global para que pasen más documentos solos, ya que la precisión general es buena.",
+        "Medir la precisión por tipo de documento y por campo, y dejar revisión en los segmentos que no llegan."
+      ],
+      "correct": 3,
+      "why_correct": "Un promedio alto puede esconder segmentos que andan mal. La guía de ticket routing mide precisión por idioma y por grupo con tolerancias de caída explícitas, no solo el número total. Automatizás solo los segmentos que cumplen, y lo manuscrito y `cuit_emisor` siguen con revisión.",
+      "why_wrong": {
+        "0": "El 97% esconde un segmento con 30% de error. Para esos recibos, sacar la revisión es mandar basura a producción.",
+        "1": "Few-shot puede ayudar, pero sacar la revisión sin medir de nuevo el segmento es apostar sin datos.",
+        "2": "Un umbral global ignora que el problema está concentrado en un segmento y un campo; aflojarlo deja pasar más de esos errores."
+      },
+      "rule": "Precisión general alta ≠ listo para automatizar → medí por tipo de documento y por campo.",
+      "source_url": "https://platform.claude.com/docs/en/about-claude/use-case-guides/ticket-routing",
+      "source_quote": "Measure the routing accuracy across different languages, aiming for no more than a 5–10 percent drop in accuracy for non-primary languages.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o22-q03",
+      "objective": 22,
+      "pool": "practice",
+      "scenario": "Un extractor de contratos con structured outputs define `fecha_rescision` como `{\"type\": \"string\"}` y obligatorio. Muchos contratos no tienen fecha de rescisión, pero el campo siempre viene lleno con una fecha creíble. Los revisores no pueden distinguir fechas reales de inventadas, así que no saben qué contratos mirar. ¿Cuál es el fix?",
+      "options": [
+        "Hacer el campo nullable, permitir devolver `null` si no está y mandar a revisión los `null` críticos.",
+        "Dejar el campo como está y pedirle al modelo que agregue \"(estimada)\" al final de la fecha cuando no la encuentre en el texto.",
+        "Sacar el campo del schema y pedir que la fecha venga, si existe, dentro del campo `observaciones` en texto libre.",
+        "Mantener el schema y agregar `strict: true` para que la API valide que la fecha que devuelve el modelo es correcta."
+      ],
+      "correct": 0,
+      "why_correct": "Un campo obligatorio no-nullable fuerza al modelo a poner algo. Darle permiso para decir \"no está\" (la doc: dar permiso explícito para admitir incertidumbre) y un tipo que admita `null` hace visible la ausencia. Un `null` en un campo crítico es una señal concreta para rutear a revisión.",
+      "why_wrong": {
+        "1": "El campo sigue siendo un string obligatorio: la marca depende de que el modelo se acuerde, y el código no puede filtrar por ella de forma confiable.",
+        "2": "Pasarlo a texto libre pierde la estructura y hace más difícil detectar la ausencia y rutearla.",
+        "3": "`strict` valida el formato contra el schema, no que el valor sea verdadero. Una fecha inventada con el tipo correcto pasa igual."
+      },
+      "rule": "El modelo inventa un campo que no existe → nullable + permiso para devolver null; el null se rutea a revisión.",
+      "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
+      "source_quote": "Explicitly give Claude permission to admit uncertainty. This technique can drastically reduce false information.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o22-q04",
+      "objective": 22,
+      "pool": "practice",
+      "scenario": "Un equipo le pide a Claude, junto con cada campo extraído, una confianza de 0 a 100. Ponen el umbral en 80 \"porque suena razonable\": lo de 80 o más se aprueba solo. Al mes descubren que muchos errores vinieron con confianza 90 o más, y que lo de 60–80 casi siempre estaba bien. ¿Qué tendrían que haber hecho?",
+      "options": [
+        "Subir el umbral a 95, porque si los errores vienen con 90 o más, un umbral más exigente los va a dejar afuera.",
+        "Cambiar la confianza a una escala de texto (alta/media/baja), que el modelo maneja mejor que un número del 0 al 100.",
+        "Calibrar el umbral contra documentos etiquetados por humanos, mirando aciertos y errores por campo.",
+        "Promediar la confianza del modelo con la de un segundo modelo y aprobar solo si el promedio de ambos supera 80."
+      ],
+      "correct": 2,
+      "why_correct": "Un número que produce el modelo no significa nada hasta que lo comparás con la realidad. El post de evals de Anthropic lo dice de los evaluadores basados en modelos: necesitan calibración con evaluadores humanos. El umbral sale de un set etiquetado, mirando por campo dónde empiezan los errores.",
+      "why_wrong": {
+        "0": "Es otro número a ojo. Sin datos etiquetados no sabés si 95 separa aciertos de errores.",
+        "1": "Cambiar la escala no la calibra: \"alta\" puede estar igual de mal alineada con los aciertos reales.",
+        "3": "Promediar dos números sin calibrar da un tercer número sin calibrar."
+      },
+      "rule": "Umbral de confianza → calibrado contra datos etiquetados por humanos, por campo; nunca \"a ojo\".",
+      "source_url": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
+      "source_quote": "LLM-as-judge graders should be closely calibrated with human experts to gain confidence that there is little divergence between the human grading and model grading.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o22-q05",
+      "objective": 22,
+      "pool": "practice",
+      "scenario": "Un extractor de contratos de alquiler devuelve `plazo_pago_dias`. En un contrato, la cláusula 4 dice 30 días y el anexo dice 45. El modelo devolvió 30 con confianza alta y el contrato se aprobó solo. El área legal dice que esos casos los tiene que ver una persona. ¿Qué cambio hacés?",
+      "options": [
+        "Instruir al modelo para que, ante dos valores, se quede siempre con el del anexo porque es el documento más específico.",
+        "Pedirle que elija el valor más plausible según el resto del contrato y que baje un poco su confianza cuando duda.",
+        "Subir el umbral global de confianza para que menos contratos se aprueben solos, sin cambiar el schema de extracción.",
+        "Pedir que, ante valores contradictorios, devuelva ambos con una marca de conflicto que va a revisión."
+      ],
+      "correct": 3,
+      "why_correct": "Un documento contradictorio es ambiguo por definición: elegir uno esconde el problema. Si el schema trae ambos valores y una marca de conflicto, el código puede rutear el caso a una persona. La doc es clara: la información crítica, sobre todo en decisiones de alto impacto, se valida.",
+      "why_wrong": {
+        "0": "Es una regla de negocio inventada que decide por legal sin que legal lo vea. Puede estar mal en muchos contratos.",
+        "1": "Sigue resolviendo la ambigüedad en silencio; una confianza \"un poco más baja\" puede seguir arriba del umbral.",
+        "2": "Afecta a todos los contratos y no garantiza atrapar este: el modelo devolvió confianza alta igual."
+      },
+      "rule": "Documento con datos contradictorios → extraer ambos + marca de conflicto → humano.",
+      "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
+      "source_quote": "Always validate critical information, especially for high-stakes decisions.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o22-q06",
+      "objective": 22,
+      "pool": "practice",
+      "scenario": "Un sistema de extracción marca 1.000 documentos por día para revisión humana, pero el equipo solo puede revisar 200. Hoy revisan en orden de llegada (FIFO) y los casos más riesgosos a veces quedan sin revisar varios días. ¿Cómo rediseñás la cola?",
+      "options": [
+        "Elegir cada día 200 documentos al azar entre los 1.000 marcados, para que todos tengan la misma chance de ser revisados.",
+        "Asignar un nivel de riesgo a cada documento marcado y ordenar la cola para que se revise primero lo de mayor riesgo.",
+        "Subir el umbral para marcar menos documentos hasta que la cantidad coincida con la capacidad diaria de 200 revisiones.",
+        "Mantener el orden de llegada pero agregar más turnos de revisión los fines de semana para vaciar la cola acumulada."
+      ],
+      "correct": 1,
+      "why_correct": "Con capacidad limitada, el orden importa. La guía de content moderation usa niveles de riesgo para decidir qué se bloquea solo y qué va a revisión humana; la misma escala sirve para priorizar la cola. Los 200 que se revisan tienen que ser los de mayor impacto.",
+      "why_wrong": {
+        "0": "Al azar, los casos más riesgosos tienen solo 20% de chance de ser revisados por día: es lo contrario de priorizar.",
+        "2": "Ajustar el umbral para que \"entre\" en la capacidad deja de marcar casos dudosos sin saber cuáles son peligrosos.",
+        "3": "Más horas no ordenan nada; los casos graves siguen esperando detrás de los triviales."
+      },
+      "rule": "Capacidad de revisión limitada → priorizar la cola por riesgo, no FIFO ni azar.",
+      "source_url": "https://platform.claude.com/docs/en/about-claude/use-case-guides/content-moderation",
+      "source_quote": "For example, you might want to automatically block user queries that are deemed high risk, whereas users with many medium risk queries are flagged for human review.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o22-q07",
+      "objective": 22,
+      "pool": "practice",
+      "scenario": "Después de validar por segmento, un equipo automatiza las extracciones de alta confianza: ningún humano las vuelve a ver. Tres meses después, un proveedor grande cambia el formato de sus facturas y el campo `total` sale mal en miles de documentos con confianza alta. Nadie lo nota hasta el cierre contable. ¿Qué faltó en el diseño?",
+      "options": [
+        "Pedirle al modelo que baje su confianza automáticamente cuando el formato del documento le resulte distinto a lo habitual.",
+        "Volver a mandar todo a revisión humana, porque la experiencia demuestra que automatizar extracciones no es seguro.",
+        "Agregar una regla en el prompt que diga \"si el proveedor cambió el formato, avisá\" para cubrir este caso puntual.",
+        "Seguir revisando de forma periódica una muestra de lo auto-aprobado, para detectar cambios en los datos y errores nuevos."
+      ],
+      "correct": 3,
+      "why_correct": "Lo automatizado también se vigila. El post de evals de Anthropic dice que el monitoreo en producción sirve para detectar cambios en la distribución y fallas reales no anticipadas, y propone revisión humana periódica. Una muestra chica y constante de lo auto-aprobado habría mostrado el problema en días, no meses.",
+      "why_wrong": {
+        "0": "Confía en que el modelo detecte su propio error, que es justo lo que falló: dio confianza alta a valores malos.",
+        "1": "Tira todo el beneficio de la automatización por un problema que se detecta con vigilancia barata.",
+        "2": "Es un parche para un caso; el próximo cambio inesperado tampoco va a estar en el prompt."
+      },
+      "rule": "Automatizado ≠ sin mirar → muestra periódica de lo auto-aprobado para detectar errores nuevos.",
+      "source_url": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
+      "source_quote": "Production monitoring kicks in post-launch to detect distribution drift and unanticipated real-world failures.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o22-q08",
+      "objective": 22,
+      "pool": "practice",
+      "scenario": "Un equipo extrae campos de pólizas con la Citations API, pidiendo una línea por campo (\"campo: valor\") y parseando las líneas en su código. Toman cada valor parseado como bueno. En una auditoría ven valores que no tienen ninguna cita asociada y que no aparecen en la póliza. ¿Qué agregás al pipeline?",
+      "options": [
+        "Chequear que cada campo tenga valor y al menos una cita; los que vengan sin cita o vacíos van a revisión humana.",
+        "Agregar `output_config.format` con el schema de la póliza para que la API garantice que cada campo venga con su cita.",
+        "Pedir en el system prompt \"respondé solo con un objeto JSON\" para que el parseo sea más simple y no se pierdan citas.",
+        "Asumir que la API siempre cita cada línea y que esos casos son errores del parser; revisar el código de parseo."
+      ],
+      "correct": 0,
+      "why_correct": "La doc de Citations lo dice explícito: hay que chequear que cada campo tenga valor y al menos una cita, porque la API no garantiza ninguna de las dos cosas. Un campo sin cita es una señal concreta de ambigüedad a nivel de campo, ideal para rutear a revisión.",
+      "why_wrong": {
+        "1": "Citations y structured outputs no se pueden usar juntos: la API devuelve 400.",
+        "2": "La doc advierte que pedir solo JSON puede hacer que la respuesta traiga pocas o ninguna cita.",
+        "3": "La doc dice lo contrario: la API no garantiza que cada campo tenga cita."
+      },
+      "rule": "Extracción con Citations → campo sin cita o sin valor = a revisión; la API no lo garantiza.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/citations",
+      "source_quote": "Check that each field has a value and at least one citation. The API doesn’t guarantee either.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o22-q09",
+      "objective": 22,
+      "pool": "practice",
+      "scenario": "En una reunión de diseño, un arquitecto propone: \"Ya usamos structured outputs con el schema de la factura. Como el JSON siempre cumple el schema, los datos son confiables y podemos eliminar la revisión humana\". En producción, los errores que aparecen son montos y fechas equivocados en JSON perfectamente válido. ¿Qué le respondés?",
+      "options": [
+        "Que tiene razón, pero que conviene agregar `strict: true` también en las tools para que la garantía cubra todo el pipeline.",
+        "Que tiene razón si además se bajan la temperatura y `top_p`, porque así el modelo deja de variar los valores extraídos.",
+        "Que el schema garantiza la forma de la respuesta, no que los valores sean correctos: eso se mide aparte.",
+        "Que hay que cambiar a prefill del JSON, que en modelos nuevos es más confiable que structured outputs para extracción."
+      ],
+      "correct": 2,
+      "why_correct": "Structured outputs usa decodificación restringida para garantizar que la respuesta cumpla el schema: JSON válido, tipos y campos obligatorios. Un monto equivocado con el tipo correcto cumple el schema igual. La exactitud del contenido se mide contra datos etiquetados y se cubre con revisión dirigida.",
+      "why_wrong": {
+        "0": "`strict: true` también garantiza forma, no verdad. Sumarlo no cambia el problema.",
+        "1": "Menos variación no implica valores correctos; puede repetir el mismo error de forma estable.",
+        "3": "La doc dice que el prefill no está soportado en Claude 4.6 y modelos posteriores, y que en su lugar se use structured outputs."
+      },
+      "rule": "Schema válido ≠ dato correcto → structured outputs no reemplaza medir precisión ni la revisión humana.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "source_quote": "Structured outputs guarantee schema-compliant responses through constrained decoding",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o22-q10",
+      "objective": 22,
+      "pool": "practice",
+      "scenario": "Para elegir los umbrales de ruteo, un equipo arma un set de validación con 300 facturas que les pasó el área comercial: todas PDFs digitales de clientes grandes. Con ese set, el umbral elegido deja 99% de precisión en lo auto-aprobado. En producción, donde un 25% son fotos de celular y escaneos, la precisión de lo auto-aprobado cae al 88%. ¿Qué hicieron mal?",
+      "options": [
+        "Usaron muy pocos documentos: con 3.000 facturas del mismo origen, el umbral habría salido bien calibrado.",
+        "El set de validación no reflejaba la mezcla real de documentos ni incluía los casos difíciles.",
+        "Eligieron un umbral demasiado bajo; con 99% en validación tendrían que haber exigido 99,9% para tener margen.",
+        "Tendrían que haber usado revisión humana para todo el set de validación, en lugar de etiquetas automáticas."
+      ],
+      "correct": 1,
+      "why_correct": "Un umbral calibrado sobre documentos que no se parecen a producción no sirve para producción. La doc de evaluaciones lo dice: los evals tienen que reflejar la distribución real de la tarea e incluir casos borde. Sin fotos ni escaneos en el set, el umbral nunca vio los documentos difíciles.",
+      "why_wrong": {
+        "0": "Más documentos del mismo origen repiten el mismo sesgo: siguen faltando fotos y escaneos.",
+        "2": "Exigir más sobre un set sesgado no corrige el sesgo; el umbral sigue sin conocer los casos difíciles.",
+        "3": "El escenario no dice que las etiquetas fueran automáticas; el problema es qué documentos se eligieron, no quién los etiquetó."
+      },
+      "rule": "Set de validación para umbrales → que refleje la mezcla real de producción, con casos borde incluidos.",
+      "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "source_quote": "Design evals that mirror your real-world task distribution. Don’t forget to factor in edge cases!",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

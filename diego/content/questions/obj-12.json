@@ -1,0 +1,245 @@
+{
+  "objective": 12,
+  "questions": [
+    {
+      "id": "o12-q01",
+      "objective": 12,
+      "pool": "practice",
+      "scenario": "Un equipo le pide a Claude que convierta descripciones de productos a un formato de ficha. Ya llevan tres vueltas agregando párrafos que explican el formato (\"los atributos van en minúscula, las medidas en cm, sin adjetivos de marketing...\") y cada vez sale algo distinto. ¿Qué cambio tiene más probabilidad de estabilizar la salida?",
+      "options": [
+        "Reescribir las instrucciones en mayúsculas y agregar \"IMPORTANT: seguí el formato exacto\" al principio y al final del prompt.",
+        "Agregar un cuarto párrafo que explique los casos especiales con más detalle, para que no quede ninguna regla sin describir.",
+        "Pedirle a Claude que primero explique con sus palabras cómo entendió el formato y recién después genere la ficha.",
+        "Incluir 3 a 5 pares reales de entrada → ficha esperada, con casos raros, envueltos en `<examples>`, y acortar la prosa."
+      ],
+      "correct": 3,
+      "why_correct": "La doc dice que dar ejemplos del output que querés es más efectivo que las instrucciones abstractas. Pares entrada → salida reales muestran el formato sin ambigüedad, y los casos raros cubren lo que la prosa no logra describir.",
+      "why_wrong": {
+        "0": "Gritar no aclara qué formato es; sigue siendo descripción abstracta.",
+        "1": "Más prosa es más de lo mismo: el problema es que describir no alcanza.",
+        "2": "Puede ayudar a detectar malentendidos, pero no le da el formato concreto que le falta."
+      },
+      "rule": "Formato que no sale con descripciones → mostrá ejemplos de entrada/salida.",
+      "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/increase-consistency",
+      "source_quote": "Provide examples of the output you want. This is more effective than abstract instructions.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o12-q02",
+      "objective": 12,
+      "pool": "practice",
+      "scenario": "Claude Code escribió un parser de fechas. Diego prueba y algo anda mal. Le responde: \"No funciona bien, revisalo y mejoralo\". Claude cambia cosas que funcionaban y el bug sigue. ¿Cuál era el mejor feedback?",
+      "options": [
+        "\"Revisalo con más cuidado y pensá paso a paso todos los formatos de fecha posibles antes de tocar el código.\"",
+        "\"`parse_fecha('03/08/2026')` devuelve 8 de marzo; espero 3 de agosto (formato dd/mm). Corregí eso y corré `tests/test_fechas.py`.\"",
+        "\"Reescribí el parser desde cero usando otra librería, porque la versión actual parece tener problemas de diseño.\"",
+        "\"Fijate los edge cases de fechas, que seguro hay alguno que no estás contemplando, y arreglá los que encuentres.\""
+      ],
+      "correct": 1,
+      "why_correct": "La doc dice que nombrar el archivo, describir el síntoma y decir qué es \"arreglado\" te ahorra rondas de correcciones. Ese feedback da el caso exacto, lo que devolvió, lo que se esperaba y un check para confirmar.",
+      "why_wrong": {
+        "0": "Sigue sin decir qué falló; \"pensá paso a paso\" es texto común, no información nueva.",
+        "2": "Tira trabajo que funcionaba sin saber cuál es el problema; no hay feedback sobre la falla.",
+        "3": "Es vago: Claude tiene que adivinar qué caso falla, que es lo que ya salió mal."
+      },
+      "rule": "Feedback útil = caso concreto + qué hizo + qué esperabas + cómo verificarlo.",
+      "source_url": "https://code.claude.com/docs/en/best-practices",
+      "source_quote": "If you name the file, describe the symptom, and say what \"fixed\" looks like up front, you usually save yourself a round of corrections later.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o12-q03",
+      "objective": 12,
+      "pool": "practice",
+      "scenario": "En una sesión de Claude Code, Diego reportó que el normalizador de montos fallaba con separadores de miles. Claude lo arregló y se rompieron los negativos. Diego lo reportó, Claude lo arregló y volvió a fallar lo de miles. Dos correcciones, mismo ping-pong. ¿Qué conviene hacer ahora?",
+      "options": [
+        "`/clear` y un prompt nuevo que liste juntos todos los casos que fallan (miles, negativos y los demás) con lo esperado de cada uno.",
+        "Mandar una tercera corrección en el mismo hilo, esta vez marcando el problema de miles como \"IMPORTANT\" para que no se pierda.",
+        "Pedirle que deshaga el último cambio con `/rewind` y repetir la misma corrección de miles, pero escrita con otras palabras.",
+        "Seguir corrigiendo de a uno en el mismo hilo, porque así cada arreglo queda aislado y es más fácil ver qué rompió cada cambio."
+      ],
+      "correct": 0,
+      "why_correct": "La doc: después de corregir dos veces lo mismo, una tercera corrección suma a una conversación con dos intentos fallidos que Claude sigue releyendo. `/clear` más un prompt que junte lo aprendido funciona mejor. Juntar los casos en lote deja ver que son el mismo problema.",
+      "why_wrong": {
+        "1": "Es justo la tercera corrección que la doc desaconseja; el contexto ya está cargado de intentos fallidos.",
+        "2": "Volver atrás y repetir lo mismo de a un caso reproduce el ping-pong: no considera los dos casos juntos.",
+        "3": "De a uno es lo que causó el ping-pong: cada arreglo ignora el otro caso."
+      },
+      "rule": "Dos correcciones fallidas → `/clear` + un prompt con TODOS los casos juntos.",
+      "source_url": "https://code.claude.com/docs/en/best-practices",
+      "source_quote": "If you've corrected the same thing twice and it's still wrong, a third correction mostly adds to a conversation that already contains two failed attempts for Claude to keep re-reading.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o12-q04",
+      "objective": 12,
+      "pool": "practice",
+      "scenario": "Un dev itera con Claude Code sobre un conversor CSV → JSON. Cada vuelta, Claude dice \"listo\", el dev corre el conversor a mano, encuentra otra diferencia y la pega en el chat. Tiene un CSV de entrada y el JSON esperado guardados en `fixtures/`. ¿Cómo acelera las vueltas?",
+      "options": [
+        "Pedirle a Claude que sea más cuidadoso y que revise el código dos veces antes de decir que terminó cada vuelta.",
+        "Subir el effort a `max` para que Claude piense más en cada vuelta y encuentre las diferencias sin necesidad de correr nada.",
+        "Darle un check que corra: un script que compare la salida contra `fixtures/esperado.json`, y pedirle que itere hasta que pase.",
+        "Pegarle en el chat las diferencias de varias vueltas de una vez, sin darle forma de ejecutar el conversor por su cuenta."
+      ],
+      "correct": 2,
+      "why_correct": "La doc: si le das algo que vuelve pass o fail, Claude cierra el ciclo solo: cambia, corre el check, lee la salida y corrige. Un script que compara contra un fixture es uno de los ejemplos de check que da la doc.",
+      "why_wrong": {
+        "0": "Sin algo para correr, \"parece terminado\" es todo lo que tiene; el dev sigue siendo el test.",
+        "1": "Pensar más no reemplaza ejecutar: sin el check no ve la salida real.",
+        "3": "Juntar diferencias ayuda, pero el dev sigue siendo el que corre y compara. El cuello de botella no se va."
+      },
+      "rule": "Iterar rápido = darle un check pass/fail (tests, diff contra fixture) para que cierre el ciclo solo.",
+      "source_url": "https://code.claude.com/docs/en/best-practices",
+      "source_quote": "If you give it something that comes back pass or fail, Claude can close that loop itself.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o12-q05",
+      "objective": 12,
+      "pool": "practice",
+      "scenario": "Un equipo armó un loop `claude -p` para migrar 400 archivos al nuevo logger. Lo lanzaron sobre los 400 de una. A la mañana, 130 quedaron mal por el mismo malentendido del prompt. ¿Qué tendrían que haber hecho?",
+      "options": [
+        "Subir `--max-turns` a 100 para que cada corrida tenga más margen y llegue a corregir sus propios errores.",
+        "Probar primero con tres archivos, ver qué sale mal, ajustar el prompt y recién después correr el resto.",
+        "Correr los 400 dos veces y quedarse en cada archivo con la versión que coincida entre las dos corridas.",
+        "Lanzar los 400 en paralelo con un modelo más grande, para que el malentendido tenga menos chance de ocurrir."
+      ],
+      "correct": 1,
+      "why_correct": "La doc lo dice textual para estos loops: probá con tres archivos, mirá qué sale mal, arreglá el prompt y después corré el resto. Es refinamiento iterativo antes de escalar.",
+      "why_wrong": {
+        "0": "Más turnos no arreglan un prompt mal entendido: haría lo mismo mal con más pasos.",
+        "2": "Si el malentendido está en el prompt, las dos corridas pueden coincidir en el mismo error.",
+        "3": "No ataca la causa (el prompt) y escala el costo antes de validar."
+      },
+      "rule": "Lote grande → probá con pocos, ajustá el prompt, después escalá.",
+      "source_url": "https://code.claude.com/docs/en/best-practices",
+      "source_quote": "Try it on three files first, see what goes wrong, fix the prompt, then run the rest.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o12-q06",
+      "objective": 12,
+      "pool": "practice",
+      "scenario": "Diego le pide a Claude Code que ajuste un componente para que se vea igual que el mockup del diseñador. Lleva cuatro mensajes describiendo con palabras: \"el botón más a la derecha, el gris un poco más claro...\". Cada vuelta mejora poco. Tiene el mockup como imagen. ¿Qué hace?",
+      "options": [
+        "Escribir una descripción todavía más detallada, con medidas en píxeles y códigos de color estimados a ojo.",
+        "Pedirle a Claude que proponga tres variantes distintas por vuelta para elegir la que más se parezca.",
+        "Pegar la captura del mockup en el prompt, junto con la del resultado actual, y señalar las diferencias concretas.",
+        "Dejar el ajuste visual para el final y pedirle mientras tanto que refactorice el CSS para que sea más fácil de tocar."
+      ],
+      "correct": 2,
+      "why_correct": "La doc: si ya tenés lo que Claude necesita, dáselo en vez de describirlo; una imagen se pega en el prompt. El mockup es el \"ejemplo de salida\" concreto, y las diferencias señaladas son el feedback puntual.",
+      "why_wrong": {
+        "0": "Sigue siendo describir; además las medidas a ojo pueden estar mal.",
+        "1": "Multiplica salidas sin darle la referencia; seguís eligiendo a ciegas.",
+        "3": "Posterga el problema y no le da a Claude la información que le falta."
+      },
+      "rule": "Si tenés el ejemplo (archivo, captura, salida), dáselo; no lo describas.",
+      "source_url": "https://code.claude.com/docs/en/best-practices",
+      "source_quote": "If you already have the thing Claude needs, hand it over instead of describing it",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o12-q07",
+      "objective": 12,
+      "pool": "practice",
+      "scenario": "Un pipeline por API genera resúmenes de contratos en una sola llamada. Quieren mejorar la calidad: que el modelo revise su borrador contra una lista de criterios y lo corrija, y además poder loguear qué criterio falló en cada caso. ¿Qué diseño usan?",
+      "options": [
+        "Encadenar llamadas: borrador → revisión contra criterios → versión refinada, cada una como llamada separada que se puede loguear.",
+        "Una sola llamada con la instrucción \"generá, revisá contra los criterios y refiná antes de responder\", devolviendo solo el final.",
+        "Una sola llamada con los criterios repetidos al principio y al final del prompt, para que el resumen los respete más.",
+        "Generar cinco resúmenes en paralelo con el mismo prompt y quedarse con el más largo, que suele cubrir más criterios."
+      ],
+      "correct": 0,
+      "why_correct": "La doc describe la autocorrección como el patrón de chaining más común: borrador → revisión contra criterios → refinamiento. Cada paso es una llamada separada, así podés loguear, evaluar o bifurcar en cualquier punto.",
+      "why_wrong": {
+        "1": "Puede mejorar algo, pero no te deja ver ni loguear la revisión intermedia: solo ves el final.",
+        "2": "Repetir criterios puede ayudar algo, pero no agrega un paso de revisión ni deja registro de qué criterio falló.",
+        "3": "\"El más largo\" no es un criterio de calidad, y no hay revisión ni feedback."
+      },
+      "rule": "Refinamiento auditable por API → chaining: borrador, revisión, refinamiento en llamadas separadas.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "The most common chaining pattern is self-correction: generate a draft → have Claude review it against criteria → have Claude refine based on the review.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o12-q08",
+      "objective": 12,
+      "pool": "practice",
+      "scenario": "Diego dejó a Claude Code iterando sobre un bug con la instrucción \"seguí hasta que los tests pasen\". Al volver, Claude dice \"Listo, todos los tests pasan\". Diego lo da por bueno y en CI fallan dos tests. ¿Qué debería haber pedido en el prompt?",
+      "options": [
+        "Que repita \"todos los tests pasan\" solo cuando esté 100% seguro, y que si duda lo aclare en el mensaje final.",
+        "Que use effort `low` para terminar antes y que Diego corra los tests a mano al final de cada vuelta.",
+        "Que en cada vuelta escriba en un archivo de notas qué cambió y por qué, para revisarlo al terminar.",
+        "Evidencia: el comando exacto que corrió y su salida, para poder leer el resultado en vez de confiar en el resumen."
+      ],
+      "correct": 3,
+      "why_correct": "La doc: pedile a Claude evidencia, el comando que corrió y su salida. \"Todos los tests pasan\" solo dice poco, y leer la salida es más rápido que volver a correr el check. Así ves si corrió la suite correcta.",
+      "why_wrong": {
+        "0": "Sigue siendo su resumen, no evidencia verificable.",
+        "1": "Devuelve el trabajo de verificar a Diego y no resuelve la confianza en el resumen.",
+        "2": "Las notas explican el razonamiento, pero no muestran el resultado real del check."
+      },
+      "rule": "En cada vuelta, pedí evidencia (comando + salida), no un \"listo\".",
+      "source_url": "https://code.claude.com/docs/en/best-practices",
+      "source_quote": "Whichever option you use, ask Claude for evidence: the command it ran and its output, or the screenshot.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o12-q09",
+      "objective": 12,
+      "pool": "practice",
+      "scenario": "Un prompt de clasificación de tickets tiene un solo ejemplo (un ticket de facturación). En la iteración siguiente, el modelo empezó a clasificar casi todo como \"facturación\". El equipo quiere corregirlo con ejemplos. ¿Cómo arman el set?",
+      "options": [
+        "Sacar el ejemplo y dejar solo la lista de categorías con una definición corta de cada una, para no sesgar al modelo.",
+        "Usar 3 a 5 ejemplos diversos que cubran varias categorías y algún caso ambiguo, y pedirle a Claude que evalúe si son relevantes y variados.",
+        "Repetir el mismo ejemplo de facturación tres veces con distintas redacciones, para que el formato de salida quede bien fijado.",
+        "Agregar diez ejemplos de facturación y uno de cada otra categoría, porque facturación es la categoría más frecuente en producción."
+      ],
+      "correct": 1,
+      "why_correct": "La doc recomienda 3–5 ejemplos, relevantes y diversos, y sugiere pedirle a Claude que evalúe tus ejemplos por relevancia y diversidad. Un solo ejemplo le enseñó un patrón no deseado.",
+      "why_wrong": {
+        "0": "Perdés una de las herramientas más confiables para guiar la salida.",
+        "2": "Refuerza justo el sesgo hacia facturación.",
+        "3": "Desbalancea el set hacia una categoría y empuja el mismo sesgo."
+      },
+      "rule": "Ejemplos que sesgan → 3–5 diversos que cubran casos distintos.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Include 3–5 examples for best results. You can also ask Claude to evaluate your examples for relevance and diversity, or to generate additional ones based on your initial set.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o12-q10",
+      "objective": 12,
+      "pool": "practice",
+      "scenario": "Un equipo pide a Claude Opus 5.5 una landing. El primer resultado usa un estilo genérico. Agregan \"evitá que se vea genérico, tipo IA\" y el segundo resultado cambia a otro estilo igual de genérico. ¿Cómo sigue la iteración según la doc?",
+      "options": [
+        "Nombrar los patrones concretos que no quieren (los que usó el resultado) y, si aparece otro default, sumarlo a la lista en la vuelta siguiente.",
+        "Repetir la misma instrucción en mayúsculas y al final del prompt, para que pese más que el estilo por defecto del modelo.",
+        "Subir el effort a `xhigh` en la próxima vuelta para que el modelo explore más estilos antes de elegir uno.",
+        "Pedirle diez variantes de una vez y elegir la menos genérica, sin cambiar la instrucción del prompt."
+      ],
+      "correct": 0,
+      "why_correct": "La doc de Opus 5.5 dice que una instrucción general como \"evitá un look genérico\" mayormente cambia un default por otro, y que responde bien a instrucciones que nombran patrones específicos a evitar. Y recomienda iterar: ver qué estilos usó y extender la lista.",
+      "why_wrong": {
+        "1": "Sigue siendo la misma instrucción vaga; la doc dice que eso cambia un default por otro.",
+        "2": "El problema es lo vago del feedback, no cuánto piensa.",
+        "3": "No hay feedback específico; podés terminar eligiendo entre defaults."
+      },
+      "rule": "Feedback vago cambia un default por otro: nombrá lo concreto y extendé la lista en cada vuelta.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5-5",
+      "source_quote": "It responds well to instructions that name specific patterns to avoid, as in the following example. Work iteratively: check which styles the first result used instead, and extend the list if needed.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

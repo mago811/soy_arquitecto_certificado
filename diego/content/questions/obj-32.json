@@ -1,0 +1,197 @@
+{
+  "objective": 32,
+  "questions": [
+    {
+      "id": "o32-q01",
+      "objective": 32,
+      "pool": "practice",
+      "scenario": "Un subagente de auditoría (`tools: Read, Grep, Glob`) tiene que armar la lista de todos los archivos de test de componentes del repo, que siguen la convención `*.test.tsx`, para después revisar cobertura. Hoy lo hace con un Grep por la palabra `describe(` y la lista sale incompleta y con archivos que no son tests. ¿Qué tool y patrón corresponden?",
+      "options": [
+        "Grep con el patrón `\\.test\\.tsx` en modo `files_with_matches` sobre todo el repo.",
+        "Glob con el patrón `**/*.test.tsx`, que busca archivos por nombre a cualquier profundidad.",
+        "Read sobre la carpeta `src/` para ver los nombres de todos los archivos que contiene.",
+        "Grep con el patrón `it\\(|test\\(` y el parámetro `type: \"ts\"` para encontrar los tests."
+      ],
+      "correct": 1,
+      "why_correct": "Lo que define al conjunto es el NOMBRE del archivo, no su contenido. Eso es Glob: búsqueda por patrón de nombre, con `**` para cualquier profundidad.",
+      "why_wrong": {
+        "0": "Grep busca dentro del contenido: encontraría archivos que MENCIONAN `.test.tsx` (por ejemplo un config), no los tests en sí.",
+        "2": "Read lee archivos, no directorios. Para listar una carpeta se usa un comando de shell como `ls`.",
+        "3": "Sigue buscando por contenido: aparecen helpers y archivos que no siguen la convención, y falta un test sin esas palabras."
+      },
+      "rule": "Archivos por nombre o extensión → Glob. Texto dentro de archivos → Grep.",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "The Glob tool finds files by name pattern.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o32-q02",
+      "objective": 32,
+      "pool": "practice",
+      "scenario": "Hay que encontrar todos los lugares que llaman a `calculateTax(` antes de cambiarle un parámetro. Un agente del Agent SDK, con las tools Read, Grep y Glob, empieza haciendo Glob `**/*tax*` y leyendo cada archivo que vuelve. Se le escapan llamadas en `checkout.ts` e `invoice.ts`. ¿Qué tendría que haber usado?",
+      "options": [
+        "Read de todos los archivos `.ts` del repo, uno por uno, buscando la llamada en cada uno.",
+        "Glob `**/*.ts` ordenado por fecha, para revisar primero los archivos tocados más recientemente.",
+        "Grep con el patrón `calculateTax\\(` sobre el repo, para encontrar las líneas que contienen la llamada.",
+        "Glob `**/*Tax*` y `**/*tax*` combinados, para no perder archivos por diferencias de mayúsculas."
+      ],
+      "correct": 2,
+      "why_correct": "Encontrar llamadores es buscar CONTENIDO (un nombre de función en el código). Eso es Grep. El nombre del archivo no dice quién llama a la función.",
+      "why_wrong": {
+        "0": "Leer todo es carísimo en contexto y es justo lo que Grep evita.",
+        "1": "La fecha de modificación no dice quién llama a la función. Y Glob corta en 100 resultados.",
+        "3": "Sigue buscando por nombre de archivo: `checkout.ts` no tiene \"tax\" en el nombre y llama a la función igual."
+      },
+      "rule": "\"¿Quién llama a X?\" / \"¿dónde aparece este error?\" → Grep.",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "The Grep tool searches file contents for patterns.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o32-q03",
+      "objective": 32,
+      "pool": "practice",
+      "scenario": "Un agente necesita ver qué hay dentro de `migrations/` para saber cuál es la última migración. Llama a Read con la ruta `migrations/` y recibe un error. Reintenta con la ruta absoluta y le pasa lo mismo. ¿Cuál es el fix?",
+      "options": [
+        "Llamar a Read con `offset: 0` y `limit: 100` para que lea la carpeta por páginas en vez de entera.",
+        "Usar Grep con el patrón `.*` sobre `migrations/` en modo `content` para ver todo lo que hay adentro.",
+        "Reintentar Read agregando una barra al final, `migrations//`, para que la tome como directorio.",
+        "Listar la carpeta con un comando de shell como `ls migrations/` a través de Bash."
+      ],
+      "correct": 3,
+      "why_correct": "Read lee archivos, no directorios. Para listar el contenido de una carpeta, Claude usa un comando de shell como `ls` vía Bash (Glob con `migrations/*` también serviría si está disponible).",
+      "why_wrong": {
+        "0": "`offset` y `limit` paginan un archivo grande. No convierten a Read en un listador de carpetas.",
+        "1": "Devuelve TODO el contenido de todas las migraciones al contexto, solo para ver nombres de archivo.",
+        "2": "No es un mecanismo documentado; Read sigue sin leer directorios."
+      },
+      "rule": "Listar una carpeta → `ls` vía Bash (o Glob), nunca Read.",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "Read only reads files, not directories. Claude lists directory contents with a shell command such as `ls`.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o32-q04",
+      "objective": 32,
+      "pool": "practice",
+      "scenario": "Antes de abrir un PR, Claude tiene que saber exactamente qué archivos cambiaron en la rama actual respecto de `main`, para revisar solo esos. Propone hacer un Glob `**/*` y mirar los primeros resultados, \"porque Glob ordena por fecha de modificación\". ¿Qué corresponde?",
+      "options": [
+        "Correr `git diff --name-only main...HEAD` con Bash, que lista los archivos que cambiaron en la rama.",
+        "Usar Glob `**/*` y quedarse con los primeros 20 resultados, que son los modificados más recientemente.",
+        "Hacer Grep por `TODO` en modo `files_with_matches`, porque los archivos tocados suelen tener comentarios nuevos.",
+        "Leer con Read el archivo `.git/HEAD` para saber qué archivos de la rama tienen cambios pendientes."
+      ],
+      "correct": 0,
+      "why_correct": "La pregunta es sobre el estado de git, no sobre nombres ni contenido. Eso se responde con un comando de shell (`git diff`) vía Bash. Bash ejecuta comandos en tu entorno.",
+      "why_wrong": {
+        "1": "La fecha de modificación en disco no es lo mismo que \"cambiado en la rama\": incluye archivos generados, locks, y deja afuera cambios viejos de la rama.",
+        "2": "Una heurística sobre contenido. No tiene relación con lo que cambió en git.",
+        "3": "`.git/HEAD` solo dice en qué rama estás, no qué archivos cambiaron."
+      },
+      "rule": "git, tests, builds, cualquier cosa que sea \"ejecutar\" → Bash.",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "Executes shell commands in your environment.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o32-q05",
+      "objective": 32,
+      "pool": "practice",
+      "scenario": "Claude quiere cambiar `timeout: 30` por `timeout: 60` solo en el bloque `paymentsClient` de `config.ts`. Pero `timeout: 30` aparece cuatro veces en el archivo, y el Edit falla porque el `old_string` no es único. ¿Qué hace?",
+      "options": [
+        "Usar `replace_all: true`, así el Edit deja de fallar y el cambio queda aplicado en el archivo.",
+        "Repetir el Edit con el `old_string` como regex, `timeout:\\s*30`, para que matchee solo el primero.",
+        "Repetir el Edit con un `old_string` más largo que incluya el contexto de `paymentsClient` alrededor.",
+        "Usar Write con solo la línea nueva, porque Write agrega el contenido al final del archivo existente."
+      ],
+      "correct": 2,
+      "why_correct": "Edit exige que `old_string` aparezca exactamente una vez. Si aparece varias, se agrega contexto alrededor hasta que identifique una sola ocurrencia. (Si aun así no se puede, el fallback es Read del archivo completo + Write con todo el contenido.)",
+      "why_wrong": {
+        "0": "`replace_all` cambia las CUATRO ocurrencias. Solo había que tocar una.",
+        "1": "Edit hace reemplazo exacto de strings: no usa regex ni matching aproximado.",
+        "3": "Write no agrega: crea o sobrescribe el archivo entero. Te quedarías con un `config.ts` de una línea."
+      },
+      "rule": "Edit falla por no-único → `old_string` con más contexto (o Read + Write). `replace_all` solo si querés cambiar todas.",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "When it appears more than once, Claude either supplies a longer string with enough surrounding context to pin down one occurrence, or sets `replace_all: true` to replace them all.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o32-q06",
+      "objective": 32,
+      "pool": "practice",
+      "scenario": "En un repo de Go, Claude busca con la tool Grep todos los usos de `interface{}` para migrarlos a `any`. La búsqueda con el patrón `interface{}` no encuentra lo esperado, aunque Diego ve decenas de usos en el código. ¿Cuál es el fix?",
+      "options": [
+        "Usar Glob con el patrón `**/*interface{}*` para encontrar los archivos que contienen ese tipo.",
+        "Escapar las llaves: Grep usa sintaxis regex de ripgrep, así que el patrón es `interface\\{\\}`.",
+        "Pasarle a Grep `type: \"go\"`, porque sin ese parámetro no busca dentro de archivos `.go`.",
+        "Leer con Read cada archivo `.go` del repo, porque Grep no soporta caracteres especiales."
+      ],
+      "correct": 1,
+      "why_correct": "Grep está construido sobre ripgrep y usa su sintaxis regex: `{` y `}` son metacaracteres y hay que escaparlos. La doc da justo este ejemplo.",
+      "why_wrong": {
+        "0": "Glob busca por nombre de archivo; ningún archivo se llama así. El tipo está en el contenido.",
+        "2": "`type` filtra por lenguaje, pero sin él Grep ya busca en todos los archivos. El problema es el patrón.",
+        "3": "Grep sí soporta caracteres especiales, escapados. Leer todo es el camino caro."
+      },
+      "rule": "Grep = regex de ripgrep: escapá metacaracteres (`{`, `(`, `.`…).",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "Patterns that include regex metacharacters need escaping.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o32-q07",
+      "objective": 32,
+      "pool": "practice",
+      "scenario": "En Linux, el equipo de seguridad quiere un subagente explorador que busque y lea código, pero que NO pueda correr comandos de shell ni editar. Lo definieron con `tools: Read, Bash` y un prompt que dice \"usá Bash solo para `grep` y `find`\". En una prueba, el subagente corrió `curl`. ¿Qué configuración corresponde?",
+      "options": [
+        "Dejar `tools: Read, Bash` y agregar al prompt \"NUNCA corras comandos que no sean grep o find\".",
+        "Sacar Bash y dejar solo `tools: Read`, ya que Read también puede buscar texto dentro de los archivos.",
+        "Dejar `tools: Read, Bash` y ponerle `permissionMode: plan` para que no ejecute nada sin aprobación.",
+        "Definirlo con `tools: Read, Grep, Glob` y sin Bash: las tools listadas vuelven para ese subagente."
+      ],
+      "correct": 3,
+      "why_correct": "Con `tools: Read, Grep, Glob`, el límite lo aplica Claude Code, no el prompt. En macOS/Linux/WSL, Glob y Grep no vienen por defecto, pero vuelven para un subagente que los lista en `tools` y deja afuera Bash.",
+      "why_wrong": {
+        "0": "Es guidance, no enforcement: el prompt orienta pero no impide que corra `curl`.",
+        "1": "Read lee un archivo cuya ruta ya conocés. No busca contenido en el repo: el subagente quedaría ciego.",
+        "2": "El modo plan es para analizar antes de editar, no una lista blanca de comandos. Sigue teniendo Bash disponible."
+      },
+      "rule": "Explorador que no puede ejecutar ni editar → `tools: Read, Grep, Glob`. El límite lo pone la config, no el prompt.",
+      "source_url": "https://code.claude.com/docs/en/best-practices",
+      "source_quote": "Now it's a reviewer that can't edit anything, and that limit is enforced by Claude Code rather than requested in a prompt.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o32-q08",
+      "objective": 32,
+      "pool": "practice",
+      "scenario": "Una auditoría pide listar TODOS los archivos `*.pem` del repo, incluidos los que están en carpetas ignoradas por git (`certs/local/` está en `.gitignore`). Un agente con Read, Grep y Glob usa Grep con el patrón `BEGIN CERTIFICATE` y le faltan justamente los de `certs/local/`. ¿Qué tool elige?",
+      "options": [
+        "Glob con `**/*.pem`, que por defecto no respeta `.gitignore` y encuentra también los archivos ignorados.",
+        "Grep con el mismo patrón pero en modo `count`, que recorre también las carpetas que están ignoradas.",
+        "Read sobre cada `.pem` que conozca el equipo, porque ni Grep ni Glob ven archivos ignorados por git.",
+        "Grep con `type: \"pem\"` para que busque por extensión de archivo en vez de por contenido."
+      ],
+      "correct": 0,
+      "why_correct": "Es una búsqueda por extensión, y además Glob por defecto NO respeta `.gitignore`: encuentra los ignorados junto con los trackeados. Grep, en cambio, los saltea.",
+      "why_wrong": {
+        "1": "El modo de salida no cambia qué archivos recorre: Grep sigue salteando los ignorados.",
+        "2": "Glob sí ve archivos ignorados por defecto. Y depender de que alguien los recuerde es justo lo que una auditoría no puede hacer.",
+        "3": "`type` filtra por lenguaje dentro de lo que Grep recorre; no hace que mire lo ignorado ni lo convierte en búsqueda por nombre."
+      },
+      "rule": "Glob ve archivos gitignored por defecto; Grep no.",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "Glob doesn't respect `.gitignore` by default, so it finds gitignored files alongside tracked ones.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}
