@@ -13,7 +13,7 @@
         "Forzar con `tool_choice` que la primera llamada de cada corrida sea siempre `run_query` sobre la tabla principal."
       ],
       "correct": 2,
-      "why_correct": "Los schemas son datos pasivos, de solo lectura, para dar contexto: eso es exactamente un resource en MCP. Como los resources los maneja la aplicación, el agente puede tener el catálogo a la vista sin gastar tool calls tanteando.",
+      "why_correct": "Un schema de base es justo el ejemplo que da la doc de resource: una fuente de datos pasiva, de solo lectura, para dar contexto. Los resources son application-driven: la aplicación decide cómo traerlos y dárselos al modelo (en Claude Code, por ejemplo, adjuntándolos con @). Así el catálogo llega como contexto en vez de depender de que el modelo decida explorar con tools.",
       "why_wrong": {
         "0": "Sigue siendo una tool exploratoria que el modelo tiene que decidir llamar en cada corrida; solo junta varias llamadas en una.",
         "1": "Más turnos no reduce la exploración; solo la permite. El costo y la latencia siguen igual o peor.",
@@ -22,8 +22,12 @@
       "rule": "Catálogos y schemas para orientarse → resources, no tools exploratorias.",
       "source_url": "https://modelcontextprotocol.io/docs/learn/server-concepts",
       "source_quote": "Passive data sources that provide read-only access to information for context, such as file contents, database schemas, or API documentation.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "Cita textual (server-concepts). why_correct reescrito para apoyarse solo en lo documentado: schemas = ejemplo de resource pasivo de solo lectura, resources application-driven, adjuntables con @ en Claude Code (la 'reducción de tool calls exploratorias' solo la dice la guía)."
+      }
     },
     {
       "id": "o34-q02",
@@ -46,8 +50,12 @@
       "rule": "Acción con efectos → tool. Dato de solo lectura para contexto → resource.",
       "source_url": "https://modelcontextprotocol.io/docs/learn/server-concepts",
       "source_quote": "Functions that your LLM can actively call, and decides when to use them based on user requests. Tools can write to databases, call external APIs, modify files, or trigger other logic.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "server-concepts: tools model-controlled con efectos; resources solo lectura; prompts user-controlled."
+      }
     },
     {
       "id": "o34-q03",
@@ -70,8 +78,12 @@
       "rule": "Claude Code: resource MCP = @server:protocolo://ruta en el prompt.",
       "source_url": "https://code.claude.com/docs/en/mcp",
       "source_quote": "Use the format `@server:protocol://resource/path` to reference a resource",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "code.claude.com/mcp: formato @server:protocol://resource/path; /mcp gestiona servers."
+      }
     },
     {
       "id": "o34-q04",
@@ -94,8 +106,12 @@
       "rule": "Flujo que el humano dispara a mano → prompt MCP (/server:prompt).",
       "source_url": "https://modelcontextprotocol.io/docs/learn/server-concepts",
       "source_quote": "They are user-controlled, requiring explicit invocation rather than automatic triggering.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "server-concepts: prompts user-controlled; Claude Code los lista como /servername:promptname (MCP) con args separados por espacio."
+      }
     },
     {
       "id": "o34-q05",
@@ -118,8 +134,12 @@
       "rule": "Dato de solo lectura parametrizable → resource template con URI template.",
       "source_url": "https://modelcontextprotocol.io/docs/learn/server-concepts",
       "source_quote": "Resource Templates include metadata such as title, description, and expected MIME type, making them discoverable and self-documenting.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "server-concepts: Resource Templates con title/description/MIME type."
+      }
     },
     {
       "id": "o34-q06",
@@ -142,8 +162,12 @@
       "rule": "@-mention de un resource = se adjunta solo; podés poner varios en el mismo prompt.",
       "source_url": "https://code.claude.com/docs/en/mcp",
       "source_quote": "Resources are automatically fetched and included as attachments when referenced",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "code.claude.com/mcp: ejemplo literal 'Compare @postgres:schema://users with @docs:file://database/user-model'; se adjuntan automáticamente."
+      }
     },
     {
       "id": "o34-q07",
@@ -166,8 +190,12 @@
       "rule": "Server con resources → declarar la capability resources.",
       "source_url": "https://modelcontextprotocol.io/specification/2025-11-25/server/resources",
       "source_quote": "Servers that support resources **MUST** declare the `resources` capability",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Spec 2025-11-25 resources: MUST declarar capability resources; https:// solo si el cliente lo trae solo."
+      }
     },
     {
       "id": "o34-q08",
@@ -190,8 +218,12 @@
       "rule": "Tool que encuentra contenido pesado → devolvé resource links, no el contenido entero.",
       "source_url": "https://modelcontextprotocol.io/specification/2025-11-25/server/tools",
       "source_quote": "A tool **MAY** return links to Resources, to provide additional context or data.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Spec 2025-11-25 tools: 'A tool MAY return links to Resources'; Claude Code corta descripciones largas."
+      }
     },
     {
       "id": "o34-q09",
@@ -214,8 +246,12 @@
       "rule": "Pistas de uso de un resource → annotations audience y priority.",
       "source_url": "https://modelcontextprotocol.io/specification/2025-11-25/server/resources",
       "source_quote": "Resources, resource templates and content blocks support optional annotations that provide hints to clients about how to use or display the resource",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Spec 2025-11-25 resources: annotations audience (user/assistant) y priority 0.0–1.0."
+      }
     },
     {
       "id": "o34-q10",
@@ -238,8 +274,12 @@
       "rule": "Datos de referencia grandes → resource; descripción de tool corta y con lo crítico al principio.",
       "source_url": "https://code.claude.com/docs/en/mcp",
       "source_quote": "Claude Code cuts a tool description or server instructions that run past these default limits, and Claude sees only the text before the cut",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "code.claude.com/mcp: límites 4.096 (upfront/instrucciones) y 16.384 (tool search); 30.000 caracteres excede ambos."
+      }
     }
   ]
 }

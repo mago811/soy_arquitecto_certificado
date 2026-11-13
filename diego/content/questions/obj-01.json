@@ -22,8 +22,12 @@
       "rule": "N tool_use en una respuesta → N tool_result en UN solo mensaje user.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
       "source_quote": "The most common issue is formatting tool results incorrectly in the conversation history. This “teaches” Claude to avoid parallel calls.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en Troubleshooting de parallel-tool-use; 'parallel_tool_calls' no existe en la API."
+      }
     },
     {
       "id": "o01-q02",
@@ -46,8 +50,12 @@
       "rule": "En el mensaje de resultados: primero todos los tool_result, después (si querés) texto.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
       "source_quote": "In the user message containing tool results, the `tool_result` blocks must come FIRST in the content array. Any text must come AFTER all tool results.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "handle-tool-calls: tool_result primero, texto después; la doc muestra el 400 con texto antes."
+      }
     },
     {
       "id": "o01-q03",
@@ -70,8 +78,12 @@
       "rule": "Tool que no corriste → igual devolvés su tool_result con is_error: true.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
       "source_quote": "If you choose not to run a particular call (for example, because you ran the batch sequentially and an earlier call failed), still return a `tool_result` for it with `is_error: true` and a brief explanation.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "parallel-tool-use (Execution semantics): devolver tool_result con is_error para la llamada no ejecutada."
+      }
     },
     {
       "id": "o01-q04",
@@ -94,8 +106,12 @@
       "rule": "Apagar paralelismo = disable_parallel_tool_use DENTRO de tool_choice.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
       "source_quote": "To turn it off, set `disable_parallel_tool_use: true` inside the `tool_choice` object. It is not a top-level request parameter.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "parallel-tool-use: disable_parallel_tool_use va dentro de tool_choice, no top-level; con auto = como mucho una tool."
+      }
     },
     {
       "id": "o01-q05",
@@ -118,8 +134,12 @@
       "rule": "El bucle lo maneja stop_reason: tool_use → seguís; end_turn → terminás.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
       "source_quote": "When Claude calls tools, the response has a `stop_reason` of `tool_use` and can contain several `tool_use` blocks in a single assistant turn.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual; end_turn = respuesta completa (handling-stop-reasons/how-tool-use-works)."
+      }
     },
     {
       "id": "o01-q06",
@@ -142,8 +162,12 @@
       "rule": "Tools independientes y de solo lectura → ejecutalas concurrentes; el orden lo decidís vos.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
       "source_quote": "Independent, read-only operations are usually safe to run in parallel for lower latency. Tools with side effects, shared state, or ordering requirements might be better run sequentially.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual; la API no prescribe orden, Promise.all/asyncio.gather mencionados."
+      }
     },
     {
       "id": "o01-q07",
@@ -166,8 +190,12 @@
       "rule": "Subtareas independientes → varios subagentes lanzados en el mismo turno, no uno por turno.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "multiple subagents can run concurrently, so independent subtasks finish in the time of the slowest one rather than the sum of all of them.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en agent-sdk/subagents (Parallelization)."
+      }
     },
     {
       "id": "o01-q08",
@@ -190,8 +218,12 @@
       "rule": "Agent SDK: custom tool paralela solo si tiene readOnlyHint; si no, va en secuencia.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
       "source_quote": "Custom tools default to sequential execution. To enable parallel execution for a custom tool, set `readOnlyHint` in its annotations.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "agent-loop: custom tools secuenciales salvo readOnlyHint; allowedTools solo auto-aprueba."
+      }
     },
     {
       "id": "o01-q09",
@@ -214,8 +246,12 @@
       "rule": "Llamadas dependientes en el mismo lote → is_error y prompt \"solo agrupá llamadas independientes\".",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
       "source_quote": "To reduce dependent calls appearing together, add this to your system prompt: “Only batch tool calls that are independent of each other.”",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en Troubleshooting; is_error con error natural y Claude reemite la llamada."
+      }
     },
     {
       "id": "o01-q10",
@@ -238,8 +274,12 @@
       "rule": "Formato bien pero poco paralelismo → system prompt pidiendo tools simultáneas.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
       "source_quote": "For maximum efficiency, whenever you need to perform multiple independent operations, invoke all relevant tools simultaneously rather than sequentially.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Maximizing parallel tool use: system prompt para Claude 4+; métrica >1.0 en Troubleshooting."
+      }
     }
   ]
 }

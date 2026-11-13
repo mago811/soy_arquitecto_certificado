@@ -22,8 +22,12 @@
       "rule": "Restricción de rol que tiene que cumplirse → sacá la tool del set, no lo pidas en el prompt.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "Tools the subagent can use, as a comma-separated string such as `Read, Grep, Bash` or a YAML list. Inherits every tool available to subagents if omitted.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "sub-agents: tools omitido = hereda todo; allowlist saca Edit/Write."
+      }
     },
     {
       "id": "o33-q02",
@@ -46,8 +50,12 @@
       "rule": "Demasiadas tools en un agente → especialistas por rol con pocas tools cada uno.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool",
       "source_quote": "Claude’s ability to pick the right tool degrades once you exceed 30–50 available tools.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "tool-search-tool: precisión degrada pasando 30–50 tools; ninguna otra opción ataca la cantidad de tools por agente."
+      }
     },
     {
       "id": "o33-q03",
@@ -70,8 +78,12 @@
       "rule": "Bloquear un comando puntual → permissions.deny; disallowedTools saca la tool entera.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "A `disallowedTools` entry with a specifier, such as `Bash(git push *)`, still removes the whole tool from the subagent, not only the matching commands.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual; la doc indica Bash(git push *) en permissions.deny, que aplica a subagentes."
+      }
     },
     {
       "id": "o33-q04",
@@ -94,8 +106,12 @@
       "rule": "Heredar todo menos un server MCP → disallowedTools: mcp__server.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "MCP server-level patterns are also accepted: `mcp__server` or `mcp__server__*` removes every tool from that server, and `mcp__*` removes every MCP tool from any server",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "sub-agents: tabla de patrones MCP en tools/disallowedTools."
+      }
     },
     {
       "id": "o33-q05",
@@ -118,8 +134,12 @@
       "rule": "Server MCP que usa un solo subagente → inline en su mcpServers, no en .mcp.json.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "To keep an MCP server out of the main conversation entirely and avoid its tool descriptions consuming context there, define it inline here rather than in `.mcp.json`.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual (mcpServers inline en el subagente)."
+      }
     },
     {
       "id": "o33-q06",
@@ -142,8 +162,12 @@
       "rule": "AgentDefinition sin tools = hereda todo. Rol de análisis → tools de lectura.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "A `doc-reviewer` subagent might only have access to Read and Grep tools, ensuring it can analyze but never accidentally modify your documentation files.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "agent-sdk/subagents: ejemplo doc-reviewer con Read y Grep; tools omitido hereda todo."
+      }
     },
     {
       "id": "o33-q07",
@@ -166,8 +190,12 @@
       "rule": "tools + disallowedTools: primero se saca, después se filtra; en ambos = afuera.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "If both are set, `disallowedTools` is applied first, then `tools` is resolved against the remaining pool. A tool listed in both is removed.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual: disallowedTools primero, luego tools; tool en ambos se remueve."
+      }
     },
     {
       "id": "o33-q08",
@@ -190,8 +218,12 @@
       "rule": "Set de tools = lo mínimo que el rol necesita: tests → Bash, Read, Grep.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "| Test execution | `Bash`, `Read`, `Grep` | Can run commands and analyze output |",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Tabla de combinaciones del SDK: Test execution = Bash, Read, Grep."
+      }
     },
     {
       "id": "o33-q09",
@@ -214,8 +246,12 @@
       "rule": "Tool fuera del set del subagente = invisible: ni prompt, ni error, ni uso.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "A tool you leave out isn't in the subagent's session at all: Claude works without it, with no permission prompt or error.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual (agent-sdk/subagents)."
+      }
     },
     {
       "id": "o33-q10",
@@ -238,8 +274,12 @@
       "rule": "Ruteo entre subagentes = description clara de cuándo usar cada uno.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "Claude uses each subagent's description to decide when to delegate tasks. When you create a subagent, write a clear description so Claude knows when to use it.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual: Claude usa la description para delegar."
+      }
     }
   ]
 }

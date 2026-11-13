@@ -22,8 +22,12 @@
       "rule": "Server para todo el equipo → scope project (.mcp.json commiteado) + secretos en ${VAR}.",
       "source_url": "https://code.claude.com/docs/en/mcp",
       "source_quote": "Check `.mcp.json` into version control so everyone on your team gets the same MCP tools and services.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "code.claude.com/mcp: project scope = .mcp.json commiteado; local en ~/.claude.json, no settings.local.json."
+      }
     },
     {
       "id": "o35-q02",
@@ -46,8 +50,12 @@
       "rule": "Nunca secretos literales en .mcp.json: usá ${VAR}.",
       "source_url": "https://code.claude.com/docs/en/mcp",
       "source_quote": "Claude Code supports environment variable expansion in `.mcp.json` files, allowing teams to share configurations while maintaining flexibility for machine-specific paths and sensitive values like API keys.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "code.claude.com/mcp: expansión ${VAR} en headers para mantener API keys fuera."
+      }
     },
     {
       "id": "o35-q03",
@@ -70,8 +78,12 @@
       "rule": "Personal/experimental en un solo repo → local (el default).",
       "source_url": "https://code.claude.com/docs/en/mcp",
       "source_quote": "Use local scope for personal development servers, experimental configurations, or servers with credentials you don't want in version control.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual (Local scope)."
+      }
     },
     {
       "id": "o35-q04",
@@ -94,8 +106,12 @@
       "rule": "${VAR:-default}: vacío ≠ sin setear. Para el default, unset.",
       "source_url": "https://code.claude.com/docs/en/mcp",
       "source_quote": "If you set a variable to an empty string, it counts as set, so a `${VAR:-default}` reference expands to the empty string rather than to `default`.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual (Variables set to an empty string); reset-project-choices resetea aprobaciones."
+      }
     },
     {
       "id": "o35-q05",
@@ -118,8 +134,12 @@
       "rule": "Mismo nombre en varios scopes → gana local > project > user, entrada entera.",
       "source_url": "https://code.claude.com/docs/en/mcp",
       "source_quote": "When the same server is defined in more than one place, Claude Code connects to it once, using the definition from the highest-precedence source. The entire server entry from that source is used; fields are not merged across scopes.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual (Scope hierarchy): local > project > user, entrada entera sin merge."
+      }
     },
     {
       "id": "o35-q06",
@@ -142,8 +162,12 @@
       "rule": "`claude mcp add` no valida: verificá con /mcp o claude mcp list.",
       "source_url": "https://code.claude.com/docs/en/mcp",
       "source_quote": "The `claude mcp add` command saves the configuration without validating credentials, so a placeholder value is accepted here but the server fails to connect later.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual (ejemplo GitHub): add no valida credenciales; verificar con /mcp, ✘ y status 401."
+      }
     },
     {
       "id": "o35-q07",
@@ -166,8 +190,12 @@
       "rule": "Credenciales de Claude Code (ANTHROPIC_*) no se expanden hacia servers remotos: usá una variable propia.",
       "source_url": "https://code.claude.com/docs/en/mcp",
       "source_quote": "If you write `Bearer ${ANTHROPIC_AUTH_TOKEN}`, the server receives `Bearer ` with no credential and rejects the request, usually with a `401`.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Credential variables that read as empty: ANTHROPIC_API_KEY cubierta, :-default ignorado, copiar a nombre propio."
+      }
     },
     {
       "id": "o35-q08",
@@ -190,8 +218,12 @@
       "rule": "Agent SDK: tools MCP → allowedTools con mcp__server__*.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/mcp",
       "source_quote": "MCP tools require explicit permission before Claude can use them. Without permission, Claude will see that tools are available but won't be able to call them.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "agent-sdk/mcp: permiso explícito; acceptEdits no aprueba tools MCP; bypassPermissions más amplio de lo necesario."
+      }
     },
     {
       "id": "o35-q09",
@@ -214,8 +246,12 @@
       "rule": "SDK: verificá servers en el init → mcp_servers[].status.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/mcp",
       "source_quote": "The `status` field can be `\"pending\"`, `\"connected\"`, `\"failed\"`, `\"needs-auth\"`, or `\"disabled\"`.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "agent-sdk/mcp Error handling: init con status por server; chequear failed/needs-auth."
+      }
     },
     {
       "id": "o35-q10",
@@ -238,8 +274,12 @@
       "rule": "Server de .mcp.json en Pending approval → abrir claude y aprobarlo.",
       "source_url": "https://code.claude.com/docs/en/mcp",
       "source_quote": "For security reasons, Claude Code prompts for approval in interactive sessions before using project-scoped servers from `.mcp.json` files.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual (Project scope) + Server status: Pending approval es estado de configuración."
+      }
     }
   ]
 }

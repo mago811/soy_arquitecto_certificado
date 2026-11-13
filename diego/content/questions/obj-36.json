@@ -9,11 +9,11 @@
       "options": [
         "Agregar al system prompt del agente: \"Para devoluciones usá siempre search_returns\".",
         "Forzar con `tool_choice` la tool `search_returns` cada vez que el pedido contenga \"devolución\".",
-        "Reescribir ambas descripciones: qué busca cada una, qué devuelve, cuándo usarla y cuándo usar la otra.",
+        "Reescribir ambas descripciones: qué busca cada una, qué devuelve y no devuelve, cuándo usarla y cuándo no.",
         "Renombrar `search_returns` a `search_returns_v2` para que Claude la vea como la tool más reciente."
       ],
       "correct": 2,
-      "why_correct": "Claude elige la tool por su descripción. La doc dice que las descripciones detalladas son por lejos el factor más importante, y que deben explicar qué hace la tool y cuándo usarla (y cuándo no). Con dos descripciones casi idénticas, el ruteo es un volado.",
+      "why_correct": "Claude elige la tool por su descripción. La doc dice que las descripciones detalladas son por lejos el factor más importante, y que deben explicar qué hace la tool, cuándo usarla (y cuándo no) y qué información no devuelve. Con dos descripciones casi idénticas, el ruteo es un volado.",
       "why_wrong": {
         "0": "Es un parche que orienta, pero las descripciones siguen siendo ambiguas para cualquier otro caso parecido.",
         "1": "Ruteás con palabras clave en tu código: frágil, y no arregla la selección del modelo.",
@@ -22,8 +22,12 @@
       "rule": "Misrouting entre tools parecidas → arreglá las descripciones (qué hace, cuándo sí, cuándo no).",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
       "source_quote": "**Provide extremely detailed descriptions.** This is by far the most important factor in tool performance.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "Cita textual (define-tools). Opción correcta reformulada: 'cuándo usarla y cuándo no' en vez de 'cuándo usar la otra' (la doc pide el 'when it shouldn't', no nombrar la tool vecina); why_correct ajustado."
+      }
     },
     {
       "id": "o36-q02",
@@ -46,8 +50,12 @@
       "rule": "Parámetros mal o faltantes → descripciones más detalladas, con formato.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
       "source_quote": "The best approach during development is to try the request again with more-detailed `description` values in your tool definitions.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "handle-tool-calls (Invalid tool name): reintentar con descriptions más detalladas; alternativa tool_result con el error."
+      }
     },
     {
       "id": "o36-q03",
@@ -70,8 +78,12 @@
       "rule": "Tools de varios servicios → prefijo por servicio en el nombre.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
       "source_quote": "When your tools span multiple services or resources, prefix names with the service (for example, `github_list_prs`, `slack_send_message`). This makes tool selection unambiguous as your library grows",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual (namespacing por servicio)."
+      }
     },
     {
       "id": "o36-q04",
@@ -94,8 +106,12 @@
       "rule": "Muchas operaciones relacionadas → una tool con parámetro action.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
       "source_quote": "Fewer, more capable tools reduce selection ambiguity and make your tool surface easier for Claude to navigate.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual (consolidar con parámetro action)."
+      }
     },
     {
       "id": "o36-q05",
@@ -118,8 +134,12 @@
       "rule": "Descripciones MCP en Claude Code: concisas y con lo crítico al principio.",
       "source_url": "https://code.claude.com/docs/en/mcp",
       "source_quote": "Keep descriptions and instructions concise, and put critical details near the start.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "code.claude.com/mcp: corte a 4.096 para tools upfront e instrucciones; poner lo crítico al principio."
+      }
     },
     {
       "id": "o36-q06",
@@ -142,8 +162,12 @@
       "rule": "Input complejo o con formato estricto → descripción + input_examples.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
       "source_quote": "for tools with complex inputs, nested objects, or format-sensitive parameters, you can use the `input_examples` field to provide schema-validated examples.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual (input_examples para inputs complejos, priorizando descripciones)."
+      }
     }
   ]
 }
