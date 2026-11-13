@@ -1,0 +1,101 @@
+{
+  "objective": 29,
+  "questions": [
+    {
+      "id": "o29-s01",
+      "objective": 29,
+      "pool": "sim",
+      "scenario": "Una red de laboratorios extrae resultados de análisis clínicos de PDFs con structured outputs desde el SDK de Python. Cada laboratorio informa analitos distintos (glucemia, TSH, ferritina...), así que en el modelo Pydantic definieron `resultados: dict[str, str]`. Las llamadas no fallan, pero `resultados` vuelve siempre como `{}`, aunque el PDF tenga 20 valores. Necesitan soportar analitos que no conocen de antemano. ¿Qué cambian?",
+      "options": [
+        "Cambiar `resultados` a un array de objetos con `key` y `value` (ambos requeridos), porque un dict sin claves listadas solo puede volver vacío.",
+        "Agregar al prompt \"completá TODOS los analitos del PDF en `resultados`\" con un ejemplo, porque el modelo está omitiendo el campo por pereza.",
+        "Poner `additionalProperties: true` en el objeto `resultados`, para que el modelo pueda agregar una clave por cada analito que encuentre.",
+        "Listar en `properties` los 20 analitos más comunes como opcionales y dejar el resto de los analitos afuera del pipeline de extracción."
+      ],
+      "correct": 0,
+      "why_correct": "Con structured outputs, `additionalProperties` tiene que ser `false`, así que Claude solo devuelve claves listadas. Un dict no lista ninguna: el SDK lo manda como objeto con `properties` vacío y Claude solo puede devolver `{}`. La doc dice: si no conocés las claves, usá un array de items con `key` y `value`.",
+      "why_wrong": {
+        "1": "No es un problema de prompt: con ese schema, el único objeto válido para `resultados` es `{}`.",
+        "2": "`additionalProperties` con un valor distinto de `false` no está soportado en structured outputs: da error 400.",
+        "3": "Pierde los analitos no listados, y además suma muchos opcionales (hay un límite de 24 en total por request)."
+      },
+      "rule": "Claves desconocidas en structured outputs → array de `{key, value}`, no un dict.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "source_quote": "If you don’t know the keys in advance, use an array instead.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o29-s02",
+      "objective": 29,
+      "pool": "sim",
+      "scenario": "Una aseguradora extrae 35 campos de denuncias de siniestros con structured outputs. Para que el modelo no invente datos faltantes, un dev hizo nullables los 35 (`\"type\": [\"string\", \"null\"]`) y los dejó en `required`. Desde ese cambio, todas las llamadas devuelven error 400. Varios campos (número de póliza, fecha del siniestro, tipo de denuncia) vienen siempre en el formulario. ¿Qué hacen?",
+      "options": [
+        "Sacar los 35 campos de `required`, dejándolos como opcionales no nullables, que según la doc no tienen límite y logran el mismo efecto.",
+        "Volver todos los campos a `string` requerido sin null y pedir en el prompt que escriba \"N/A\" cuando un dato no aparezca en la denuncia.",
+        "Pasar la mitad de los campos a una tool estricta en el mismo request, así el schema de salida y la tool quedan cada uno debajo del límite.",
+        "Dejar nullables solo los campos que de verdad pueden faltar, sin pasar de 16 con tipo unión, y los que siempre vienen, requeridos no nullables."
+      ],
+      "correct": 3,
+      "why_correct": "La doc limita a 16 los parámetros con tipos unión (por ejemplo `[\"string\", \"null\"]`), sumando todos los schemas estrictos del request. Nullable va donde el dato puede faltar; los campos que el formulario siempre trae pueden ser requeridos y no nullables. Se mantiene la protección contra datos inventados donde importa.",
+      "why_wrong": {
+        "0": "Los opcionales también tienen límite (24 en total), y sacar de `required` no expresa \"no está en el documento\" igual que un `null` explícito.",
+        "1": "\"N/A\" en un string libre no es un null tipado y reabre la puerta a valores inventados en los campos que sí pueden faltar.",
+        "2": "El límite cuenta el total de todos los schemas estrictos del request, no cada uno por separado: repartirlos en el mismo request no ayuda."
+      },
+      "rule": "Nullable solo donde el dato puede faltar: los tipos unión tienen límite (16 por request).",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "source_quote": "Total parameters that use `anyOf` or type arrays (for example, `\"type\": [\"string\", \"null\"]`) across all strict schemas.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o29-s03",
+      "objective": 29,
+      "pool": "sim",
+      "scenario": "Un fondo de inversión extrae covenants financieros (ratio de deuda máximo, fecha de test, consecuencia del incumplimiento) de contratos de préstamo de 150 páginas, con structured outputs y campos nullables. La auditoría encontró valores plausibles que no aparecen en el contrato: un ratio de 3,5x cuando el documento dice 4,0x en otra cláusula. Con contratos cortos no pasa. ¿Qué agregan al proceso?",
+      "options": [
+        "Poner el contrato al final del prompt, después de las instrucciones y el schema, para que sea lo último que el modelo lee antes de extraer.",
+        "Pedirle que primero extraiga citas textuales de las cláusulas relevantes y que complete cada campo solo a partir de esas citas, con `null` si no hay.",
+        "Agregar `\"minimum\": 1` y `\"maximum\": 10` al campo del ratio en el schema, para que no pueda devolver valores fuera de un rango razonable.",
+        "Pedir el JSON tres veces con el mismo prompt y quedarse con el valor que aparezca en la mayoría, sin cambiar el prompt de extracción."
+      ],
+      "correct": 1,
+      "why_correct": "Para documentos largos (más de 20K tokens), la doc recomienda pedirle a Claude que primero extraiga citas textuales y recién después haga la tarea: ancla la respuesta en el texto real. Combinado con nullable, un campo sin cita vuelve `null` en lugar de un valor plausible.",
+      "why_wrong": {
+        "0": "Es al revés: la doc recomienda poner los documentos largos arriba, antes de la consulta, las instrucciones y los ejemplos.",
+        "2": "`minimum`/`maximum` no están soportados en structured outputs (error 400), y un 3,5x igual caería dentro de ese rango.",
+        "3": "Comparar corridas puede revelar inconsistencias, pero votar no ancla el dato en el documento: un valor plausible puede repetirse."
+      },
+      "rule": "Documento largo → primero citas textuales, después los campos a partir de las citas (o `null`).",
+      "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
+      "source_quote": "For tasks involving long documents (>20k tokens), ask Claude to extract word-for-word quotes first before performing its task.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o29-s04",
+      "objective": 29,
+      "pool": "sim",
+      "scenario": "Una distribuidora extrae el CUIT de facturas de 300 proveedores para cargarlas en su ERP. El prompt dice \"NUNCA pongas guiones en el CUIT\". Funciona con `30-71234567-8`, pero con formatos que nadie previó (`30 71234567 8`, `CUIT N° 30.71234567.8`) el modelo devuelve espacios o puntos y el ERP rechaza la carga. No quieren seguir agregando una regla por cada formato nuevo. ¿Cómo reescriben la instrucción?",
+      "options": [
+        "\"NUNCA, BAJO NINGÚN CONCEPTO, pongas guiones, espacios ni puntos en el CUIT\", repetido al principio y al final del prompt de extracción.",
+        "Agregar `\"minLength\": 11` y `\"maxLength\": 11` al campo `cuit` del schema, para que el modelo no pueda devolver separadores de ningún tipo.",
+        "Explicar el porqué: \"el ERP solo acepta el CUIT como 11 dígitos seguidos; sacá cualquier separador\", con ejemplos de formatos variados.",
+        "Agregar una regla separada para cada formato nuevo que aparezca en producción, con un ejemplo de entrada y salida para cada uno."
+      ],
+      "correct": 2,
+      "why_correct": "La doc dice que dar el contexto o la motivación de una instrucción le da a Claude más información sobre el objetivo, y que Claude puede generalizar a partir de la explicación. \"Solo 11 dígitos seguidos\" cubre separadores que nadie previó; los ejemplos variados refuerzan el formato.",
+      "why_wrong": {
+        "0": "Sigue enumerando casos sin decir el objetivo; el próximo separador raro (una barra, por ejemplo) vuelve a fallar.",
+        "1": "`minLength`/`maxLength` no están soportados en structured outputs: la llamada da error 400.",
+        "3": "Es justo lo que no quieren: una regla por formato no escala y siempre corre detrás del próximo caso."
+      },
+      "rule": "Normalización: explicá el porqué del formato de salida + ejemplos variados; Claude generaliza.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Claude can generalize from the explanation.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

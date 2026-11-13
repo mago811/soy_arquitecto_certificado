@@ -22,8 +22,12 @@
       "rule": "Varios usuarios = guardás un `session_id` por usuario y usás `resume`; `continue` es solo para \"la última\".",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
       "source_quote": "Required when you have multiple sessions (for example, one per user in a multi-user app) or want to return to one that isn't the most recent.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en agent-sdk/sessions. continue = sesión más reciente del directorio; resume con session_id del ResultMessage; fork copia la historia de la sesión elegida. Distinta de o02-q01 (CLI, un solo usuario)."
+      }
     },
     {
       "id": "o02-s02",
@@ -32,22 +36,26 @@
       "scenario": "El equipo de SRE de una telco lanzó ayer `claude -n incidente-4471 --mcp-config ./mcp-observabilidad.json` para investigar un corte. Claude consultó métricas y logs con las tools de ese servidor MCP y dejó tres hipótesis rankeadas. Hoy un ingeniero retoma con `claude --resume incidente-4471` y pide validar la hipótesis 1: Claude dice que no tiene tools de métricas y propone revisar logs a mano con `grep`. El historial de ayer está completo y sigue vigente. ¿Qué hace el ingeniero?",
       "options": [
         "Salir y retomar con `claude --resume incidente-4471 --mcp-config ./mcp-observabilidad.json`, porque ese flag no se restaura solo.",
-        "Retomar con `--fork-session`, porque la copia de la sesión arranca con la misma configuración con la que se lanzó la original.",
+        "Salir y retomar con `claude --continue`, porque así la sesión se recarga con los mismos flags con los que se lanzó la última vez.",
         "Abrir una sesión nueva con el mismo `--mcp-config` y pegarle un resumen de las tres hipótesis, porque el historial ya quedó viejo.",
         "Retomar con `--session-id` y el UUID de la sesión de ayer, para que la conversación cargue junto con los servidores que tenía."
       ],
       "correct": 0,
       "why_correct": "Retomar restaura la conversación, pero no todos los flags del lanzamiento original. La doc nombra `--mcp-config` entre los que hay que volver a pasar al retomar. El historial sirve; solo falta la config, así que se retoma por nombre con el flag de nuevo.",
       "why_wrong": {
-        "1": "El fork copia la conversación, no vuelve a aplicar los flags del lanzamiento original. Seguiría sin el servidor MCP.",
+        "1": "Ningún modo de retomar restaura `--mcp-config`: la doc dice que hay que volver a pasarlo. Además `--continue` toma la sesión más reciente del directorio, que puede no ser esta.",
         "2": "Funciona, pero tira contexto que sigue siendo válido. El problema no es el historial: es que falta un flag.",
         "3": "`--session-id` solo fija el UUID de la conversación. No es el mecanismo para retomar ni restaura servidores MCP."
       },
       "rule": "Al retomar, volvé a pasar `--mcp-config`, `--settings`, `--plugin-dir` y `--add-dir`: no vienen con la sesión.",
       "source_url": "https://code.claude.com/docs/en/sessions",
       "source_quote": "If the session depended on `--mcp-config`, `--settings`, `--plugin-dir`, `--fallback-model`, or directories added with `--add-dir`, pass them again when you resume",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "Cita textual en sessions (\"What a resumed session restores\"). La doc no dice nada sobre qué hace --fork-session con --mcp-config: reemplacé el distractor de --fork-session (y su why_wrong) por uno con --continue, cuya falsedad sí respalda la doc. --session-id confirmado en cli-reference (\"Use a specific session ID for the conversation\")."
+      }
     },
     {
       "id": "o02-s03",
@@ -70,8 +78,12 @@
       "rule": "Crash en medio de una tool: al retomar, decile qué se cortó y que verifique el estado real antes de seguir.",
       "source_url": "https://code.claude.com/docs/en/sessions",
       "source_quote": "Interrupted tool calls: a tool that was still running when the previous process ended, for example in a crash, doesn't get rerun when you resume.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en sessions: las tool calls interrumpidas por un crash no se re-ejecutan al retomar. Distractores claros (compact, fork + rerun, confirmar dato falso). Sin solapamiento con o02-q02 (archivos cambiados)."
+      }
     },
     {
       "id": "o02-s04",
@@ -94,8 +106,12 @@
       "rule": "`error_max_turns` → `resume` con el `session_id` del resultado y un límite más alto, no reintento desde cero.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
       "source_quote": "Recover from a limit. The first run ended with `error_max_turns` or `error_max_budget_usd` (see Handle the result); resume with a higher limit.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en agent-sdk/sessions (\"Recover from a limit\"); la misma página confirma que session_id está en todo ResultMessage, éxito o error, y que continue toma la sesión más reciente del directorio."
+      }
     },
     {
       "id": "o02-s05",
@@ -109,17 +125,21 @@
         "Retomar con `claude --continue` en vez de `--resume <name>`, porque así se recarga la conversación completa del directorio actual."
       ],
       "correct": 1,
-      "why_correct": "Al retomar una sesión compactada, Claude sigue desde el último resumen: los mensajes que ese resumen cubrió no se vuelven a cargar. Si el detalle importa, tiene que vivir fuera de la conversación, en un archivo de notas que el agente actualiza y que al retomar le indicás leer. Es inyección de contexto dirigida, sin re-explorar el repo.",
+      "why_correct": "Al retomar una sesión compactada, Claude sigue desde el último resumen: los mensajes que ese resumen cubrió no se vuelven a cargar (doc de sesiones). Si el detalle importa, tiene que vivir fuera de la conversación. La guía de prompting recomienda justamente llevar el estado en archivos (JSON para datos estructurados, notas de progreso) y, al empezar de nuevo, decirle qué leer (\"Review progress.txt, tests.json, and the git logs\").",
       "why_wrong": {
-        "0": "Sigue dependiendo de un resumen dentro de la conversación, que una compactación posterior puede volver a resumir. No persiste nada afuera.",
-        "2": "El fork copia la conversación tal como está ahora, compactación incluida. No recupera los mensajes que ya se resumieron.",
+        "0": "Las dos compactaciones automáticas ocurrieron durante la sesión, antes de cerrar: para entonces el detalle de los primeros hallazgos ya estaba resumido. Y sigue dependiendo de un resumen dentro de la conversación.",
+        "2": "El fork retoma una copia de la misma conversación; al cargarla, también arranca desde el último resumen. No recupera los mensajes que ya se resumieron.",
         "3": "`--continue` retoma la misma sesión (la más reciente) con el mismo comportamiento: arranca desde el último resumen."
       },
       "rule": "Lo que no puede perderse en una compactación va a un archivo; al retomar, le decís que lo lea.",
-      "source_url": "https://code.claude.com/docs/en/sessions",
-      "source_quote": "The messages that the last compaction summarized aren't loaded again.",
-      "status": "no_verificado",
-      "verification": null
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Use structured formats for state data: When tracking structured information (such as test results or task status), use JSON or other structured formats to make schema requirements explicit to Claude.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "La cita original (sessions: \"The messages that the last compaction summarized aren't loaded again\") explica el síntoma pero no respalda el fix. Cambié source a prompting best practices (state management: estado en archivos estructurados + \"Review progress.txt, tests.json...\"), y dejé el dato de compactación atribuido a la doc de sesiones en why_correct. Ajusté why_wrong 0 (las compactaciones fueron antes de cerrar) y 2 (fork no afirmado más allá de la doc)."
+      }
     },
     {
       "id": "o02-s06",
@@ -142,8 +162,12 @@
       "rule": "Sesión de `claude -p` o del Agent SDK → `claude --resume <session-id>`; no aparece en `--continue` ni en el picker.",
       "source_url": "https://code.claude.com/docs/en/sessions",
       "source_quote": "Claude Code leaves sessions created with `claude -p` or the Agent SDK out of the session picker and out of `claude --continue`. You can still resume one by passing its session ID to `claude --resume <session-id>`.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en sessions; la salida json de -p incluye el session ID (sessions, \"Run Claude once and capture the result\"). Ctrl+B existe en el picker. --session-id según cli-reference solo fija el UUID."
+      }
     }
   ]
 }

@@ -1,0 +1,101 @@
+{
+  "objective": 24,
+  "questions": [
+    {
+      "id": "o24-s01",
+      "objective": 24,
+      "pool": "sim",
+      "scenario": "Un banco digital corre por API una pasada de review dedicada solo a seguridad. El prompt tiene las instrucciones, después pega en texto plano 4 fragmentos de código vulnerable como ejemplos (con su hallazgo esperado) y al final el diff del PR. En varios PRs, la pasada reporta una inyección SQL en `reportes.py` línea 12, un archivo que el PR ni toca: es uno de los ejemplos. ¿Qué arreglan en esa pasada?",
+      "options": [
+        "Sacar los ejemplos de la pasada de seguridad y dejar solo la instrucción \"buscá vulnerabilidades\", porque los ejemplos confunden al modelo.",
+        "Agregar al final del prompt \"IMPORTANT: no reportes nada de los ejemplos\", en mayúsculas, sin cambiar la forma en que están armados.",
+        "Mover los ejemplos a la pasada de lógica de negocio, que corre menos riesgo de confundirlos con código real, y dejar seguridad sin ellos.",
+        "Envolver cada ejemplo en `<example>` (todos dentro de `<examples>`) y el diff en su propio tag, para separar ejemplos, instrucciones y entrada."
+      ],
+      "correct": 3,
+      "why_correct": "La doc pide ejemplos estructurados: envueltos en `<example>` / `<examples>` para que Claude los distinga de las instrucciones, y un tag propio para cada tipo de contenido (instrucciones, contexto, input). Así la pasada conserva su few-shot de seguridad sin confundirlo con el PR.",
+      "why_wrong": {
+        "0": "Los ejemplos son de lo más confiable para guiar la salida; el problema es cómo están delimitados, no que existan.",
+        "1": "Una orden en mayúsculas no le da estructura al prompt: los ejemplos siguen mezclados con la entrada.",
+        "2": "Ejemplos de seguridad no le sirven a la pasada de negocio, y la de seguridad pierde su few-shot dedicado."
+      },
+      "rule": "Few-shot de cada pasada: ejemplos dentro de `<examples>`, separados de instrucciones y del diff.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Wrap examples in `<example>` tags (multiple examples in `<examples>` tags) so Claude can distinguish them from instructions.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o24-s02",
+      "objective": 24,
+      "pool": "sim",
+      "scenario": "Una startup de logística usa Claude Code para implementar features y, en la misma sesión, al terminar le pide: \"ahora revisá lo que hiciste: seguridad, lógica de negocio y diseño de API\". Los reviews salen casi siempre limpios, pero QA sigue encontrando bugs de lógica en esas mismas features. El equipo trabaja solo en la terminal y quiere un review que no arrastre el razonamiento que llevó a ese código. ¿Qué cambian?",
+      "options": [
+        "Correr `/code-review` en la terminal: revisa el diff en un subagente nuevo que no vio la conversación y no se deja llevar por ese razonamiento.",
+        "Pedirle a la misma sesión que revise dos veces seguidas, la segunda con \"sé más crítico\", y quedarse con la unión de los hallazgos de ambas.",
+        "Subir el effort a `max` en la misma sesión antes de pedir el review, para que revise con más profundidad lo que acaba de escribir.",
+        "Agregar al `CLAUDE.md` la instrucción \"sé objetivo al revisar tu propio código\", para que se aplique en todas las sesiones del equipo."
+      ],
+      "correct": 0,
+      "why_correct": "La doc dice que `/code-review` revisa el diff en un subagente nuevo que nunca vio tu conversación, y por eso no lo influye el razonamiento que produjo el código. Un revisor independiente no es lo mismo que pedirle al autor que se revise.",
+      "why_wrong": {
+        "1": "Sigue siendo el mismo contexto, con el mismo razonamiento que produjo el bug; repetir no lo vuelve independiente.",
+        "2": "El effort cambia cuánto piensa, pero la sesión sigue anclada en su propio razonamiento sobre ese código.",
+        "3": "Es una instrucción vaga en contexto; no cambia que el revisor sea el mismo que escribió el código."
+      },
+      "rule": "Review que vale: una instancia que no vio cómo se escribió el código, no el autor revisándose.",
+      "source_url": "https://code.claude.com/docs/en/best-practices",
+      "source_quote": "reviews the diff in a fresh subagent that never saw your conversation. It isn't swayed by the reasoning that produced the code.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o24-s03",
+      "objective": 24,
+      "pool": "sim",
+      "scenario": "Un equipo de una plataforma de pagos creó en `.claude/agents/` tres subagentes de review: `security-reviewer`, `business-reviewer` y `api-reviewer`, cada uno con su system prompt y sus ejemplos propios. Los tres tienen la misma línea `description: Reviews code`. Cuando piden \"revisá los cambios de seguridad del checkout\", Claude delega casi siempre en `api-reviewer`, y la pasada especializada de seguridad casi nunca corre. ¿Qué arreglan?",
+      "options": [
+        "Juntar los tres en un único subagente `reviewer` con un system prompt que cubra los tres temas, así Claude no tiene que elegir entre ellos.",
+        "Renombrar los archivos con números (`1-security.md`, `2-business.md`, `3-api.md`) para que Claude los considere en ese orden de prioridad.",
+        "Escribir una `description` clara y distinta para cada uno, que diga cuándo usarlo (por ejemplo, \"cambios en auth, permisos o datos sensibles\").",
+        "Quitarle herramientas a `api-reviewer` y dejarle solo `Read`, para que Claude lo vea menos capaz y prefiera delegar en los otros dos."
+      ],
+      "correct": 2,
+      "why_correct": "Claude usa la `description` de cada subagente para decidir en cuál delegar. Si las tres dicen lo mismo, la elección queda librada al azar. La doc pide descripciones claras para que Claude sepa cuándo usar cada uno; así cada pasada especializada corre cuando corresponde.",
+      "why_wrong": {
+        "0": "Volver a un revisor único mezcla los temas otra vez: se pierden el foco y los ejemplos dedicados que justificaban separar.",
+        "1": "El nombre del archivo no es el criterio de delegación; la doc dice que Claude decide por la descripción.",
+        "3": "Las herramientas definen qué puede hacer el subagente, no cuándo se lo elige; y un revisor igual necesita buscar con `Grep`/`Glob`."
+      },
+      "rule": "Pasadas especializadas como subagentes → cada uno con una `description` distinta que diga cuándo usarlo.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "Claude uses each subagent's description to decide when to delegate tasks.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o24-s04",
+      "objective": 24,
+      "pool": "sim",
+      "scenario": "Un marketplace corre en cada PR tres pasadas de review por API con Claude Opus 5 (seguridad, negocio y diseño de API), cada una con sus ejemplos, todas en effort `max`. Funcionan bien, pero tardan 9 minutos y frenan los merges. Un arquitecto propone volver a un solo prompt con los tres temas \"para que sea más rápido\". Quieren bajar la latencia sin perder la separación por tema. ¿Qué hacen, según la doc de Opus 5?",
+      "options": [
+        "Volver al prompt único con los tres temas en effort `max`, porque una sola llamada siempre tarda menos que tres llamadas en paralelo.",
+        "Mantener las tres pasadas, correrlas con un effort más bajo en el PR y dejar una pasada más exhaustiva para después, ya que la precisión se sostiene.",
+        "Agregar a las tres pasadas \"sé conservador y reportá solo lo de severidad alta\", para que generen menos hallazgos y terminen antes.",
+        "Sacar los ejemplos few-shot de las tres pasadas para achicar los prompts, que es lo que más tiempo le agrega a cada llamada del review."
+      ],
+      "correct": 1,
+      "why_correct": "La doc de Opus 5 dice que su precisión en code review se sostiene con efforts más bajos, y que eso permite una pasada rápida al momento del review y una más exhaustiva después. Se baja la latencia sin juntar los temas en un prompt donde compiten entre sí.",
+      "why_wrong": {
+        "0": "Juntar los temas trae de vuelta el problema que la separación resolvía, y no hay base para decir que siempre es más rápido.",
+        "2": "La doc avisa que con \"solo severidad alta\" o \"sé conservador\" el modelo puede tomarlo literal y reportar menos: se pierden hallazgos reales.",
+        "3": "Los ejemplos dedicados son lo que hace buena a cada pasada; sacarlos baja la calidad, y nada indica que sean el cuello de botella."
+      },
+      "rule": "Separación por tema se mantiene; para latencia, pasada rápida con menos effort ahora y una exhaustiva después.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5",
+      "source_quote": "Accuracy holds at lower effort settings, which supports a fast pass at review time and a more thorough pass later.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

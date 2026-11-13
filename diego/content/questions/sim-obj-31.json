@@ -1,0 +1,101 @@
+{
+  "objective": 31,
+  "questions": [
+    {
+      "id": "o31-s01",
+      "objective": 31,
+      "pool": "sim",
+      "scenario": "Una empresa usa el servicio Code Review en el repo de su documentación pública (Markdown y algunos snippets de código). Los reviews marcan como Important cosas como un link interno con mayúscula distinta o un snippet de ejemplo que no maneja errores, y el equipo terminó ignorando los Important. Lo que de verdad no puede pasar es un comando de instalación incorrecto o un snippet que no compila. ¿Qué escriben en `REVIEW.md`?",
+      "options": [
+        "\"Be conservative and only report high-severity issues\", para que el review baje la cantidad de Important sin tener que enumerar categorías.",
+        "Redefinir Important para ese repo: solo comandos de instalación incorrectos y snippets que no compilan; links y manejo de errores, Nit como mucho.",
+        "Un tope de cinco Nits por review, así los comentarios menores bajan y los Important vuelven a destacarse por sí solos en cada PR.",
+        "Excluir del review todos los archivos `*.md` del repo, ya que la documentación no es código de producción y no necesita review."
+      ],
+      "correct": 1,
+      "why_correct": "La calibración por defecto apunta a código de producción; la doc dice que un repo de documentación puede querer una definición mucho más estrecha de Important, indicando qué clases de hallazgo son Important y cuáles son Nit como mucho. Es un límite explícito por categoría.",
+      "why_wrong": {
+        "0": "Una orden vaga de \"ser conservador\" no define categorías y puede bajar también lo que sí importa (la doc de Opus 5 avisa que se toma literal).",
+        "2": "El tope de Nits no toca los Important mal calibrados, que son el problema real.",
+        "3": "Excluir todo el Markdown deja sin revisar justo lo que importa: los comandos y los snippets."
+      },
+      "rule": "Límites explícitos por categoría: definí qué es Important en tu repo y qué es Nit como mucho.",
+      "source_url": "https://code.claude.com/docs/en/code-review-customize",
+      "source_quote": "The default calibration targets production code, and a docs repository, a config repository, or a prototype might want a much narrower definition.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o31-s02",
+      "objective": 31,
+      "pool": "sim",
+      "scenario": "Una obra social digitaliza formularios de reintegro escaneados. El pipeline extrae los datos impresos (afiliado, prestador, monto) con buena precisión, pero el campo \"diagnóstico\", escrito a mano, sale mal en muchos casos y el modelo igual devuelve un diagnóstico plausible. Un error ahí hace rechazar el reintegro. Prefieren que un humano lo cargue cuando no es legible. ¿Qué instrucción definen?",
+      "options": [
+        "\"Extraé siempre el diagnóstico; si la letra cuesta, elegí el diagnóstico más probable según el prestador y el monto del reintegro\".",
+        "\"Sé muy cuidadoso con el diagnóstico\" y subir el effort, para que el modelo se esfuerce más en leer la letra manuscrita de cada formulario.",
+        "Sacar el campo diagnóstico del schema para todos los formularios, aunque se lea bien, y cargarlo siempre a mano en el back office.",
+        "Diagnóstico nullable + \"si no es legible con seguridad, devolvé `null`; no lo deduzcas\", y mandar esos casos a revisión humana."
+      ],
+      "correct": 3,
+      "why_correct": "La doc recomienda darle a Claude permiso explícito para admitir que no sabe, y su ejemplo le da una salida concreta para cuando falta información. Definir el límite (\"no legible con seguridad → `null`, no deducir\") saca al modelo de la zona donde no es confiable, y la ruta a humano cubre esos casos.",
+      "why_wrong": {
+        "0": "Pide justamente inventar: un diagnóstico \"probable\" es el error que quieren evitar.",
+        "1": "\"Sé cuidadoso\" no define ningún límite; el modelo sigue obligado a devolver algo.",
+        "2": "Pierde los casos legibles, que el pipeline resuelve bien; el límite tiene que cortar solo donde no es confiable."
+      },
+      "rule": "Categoría poco confiable → límite explícito: \"si no estás seguro, `null`, no deduzcas\" + revisión humana.",
+      "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
+      "source_quote": "If you're unsure about any aspect or if the report lacks necessary information, say \"I don't have enough information to confidently assess this.\"",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o31-s03",
+      "objective": 31,
+      "pool": "sim",
+      "scenario": "Un estudio de compliance genera por API memos sobre si un producto cumple normativas, usando solo las resoluciones que se le pasan en `<documents>`. En la revisión aparecen afirmaciones como \"la Resolución 12/2024 exige doble factor\" que no figuran en ningún documento provisto. El equipo quiere un límite claro: nada en el memo sin respaldo en los documentos. ¿Qué agregan?",
+      "options": [
+        "Después del borrador, pedir que busque una cita directa que respalde cada afirmación y que saque las que no tengan cita, marcando dónde estaban.",
+        "Pedir que agregue al final del memo una sección de \"fuentes consultadas\" con los nombres de las resoluciones que usó para redactarlo.",
+        "Darle más contexto general sobre normativa del sector en el system prompt, para que tenga más conocimiento propio sobre el cual apoyarse.",
+        "Pedir que marque las afirmaciones dudosas con \"(a confirmar)\" y dejarlas en el memo, para que el revisor humano decida cuáles mantener."
+      ],
+      "correct": 0,
+      "why_correct": "La doc propone verificar con citas: que Claude busque una cita que respalde cada afirmación y, si no la encuentra, la retracte. Su ejemplo pide sacar la afirmación y marcar dónde estaba. Eso convierte \"solo lo respaldado\" en un límite chequeable.",
+      "why_wrong": {
+        "1": "Una lista de fuentes no ata cada afirmación a una cita: una afirmación inventada puede convivir con una lista correcta.",
+        "2": "Es lo contrario: la doc recomienda restringir a los documentos provistos, no sumar conocimiento general.",
+        "3": "Deja el contenido sin respaldo en el memo; el límite que quieren es sacarlo, no anotarlo."
+      },
+      "rule": "Límite de inclusión: cada afirmación necesita una cita del documento; sin cita, se retracta.",
+      "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
+      "source_quote": "If it can’t find a quote, it must retract the claim.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o31-s04",
+      "objective": 31,
+      "pool": "sim",
+      "scenario": "Una SaaS multi-tenant usa el servicio Code Review con la rama default protegida. Tiene dos quejas: (1) el review comenta tests que a propósito usan queries sin filtro por tenant para armar datos, y (2) se le escapó a producción una query sin filtro por tenant, que es la regla más importante del equipo. Quieren un límite explícito de qué revisar siempre y qué no reportar. ¿Qué escriben en el `REVIEW.md` raíz?",
+      "options": [
+        "\"Be conservative: report only high-severity findings\", para que deje de comentar los tests y se concentre solo en lo importante de producción.",
+        "\"Review everything carefully, especially tenant isolation\", en la primera línea del archivo, para que lo tenga presente en cada PR del repo.",
+        "En \"Always check\": queries filtradas por el tenant del caller; en \"Do not report\": código solo de tests que viola a propósito reglas de producción.",
+        "Excluir del review la carpeta `tests/` completa y agregar al `CLAUDE.md` raíz \"IMPORTANT: revisá el filtro por tenant en producción\"."
+      ],
+      "correct": 2,
+      "why_correct": "`REVIEW.md` sirve para decir qué marcar, con qué severidad y qué saltear. El ejemplo de la doc trae las dos listas: \"Always check\" (queries con alcance al tenant del caller) y \"Do not report\" (código solo de tests que viola reglas de producción a propósito). Inclusión y exclusión explícitas, por categoría.",
+      "why_wrong": {
+        "0": "Una orden vaga baja todo, incluida la query de producción que se escapó; no define categorías.",
+        "1": "\"Revisá todo con cuidado\" no es un criterio: no dice qué excluir ni vuelve chequeable la regla de tenant.",
+        "3": "Excluir `tests/` entera saca también problemas reales en tests, y un IMPORTANT en `CLAUDE.md` no define una regla de review concreta."
+      },
+      "rule": "Criterio de review = lista \"Always check\" + lista \"Do not report\", concretas y por categoría.",
+      "source_url": "https://code.claude.com/docs/en/code-review-customize",
+      "source_quote": "Database queries are scoped to the caller's tenant",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

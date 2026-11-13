@@ -1,0 +1,125 @@
+{
+  "objective": 12,
+  "questions": [
+    {
+      "id": "o12-s01",
+      "objective": 12,
+      "pool": "sim",
+      "scenario": "Una empresa de logística usa Claude Code para escribir `formatear_etiqueta()`, que convierte filas de un CSV de envíos al formato que exige el transportista. Diego corrió el script de diff contra `fixtures/etiquetas_esperadas.json` y encontró 5 diferencias: peso en gramos en vez de kg, peso redondeado a 1 decimal en vez de 2, código postal sin ceros a la izquierda, fecha en `mm/dd` y nombre cortado a 30 caracteres. Las dos primeras están ligadas: el redondeo depende de la unidad. Quiere cerrar todo en la menor cantidad de vueltas. ¿Qué le manda a Claude?",
+      "options": [
+        "Una diferencia por mensaje, empezando por la más grave, para que cada arreglo quede aislado y sea fácil ver qué rompió cada cambio.",
+        "Un solo mensaje con las 5 diferencias (entrada, salida actual y esperada), aclarando que peso y redondeo van juntos, y el comando del diff para iterar.",
+        "\"Hay varios errores en el formateador, revisalo con cuidado y pensá paso a paso\", y subir el effort a `max` para que los encuentre solo.",
+        "Pedirle que reescriba `formatear_etiqueta()` desde cero con otra librería de CSV, porque cinco errores juntos indican un problema de diseño."
+      ],
+      "correct": 1,
+      "why_correct": "Juntar todos los casos que fallan en un mismo pedido, con lo que sale y lo que se espera, le da a Claude toda la información de una vez y le deja ver que peso y redondeo interactúan. El script de diff le da un check pass/fail para cerrar el loop solo. La doc: nombrar el archivo, el síntoma y cómo se ve \"arreglado\" ahorra vueltas de corrección.",
+      "why_wrong": {
+        "0": "De a uno, el arreglo del peso puede romper el redondeo (y al revés): problemas que interactúan se arreglan juntos, no en ping-pong.",
+        "2": "\"Pensá paso a paso\" es texto común y el effort controla cuánto piensa; ninguno le da los casos concretos que ya tenés en la mano.",
+        "3": "Reescribir desde cero tira lo que funciona y no le da a Claude ninguna información nueva sobre qué está mal."
+      },
+      "rule": "Fallas relacionadas → un solo mensaje con todos los casos (entrada, actual, esperado) + un check que Claude pueda correr.",
+      "source_url": "https://code.claude.com/docs/en/best-practices",
+      "source_quote": "If you name the file, describe the symptom, and say what \"fixed\" looks like up front, you usually save yourself a round of corrections later.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o12-s02",
+      "objective": 12,
+      "pool": "sim",
+      "scenario": "Un SaaS de recursos humanos le pidió a Claude Code: \"construí la pantalla de preferencias de notificaciones a partir del mockup\". Vuelta 1: solo el layout. Vuelta 2, a pedido: el guardado conectado al backend. Vuelta 3: estados vacíos y de error. Vuelta 4: navegación con teclado. Mañana arrancan la pantalla de facturación, de tamaño parecido, y el líder quiere llegar al resultado completo sin repetir cuatro vueltas. ¿Cómo escriben el pedido?",
+      "options": [
+        "Agregar \"pensá paso a paso y sé exhaustivo\" al pedido, que según la doc sube el razonamiento por encima del effort que esté configurado.",
+        "Subir el effort a `max` y mantener el mismo pedido corto, porque con más razonamiento Claude va a deducir solo el alcance completo.",
+        "Dividir el trabajo en más vueltas todavía, una por componente, así cada pedido es chico y Claude no se saltea ninguna parte de la pantalla.",
+        "Decir el alcance de entrada: \"be ambitious: estados vacíos y de error, guardado conectado, navegación con teclado, no solo el layout\"."
+      ],
+      "correct": 3,
+      "why_correct": "Claude tiende a leer el pedido de forma conservadora y construir lo mínimo que lo cumple, porque no puede ver cuánto esperabas. La doc recomienda decir el alcance completo de entrada (\"be ambitious\" + la lista). Es información de alcance, que solo vos tenés.",
+      "why_wrong": {
+        "0": "La doc dice que frases como `think step by step` o `be thorough` son texto común: pueden empujar un poco, pero no superan el effort ni dicen qué alcance querés.",
+        "1": "El effort controla cuánto piensa Claude, no adivina el alcance que esperás. La doc separa el alcance de \"qué tan fuerte pensar\".",
+        "2": "Más vueltas es justo lo que quieren evitar; el problema no es el tamaño del pedido sino que el pedido no dice el alcance."
+      },
+      "rule": "Si querés la versión completa, decí el alcance de entrada: por defecto Claude construye lo mínimo que cumple el pedido.",
+      "source_url": "https://code.claude.com/docs/en/best-practices",
+      "source_quote": "Claude tends to read a request conservatively and build the smallest thing that satisfies it, since it can't see how much you were hoping for.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o12-s03",
+      "objective": 12,
+      "pool": "sim",
+      "scenario": "Una consultora genera por API informes de mercado de 12 secciones a partir de planillas de datos. Los analistas encuentran contradicciones: el resumen ejecutivo dice que la cuota de mercado subió 4 puntos y la tabla de la sección 7 muestra 2,5. Hoy un analista lee cada informe completo antes de publicar y no da abasto. Quieren que el propio pipeline detecte y corrija esas inconsistencias antes de la revisión humana. ¿Qué agregan?",
+      "options": [
+        "Una llamada de seguimiento que reciba el borrador y los datos, verifique cada afirmación contra ellos y contra las demás secciones, y devuelva lo corregido.",
+        "Una instrucción en el prompt original: \"IMPORTANT: sé consistente entre secciones\", repetida al principio y al final para que pese más.",
+        "Generar cada informe cinco veces con el mismo prompt y publicar el más largo, que suele traer más datos y cubrir mejor todas las secciones.",
+        "Bajar el informe a 6 secciones para que el modelo tenga menos texto que mantener coherente dentro de una sola respuesta."
+      ],
+      "correct": 0,
+      "why_correct": "La doc lista el refinamiento iterativo como técnica: usar la salida de Claude como entrada de un prompt siguiente que le pide verificar o ampliar lo que dijo. Eso detecta y corrige inconsistencias. Como es una llamada aparte, además se puede loguear qué se corrigió en cada informe.",
+      "why_wrong": {
+        "1": "Repetir una orden general no agrega un paso de verificación: el borrador sigue saliendo de una sola pasada.",
+        "2": "Comparar varias corridas sirve para detectar inconsistencias, no para elegir \"el más largo\": largo no es lo mismo que correcto.",
+        "3": "Achicar el informe cambia el producto y no agrega ningún control; las contradicciones pueden seguir apareciendo."
+      },
+      "rule": "Para atrapar inconsistencias, encadená: la salida de Claude entra a un prompt siguiente que la verifica y corrige.",
+      "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
+      "source_quote": "Use Claude’s outputs as inputs for follow-up prompts, asking it to verify or expand on previous statements. This can catch and correct inconsistencies.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o12-s04",
+      "objective": 12,
+      "pool": "sim",
+      "scenario": "Una healthtech recibe reportes de pacientes: desde el cambio de horario de verano, algunos recordatorios de turnos llegan duplicados. El código de recordatorios está en `src/reminders/` y el repo tiene tests con pytest. Un dev está por escribirle a Claude Code \"arreglá el bug de los recordatorios duplicados\". El líder le pide que reescriba el pedido para no gastar tres o cuatro vueltas de corrección. ¿Cuál es el mejor pedido inicial?",
+      "options": [
+        "\"Arreglá el bug de los recordatorios duplicados. Sé exhaustivo y revisá todo el módulo antes de tocar nada, que es un tema delicado.\"",
+        "\"Revisá todo el repo buscando cualquier cosa que pueda mandar recordatorios dos veces y arreglá todo lo que encuentres en el camino.\"",
+        "\"Tras el cambio de horario, algunos recordatorios salen dos veces. Mirá `src/reminders/`, escribí un test que falle reproduciéndolo y después arreglalo.\"",
+        "\"Reescribí el scheduler de recordatorios con otra librería de fechas, porque los problemas de horario de verano son difíciles de parchear.\""
+      ],
+      "correct": 2,
+      "why_correct": "La doc pide nombrar dónde mirar, describir el síntoma y decir cómo se ve \"arreglado\". Su ejemplo es este patrón: síntoma + carpeta + \"escribí un test que falle que lo reproduzca, y después arreglalo\". El test que falla es, además, el check que Claude puede correr para cerrar el loop.",
+      "why_wrong": {
+        "0": "\"Sé exhaustivo\" no agrega información: no dice el síntoma, ni cuándo pasa, ni dónde mirar.",
+        "1": "Abre el alcance a todo el repo e invita a cambios no pedidos; no da síntoma ni criterio de \"arreglado\".",
+        "3": "Reescribir el scheduler es un cambio enorme sin evidencia de que haga falta, y no hay test que demuestre el bug ni su arreglo."
+      },
+      "rule": "Pedido inicial = síntoma + dónde mirar + test que falle reproduciéndolo + arreglo.",
+      "source_url": "https://code.claude.com/docs/en/best-practices",
+      "source_quote": "write a failing test that reproduces it, then fix it",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o12-s05",
+      "objective": 12,
+      "pool": "sim",
+      "scenario": "El equipo de plataforma de un e-commerce le pide a Claude Code \"agregá caché al endpoint `/productos`\". Claude implementa un LRU en memoria; en el review lo rechazan porque el equipo usa Redis con el cliente de `lib/cache.ts`. En la vuelta 2 usa Redis, pero con una librería nueva; también lo rechazan. Esta semana van a pedir caché para otros 6 endpoints y no quieren repetir esas vueltas. ¿Qué cambian en el pedido?",
+      "options": [
+        "Dejar el pedido igual y, cuando Claude elija otra cosa, rechazarlo de nuevo en el review: con cada rechazo va a ir aprendiendo la preferencia.",
+        "Decir de entrada el enfoque: \"usá Redis con el cliente de `@lib/cache.ts`, como en el endpoint de categorías; sin librerías nuevas\".",
+        "Pedirle que proponga tres implementaciones de caché distintas por endpoint, así el equipo elige en el review la que más le guste.",
+        "Agregar \"elegí la mejor práctica de la industria para caché\" para que Claude llegue solo a Redis sin tener que nombrarlo en el pedido."
+      ],
+      "correct": 1,
+      "why_correct": "Cuando hay dos enfoques razonables, Claude no puede leer del código cuál prefiere el equipo. La doc lo dice directo: si te importa cuál elige, decilo de entrada. Pasarle el archivo con `@` y un patrón existente para seguir corta las vueltas de rechazo.",
+      "why_wrong": {
+        "0": "Cada rechazo es una vuelta perdida, y un pedido nuevo en otra sesión no \"recuerda\" los rechazos anteriores.",
+        "2": "Triplica el trabajo y sigue sin decir la preferencia, que es justo la información que falta.",
+        "3": "\"Mejor práctica\" es vago: un LRU en memoria también es una opción razonable, y por eso Claude eligió eso."
+      },
+      "rule": "Preferencia entre dos enfoques razonables → decila de entrada, con el archivo o patrón a seguir.",
+      "source_url": "https://code.claude.com/docs/en/best-practices",
+      "source_quote": "Claude can't read that from the code, so if you care which one it picks, say so up front.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

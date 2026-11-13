@@ -1,0 +1,101 @@
+{
+  "objective": 30,
+  "questions": [
+    {
+      "id": "o30-s01",
+      "objective": 30,
+      "pool": "sim",
+      "scenario": "Una empresa con el servicio Code Review y la rama default protegida no quiere que en `services/payments/fixtures/` (datos de prueba con tarjetas falsas) se reporte \"datos sensibles en el código\". Agregaron `services/payments/fixtures/REVIEW.md` con esa exclusión y lo mergearon a la rama default, pero los PRs que tocan esa carpeta siguen recibiendo esos comentarios. ¿Qué pasa y qué hacen?",
+      "options": [
+        "Los `REVIEW.md` de subcarpetas solo se leen cuando la rama default no está protegida; hay que sacar la protección para que se aplique.",
+        "Hay que esperar 24 horas a que Code Review refresque la caché de instrucciones de la rama default antes de que el cambio se aplique.",
+        "Los `REVIEW.md` de subcarpetas solo se leen si el PR modifica ese mismo archivo; hay que tocarlo en cada PR que cambie esa carpeta.",
+        "Code Review no aplica un `REVIEW.md` dentro de una carpeta llamada `fixtures`; la exclusión de esa ruta va en el `REVIEW.md` raíz."
+      ],
+      "correct": 3,
+      "why_correct": "La doc lista nombres de carpeta donde Code Review no aplica un `REVIEW.md` (entre ellos `fixtures`), sea cual sea su contenido y a cualquier profundidad. Esas reglas van en el `REVIEW.md` raíz; además, las exclusiones de rutas se honran desde el archivo raíz leído de la rama default protegida.",
+      "why_wrong": {
+        "0": "Es al revés: los `REVIEW.md` de subcarpetas se leen con la rama protegida; con la default sin proteger solo se lee el archivo raíz.",
+        "1": "La doc no menciona ninguna espera de caché para `REVIEW.md`: el problema es el nombre de la carpeta.",
+        "2": "Code Review nunca lee `REVIEW.md` desde los cambios del propio PR, sino desde la rama base o la default."
+      },
+      "rule": "`REVIEW.md` en `fixtures/`, `tests/`, `vendor/`, `generated/`... no se aplica: esas reglas van en el raíz.",
+      "source_url": "https://code.claude.com/docs/en/code-review-customize",
+      "source_quote": "Code Review doesn't apply a `REVIEW.md` in or below a subdirectory with one of these names, whatever the subdirectory holds.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o30-s02",
+      "objective": 30,
+      "pool": "sim",
+      "scenario": "Un equipo con el servicio Code Review y la rama default protegida guarda sus reglas para bajar falsos positivos (no reportar `src/gen/`, no reportar lo que ya chequea el linter) en `docs/review-rules.md`, y las incluyó en el `REVIEW.md` raíz con la línea `@docs/review-rules.md`. Las instrucciones escritas directamente en `REVIEW.md` se aplican, pero las de ese archivo no. ¿Qué cambian?",
+      "options": [
+        "Convertir la línea en un link Markdown `[reglas](docs/review-rules.md)`, que Code Review sigue para cargar el contenido del archivo enlazado.",
+        "Mover `review-rules.md` a la raíz del repo, al lado de `REVIEW.md`, y dejar la línea como `@review-rules.md`: una ruta a subcarpeta no se incluye.",
+        "Agregar un `REVIEW.md` en `docs/` con su propia línea `@review-rules.md`, para que el include se resuelva desde esa misma carpeta.",
+        "Mover las reglas a una skill personal en `~/.claude/skills/`, que Code Review sí carga desde cualquier ruta si el `REVIEW.md` la incluye."
+      ],
+      "correct": 1,
+      "why_correct": "Code Review incluye archivos que están en la raíz, al lado de `REVIEW.md`. Salvo un `SKILL.md` en `.claude/skills/<carpeta>/`, una ruta a subcarpeta como `@docs/review-rules.md` no se incluye. Y las exclusiones van en `REVIEW.md` o en un archivo a su lado, no en una skill.",
+      "why_wrong": {
+        "0": "La doc aclara que un link Markdown a otro archivo no es un include.",
+        "2": "Un `@` dentro de un `REVIEW.md` de subcarpeta queda como texto plano: los includes son de un solo nivel, desde el raíz.",
+        "3": "Una skill personal no se puede incluir directamente, y Code Review no acepta el texto de una skill como motivo para excluir hallazgos."
+      },
+      "rule": "Includes de `REVIEW.md`: archivos al lado del raíz (`@archivo.md`); rutas a subcarpetas no se incluyen.",
+      "source_url": "https://code.claude.com/docs/en/code-review-customize",
+      "source_quote": "a path into a subdirectory such as `@docs/review-rules.md` isn't included.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o30-s03",
+      "objective": 30,
+      "pool": "sim",
+      "scenario": "Una agencia activó el servicio Code Review en un repo cuya rama default no tiene ninguna protección. Su `REVIEW.md` raíz dice \"Report at most five Nits per review\", tiene una lista \"Do not report\" con `vendor/` y `*.lock`, y al final la línea `@review-api.md`. Los reviews siguen trayendo comentarios sobre `vendor/` y las reglas de `review-api.md` no se aplican. ¿Qué hacen primero?",
+      "options": [
+        "Proteger la rama default (regla clásica o ruleset): leído de ahí, Code Review honra exclusiones y topes de nits y resuelve los `@` includes.",
+        "Copiar las exclusiones y el tope de nits al `CLAUDE.md` raíz, que Code Review aplica siempre como exclusiones sin importar la protección.",
+        "Repetir las exclusiones en el body de cada PR, porque Code Review prioriza lo que dice el PR por sobre las instrucciones de la rama default.",
+        "Mover `REVIEW.md` a `.claude/REVIEW.md`, que es la ubicación desde donde Code Review lo lee cuando la rama default no está protegida."
+      ],
+      "correct": 0,
+      "why_correct": "La doc pide mantener `REVIEW.md` en la rama default y protegerla. Leído desde una rama default protegida, honra bajar severidad, excluir rutas y topes de nits; con la default sin proteger, el `@` queda como texto plano. Proteger la rama es el primer paso.",
+      "why_wrong": {
+        "1": "`CLAUDE.md` es contexto del proyecto: Code Review marca violaciones a sus reglas, pero la doc pone exclusiones y topes de nits en `REVIEW.md`.",
+        "2": "La doc no ofrece instrucciones desde el body del PR; el comportamiento persistente sale de `REVIEW.md` y `CLAUDE.md` en el repo.",
+        "3": "`REVIEW.md` va en la raíz del repo; la doc no menciona ninguna ubicación `.claude/REVIEW.md`."
+      },
+      "rule": "Exclusiones, topes de nits e includes de `REVIEW.md` → rama default protegida.",
+      "source_url": "https://code.claude.com/docs/en/code-review-customize",
+      "source_quote": "Keep `REVIEW.md` on your default branch and protect that branch.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o30-s04",
+      "objective": 30,
+      "pool": "sim",
+      "scenario": "En un monorepo, el `CLAUDE.md` raíz dice \"Manejá los errores con excepciones; no devuelvas códigos de error\". El de `services/ledger/CLAUDE.md`, escrito por otro equipo, dice \"En ledger los errores se devuelven como `Result<T, E>`; es el patrón aceptado\". Cuando los devs corren `/code-review` sobre cambios en ledger, a veces marca `Result` como violación y a veces no, y nadie confía en el review. ¿Cuál es el fix persistente?",
+      "options": [
+        "Agregar \"IMPORTANT\" a la regla de ledger para que gane siempre sobre la del `CLAUDE.md` raíz cuando las dos se cargan en la misma sesión.",
+        "Correr `/code-review` con effort `max` sobre ledger, para que el review razone más y deduzca solo cuál de las dos reglas tiene que aplicar.",
+        "Sacar la contradicción: acotar la regla raíz (\"excepto `services/ledger/`, que usa `Result<T, E>`\") y revisar los archivos con `/doctor prompt-audit`.",
+        "Mover la regla de ledger a un `REVIEW.md` dentro de `services/ledger/`, que `/code-review` aplica con más prioridad que cualquier `CLAUDE.md`."
+      ],
+      "correct": 2,
+      "why_correct": "La doc avisa que si dos instrucciones se contradicen, Claude puede elegir una de forma arbitraria: eso explica el comportamiento intermitente. El fix es eliminar el conflicto (acotar la regla general) y revisar los archivos de instrucciones; `/doctor prompt-audit` busca, entre otras cosas, archivos que se contradicen.",
+      "why_wrong": {
+        "0": "El énfasis no resuelve una contradicción: las dos reglas siguen cargadas y siguen chocando.",
+        "1": "Más razonamiento no elimina el conflicto entre instrucciones; el resultado puede seguir variando.",
+        "3": "El `/code-review` local no lee `REVIEW.md`: sigue solo los `CLAUDE.md`."
+      },
+      "rule": "Convenciones persistentes sin contradicciones: si dos reglas chocan, Claude elige cualquiera.",
+      "source_url": "https://code.claude.com/docs/en/memory",
+      "source_quote": "if two instructions contradict each other, Claude may pick one arbitrarily.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

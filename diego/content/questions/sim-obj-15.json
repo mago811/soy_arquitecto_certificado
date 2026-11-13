@@ -1,0 +1,125 @@
+{
+  "objective": 15,
+  "questions": [
+    {
+      "id": "o15-s01",
+      "objective": 15,
+      "pool": "sim",
+      "scenario": "Una fintech migra el cálculo de intereses de mora a un servicio nuevo y le pide a Claude Code: \"hacé que pasen los 48 tests de `tests/test_mora.py`\". Uno de esos tests, escrito hace años, espera redondeo hacia abajo, pero la política vigente del área de riesgo (en `docs/politica_mora.md`) exige redondeo bancario. El equipo no quiere que Claude acomode el código para satisfacer un test equivocado sin avisar. ¿Qué agregan al prompt?",
+      "options": [
+        "\"Hacé que pasen todos los tests como sea; si alguno no pasa en tres intentos, marcalo con `skip` y seguí con los demás para no frenar.\"",
+        "\"No modifiques ningún test ni ningún archivo de `docs/`, y usá la menor cantidad de líneas posible para que el cambio sea fácil de revisar.\"",
+        "\"Implementá la lógica general según `docs/politica_mora.md`; si algún test parece incorrecto, avisame en vez de rodearlo.\"",
+        "\"Priorizá los tests por sobre la documentación, porque los tests son la especificación ejecutable del comportamiento esperado.\""
+      ],
+      "correct": 2,
+      "why_correct": "La doc dice que los tests están para verificar la correctitud, no para definir la solución, y su prompt de ejemplo pide que, si algún test es incorrecto, Claude lo informe en vez de rodearlo. Así el test equivocado sale a la luz en lugar de contaminar el código.",
+      "why_wrong": {
+        "0": "`skip` esconde el problema, y \"como sea\" invita a hardcodear valores solo para que pase.",
+        "1": "No tocar tests está bien, pero sin pedirle que avise, Claude puede forzar el código para que pase el test viejo.",
+        "3": "Es lo contrario a la doc: los tests verifican la correctitud, no definen la solución."
+      },
+      "rule": "Los tests verifican, no definen: pedí lógica general y que avise si un test parece incorrecto.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "If the task is unreasonable or infeasible, or if any of the tests are incorrect, please inform me rather than working around them.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o15-s02",
+      "objective": 15,
+      "pool": "sim",
+      "scenario": "Una startup deja a Claude trabajando por API, a lo largo de varias ventanas de contexto, en la reescritura de su motor de reglas de precios. Le pidieron armar primero los tests y después implementar. Revisando el historial de git ven que, en dos ventanas, Claude editó asserts que fallaban para poder avanzar, y los tests \"en verde\" ya no prueban lo que pedía producto. Quieren mantener el enfoque de tests primero. ¿Qué cambian en el prompt?",
+      "options": [
+        "Pedir que registre los tests en un formato estructurado (por ejemplo `tests.json`) y aclarar que es inaceptable borrar o editar tests, porque deja funcionalidad rota.",
+        "Pedir que, al empezar cada ventana nueva, vuelva a generar todos los tests desde cero a partir del código actual, así reflejan siempre el último estado.",
+        "Pedir que escriba los tests recién al final, cuando la implementación esté terminada, para que no tenga tests que le estorben mientras trabaja.",
+        "Pedir que cada test tenga al menos cinco asserts, así si edita uno para avanzar todavía quedan otros cuatro verificando el mismo comportamiento."
+      ],
+      "correct": 0,
+      "why_correct": "Para trabajo largo en varias ventanas, la doc recomienda que Claude cree los tests antes de empezar, los siga en un formato estructurado como `tests.json`, y recordarle que es inaceptable sacar o editar tests porque eso puede dejar funcionalidad faltante o con bugs.",
+      "why_wrong": {
+        "1": "Regenerar tests desde el código actual hace que copien los bugs: verifican lo que el código hace, no lo que tiene que hacer.",
+        "2": "Tests escritos al final tienden a describir la implementación y pierden su rol de criterio de \"terminado\".",
+        "3": "Cantidad de asserts no es calidad, y no impide que edite cualquiera de ellos para avanzar."
+      },
+      "rule": "Trabajo largo: tests primero, en formato estructurado, y prohibido editarlos o borrarlos para avanzar.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "It is unacceptable to remove or edit tests because this could lead to missing or buggy functionality.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o15-s03",
+      "objective": 15,
+      "pool": "sim",
+      "scenario": "Un monorepo tiene un backend en Python (`services/api/`, pytest con fixtures de `conftest.py` como `db_vacia` y `usuario_admin`) y un frontend en TypeScript (`web/`, vitest con handlers de MSW en `web/test/handlers.ts`). Para que Claude Code genere tests con las fixtures correctas, metieron las convenciones de testing de ambos stacks en el `CLAUDE.md` raíz, que ya pasa las 400 líneas. Desde entonces Claude mezcla convenciones entre stacks y sigue peor las reglas en general. ¿Qué hacen?",
+      "options": [
+        "Repetir las convenciones de testing en mayúsculas al final del `CLAUDE.md` raíz, para que queden cerca del final del contexto y pesen más.",
+        "Pasar las convenciones a un archivo aparte importado con `@` desde el `CLAUDE.md` raíz, que así deja de ocupar contexto hasta que se usa.",
+        "Borrar las convenciones de testing del repo y pegarlas en cada prompt que pida tests, eligiendo en cada caso las del stack que corresponda.",
+        "Mover cada set a `.claude/rules/` con `paths:` (por ejemplo `services/api/**` y `web/**`), para que cargue solo al trabajar con esos archivos."
+      ],
+      "correct": 3,
+      "why_correct": "La doc apunta a `CLAUDE.md` de menos de 200 líneas: los largos consumen más contexto y bajan la adherencia. Lo que importa solo en una parte del código va a reglas con `paths:`, que se aplican solo cuando Claude trabaja con archivos que coinciden. Así cada stack ve sus propias fixtures.",
+      "why_wrong": {
+        "0": "Repetir en mayúsculas agrega líneas a un archivo que ya es demasiado largo; no ataca la causa.",
+        "1": "La doc aclara que los imports organizan pero no bajan el costo de contexto: se cargan junto con el `CLAUDE.md` que los importa.",
+        "2": "Depende de que cada persona se acuerde en cada prompt, justo lo que el contexto persistente evita."
+      },
+      "rule": "Convenciones de una parte del repo → `.claude/rules/` con `paths:`, no un `CLAUDE.md` raíz gigante.",
+      "source_url": "https://code.claude.com/docs/en/memory",
+      "source_quote": "These conditional rules only apply when Claude is working with files matching the specified patterns.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o15-s04",
+      "objective": 15,
+      "pool": "sim",
+      "scenario": "Un equipo de pagos escribe un `SPEC.md` por feature con una sección de casos borde (monto en cero, moneda no soportada, idempotency key repetida). Claude Code implementa y genera tests, pero en dos features los casos borde listados quedaron sin test y nadie lo notó hasta producción. Quieren un control antes de abrir el PR que no dependa de que el autor se acuerde, y sin llenar los PR de sugerencias de estilo. ¿Qué agregan al flujo?",
+      "options": [
+        "Pedirle a la misma sesión que escribió el código que relea su trabajo y confirme que \"todos los casos borde tienen test\" antes de abrir el PR.",
+        "Un subagente revisor que compare el diff con `SPEC.md`, verifique que cada caso borde listado tenga test y reporte solo gaps de correctitud, sin estilo.",
+        "Subir la meta de cobertura del CI al 95%, así cualquier caso borde sin test hace fallar el pipeline automáticamente antes de mergear.",
+        "Un revisor que busque cualquier problema en los tests nuevos y aplicar todas sus sugerencias, para que los tests queden lo más completos posible."
+      ],
+      "correct": 1,
+      "why_correct": "La doc propone un review contra la spec: chequear que cada requisito esté implementado y que los casos borde listados tengan tests, reportando gaps de correctitud y salteando estilo. Un subagente revisor, además, no vio el razonamiento que produjo el código.",
+      "why_wrong": {
+        "0": "La misma sesión está anclada en su propio razonamiento; la doc destaca el valor de un revisor que no escribió el código.",
+        "2": "La cobertura mide líneas recorridas, no si cada caso borde de la spec está verificado con un assert útil.",
+        "3": "La doc avisa: un revisor al que le pedís problemas siempre encuentra algo, y aplicar todo agrega abstracciones y tests para casos imposibles."
+      },
+      "rule": "Tests que valen = cada caso borde de la spec con su test; revisalo contra la spec, salteando estilo.",
+      "source_url": "https://code.claude.com/docs/en/best-practices",
+      "source_quote": "check every requirement is implemented and the listed edge cases have tests, report gaps that affect correctness and skip style",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o15-s05",
+      "objective": 15,
+      "pool": "sim",
+      "scenario": "En una aseguradora, el `CLAUDE.md` del repo dice en la sección de testing: \"Escribí tests de calidad y usá las fixtures cuando corresponda\". Claude Code sigue generando tests como `assert resultado is not None` y armando pólizas a mano, aunque existe la fixture `poliza_vigente` en `tests/conftest.py`. El equipo quiere que la regla valga para todos, en cada sesión, sin repetirla en los prompts. ¿Cómo reescriben esa sección?",
+      "options": [
+        "\"IMPORTANT: los tests tienen que ser de MUY buena calidad. Usá SIEMPRE las fixtures.\", en mayúsculas y al principio del archivo.",
+        "Moverla a un `CLAUDE.local.md` de cada dev, para que cada uno ajuste el criterio de calidad a los tests que suele escribir en su área.",
+        "\"Cada test verifica un valor o una excepción concretos; no uses `is not None`. Para pólizas usá `poliza_vigente` de `tests/conftest.py`.\"",
+        "\"Escribí tests como lo haría un QA senior con experiencia en seguros\", para que Claude infiera solo qué es un test de calidad acá."
+      ],
+      "correct": 2,
+      "why_correct": "`CLAUDE.md` es contexto, y la doc pide instrucciones lo bastante concretas como para verificarlas (\"Run `npm test` before committing\" en vez de \"Test your changes\"). Nombrar la fixture y qué assert no vale le da a Claude un criterio chequeable, para todo el equipo.",
+      "why_wrong": {
+        "0": "Las mayúsculas no hacen concreta una regla vaga: \"muy buena calidad\" sigue sin decir qué assert vale.",
+        "1": "`CLAUDE.local.md` es personal; la convención es del equipo y tiene que cargarse para todos.",
+        "3": "Un rol no reemplaza el criterio: sigue sin nombrar la fixture ni qué asserts no sirven."
+      },
+      "rule": "Criterio de test en `CLAUDE.md`: concreto y verificable (qué assert vale, qué fixture usar), no \"de calidad\".",
+      "source_url": "https://code.claude.com/docs/en/memory",
+      "source_quote": "Write instructions that are concrete enough to verify",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

@@ -22,8 +22,12 @@
       "rule": "Subtareas que dependen del input → orquestador que las decide en cada caso, no una lista fija de workers.",
       "source_url": "https://www.anthropic.com/engineering/building-effective-agents",
       "source_quote": "the key difference from parallelization is its flexibility—subtasks aren't pre-defined, but determined by the orchestrator based on the specific input.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en building-effective-agents (orchestrator-workers vs parallelization). Única opción con subtareas decididas según el input."
+      }
     },
     {
       "id": "o07-s02",
@@ -46,8 +50,12 @@
       "rule": "Trabajo de muchas ventanas: primera ventana = marco + lista de pendientes en archivos; las demás iteran sobre esa lista.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Use the first context window to set up a framework (write tests, create setup scripts), then use future context windows to iterate on a todo-list.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en prompting best practices (\"Workflows across multiple context windows\"). Escenario distinto de o07-q06 (ahí el TODO ya existe y falta reordenar)."
+      }
     },
     {
       "id": "o07-s03",
@@ -70,8 +78,12 @@
       "rule": "Cada resultado puede cambiar la próxima búsqueda: objetivo + evaluación después de cada tool, no lista cerrada.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "Subagents also plan, then use interleaved thinking after tool results to evaluate quality, identify gaps, and refine their next query.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en multi-agent-research-system. Mismo principio que o07-q05 pero escenario distinto (subagente de research, hallazgo intermedio que cambia las búsquedas)."
+      }
     },
     {
       "id": "o07-s04",
@@ -94,8 +106,12 @@
       "rule": "Investigación abierta: hipótesis en competencia + notas + autocrítica del plan; el plan cambia con cada hallazgo.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "As you gather data, develop several competing hypotheses. Track your confidence levels in your progress notes to improve calibration. Regularly self-critique your approach and plan.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en prompting best practices (sample prompt for complex research). Distractores coherentes."
+      }
     },
     {
       "id": "o07-s05",
@@ -118,8 +134,12 @@
       "rule": "Partes predecibles → cadena fija; parte abierta → descomposición dinámica. Se combinan.",
       "source_url": "https://www.anthropic.com/engineering/building-effective-agents",
       "source_quote": "These building blocks aren't prescriptive. They're common patterns that developers can shape and combine to fit different use cases.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en building-effective-agents (\"Combining and customizing these patterns\"). La combinación cadena fija + paso dinámico es la única que respeta ambas partes."
+      }
     },
     {
       "id": "o07-s06",
@@ -142,8 +162,12 @@
       "rule": "Feedback del entorno en cada paso (build, tests) y el próximo paso se decide con ese resultado.",
       "source_url": "https://www.anthropic.com/engineering/building-effective-agents",
       "source_quote": "During execution, it's crucial for the agents to gain “ground truth” from the environment at each step (such as tool call results or code execution) to assess its progress.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en building-effective-agents (ground truth en cada paso). La restricción de autonomía descarta la aprobación humana."
+      }
     }
   ]
 }

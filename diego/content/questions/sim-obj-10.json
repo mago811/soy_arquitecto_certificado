@@ -22,8 +22,12 @@
       "rule": "Máxima confiabilidad en una misma tarea → votación: varias pasadas en paralelo y se marca si cualquiera encuentra algo.",
       "source_url": "https://www.anthropic.com/engineering/building-effective-agents",
       "source_quote": "Reviewing a piece of code for vulnerabilities, where several different prompts review and flag the code if they find a problem.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en building-effective-agents (Voting: revisión de vulnerabilidades con varios prompts). Sin equivalente en práctica."
+      }
     },
     {
       "id": "o10-s02",
@@ -46,8 +50,12 @@
       "rule": "Subagentes que se pisan o dejan huecos → el coordinador parte el alcance con límites claros para cada uno.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "Without detailed task descriptions, agents duplicate work, leave gaps, or fail to find necessary information.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en multi-agent-research-system (\"Teach the orchestrator how to delegate\": objetivo, formato, fuentes, límites). Distinta de o10-q02 (alcance demasiado angosto)."
+      }
     },
     {
       "id": "o10-s03",
@@ -70,8 +78,12 @@
       "rule": "Inputs de tipos distintos → routing: clasificar y derivar al especialista que corresponde, no pasar por todos.",
       "source_url": "https://www.anthropic.com/engineering/building-effective-agents",
       "source_quote": "Routing classifies an input and directs it to a specialized followup task. This workflow allows for separation of concerns, and building more specialized prompts.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en building-effective-agents (Routing). why_wrong 1 parafrasea \"optimizing for one kind of input can hurt performance on other inputs\"."
+      }
     },
     {
       "id": "o10-s04",
@@ -85,7 +97,7 @@
         "Reemplazar los subagentes por una cadena secuencial donde cada etapa haga una búsqueda y le pase el resultado a la siguiente."
       ],
       "correct": 1,
-      "why_correct": "Hay dos niveles de paralelismo: subagentes en paralelo y tools en paralelo dentro de cada subagente. El primero ya está; falta el segundo. En el sistema de research de Anthropic, esas dos paralelizaciones juntas bajaron mucho el tiempo en consultas complejas. Los modelos actuales ejecutan en paralelo las tool calls independientes.",
+      "why_correct": "Hay dos niveles de paralelismo: subagentes en paralelo y tools en paralelo dentro de cada subagente. El primero ya está; falta el segundo. En el sistema de research de Anthropic, las dos paralelizaciones juntas recortaron hasta un 90% el tiempo en consultas complejas. La guía de prompting agrega que los modelos actuales corren en paralelo las tool calls independientes y que ese comportamiento se puede reforzar desde el prompt.",
       "why_wrong": {
         "0": "Baja el tiempo, pero viola la restricción: recorta cobertura.",
         "2": "`max_tokens` limita el largo de la respuesta; no cambia que las búsquedas se hagan de a una.",
@@ -94,8 +106,12 @@
       "rule": "Latencia con subagentes ya en paralelo → que cada subagente también haga en paralelo sus tool calls independientes.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "(1) the lead agent spins up 3-5 subagents in parallel rather than serially; (2) the subagents use 3+ tools in parallel.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "Cita textual en multi-agent-research-system (\"cut research time by up to 90%\"). La afirmación sobre tool calls paralelas de los modelos no está en esa página: la reescribí atribuyéndola a prompting best practices (\"Optimize parallel tool calling\"), donde sí figura."
+      }
     },
     {
       "id": "o10-s05",
@@ -109,17 +125,21 @@
         "Un orquestador que en cada mensaje decida qué subagentes de evaluación lanzar antes de empezar a generar la respuesta."
       ],
       "correct": 0,
-      "why_correct": "Mezclar guardrail y respuesta en la misma llamada empeora las dos cosas. La paralelización por secciones separa: una instancia responde y otra filtra, cada una con foco propio. Al correr en paralelo, la latencia es la de la más lenta, no la suma.",
+      "why_correct": "Mezclar guardrail y respuesta en la misma llamada rinde peor que separarlos: la doc pone este caso como ejemplo de paralelización por secciones, donde una instancia procesa la consulta y otra la filtra, cada una con foco propio. Como las dos llamadas corren a la vez, el chequeo no se encadena delante de la respuesta (la entregás cuando el chequeo da OK), y eso respeta la restricción de latencia.",
       "why_wrong": {
-        "1": "Separa bien las tareas, pero en secuencia suma la latencia de las dos llamadas, y eso viola la restricción.",
+        "1": "Separa bien las tareas, pero pone una llamada entera esperando delante de la otra antes de responder, y eso choca con la restricción de latencia.",
         "2": "Sigue siendo una sola llamada con dos responsabilidades; resaltar la instrucción no le da foco separado.",
         "3": "Agrega una decisión dinámica innecesaria (el chequeo es siempre el mismo) y suma latencia antes de responder."
       },
       "rule": "Guardrail + respuesta → dos llamadas en paralelo, no una que haga las dos cosas.",
       "source_url": "https://www.anthropic.com/engineering/building-effective-agents",
       "source_quote": "This tends to perform better than having the same LLM call handle both guardrails and the core response.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "Cita textual en building-effective-agents (Sectioning: guardrails). La página no habla de latencia de llamadas paralelas: saqué \"la latencia es la de la más lenta, no la suma\" como dato y lo dejé como razonamiento de diseño (corren a la vez; la respuesta se entrega cuando el chequeo da OK). Ajusté why_wrong 1 en el mismo sentido."
+      }
     },
     {
       "id": "o10-s06",
@@ -142,8 +162,12 @@
       "rule": "Errores en multi-agente → reintentos + checkpoints + avisarle al agente para que se adapte; nunca reiniciar todo.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "We combine the adaptability of AI agents built on Claude with deterministic safeguards like retry logic and regular checkpoints.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en multi-agent-research-system; \"Agents are stateful and errors compound\" y \"letting the agent know when a tool is failing\" también están en la página."
+      }
     }
   ]
 }

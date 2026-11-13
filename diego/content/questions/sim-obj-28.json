@@ -1,0 +1,101 @@
+{
+  "objective": 28,
+  "questions": [
+    {
+      "id": "o28-s01",
+      "objective": 28,
+      "pool": "sim",
+      "scenario": "Una empresa de software contable revisa cada PR con Claude Opus 5.5 por la Messages API sincrónica: una sola llamada con el diff completo que devuelve los hallazgos como JSON. En PRs grandes la respuesta se corta con `stop_reason: \"max_tokens\"`, aunque ya usan `max_tokens: 128000`. Un dev agregó el header `output-300k-2026-03-24` al request sincrónico y el problema sigue. El review tiene que aparecer en el PR en pocos minutos. ¿Qué pasa y qué hacen?",
+      "options": [
+        "El header necesita además `max_tokens: 300000` en el mismo request sincrónico; con ese valor el JSON de los PRs grandes va a entrar completo.",
+        "Pasan el review a la Message Batches API con el header de 300K, que da salida de sobra, y publican el resultado en el PR cuando termine el batch.",
+        "Ese header es solo para Message Batches; en la API sincrónica el techo es 128K. Como el output crece con el PR, parten por archivo y unen en código.",
+        "Desactivan el thinking con `thinking: {type: \"disabled\"}` para liberar los tokens de razonamiento y que todo el JSON entre en los 128K."
+      ],
+      "correct": 2,
+      "why_correct": "La doc dice que la salida extendida (300K) existe solo en la Message Batches API, no en la sincrónica, donde el techo de salida es 128K. Ya están en ese techo y el output crece con el tamaño del PR, así que subir no alcanza: llamadas por archivo con el mismo schema y merge en código lo resuelven para cualquier tamaño.",
+      "why_wrong": {
+        "0": "La doc aclara que el output extendido no está disponible en la API sincrónica: el header no cambia su techo de 128K.",
+        "1": "Una generación de 300K en Batches puede tardar más de una hora (con ventana de 24 h); no sirve para un review que tiene que estar en minutos.",
+        "3": "En Opus 5.5 el thinking no se puede apagar: la API rechaza `thinking: {type: \"disabled\"}`."
+      },
+      "rule": "Techo sincrónico = 128K. Si la salida crece con la entrada y ya tocaste el techo → partir y mergear en código.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "source_quote": "Extended output is available on the Message Batches API only, not the synchronous Messages API.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o28-s02",
+      "objective": 28,
+      "pool": "sim",
+      "scenario": "Un agente de auditoría de un hospital usa una tool `registrar_hallazgos` cuyo input es un array con los hallazgos de un único módulo (nunca más de unos 40, alrededor de 3.000 tokens). Con `max_tokens: 2048`, algunas respuestas vuelven con `stop_reason: \"max_tokens\"` y un bloque `tool_use` cortado; el código ejecuta igual la tool con lo que llegó y se pierden hallazgos sin aviso. ¿Cuál es el fix?",
+      "options": [
+        "Chequear `stop_reason` antes de ejecutar: si es `max_tokens` con un `tool_use` incompleto, reintentar con un `max_tokens` más alto, que acá alcanza con margen.",
+        "Partir cada módulo en llamadas de a 5 hallazgos y unir los arrays en código, porque subir `max_tokens` nunca es una solución válida al truncamiento.",
+        "Ejecutar igual la tool con el input parcial y pedirle después al modelo, en otro turno, que mande los hallazgos que faltaron en la primera llamada.",
+        "Pasar a `tool_choice: {\"type\": \"any\"}` para forzar que el modelo complete siempre el `tool_use` antes de que la respuesta se corte por tokens."
+      ],
+      "correct": 0,
+      "why_correct": "La doc dice que si la respuesta se cortó por `max_tokens` y trae un bloque de tool use incompleto, hay que reintentar con un `max_tokens` más alto para obtener el tool use completo. Acá la salida está acotada (un módulo, ~3.000 tokens) y lejísimos del techo, así que subir es el remedio correcto; partir sería sobre-ingeniería.",
+      "why_wrong": {
+        "1": "Partir es para cuando la salida crece con la entrada o toca el techo. Con un output chico y acotado, la doc recomienda primero subir `max_tokens`.",
+        "2": "Ejecutar con input incompleto registra datos cortados, y el modelo no sabe qué parte llegó y qué parte no.",
+        "3": "`tool_choice` decide si usa una tool, no evita que la respuesta se corte al llegar a `max_tokens`."
+      },
+      "rule": "Salida acotada y lejos del techo → subí `max_tokens`. Partir es para cuando crece con la entrada o toca el techo.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
+      "source_quote": "you’ll need to retry the request with a higher `max_tokens` value to get the full tool use.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o28-s03",
+      "objective": 28,
+      "pool": "sim",
+      "scenario": "Una consultora de seguridad audita repos de clientes con Claude Opus 5.5 en la API sincrónica: una llamada por repo que devuelve un JSON con un hallazgo por endpoint. En repos de más de 800 endpoints vuelve `stop_reason: \"max_tokens\"`, aunque `max_tokens` ya está en 128000. El JSON esperado para esos repos ronda los 110K tokens, y el modelo además razona antes de responder. Cada cliente nuevo trae repos más grandes. ¿Qué hacen?",
+      "options": [
+        "Poner `max_tokens: 250000` en la llamada sincrónica, porque los tokens de thinking no cuentan para ese límite y así queda margen para el JSON.",
+        "Agregar \"no razones, respondé directo\" al prompt, así el thinking deja de comerse el presupuesto de salida y el JSON de 110K entra completo.",
+        "Desactivar el thinking con `thinking: {type: \"disabled\"}` en esas llamadas, que según la doc es la forma de liberar todo el presupuesto.",
+        "Partir la auditoría por módulos o grupos de endpoints, cada llamada con salida bien por debajo del techo, y unir los arrays en código."
+      ],
+      "correct": 3,
+      "why_correct": "El thinking cuenta para `max_tokens` junto con la respuesta, y el techo sincrónico de Opus 5.5 es 128K: 110K de JSON más el razonamiento no entran, y el JSON crece con cada repo. La salida es partir en llamadas más chicas con el mismo schema y mergear en código.",
+      "why_wrong": {
+        "0": "Doble error: el thinking sí cuenta para `max_tokens`, y la salida máxima sincrónica de Opus 5.5 es 128K.",
+        "1": "Aunque bajara el razonamiento, el JSON solo ya ronda 110K y crece con cada cliente: el corte vuelve con el próximo repo grande.",
+        "2": "En Opus 5.5 el thinking no se puede apagar: la API rechaza `thinking: {type: \"disabled\"}`."
+      },
+      "rule": "Thinking + JSON comparten `max_tokens`; si juntos tocan el techo y crecen con la entrada → partir.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
+      "source_quote": "and they count toward `max_tokens` alongside the response text.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o28-s04",
+      "objective": 28,
+      "pool": "sim",
+      "scenario": "Un banco corre de noche una auditoría de cumplimiento sobre 2.000 archivos de su core. Hoy manda todo en un único request a la Message Batches API con el header `output-300k-2026-03-24` y pide un JSON con todos los hallazgos. Funcionó meses, pero el repo creció y ahora el resultado vuelve con `stop_reason: \"max_tokens\"`. No necesitan el resultado antes de la mañana siguiente. ¿Qué cambian?",
+      "options": [
+        "Mover el request único a la Messages API sincrónica con `max_tokens: 600000`, ya que de noche no compite con el tráfico del día.",
+        "Mandar un request por archivo o módulo dentro del mismo batch, cada uno con un `custom_id` significativo, y unir los hallazgos en código por `custom_id`.",
+        "Pedirle al modelo que devuelva solo los 50 hallazgos más graves del repo, para que el JSON entre siempre dentro de los 300K del header extendido.",
+        "Usar un modelo con ventana de contexto de 1M tokens, porque el problema es que los 2.000 archivos ya no entran completos en el contexto."
+      ],
+      "correct": 1,
+      "why_correct": "La salida crece con el repo, así que hasta 300K se queda corto: hay que partir. En Batches cada request lleva su `custom_id`, y como los resultados pueden volver en cualquier orden, la doc pide `custom_id` significativos para matchearlos. El merge y la deduplicación se hacen en código.",
+      "why_wrong": {
+        "0": "La API sincrónica tiene un techo de salida de 128K; un `max_tokens` de 600K no es posible ahí.",
+        "2": "Recortar a 50 pierde hallazgos de cumplimiento, y el problema vuelve cuando crezcan los graves.",
+        "3": "El síntoma es `max_tokens` (salida), no contexto: una ventana de contexto más grande no sube el límite de salida."
+      },
+      "rule": "Batch con salida que crece → un request por unidad, `custom_id` significativo y merge en código.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "source_quote": "Use meaningful `custom_id` values to easily match results with requests, because order is not guaranteed.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}
