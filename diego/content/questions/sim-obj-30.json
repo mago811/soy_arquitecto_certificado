@@ -32,7 +32,7 @@
       "scenario": "Un equipo con el servicio Code Review y la rama default protegida guarda sus reglas para bajar falsos positivos (no reportar `src/gen/`, no reportar lo que ya chequea el linter) en `docs/review-rules.md`, y las incluyó en el `REVIEW.md` raíz con la línea `@docs/review-rules.md`. Las instrucciones escritas directamente en `REVIEW.md` se aplican, pero las de ese archivo no. ¿Qué cambian?",
       "options": [
         "Convertir la línea en un link Markdown `[reglas](docs/review-rules.md)`, que Code Review sigue para cargar el contenido del archivo enlazado.",
-        "Mover `review-rules.md` a la raíz del repo, al lado de `REVIEW.md`, y dejar la línea como `@review-rules.md`: una ruta a subcarpeta no se incluye.",
+        "Mover `review-rules.md` a la raíz, al lado de `REVIEW.md`, y dejar `@review-rules.md`: una ruta a subcarpeta no se incluye.",
         "Agregar un `REVIEW.md` en `docs/` con su propia línea `@review-rules.md`, para que el include se resuelva desde esa misma carpeta.",
         "Mover las reglas a una skill personal en `~/.claude/skills/`, que Code Review sí carga desde cualquier ruta si el `REVIEW.md` la incluye."
       ],
@@ -81,7 +81,7 @@
       "options": [
         "Agregar \"IMPORTANT\" a la regla de ledger para que gane siempre sobre la del `CLAUDE.md` raíz cuando las dos se cargan en la misma sesión.",
         "Correr `/code-review` con effort `max` sobre ledger, para que el review razone más y deduzca solo cuál de las dos reglas tiene que aplicar.",
-        "Sacar la contradicción: acotar la regla raíz (\"excepto `services/ledger/`, que usa `Result<T, E>`\") y revisar los archivos con `/doctor prompt-audit`.",
+        "Sacar la contradicción: acotar la regla raíz (\"salvo `services/ledger/`, que usa `Result<T, E>`\") y auditar con `/doctor prompt-audit`.",
         "Mover la regla de ledger a un `REVIEW.md` dentro de `services/ledger/`, que `/code-review` aplica con más prioridad que cualquier `CLAUDE.md`."
       ],
       "correct": 2,

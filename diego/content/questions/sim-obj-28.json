@@ -9,7 +9,7 @@
       "options": [
         "El header necesita además `max_tokens: 300000` en el mismo request sincrónico; con ese valor el JSON de los PRs grandes va a entrar completo.",
         "Pasan el review a la Message Batches API con el header de 300K, que da salida de sobra, y publican el resultado en el PR cuando termine el batch.",
-        "Ese header es solo para Message Batches; en la API sincrónica el techo es 128K. Como el output crece con el PR, parten por archivo y unen en código.",
+        "Ese header es solo de Message Batches; en la API sincrónica el techo es 128K. El output crece con el PR: parten por archivo y unen en código.",
         "Desactivan el thinking con `thinking: {type: \"disabled\"}` para liberar los tokens de razonamiento y que todo el JSON entre en los 128K."
       ],
       "correct": 2,
@@ -31,7 +31,7 @@
       "pool": "sim",
       "scenario": "Un agente de auditoría de un hospital usa una tool `registrar_hallazgos` cuyo input es un array con los hallazgos de un único módulo (nunca más de unos 40, alrededor de 3.000 tokens). Con `max_tokens: 2048`, algunas respuestas vuelven con `stop_reason: \"max_tokens\"` y un bloque `tool_use` cortado; el código ejecuta igual la tool con lo que llegó y se pierden hallazgos sin aviso. ¿Cuál es el fix?",
       "options": [
-        "Chequear `stop_reason` antes de ejecutar: si es `max_tokens` con un `tool_use` incompleto, reintentar con un `max_tokens` más alto, que acá alcanza con margen.",
+        "Mirar `stop_reason` antes de ejecutar: si es `max_tokens` con un `tool_use` incompleto, reintentar con un `max_tokens` más alto.",
         "Partir cada módulo en llamadas de a 5 hallazgos y unir los arrays en código, porque subir `max_tokens` nunca es una solución válida al truncamiento.",
         "Ejecutar igual la tool con el input parcial y pedirle después al modelo, en otro turno, que mande los hallazgos que faltaron en la primera llamada.",
         "Pasar a `tool_choice: {\"type\": \"any\"}` para forzar que el modelo complete siempre el `tool_use` antes de que la respuesta se corte por tokens."
@@ -80,7 +80,7 @@
       "scenario": "Un banco corre de noche una auditoría de cumplimiento sobre 2.000 archivos de su core. Hoy manda todo en un único request a la Message Batches API con el header `output-300k-2026-03-24` y pide un JSON con todos los hallazgos. Funcionó meses, pero el repo creció y ahora el resultado vuelve con `stop_reason: \"max_tokens\"`. No necesitan el resultado antes de la mañana siguiente. ¿Qué cambian?",
       "options": [
         "Mover el request único a la Messages API sincrónica con `max_tokens: 600000`, ya que de noche no compite con el tráfico del día.",
-        "Mandar un request por archivo o módulo dentro del mismo batch, cada uno con un `custom_id` significativo, y unir los hallazgos en código por `custom_id`.",
+        "Mandar un request por archivo o módulo en el mismo batch, cada uno con un `custom_id` significativo, y unir los hallazgos en código.",
         "Pedirle al modelo que devuelva solo los 50 hallazgos más graves del repo, para que el JSON entre siempre dentro de los 300K del header extendido.",
         "Usar un modelo con ventana de contexto de 1M tokens, porque el problema es que los 2.000 archivos ya no entran completos en el contexto."
       ],

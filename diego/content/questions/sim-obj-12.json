@@ -8,7 +8,7 @@
       "scenario": "Una empresa de logística usa Claude Code para escribir `formatear_etiqueta()`, que convierte filas de un CSV de envíos al formato que exige el transportista. Diego corrió el script de diff contra `fixtures/etiquetas_esperadas.json` y encontró 5 diferencias: peso en gramos en vez de kg, peso redondeado a 1 decimal en vez de 2, código postal sin ceros a la izquierda, fecha en `mm/dd` y nombre cortado a 30 caracteres. Las dos primeras están ligadas: el redondeo depende de la unidad. Quiere cerrar todo en la menor cantidad de vueltas. ¿Qué le manda a Claude?",
       "options": [
         "Una diferencia por mensaje, empezando por la más grave, para que cada arreglo quede aislado y sea fácil ver qué rompió cada cambio.",
-        "Un solo mensaje con las 5 diferencias (entrada, salida actual y esperada), aclarando que peso y redondeo van juntos, y el comando del diff para iterar.",
+        "Un solo mensaje con las 5 diferencias (entrada, salida actual y esperada), avisando que peso y redondeo van juntos, y el comando del diff.",
         "\"Hay varios errores en el formateador, revisalo con cuidado y pensá paso a paso\", y subir el effort a `max` para que los encuentre solo.",
         "Pedirle que reescriba `formatear_etiqueta()` desde cero con otra librería de CSV, porque cinco errores juntos indican un problema de diseño."
       ],
@@ -55,7 +55,7 @@
       "pool": "sim",
       "scenario": "Una consultora genera por API informes de mercado de 12 secciones a partir de planillas de datos. Los analistas encuentran contradicciones: el resumen ejecutivo dice que la cuota de mercado subió 4 puntos y la tabla de la sección 7 muestra 2,5. Hoy un analista lee cada informe completo antes de publicar y no da abasto. Quieren que el propio pipeline detecte y corrija esas inconsistencias antes de la revisión humana. ¿Qué agregan?",
       "options": [
-        "Una llamada de seguimiento que reciba el borrador y los datos, verifique cada afirmación contra ellos y contra las demás secciones, y devuelva lo corregido.",
+        "Una llamada siguiente que tome el borrador y los datos, verifique cada afirmación contra ellos y entre secciones, y lo corrija.",
         "Una instrucción en el prompt original: \"IMPORTANT: sé consistente entre secciones\", repetida al principio y al final para que pese más.",
         "Generar cada informe cinco veces con el mismo prompt y publicar el más largo, que suele traer más datos y cubrir mejor todas las secciones.",
         "Bajar el informe a 6 secciones para que el modelo tenga menos texto que mantener coherente dentro de una sola respuesta."
@@ -81,7 +81,7 @@
       "options": [
         "\"Arreglá el bug de los recordatorios duplicados. Sé exhaustivo y revisá todo el módulo antes de tocar nada, que es un tema delicado.\"",
         "\"Revisá todo el repo buscando cualquier cosa que pueda mandar recordatorios dos veces y arreglá todo lo que encuentres en el camino.\"",
-        "\"Tras el cambio de horario, algunos recordatorios salen dos veces. Mirá `src/reminders/`, escribí un test que falle reproduciéndolo y después arreglalo.\"",
+        "\"Tras el cambio de horario hay recordatorios dobles. Mirá `src/reminders/`, escribí un test que falle que lo reproduzca y arreglalo.\"",
         "\"Reescribí el scheduler de recordatorios con otra librería de fechas, porque los problemas de horario de verano son difíciles de parchear.\""
       ],
       "correct": 2,

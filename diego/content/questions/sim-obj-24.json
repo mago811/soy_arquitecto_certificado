@@ -10,7 +10,7 @@
         "Sacar los ejemplos de la pasada de seguridad y dejar solo la instrucción \"buscá vulnerabilidades\", porque los ejemplos confunden al modelo.",
         "Agregar al final del prompt \"IMPORTANT: no reportes nada de los ejemplos\", en mayúsculas, sin cambiar la forma en que están armados.",
         "Mover los ejemplos a la pasada de lógica de negocio, que corre menos riesgo de confundirlos con código real, y dejar seguridad sin ellos.",
-        "Envolver cada ejemplo en `<example>` (todos dentro de `<examples>`) y el diff en su propio tag, para separar ejemplos, instrucciones y entrada."
+        "Envolver cada ejemplo en `<example>` (todos dentro de `<examples>`) y el diff en su propio tag, separándolos de las instrucciones."
       ],
       "correct": 3,
       "why_correct": "La doc pide ejemplos estructurados: envueltos en `<example>` / `<examples>` para que Claude los distinga de las instrucciones, y un tag propio para cada tipo de contenido (instrucciones, contexto, input). Así la pasada conserva su few-shot de seguridad sin confundirlo con el PR.",
@@ -57,7 +57,7 @@
       "options": [
         "Juntar los tres en un único subagente `reviewer` con un system prompt que cubra los tres temas, así Claude no tiene que elegir entre ellos.",
         "Renombrar los archivos con números (`1-security.md`, `2-business.md`, `3-api.md`) para que Claude los considere en ese orden de prioridad.",
-        "Escribir una `description` clara y distinta para cada uno, que diga cuándo usarlo (por ejemplo, \"cambios en auth, permisos o datos sensibles\").",
+        "Escribir una `description` clara y distinta para cada uno, que diga cuándo usarlo (por ejemplo, \"cambios en auth o permisos\").",
         "Quitarle herramientas a `api-reviewer` y dejarle solo `Read`, para que Claude lo vea menos capaz y prefiera delegar en los otros dos."
       ],
       "correct": 2,
@@ -80,7 +80,7 @@
       "scenario": "Un marketplace corre en cada PR tres pasadas de review por API con Claude Opus 5 (seguridad, negocio y diseño de API), cada una con sus ejemplos, todas en effort `max`. Funcionan bien, pero tardan 9 minutos y frenan los merges. Un arquitecto propone volver a un solo prompt con los tres temas \"para que sea más rápido\". Quieren bajar la latencia sin perder la separación por tema. ¿Qué hacen, según la doc de Opus 5?",
       "options": [
         "Volver al prompt único con los tres temas en effort `max`, porque una sola llamada siempre tarda menos que tres llamadas en paralelo.",
-        "Mantener las tres pasadas, correrlas con un effort más bajo en el PR y dejar una pasada más exhaustiva para después, ya que la precisión se sostiene.",
+        "Mantener las tres pasadas con un effort más bajo en el PR y dejar una pasada más exhaustiva para después: la precisión se sostiene.",
         "Agregar a las tres pasadas \"sé conservador y reportá solo lo de severidad alta\", para que generen menos hallazgos y terminen antes.",
         "Sacar los ejemplos few-shot de las tres pasadas para achicar los prompts, que es lo que más tiempo le agrega a cada llamada del review."
       ],

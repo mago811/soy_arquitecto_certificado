@@ -31,7 +31,7 @@
       "pool": "sim",
       "scenario": "Una startup deja a Claude trabajando por API, a lo largo de varias ventanas de contexto, en la reescritura de su motor de reglas de precios. Le pidieron armar primero los tests y después implementar. Revisando el historial de git ven que, en dos ventanas, Claude editó asserts que fallaban para poder avanzar, y los tests \"en verde\" ya no prueban lo que pedía producto. Quieren mantener el enfoque de tests primero. ¿Qué cambian en el prompt?",
       "options": [
-        "Pedir que registre los tests en un formato estructurado (por ejemplo `tests.json`) y aclarar que es inaceptable borrar o editar tests, porque deja funcionalidad rota.",
+        "Llevar los tests en un formato estructurado (por ejemplo `tests.json`) y aclarar que es inaceptable borrar o editar tests para avanzar.",
         "Pedir que, al empezar cada ventana nueva, vuelva a generar todos los tests desde cero a partir del código actual, así reflejan siempre el último estado.",
         "Pedir que escriba los tests recién al final, cuando la implementación esté terminada, para que no tenga tests que le estorben mientras trabaja.",
         "Pedir que cada test tenga al menos cinco asserts, así si edita uno para avanzar todavía quedan otros cuatro verificando el mismo comportamiento."
@@ -58,7 +58,7 @@
         "Repetir las convenciones de testing en mayúsculas al final del `CLAUDE.md` raíz, para que queden cerca del final del contexto y pesen más.",
         "Pasar las convenciones a un archivo aparte importado con `@` desde el `CLAUDE.md` raíz, que así deja de ocupar contexto hasta que se usa.",
         "Borrar las convenciones de testing del repo y pegarlas en cada prompt que pida tests, eligiendo en cada caso las del stack que corresponda.",
-        "Mover cada set a `.claude/rules/` con `paths:` (por ejemplo `services/api/**` y `web/**`), para que cargue solo al trabajar con esos archivos."
+        "Mover cada set a `.claude/rules/` con `paths:` (por ejemplo `services/api/**` y `web/**`), así carga solo al tocar esos archivos."
       ],
       "correct": 3,
       "why_correct": "La doc apunta a `CLAUDE.md` de menos de 200 líneas: los largos consumen más contexto y bajan la adherencia. Lo que importa solo en una parte del código va a reglas con `paths:`, que se aplican solo cuando Claude trabaja con archivos que coinciden. Así cada stack ve sus propias fixtures.",
@@ -80,7 +80,7 @@
       "scenario": "Un equipo de pagos escribe un `SPEC.md` por feature con una sección de casos borde (monto en cero, moneda no soportada, idempotency key repetida). Claude Code implementa y genera tests, pero en dos features los casos borde listados quedaron sin test y nadie lo notó hasta producción. Quieren un control antes de abrir el PR que no dependa de que el autor se acuerde, y sin llenar los PR de sugerencias de estilo. ¿Qué agregan al flujo?",
       "options": [
         "Pedirle a la misma sesión que escribió el código que relea su trabajo y confirme que \"todos los casos borde tienen test\" antes de abrir el PR.",
-        "Un subagente revisor que compare el diff con `SPEC.md`, verifique que cada caso borde listado tenga test y reporte solo gaps de correctitud, sin estilo.",
+        "Un subagente revisor que compare el diff con `SPEC.md`, chequee que cada caso borde listado tenga test y reporte solo gaps de correctitud.",
         "Subir la meta de cobertura del CI al 95%, así cualquier caso borde sin test hace fallar el pipeline automáticamente antes de mergear.",
         "Un revisor que busque cualquier problema en los tests nuevos y aplicar todas sus sugerencias, para que los tests queden lo más completos posible."
       ],
@@ -105,7 +105,7 @@
       "options": [
         "\"IMPORTANT: los tests tienen que ser de MUY buena calidad. Usá SIEMPRE las fixtures.\", en mayúsculas y al principio del archivo.",
         "Moverla a un `CLAUDE.local.md` de cada dev, para que cada uno ajuste el criterio de calidad a los tests que suele escribir en su área.",
-        "\"Cada test verifica un valor o una excepción concretos; no uses `is not None`. Para pólizas usá `poliza_vigente` de `tests/conftest.py`.\"",
+        "\"Cada test verifica un valor o una excepción concretos, nunca `is not None`. Pólizas: usá `poliza_vigente` de `tests/conftest.py`.\"",
         "\"Escribí tests como lo haría un QA senior con experiencia en seguros\", para que Claude infiera solo qué es un test de calidad acá."
       ],
       "correct": 2,

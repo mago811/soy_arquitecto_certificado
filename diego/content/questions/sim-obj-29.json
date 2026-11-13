@@ -34,7 +34,7 @@
         "Sacar los 35 campos de `required`, dejándolos como opcionales no nullables, que según la doc no tienen límite y logran el mismo efecto.",
         "Volver todos los campos a `string` requerido sin null y pedir en el prompt que escriba \"N/A\" cuando un dato no aparezca en la denuncia.",
         "Pasar la mitad de los campos a una tool estricta en el mismo request, así el schema de salida y la tool quedan cada uno debajo del límite.",
-        "Dejar nullables solo los campos que de verdad pueden faltar, sin pasar de 16 con tipo unión, y los que siempre vienen, requeridos no nullables."
+        "Dejar nullables solo los campos que de verdad pueden faltar (no más de 16 con tipo unión) y los que siempre vienen, requeridos."
       ],
       "correct": 3,
       "why_correct": "La doc limita a 16 los parámetros con tipos unión (por ejemplo `[\"string\", \"null\"]`), sumando todos los schemas estrictos del request. Nullable va donde el dato puede faltar; los campos que el formulario siempre trae pueden ser requeridos y no nullables. Se mantiene la protección contra datos inventados donde importa.",
@@ -56,7 +56,7 @@
       "scenario": "Un fondo de inversión extrae covenants financieros (ratio de deuda máximo, fecha de test, consecuencia del incumplimiento) de contratos de préstamo de 150 páginas, con structured outputs y campos nullables. La auditoría encontró valores plausibles que no aparecen en el contrato: un ratio de 3,5x cuando el documento dice 4,0x en otra cláusula. Con contratos cortos no pasa. ¿Qué agregan al proceso?",
       "options": [
         "Poner el contrato al final del prompt, después de las instrucciones y el schema, para que sea lo último que el modelo lee antes de extraer.",
-        "Pedirle que primero extraiga citas textuales de las cláusulas relevantes y que complete cada campo solo a partir de esas citas, con `null` si no hay.",
+        "Pedirle que primero extraiga citas textuales de las cláusulas relevantes y complete cada campo solo desde esas citas, o `null`.",
         "Agregar `\"minimum\": 1` y `\"maximum\": 10` al campo del ratio en el schema, para que no pueda devolver valores fuera de un rango razonable.",
         "Pedir el JSON tres veces con el mismo prompt y quedarse con el valor que aparezca en la mayoría, sin cambiar el prompt de extracción."
       ],

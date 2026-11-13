@@ -81,7 +81,7 @@
       "options": [
         "\"Be conservative: report only high-severity findings\", para que deje de comentar los tests y se concentre solo en lo importante de producción.",
         "\"Review everything carefully, especially tenant isolation\", en la primera línea del archivo, para que lo tenga presente en cada PR del repo.",
-        "En \"Always check\": queries filtradas por el tenant del caller; en \"Do not report\": código solo de tests que viola a propósito reglas de producción.",
+        "En \"Always check\": queries filtradas por el tenant del caller; en \"Do not report\": código de tests que viola reglas a propósito.",
         "Excluir del review la carpeta `tests/` completa y agregar al `CLAUDE.md` raíz \"IMPORTANT: revisá el filtro por tenant en producción\"."
       ],
       "correct": 2,
