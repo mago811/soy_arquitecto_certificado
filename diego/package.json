@@ -8,6 +8,7 @@
     "start": "next start",
     "validate": "tsx scripts/validate.ts",
     "report": "tsx scripts/report.ts",
+    "build-sims": "tsx scripts/build-sims.ts",
     "generate": "tsx scripts/generate.ts",
     "verify": "tsx scripts/verify.ts",
     "db:init": "tsx scripts/db-init.ts"
