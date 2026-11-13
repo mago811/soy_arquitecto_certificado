@@ -1,0 +1,245 @@
+{
+  "objective": 34,
+  "questions": [
+    {
+      "id": "o34-q01",
+      "objective": 34,
+      "pool": "practice",
+      "scenario": "Un agente responde preguntas que cruzan tres servidores MCP (CRM, facturación y depósito). Cada server solo expone tools como `list_tables`, `describe_table` y `run_query`. En cada corrida el agente hace cinco o seis llamadas de exploración antes de la primera consulta útil. ¿Qué cambio de diseño ataca la causa?",
+      "options": [
+        "Agregar una tool `list_everything` en cada server que devuelva de una vez todas las tablas y columnas disponibles.",
+        "Subir el límite de turnos del agente para que le alcance el margen para explorar y después consultar sin cortarse.",
+        "Exponer los schemas de cada sistema como resources MCP, para que la aplicación los dé como contexto sin exploración.",
+        "Forzar con `tool_choice` que la primera llamada de cada corrida sea siempre `run_query` sobre la tabla principal."
+      ],
+      "correct": 2,
+      "why_correct": "Los schemas son datos pasivos, de solo lectura, para dar contexto: eso es exactamente un resource en MCP. Como los resources los maneja la aplicación, el agente puede tener el catálogo a la vista sin gastar tool calls tanteando.",
+      "why_wrong": {
+        "0": "Sigue siendo una tool exploratoria que el modelo tiene que decidir llamar en cada corrida; solo junta varias llamadas en una.",
+        "1": "Más turnos no reduce la exploración; solo la permite. El costo y la latencia siguen igual o peor.",
+        "3": "Forzar `run_query` sin conocer el schema empuja al modelo a adivinar tablas y columnas."
+      },
+      "rule": "Catálogos y schemas para orientarse → resources, no tools exploratorias.",
+      "source_url": "https://modelcontextprotocol.io/docs/learn/server-concepts",
+      "source_quote": "Passive data sources that provide read-only access to information for context, such as file contents, database schemas, or API documentation.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o34-q02",
+      "objective": 34,
+      "pool": "practice",
+      "scenario": "Un equipo diseña un servidor MCP de facturación. En la revisión aparece este plan: `send_invoice` (envía una factura por mail al cliente) como resource con URI `billing://send/{invoice_id}`, y el listado de planes de precios como tool `get_pricing_plans`. ¿Qué corregís?",
+      "options": [
+        "`send_invoice` tiene que ser tool, porque es una acción con efectos; los planes de precios encajan como resource.",
+        "Está bien así: la URI con template deja que el cliente dispare el envío leyendo el resource cuando lo necesite.",
+        "Las dos tienen que ser prompts, porque el usuario es quien decide cuándo mandar facturas y cuándo ver precios.",
+        "Las dos tienen que ser tools, porque los resources solo sirven para archivos locales con esquema `file://`."
+      ],
+      "correct": 0,
+      "why_correct": "Una tool es una función que hace algo (puede escribir, llamar APIs, mandar mensajes) y la decide el modelo. Un resource es de solo lectura, para contexto. Enviar una factura es una acción; el listado de planes es dato de referencia.",
+      "why_wrong": {
+        "1": "Un resource es acceso de solo lectura a información. Usar un \"read\" para disparar un envío rompe el modelo de MCP.",
+        "2": "Los prompts son plantillas de instrucciones que invoca el usuario, no acciones ni datos.",
+        "3": "Los resources pueden venir de archivos, APIs, bases o cualquier fuente, y admiten esquemas propios; no se limitan a `file://`."
+      },
+      "rule": "Acción con efectos → tool. Dato de solo lectura para contexto → resource.",
+      "source_url": "https://modelcontextprotocol.io/docs/learn/server-concepts",
+      "source_quote": "Functions that your LLM can actively call, and decides when to use them based on user requests. Tools can write to databases, call external APIs, modify files, or trigger other logic.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o34-q03",
+      "objective": 34,
+      "pool": "practice",
+      "scenario": "Una dev tiene conectado en Claude Code un server MCP llamado `docs` que expone la documentación interna como resources. Quiere que Claude use la página de autenticación como contexto para revisar un endpoint, sin que tenga que buscarla. ¿Cómo lo hace?",
+      "options": [
+        "Correr `/mcp` y elegir el resource desde el menú del server para que quede cargado en todas las sesiones futuras.",
+        "Pedirle a Claude \"buscá en el server docs la página de autenticación\" y esperar a que llame la tool de búsqueda.",
+        "Copiar la URI del resource en el `CLAUDE.md` del proyecto para que se cargue al principio de cada conversación.",
+        "Referenciarla en el prompt con una @-mention del tipo `@docs:file://api/authentication` para adjuntarla."
+      ],
+      "correct": 3,
+      "why_correct": "En Claude Code los resources MCP se referencian con @-mentions, con el formato `@server:protocol://resource/path`. Al referenciarlo, Claude Code lo trae y lo incluye como adjunto.",
+      "why_wrong": {
+        "0": "`/mcp` sirve para ver el estado de los servers y administrarlos; no adjunta resources a la conversación.",
+        "1": "Eso es justo la búsqueda exploratoria que se quiere evitar: depende de que el modelo decida llamar una tool.",
+        "2": "Poner una URI en CLAUDE.md no hace que Claude Code traiga el contenido del resource; solo agrega ese texto como instrucción."
+      },
+      "rule": "Claude Code: resource MCP = @server:protocolo://ruta en el prompt.",
+      "source_url": "https://code.claude.com/docs/en/mcp",
+      "source_quote": "Use the format `@server:protocol://resource/path` to reference a resource",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o34-q04",
+      "objective": 34,
+      "pool": "practice",
+      "scenario": "Un equipo quiere que su server MCP ofrezca un flujo \"revisión de PR con nuestro checklist\" que el desarrollador dispara a mano cuando quiere, pasándole el número de PR. No quieren que Claude lo ejecute por su cuenta. ¿Qué primitiva de MCP corresponde?",
+      "options": [
+        "Un resource template con URI `review://pr/{number}` que Claude lea por su cuenta cuando detecte un PR abierto.",
+        "Un prompt de MCP con un argumento para el número de PR; en Claude Code aparece como comando `/server:prompt`.",
+        "Una tool `review_pr` con una descripción que diga \"usar solo cuando el usuario lo pida explícitamente\".",
+        "Un resource estático con el checklist completo que el usuario adjunte con `@` cada vez que abra un PR nuevo."
+      ],
+      "correct": 1,
+      "why_correct": "Los prompts son plantillas controladas por el usuario: requieren invocación explícita, no se disparan solos. Claude Code los muestra como comandos y acepta argumentos separados por espacio.",
+      "why_wrong": {
+        "0": "Un resource es dato de solo lectura manejado por la aplicación; no es un flujo que el usuario dispara con argumentos.",
+        "2": "Las tools son model-controlled: el modelo decide cuándo llamarlas. Una frase en la descripción orienta, no garantiza.",
+        "3": "Adjuntar el checklist da contexto, pero no es un flujo parametrizado e invocable; el usuario tendría que armar el pedido cada vez."
+      },
+      "rule": "Flujo que el humano dispara a mano → prompt MCP (/server:prompt).",
+      "source_url": "https://modelcontextprotocol.io/docs/learn/server-concepts",
+      "source_quote": "They are user-controlled, requiring explicit invocation rather than automatic triggering.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o34-q05",
+      "objective": 34,
+      "pool": "practice",
+      "scenario": "Un server MCP de CRM quiere exponer la ficha de cada cliente como contexto de solo lectura. Hay 40.000 clientes y la lista cambia todos los días, así que publicar un resource fijo por cliente no escala. ¿Qué usás?",
+      "options": [
+        "Una tool `get_customer` sin descripción, para que no ocupe contexto y el modelo la descubra cuando la necesite.",
+        "Un único resource `crm://customers/all` con las 40.000 fichas juntas para que el cliente filtre lo que necesite.",
+        "Un resource template con una URI parametrizada, por ejemplo `crm://customers/{id}`, con título y descripción.",
+        "Un prompt `ver-cliente` que el usuario invoque con el id para que el modelo arme la ficha a partir de su memoria."
+      ],
+      "correct": 2,
+      "why_correct": "Los resource templates exponen resources parametrizados con URI templates. Incluyen metadatos (título, descripción, MIME type) que los hacen descubribles, y permiten leer la ficha de cualquier cliente sin listar los 40.000.",
+      "why_wrong": {
+        "0": "Una tool sin descripción es la peor opción para que el modelo la elija bien, y sigue siendo una llamada que el modelo tiene que decidir.",
+        "1": "Meter todo en un solo resource gigante desperdicia contexto y no escala.",
+        "3": "Un prompt no trae datos: el modelo no tiene las fichas en \"su memoria\"; inventaría."
+      },
+      "rule": "Dato de solo lectura parametrizable → resource template con URI template.",
+      "source_url": "https://modelcontextprotocol.io/docs/learn/server-concepts",
+      "source_quote": "Resource Templates include metadata such as title, description, and expected MIME type, making them discoverable and self-documenting.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o34-q06",
+      "objective": 34,
+      "pool": "practice",
+      "scenario": "En Claude Code, un dev escribe: \"Compará @postgres:schema://users con @docs:file://database/user-model\". Un compañero dice que Claude todavía va a tener que llamar dos tools para traer esos contenidos antes de poder compararlos. ¿Qué pasa realmente?",
+      "options": [
+        "Claude Code solo inserta las URIs como texto y Claude decide después si vale la pena leerlas con una tool.",
+        "Claude Code trae los dos resources y los incluye como adjuntos en el prompt, sin que Claude tenga que pedirlos.",
+        "Solo se adjunta el primero; para referenciar varios resources hay que mandarlos en mensajes separados.",
+        "Falla, porque los resources de dos servers distintos no se pueden combinar en una misma conversación."
+      ],
+      "correct": 1,
+      "why_correct": "Según la doc de Claude Code, los resources referenciados con @ se traen automáticamente y se incluyen como adjuntos. Además se pueden referenciar varios en un mismo prompt.",
+      "why_wrong": {
+        "0": "No queda como texto: el contenido se trae y se adjunta al referenciarlo.",
+        "2": "La doc muestra explícitamente un prompt con varios resources referenciados.",
+        "3": "Se pueden referenciar resources de distintos servers conectados; el ejemplo de la doc mezcla `postgres` y `docs`."
+      },
+      "rule": "@-mention de un resource = se adjunta solo; podés poner varios en el mismo prompt.",
+      "source_url": "https://code.claude.com/docs/en/mcp",
+      "source_quote": "Resources are automatically fetched and included as attachments when referenced",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o34-q07",
+      "objective": 34,
+      "pool": "practice",
+      "scenario": "Un equipo agregó handlers de `resources/list` y `resources/read` a su server MCP, pero los clientes conectados no muestran ningún resource; las tools sí aparecen. Revisando la inicialización, el server solo anuncia la capability `tools`. ¿Qué falta?",
+      "options": [
+        "Que el server declare la capability `resources`, que es obligatoria para los servers que soportan resources.",
+        "Exponer cada resource también como tool con el mismo nombre, para que el cliente los encuentre con `tools/list`.",
+        "Cambiar todas las URIs al esquema `https://` para que el cliente las pueda descubrir sin pasar por el server.",
+        "Pedirle al usuario que agregue las URIs a mano en la configuración del cliente para que se habiliten."
+      ],
+      "correct": 0,
+      "why_correct": "La spec dice que los servers que soportan resources DEBEN declarar la capability `resources`. Sin eso, el cliente no sabe que el server ofrece resources.",
+      "why_wrong": {
+        "1": "Duplicar resources como tools mezcla las primitivas y no arregla la capability faltante.",
+        "2": "La spec pide usar `https://` solo cuando el cliente puede traer el recurso de la web por su cuenta; no es un mecanismo de descubrimiento.",
+        "3": "El descubrimiento lo hace el protocolo con `resources/list`; no hay que cargar URIs a mano."
+      },
+      "rule": "Server con resources → declarar la capability resources.",
+      "source_url": "https://modelcontextprotocol.io/specification/2025-11-25/server/resources",
+      "source_quote": "Servers that support resources **MUST** declare the `resources` capability",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o34-q08",
+      "objective": 34,
+      "pool": "practice",
+      "scenario": "Una tool MCP `search_contracts` devuelve el texto completo de los 30 contratos que matchean, y cada búsqueda llena el contexto del agente con cientos de páginas que casi nunca usa. El server ya expone cada contrato como resource. ¿Qué cambio permite la spec?",
+      "options": [
+        "Convertir `search_contracts` en un resource estático con todos los contratos para que la app decida cuáles adjuntar.",
+        "Mover el texto de los contratos a la descripción de la tool para que Claude los vea sin necesidad de llamarla.",
+        "Partir la tool en 30 tools distintas, una por contrato, para que el agente llame solo las que necesita leer.",
+        "Que la tool devuelva links a los resources de los contratos encontrados, que el cliente puede leer después."
+      ],
+      "correct": 3,
+      "why_correct": "La spec permite que una tool devuelva links a resources para dar contexto adicional. Así la búsqueda devuelve URIs livianas y el contenido completo se lee solo cuando hace falta.",
+      "why_wrong": {
+        "0": "Un resource estático con todo es todavía peor para el contexto, y pierde la búsqueda con parámetros.",
+        "1": "Las descripciones de tools son para explicar la tool, no para cargar datos; además Claude Code las corta pasado un límite de caracteres.",
+        "2": "Una tool por documento explota la cantidad de tools y empeora la selección."
+      },
+      "rule": "Tool que encuentra contenido pesado → devolvé resource links, no el contenido entero.",
+      "source_url": "https://modelcontextprotocol.io/specification/2025-11-25/server/tools",
+      "source_quote": "A tool **MAY** return links to Resources, to provide additional context or data.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o34-q09",
+      "objective": 34,
+      "pool": "practice",
+      "scenario": "Un server MCP expone 200 resources: unos pocos son guías críticas para el modelo y la mayoría son reportes pensados para mostrarle a la persona. El equipo quiere darle al cliente pistas para decidir qué incluir en contexto y qué mostrar. ¿Qué mecanismo de la spec usan?",
+      "options": [
+        "Prefijos en el `name` de cada resource como `CRITICO_` y `USUARIO_` para que el modelo los ordene solo.",
+        "Un resource índice con instrucciones en texto libre que le pidan al modelo ignorar los reportes de usuario.",
+        "Las annotations de cada resource, con `audience` (`user`/`assistant`) y `priority` entre 0.0 y 1.0.",
+        "Duplicar los resources críticos como tools, porque las tools siempre tienen prioridad sobre los resources."
+      ],
+      "correct": 2,
+      "why_correct": "La spec define annotations opcionales para resources: `audience` indica a quién va dirigido (user, assistant) y `priority` indica la importancia de 0 a 1. Los clientes las usan para filtrar y priorizar qué incluir en contexto.",
+      "why_wrong": {
+        "0": "Un prefijo en el nombre es una convención inventada; el cliente no tiene por qué interpretarla.",
+        "1": "Instrucciones en texto libre orientan al modelo, pero el que decide qué incluir es la aplicación; para eso están las annotations.",
+        "3": "No existe esa regla de prioridad, y convertir datos en tools mezcla primitivas."
+      },
+      "rule": "Pistas de uso de un resource → annotations audience y priority.",
+      "source_url": "https://modelcontextprotocol.io/specification/2025-11-25/server/resources",
+      "source_quote": "Resources, resource templates and content blocks support optional annotations that provide hints to clients about how to use or display the resource",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o34-q10",
+      "objective": 34,
+      "pool": "practice",
+      "scenario": "Para que el agente \"sepa qué tablas hay\", un equipo pegó el catálogo completo de 300 tablas (unos 30.000 caracteres) en la descripción de su tool MCP `run_query`. En Claude Code, el agente conoce las primeras tablas pero inventa nombres para las del final del catálogo. ¿Qué arreglo corresponde?",
+      "options": [
+        "Exponer el catálogo como resource y dejar en la descripción de `run_query` solo qué hace, cuándo usarla y sus parámetros.",
+        "Repetir el catálogo también en las instrucciones del server MCP para que entre por dos lados a la vez.",
+        "Ordenar el catálogo alfabéticamente para que el agente pueda deducir los nombres de las tablas que faltan.",
+        "Dividir el catálogo en diez tools vacías `catalog_part_1` a `catalog_part_10` con un pedazo en cada descripción."
+      ],
+      "correct": 0,
+      "why_correct": "Claude Code corta las descripciones de tools y las instrucciones de server que pasan cierto límite, y Claude solo ve el texto antes del corte. Un catálogo es dato de referencia: va como resource. La descripción queda corta y con lo importante al principio.",
+      "why_wrong": {
+        "1": "Las instrucciones del server también tienen límite y se cortan igual; duplicar no resuelve nada.",
+        "2": "Ordenar no hace visible lo que se cortó; el agente seguiría adivinando.",
+        "3": "Inventar tools vacías para cargar datos ensucia la selección de tools y no es el uso de una tool."
+      },
+      "rule": "Datos de referencia grandes → resource; descripción de tool corta y con lo crítico al principio.",
+      "source_url": "https://code.claude.com/docs/en/mcp",
+      "source_quote": "Claude Code cuts a tool description or server instructions that run past these default limits, and Claude sees only the text before the cut",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

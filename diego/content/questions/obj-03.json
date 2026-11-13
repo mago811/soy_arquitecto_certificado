@@ -1,0 +1,197 @@
+{
+  "objective": 3,
+  "questions": [
+    {
+      "id": "o03-q01",
+      "objective": 3,
+      "pool": "practice",
+      "scenario": "Un sistema de research con el Agent SDK: el coordinador ya recibió los resultados del subagente buscador y del analizador de PDFs. Después delega al subagente de síntesis con el prompt \"Sintetizá los hallazgos anteriores en un informe\". El informe sale genérico, sin cifras ni fuentes. ¿Cuál es el fix?",
+      "options": [
+        "Agregar a la `description` del sintetizador \"usa los resultados de los otros agentes\" para que los tome automáticamente.",
+        "Hacer que el coordinador pegue en el prompt de delegación los hallazgos completos de ambos agentes, con su fuente y fecha.",
+        "Subir `maxTurns` del sintetizador para que tenga tiempo de releer la conversación del coordinador antes de escribir.",
+        "Cambiar el `model` del sintetizador a `opus`, porque un modelo más capaz infiere mejor qué hallazgos usar."
+      ],
+      "correct": 1,
+      "why_correct": "Un subagente que no es fork arranca con contexto nuevo: no ve la conversación ni los resultados de tools del coordinador. Lo único que le llega del padre es el prompt de la tool `Agent`. Si los hallazgos no están ahí, para el sintetizador no existen.",
+      "why_wrong": {
+        "0": "La `description` solo le sirve a Claude para decidir cuándo delegar. No transporta datos al subagente.",
+        "2": "El sintetizador no puede releer la conversación del coordinador con ningún número de turnos: nunca la tuvo.",
+        "3": "No le falta capacidad, le falta información. Un modelo más grande también escribe genérico sin datos."
+      },
+      "rule": "El subagente solo sabe lo que dice el prompt de delegación: pegá los hallazgos completos ahí.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "source_quote": "The only content you pass from parent to subagent is the Agent tool's prompt string, so include any file paths, error messages, or decisions the subagent needs directly in that prompt.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o03-q02",
+      "objective": 3,
+      "pool": "practice",
+      "scenario": "En Claude Code, al principio de la sesión le dijiste en el chat \"ignorá la carpeta `vendor/`, es código de terceros\". El agente principal lo respeta. Pero cuando delega una búsqueda de vulnerabilidades a un subagente custom, el reporte vuelve lleno de hallazgos en `vendor/`. ¿Qué corregís?",
+      "options": [
+        "Nada en el prompt: alcanza con agregar `model: inherit` al subagente para que herede la conversación principal.",
+        "Mover la indicación a la `description` del subagente, que es lo que el subagente lee al arrancar su tarea.",
+        "Agregar la tool `Read` al subagente para que pueda leer el historial de la conversación y ver la instrucción.",
+        "Repetir la regla en el prompt de delegación (o en el system prompt del subagente) para que le llegue de verdad."
+      ],
+      "correct": 3,
+      "why_correct": "El subagente no ve tu conversación. La doc de Claude Code lo dice explícito: si una regla tiene que llegar al subagente, como 'ignorá vendor/', hay que repetirla en el prompt de delegación. Ponerla en su system prompt también funciona porque eso sí lo recibe.",
+      "why_wrong": {
+        "0": "`model: inherit` solo elige el mismo modelo que la conversación principal. No hereda mensajes.",
+        "1": "La `description` es para que Claude decida cuándo delegar; no es una instrucción de trabajo para el subagente.",
+        "2": "`Read` lee archivos del proyecto, no el contexto de la conversación del padre."
+      },
+      "rule": "Regla dicha en el chat ≠ regla que el subagente conoce. Repetila en la delegación.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "If a rule must, such as \"ignore the `vendor/` directory,\" restate it in the prompt you give Claude when delegating.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o03-q03",
+      "objective": 3,
+      "pool": "practice",
+      "scenario": "El coordinador de un pipeline de investigación de mercado le pasa al sintetizador un resumen en prosa: \"Los analistas coinciden en un crecimiento de entre 9 y 12% y la tendencia es positiva\". El informe final no puede citar de dónde sale cada cifra y el cliente lo rechaza. ¿Qué cambiás en la delegación?",
+      "options": [
+        "Pasar cada hallazgo como dato estructurado separado de su metadato (URL o documento, página, fecha), por ejemplo en `<document>` con `<source>`.",
+        "Pedirle al sintetizador que agregue citas al final usando su conocimiento general sobre las fuentes más probables del sector.",
+        "Darle `WebSearch` al sintetizador para que vuelva a buscar las fuentes de cada cifra antes de escribir el informe.",
+        "Aumentar el largo del resumen en prosa para que incluya más contexto sobre cómo se obtuvo cada cifra."
+      ],
+      "correct": 0,
+      "why_correct": "La atribución se pierde cuando el resumen comprime el dato y tira la fuente. La doc de prompting recomienda separar contenido y metadatos con tags XML (`<document_content>` y `<source>`). Así el sintetizador cita sin volver a buscar.",
+      "why_wrong": {
+        "1": "Es pedirle que invente fuentes. Una cita adivinada es peor que ninguna.",
+        "2": "Duplica trabajo que ya se hizo y puede encontrar otras fuentes distintas a las que generaron las cifras.",
+        "3": "Más prosa sigue mezclando dato y fuente. El problema es el formato, no el largo."
+      },
+      "rule": "Al pasar contexto entre agentes: contenido y metadato de fuente separados y pegados a cada hallazgo.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "When using multiple documents, wrap each document in `<document>` tags with `<document_content>` and `<source>` (and other metadata) subtags for clarity.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o03-q04",
+      "objective": 3,
+      "pool": "practice",
+      "scenario": "Llevás dos horas con Claude Code discutiendo un refactor: decisiones, descartes, archivos tocados y restricciones del cliente. Querés que un agente aparte explore una alternativa sin ensuciar tu conversación, pero cada intento con un subagente custom vuelve preguntando por decisiones que ya tomaron. ¿Qué te conviene?",
+      "options": [
+        "Agregar al subagente custom el campo `skills` con todas las skills que usaste en la sesión principal.",
+        "Activar `memory: project` en el subagente custom para que recuerde la conversación de esta sesión.",
+        "Usar un fork, que hereda toda la conversación hasta ahora y devuelve solo su resultado final.",
+        "Bajar el `effort` del subagente para que no se detenga a preguntar y avance con lo que tenga."
+      ],
+      "correct": 2,
+      "why_correct": "Un fork es un subagente que hereda la conversación entera en lugar de arrancar de cero. La doc lo recomienda cuando cualquier otro subagente necesitaría demasiado contexto para ser útil. Sus tool calls igual quedan fuera de tu conversación.",
+      "why_wrong": {
+        "0": "Precargar skills le da procedimientos, no el historial de decisiones de esta conversación.",
+        "1": "La memoria persistente del subagente es su propio aprendizaje entre sesiones, no una copia de tu conversación.",
+        "3": "Hace que adivine en vez de preguntar: peor resultado. Le falta contexto, no velocidad."
+      },
+      "rule": "Si el subagente necesitaría 'toda la historia', usá un fork; si no, prompt de delegación completo.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "Use a fork when any other subagent would need too much background to be useful, or when you want to try several approaches in parallel from the same starting point.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o03-q05",
+      "objective": 3,
+      "pool": "practice",
+      "scenario": "Un agente de soporte con el Agent SDK delega a un subagente \"revisá por qué falló el reembolso\". El subagente vuelve con \"necesito el ID del cliente, el número de orden y el error del gateway\". El coordinador tenía los tres datos en su contexto desde el primer turno. Se repite en el 40% de los casos. ¿Cuál es el fix?",
+      "options": [
+        "Darle al subagente acceso a la tool `SendMessage` para que le pregunte al coordinador cada dato que le falte.",
+        "Cambiar el subagente a `background: true` para que espere hasta que el coordinador le mande los datos.",
+        "Precargar en el subagente una skill con el procedimiento estándar de reembolsos de la empresa.",
+        "Exigir en el prompt del coordinador que cada delegación incluya ID de cliente, orden, error y lo ya intentado."
+      ],
+      "correct": 3,
+      "why_correct": "El subagente arranca fresco y Claude compone un mensaje de delegación con la tarea. Si ese mensaje no trae los datos, el subagente no los tiene. El fix es que la delegación sea autosuficiente, para no volver al coordinador por contexto faltante.",
+      "why_wrong": {
+        "0": "Formaliza las idas y vueltas en vez de eliminarlas: más latencia y más tokens por cada caso.",
+        "1": "`background` define si el padre espera al subagente, no hace que lleguen datos que no se mandaron.",
+        "2": "El procedimiento no reemplaza los datos concretos del caso: sigue sin saber qué cliente ni qué orden."
+      },
+      "rule": "Delegación autosuficiente: todos los IDs, errores y decisiones van en el prompt, no 'pedilos si faltan'.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "Claude composes a delegation message that summarizes the task, and the subagent works from there.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o03-q06",
+      "objective": 3,
+      "pool": "practice",
+      "scenario": "En Claude Code, el agente principal ya leyó y analizó los 12 archivos del módulo de pagos. Después delega a un subagente custom \"proponé tests para el módulo de pagos\". El subagente tarda varios minutos y vuelve a leer los 12 archivos. Un dev dice que es un bug. ¿Qué es lo correcto?",
+      "options": [
+        "No es un bug: el subagente no ve los archivos ya leídos; si querés ahorrar, pasale en la delegación las rutas y el análisis.",
+        "Es un bug de caché: alcanza con reiniciar Claude Code para que el subagente reutilice las lecturas previas.",
+        "Es un bug de permisos: falta agregar `Read` en `allowed_tools` del agente principal para compartir lecturas.",
+        "No es un bug, pero se arregla poniendo `model: inherit`, que hace que comparta el contexto del principal."
+      ],
+      "correct": 0,
+      "why_correct": "Cada subagente empieza con contexto aislado: no ve tu conversación ni los archivos que Claude ya leyó. Por eso un subagente nuevo puede ser más lento: tiene que juntar contexto. Pasarle el análisis previo en el prompt le ahorra ese trabajo.",
+      "why_wrong": {
+        "1": "No hay caché de lecturas compartida entre contextos. Reiniciar no cambia el aislamiento.",
+        "2": "Los permisos del principal no comparten contexto con el subagente.",
+        "3": "`model: inherit` solo elige el modelo. El contexto sigue aislado."
+      },
+      "rule": "Subagente nuevo = no vio lo que leíste. Pasale el análisis o aceptá que lo rehaga.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "Each subagent starts with a fresh, isolated context window. It doesn't see your conversation history, the skills you've already invoked, or the files Claude has already read.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o03-q07",
+      "objective": 3,
+      "pool": "practice",
+      "scenario": "Un coordinador de auditoría delega a un subagente revisor el texto completo de 6 contratos (unas 60.000 palabras). El prompt arranca con las instrucciones y la pregunta, y los contratos van al final, todos pegados sin separación. El revisor confunde cláusulas de un contrato con otro y su calidad es baja. ¿Qué mejora más el prompt de delegación?",
+      "options": [
+        "Mandar solo un resumen de una línea por contrato para que el revisor no se pierda entre tanto texto.",
+        "Dividir el trabajo en 6 delegaciones, pero sin decirle a cada revisor de qué contrato se trata.",
+        "Poner los contratos arriba, cada uno en su `<document>` con `<source>`, y las instrucciones y la pregunta al final.",
+        "Repetir la pregunta tres veces a lo largo del prompt para que el revisor no la pierda de vista."
+      ],
+      "correct": 2,
+      "why_correct": "Con documentos largos, la doc de prompting recomienda poner el material arriba y la consulta al final, y envolver cada documento con sus metadatos en tags XML. Así el revisor sabe qué cláusula es de qué contrato y responde mejor.",
+      "why_wrong": {
+        "0": "Un resumen de una línea saca justo los datos que el revisor necesita para revisar cláusulas.",
+        "1": "Dividir puede ayudar, pero sin identificar el contrato se pierde la atribución de cada hallazgo.",
+        "3": "Repetir la pregunta no ordena el material ni separa un contrato de otro."
+      },
+      "rule": "Delegación con mucho material: documentos arriba con su `<source>`, pregunta al final.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Place your long documents and inputs near the top of your prompt, above your query, instructions, and examples.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o03-q08",
+      "objective": 3,
+      "pool": "practice",
+      "scenario": "Un coordinador delega \"arreglá el test flaky\". El subagente elige un test equivocado, no sabe que el equipo prohíbe tocar `fixtures/` y repite un intento que ya había fallado. ¿Qué prueba rápida te hubiera avisado antes de delegar que el prompt era insuficiente?",
+      "options": [
+        "Correr el subagente con `effort: max` una vez y ver si así acierta el test correcto por su cuenta.",
+        "Mostrarle el prompt a un colega sin contexto: si no podría hacer la tarea sin preguntar, al subagente le falta información.",
+        "Contar las palabras del prompt: si tiene menos de 50, alargarlo con instrucciones generales de calidad.",
+        "Verificar que el subagente tenga `tools` sin restricciones, para que pueda investigar todo lo que necesite."
+      ],
+      "correct": 1,
+      "why_correct": "La doc de prompting propone esa prueba: si un colega con poco contexto se confundiría, Claude también. Un subagente es ese colega: no sabe qué test, qué está prohibido ni qué se intentó. Todo eso tiene que ir en la delegación.",
+      "why_wrong": {
+        "0": "Más esfuerzo no le da datos que no tiene. Puede razonar mucho sobre el test equivocado.",
+        "2": "El largo no es el criterio. Un prompt largo y genérico sigue sin decir qué test ni qué restricciones hay.",
+        "3": "Más tools no le dicen qué decidió el equipo ni qué ya se probó."
+      },
+      "rule": "Prueba del colega: si alguien sin contexto no podría hacerlo, el prompt de delegación está incompleto.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Show your prompt to a colleague with minimal context on the task and ask them to follow it. If they’d be confused, Claude will be too.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

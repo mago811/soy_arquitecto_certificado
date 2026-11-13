@@ -11,7 +11,9 @@ sources:
     title: "Increase output consistency"
   - url: https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices
     title: "Prompting best practices (Migrating away from prefilled responses)"
-status: no_verificado
+  - url: https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works
+    title: "How tool use works"
+status: verificada
 ---
 
 ## Qué es

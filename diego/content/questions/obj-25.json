@@ -22,8 +22,12 @@
       "rule": "Si un JSON roto rompe el sistema: output_config.format, no un prompt más enérgico.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "Without structured outputs, Claude can generate malformed JSON responses or invalid tool inputs that break your applications. Even with careful prompting, you might encounter:",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en structured-outputs; la doc dice 'No retries needed for schema violations'. Distractores bien descartados."
+      }
     },
     {
       "id": "o25-q02",
@@ -46,8 +50,12 @@
       "rule": "Prefill en Claude 4.6+ = 400. El reemplazo para formato es structured outputs.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Starting with Claude 4.6 models and Claude Mythos Preview, prefilled responses (providing a partial assistant message for Claude to continue from) on the last assistant turn are no longer supported.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual (best practices, migrating away from prefill). La migración para clasificación dice 'tools with an enum field ... or structured outputs'. La opción correcta no fuerza la tool, así que vale en Sonnet 5.5."
+      }
     },
     {
       "id": "o25-q03",
@@ -70,8 +78,12 @@
       "rule": "output_config.format = lo que Claude responde; strict: true = cómo llama tus tools. Se combinan.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "When combined, Claude can call tools with guaranteed-valid parameters AND return structured JSON responses.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Doc: 'JSON outputs and strict tool use solve different problems and work together'. La Tip de grammar scope confirma que la gramática no aplica a tool calls."
+      }
     },
     {
       "id": "o25-q04",
@@ -94,8 +106,12 @@
       "rule": "minimum/maximum/minLength/maxLength → 400 en structured outputs; el SDK los mueve a la description y valida en tu código.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "Numerical constraints (such as minimum, maximum, multipleOf)",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Constraints numéricos y de string figuran en 'Not supported' (400). La sección SDK transformation confirma que el SDK los pasa a la description y valida."
+      }
     },
     {
       "id": "o25-q05",
@@ -118,8 +134,12 @@
       "rule": "Antes de parsear un structured output, chequeá stop_reason: max_tokens y refusal rompen la garantía.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "Retry with a higher max_tokens value to get the complete structured output.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Sección Invalid outputs: max_tokens -> output incompleto, 'Retry with a higher max_tokens'. Cambiar solo name/description no invalida el cache de gramática (confirmado)."
+      }
     },
     {
       "id": "o25-q06",
@@ -142,8 +162,12 @@
       "rule": "Enum en structured outputs: compará case-insensitive; la mayúscula no está garantizada.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "Compare enum values case-insensitively, and avoid enum values that differ only in capitalization.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Sección 'Enum value casing' textual; aplica a JSON outputs y strict tool use."
+      }
     },
     {
       "id": "o25-q07",
@@ -166,8 +190,12 @@
       "rule": "output_config.format + citations = 400. No se combinan.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "The API returns a 400 error if citations are enabled with output_config.format.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Feature compatibility: Citations incompatible, 400. La página de Citations tiene 'Get structured data with citations' (líneas por campo, parseo en código). Header beta solo para output_format deprecado."
+      }
     },
     {
       "id": "o25-q08",
@@ -190,8 +218,12 @@
       "rule": "El parámetro es output_config.format; output_format está deprecado.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "The output_format parameter has moved to output_config.format, and beta headers are no longer required. The output_format parameter is deprecated.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Migrating from the beta: output_format deprecado; en Python SDK v1.0+ un dict en output_format da TypeError; Pydantic con parse() funciona."
+      }
     },
     {
       "id": "o25-q09",
@@ -214,8 +246,12 @@
       "rule": "Lo lee una persona y se acepta variación → prompt con formato y ejemplos; lo parsea código → structured outputs.",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/increase-consistency",
       "source_quote": "The techniques below are useful for general output consistency or when you need flexibility beyond strict JSON schemas.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Tip de increase-consistency: structured outputs para garantía; las técnicas de prompt para consistencia general o flexibilidad. Escenario sin parseo justifica la opción C."
+      }
     },
     {
       "id": "o25-q10",
@@ -238,8 +274,12 @@
       "rule": "Structured outputs garantiza salvo refusal y max_tokens: mirá stop_reason antes de parsear.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "The output might not match your schema because the refusal message takes precedence over schema constraints.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Sección Invalid outputs (refusal): 200, stop_reason refusal, se cobran tokens, puede no cumplir el schema. Prefill incompatible con JSON outputs (confirmado)."
+      }
     }
   ]
 }

@@ -1,0 +1,245 @@
+{
+  "objective": 33,
+  "questions": [
+    {
+      "id": "o33-q01",
+      "objective": 33,
+      "pool": "practice",
+      "scenario": "Un equipo tiene en `.claude/agents/` un subagente `researcher` cuyo system prompt dice \"Solo investigás; nunca modificás archivos\". No tiene campo `tools`. En una corrida, al encontrar un typo, editó tres archivos del repo. Quieren que eso sea imposible. ¿Cuál es el fix?",
+      "options": [
+        "Reforzar el system prompt con \"IMPORTANT: NUNCA uses Edit ni Write\" y repetirlo al final del archivo del subagente.",
+        "Agregar `tools: Read, Grep, Glob` al frontmatter para que el subagente solo tenga herramientas de lectura.",
+        "Cambiar el `model` del subagente a `haiku`, que es más obediente con las restricciones del system prompt.",
+        "Mover el subagente a `~/.claude/agents/` para que no tenga acceso a los archivos del proyecto actual."
+      ],
+      "correct": 1,
+      "why_correct": "Sin `tools`, el subagente hereda todas las tools disponibles, incluidas `Edit` y `Write`. Con una allowlist de solo lectura, esas tools directamente no están en su sesión: no puede usarlas aunque \"quiera\".",
+      "why_wrong": {
+        "0": "El system prompt orienta, no garantiza. Si `Edit` está en su set, lo puede usar.",
+        "2": "Cambiar de modelo no saca ninguna tool del set; el riesgo sigue igual.",
+        "3": "La ubicación del archivo cambia el scope (en qué proyectos existe el subagente), no sus tools."
+      },
+      "rule": "Restricción de rol que tiene que cumplirse → sacá la tool del set, no lo pidas en el prompt.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "Tools the subagent can use, as a comma-separated string such as `Read, Grep, Bash` or a YAML list. Inherits every tool available to subagents if omitted.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o33-q02",
+      "objective": 33,
+      "pool": "practice",
+      "scenario": "Un agente único de operaciones tiene 55 tools (CRM, facturación, tickets, deploy, monitoreo). Cada vez más seguido llama una tool parecida pero equivocada, por ejemplo `billing_search` cuando correspondía `crm_search`. ¿Qué cambio de arquitectura ataca la causa?",
+      "options": [
+        "Subir `max_tokens` del agente para que tenga más espacio de razonamiento antes de elegir la herramienta.",
+        "Agregar al system prompt una tabla con las 55 tools y cuándo usar cada una, al principio de todo.",
+        "Forzar la herramienta correcta con `tool_choice` en cada request según palabras clave del pedido.",
+        "Repartir el trabajo en subagentes por rol (CRM, facturación, deploy…), cada uno solo con las tools de su área."
+      ],
+      "correct": 3,
+      "why_correct": "La doc indica que la precisión para elegir la tool correcta cae al pasar de 30–50 tools disponibles. Repartir por rol deja a cada subagente con pocas tools relevantes: menos ambigüedad y menos llamadas fuera de rol.",
+      "why_wrong": {
+        "0": "El problema no es espacio de salida; es elegir entre demasiadas opciones parecidas.",
+        "1": "Más texto ayuda poco y agrega contexto; las 55 tools siguen compitiendo entre sí.",
+        "2": "Elegir la tool por palabras clave en tu código reemplaza el criterio del modelo con una heurística frágil."
+      },
+      "rule": "Demasiadas tools en un agente → especialistas por rol con pocas tools cada uno.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool",
+      "source_quote": "Claude’s ability to pick the right tool degrades once you exceed 30–50 available tools.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o33-q03",
+      "objective": 33,
+      "pool": "practice",
+      "scenario": "Un subagente `release-helper` tiene que correr tests y comandos de git con `Bash`, pero nunca hacer `git push`. Le pusieron `disallowedTools: Bash(git push *)`. Ahora no puede correr ni los tests. ¿Qué configuración logra lo pedido?",
+      "options": [
+        "Sacar el especificador de `disallowedTools` y agregar `Bash(git push *)` a `permissions.deny` en los settings.",
+        "Escribir `disallowedTools: \"Bash(git push*)\"` entre comillas, para que solo matchee ese comando exacto.",
+        "Agregar `tools: Bash` además del `disallowedTools`, para que `tools` le gane y vuelva a habilitar Bash.",
+        "Cambiar el especificador a `Bash(git push)` sin asterisco, para que bloquee solo el push y nada más."
+      ],
+      "correct": 0,
+      "why_correct": "Un `disallowedTools` con especificador saca la tool ENTERA del subagente, no solo los comandos que matchean. Para conservar Bash y bloquear un comando puntual, va una regla `Bash(git push *)` en `permissions.deny`, que aplica también a los subagentes.",
+      "why_wrong": {
+        "1": "Las comillas no cambian el comportamiento: cualquier entrada con especificador en `disallowedTools` saca toda la tool.",
+        "2": "Si están los dos, primero se aplica `disallowedTools` y una tool listada en ambos queda afuera.",
+        "3": "Sigue siendo un especificador en `disallowedTools`: igual saca todo Bash."
+      },
+      "rule": "Bloquear un comando puntual → permissions.deny; disallowedTools saca la tool entera.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "A `disallowedTools` entry with a specifier, such as `Bash(git push *)`, still removes the whole tool from the subagent, not only the matching commands.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o33-q04",
+      "objective": 33,
+      "pool": "practice",
+      "scenario": "Un subagente `docs-writer` debe conservar todo lo que hereda (lectura, escritura, Bash, los servers MCP de Notion y Slack) excepto las tools del server MCP `github`, que no son parte de su rol. ¿Qué ponen en su frontmatter?",
+      "options": [
+        "`tools: mcp__github__*`, para marcar ese server como el único que el subagente tiene que ignorar.",
+        "`tools: Read, Write, Bash`, que deja afuera a todos los servers MCP incluido el de GitHub.",
+        "`disallowedTools: mcp__github`, que retira solo las tools de ese server y deja el resto heredado.",
+        "`disallowedTools: mcp__*`, que es la única forma soportada de excluir un server MCP de un subagente."
+      ],
+      "correct": 2,
+      "why_correct": "`disallowedTools` funciona como denylist sobre lo heredado. Con `mcp__github` (o `mcp__github__*`) se sacan todas las tools de ese server y se conservan los built-ins y los demás servers MCP.",
+      "why_wrong": {
+        "0": "En `tools`, `mcp__github__*` hace lo contrario: es una allowlist que le da SOLO las tools de GitHub.",
+        "1": "Esa allowlist también le saca Notion y Slack, que sí son parte de su rol.",
+        "3": "`mcp__*` saca TODAS las tools MCP de cualquier server, incluidas Notion y Slack."
+      },
+      "rule": "Heredar todo menos un server MCP → disallowedTools: mcp__server.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "source_quote": "MCP server-level patterns are also accepted: `mcp__server` or `mcp__server__*` removes every tool from that server, and `mcp__*` removes every MCP tool from any server",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o33-q05",
+      "objective": 33,
+      "pool": "practice",
+      "scenario": "Un server MCP de Playwright con muchas tools está en el `.mcp.json` del proyecto, pero solo lo usa el subagente `browser-tester`. Sus descripciones ocupan contexto en la conversación principal y a veces el agente principal lo llama para cosas que no son de testing. ¿Qué cambian?",
+      "options": [
+        "Pasar el server a scope user para que deje de cargarse en la conversación principal del proyecto.",
+        "Definir el server inline en `mcpServers` del subagente `browser-tester` y sacarlo del `.mcp.json`.",
+        "Agregar al `CLAUDE.md` que solo el subagente `browser-tester` puede usar las tools de Playwright.",
+        "Dejar el server donde está y darle a `browser-tester` `tools: mcp__playwright__*` como allowlist."
+      ],
+      "correct": 1,
+      "why_correct": "Un server definido inline en `mcpServers` del subagente se conecta cuando arranca ese subagente: él recibe las tools y la conversación principal no. Así no ocupa contexto ni puede usarse fuera de rol en el principal.",
+      "why_wrong": {
+        "0": "En scope user se cargaría en TODOS los proyectos y en la conversación principal; empeora.",
+        "2": "CLAUDE.md orienta; las tools seguirían en el contexto y disponibles para el agente principal.",
+        "3": "Limita al subagente, pero el server sigue cargado en la conversación principal, que es el problema."
+      },
+      "rule": "Server MCP que usa un solo subagente → inline en su mcpServers, no en .mcp.json.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "To keep an MCP server out of the main conversation entirely and avoid its tool descriptions consuming context there, define it inline here rather than in `.mcp.json`.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o33-q06",
+      "objective": 33,
+      "pool": "practice",
+      "scenario": "En una app con el Agent SDK, el `AgentDefinition` de `doc-reviewer` tiene `description` y `prompt`, pero no `tools`. En una revisión, el subagente corrió `Bash` para \"arreglar\" el formato de unos archivos. Su rol es solo analizar documentación. ¿Qué cambio corresponde?",
+      "options": [
+        "Agregar `tools: [\"Read\", \"Grep\"]` al `AgentDefinition`, porque sin `tools` hereda todas las disponibles.",
+        "Quitar `Bash` del `allowedTools` del agente principal para que ningún subagente pueda ejecutar comandos.",
+        "Agregar al `prompt` del subagente una lista de herramientas prohibidas con la razón de cada una.",
+        "Poner `permissionMode: \"plan\"` en el agente principal para que revise lo que hacen sus subagentes."
+      ],
+      "correct": 0,
+      "why_correct": "Si omitís `tools`, el subagente hereda todo lo disponible. La doc del SDK pone justo este ejemplo: un `doc-reviewer` solo con Read y Grep, para que pueda analizar pero nunca modificar por accidente.",
+      "why_wrong": {
+        "1": "`allowedTools` del principal auto-aprueba tools; no es la forma de recortar el set de un subagente puntual, y afectaría a otros roles que sí necesitan Bash.",
+        "2": "Una lista en el prompt orienta, pero las tools siguen en su set.",
+        "3": "Cambia el modo de permisos de la sesión principal; no define qué tools tiene ese subagente."
+      },
+      "rule": "AgentDefinition sin tools = hereda todo. Rol de análisis → tools de lectura.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "source_quote": "A `doc-reviewer` subagent might only have access to Read and Grep tools, ensuring it can analyze but never accidentally modify your documentation files.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o33-q07",
+      "objective": 33,
+      "pool": "practice",
+      "scenario": "Un subagente tiene en su frontmatter `tools: Read, Edit, Grep, Bash` y `disallowedTools: Edit, Write`. Un dev dice que como `tools` es una allowlist explícita, el subagente va a poder usar `Edit`. ¿Con qué tools queda realmente?",
+      "options": [
+        "`Read`, `Edit`, `Grep` y `Bash`, porque la allowlist explícita en `tools` tiene prioridad sobre la denylist.",
+        "Con ninguna: tener `tools` y `disallowedTools` a la vez es inválido y el subagente no llega a arrancar.",
+        "Con todas las heredadas menos `Edit` y `Write`, porque `disallowedTools` hace que se ignore `tools`.",
+        "`Read`, `Grep` y `Bash`: primero se aplica `disallowedTools` y después `tools` sobre lo que quedó."
+      ],
+      "correct": 3,
+      "why_correct": "Si están los dos, primero se aplica `disallowedTools` y después se resuelve `tools` contra lo que queda. Una tool listada en ambos queda afuera, así que `Edit` no está.",
+      "why_wrong": {
+        "0": "Es al revés: una tool en ambas listas se remueve.",
+        "1": "Combinar los dos campos es válido y está documentado.",
+        "2": "`tools` no se ignora: se resuelve después, sobre el pool que dejó `disallowedTools`."
+      },
+      "rule": "tools + disallowedTools: primero se saca, después se filtra; en ambos = afuera.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "If both are set, `disallowedTools` is applied first, then `tools` is resolved against the remaining pool. A tool listed in both is removed.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o33-q08",
+      "objective": 33,
+      "pool": "practice",
+      "scenario": "En un sistema multi-agente con el Agent SDK definís el subagente `test-runner`: tiene que ejecutar la suite de tests y analizar la salida, pero no debe modificar código. ¿Qué set de `tools` le das?",
+      "options": [
+        "`[\"Read\", \"Edit\", \"Write\", \"Grep\", \"Glob\"]`, para que pueda leer la salida y ajustar tests que fallen.",
+        "Omitir `tools` y aclarar en el `prompt` que no edite, así no le falta nada si la suite necesita algo extra.",
+        "`[\"Bash\", \"Read\", \"Grep\"]`: correr comandos y analizar resultados, sin herramientas de edición de archivos.",
+        "`[\"Read\", \"Grep\", \"Glob\"]`, porque es el set seguro de solo lectura que la doc recomienda para todo rol."
+      ],
+      "correct": 2,
+      "why_correct": "La tabla de combinaciones de la doc del SDK asigna a \"Test execution\" `Bash`, `Read` y `Grep`: puede correr comandos y analizar la salida, sin `Edit` ni `Write`.",
+      "why_wrong": {
+        "0": "Ese es el set de \"modificar código\": le da justo lo que su rol no debe hacer, y no tiene Bash para correr tests.",
+        "1": "Sin `tools` hereda todo, incluidas las de edición. El prompt solo orienta.",
+        "3": "Sin `Bash` no puede ejecutar la suite. Solo lectura es para análisis, no para correr tests."
+      },
+      "rule": "Set de tools = lo mínimo que el rol necesita: tests → Bash, Read, Grep.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "source_quote": "| Test execution | `Bash`, `Read`, `Grep` | Can run commands and analyze output |",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o33-q09",
+      "objective": 33,
+      "pool": "practice",
+      "scenario": "Un equipo restringió el subagente `analyst` del SDK a `tools: [\"Read\", \"Grep\", \"Glob\"]`. Para auditar, esperaban ver un permission prompt o un error cada vez que intentara escribir. En los logs no aparece ninguno, y el analista tampoco escribió nada. ¿Cómo se explica?",
+      "options": [
+        "Es lo esperado: una tool fuera del set no existe en la sesión del subagente, así que no hay prompt ni error.",
+        "Los prompts de permisos de los subagentes se descartan; hay que activar `bypassPermissions` para verlos.",
+        "El subagente escribió igual con Bash, pero el SDK no registra las tools que no están en `tools`.",
+        "La restricción no se aplicó: hay que repetir la lista de tools en el `allowedTools` del agente principal."
+      ],
+      "correct": 0,
+      "why_correct": "Según la doc, una tool que dejás afuera no está en la sesión del subagente: Claude trabaja sin ella, sin permission prompt ni error. Por eso no hay nada que auditar ahí: no la puede ni intentar.",
+      "why_wrong": {
+        "1": "No es que se descarten; no hay intento que pida permiso. Y `bypassPermissions` quitaría protecciones, no agregaría logs.",
+        "2": "`Bash` tampoco está en su set, así que no puede usarlo.",
+        "3": "La restricción del subagente se define en su `tools`; ya está aplicada."
+      },
+      "rule": "Tool fuera del set del subagente = invisible: ni prompt, ni error, ni uso.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "source_quote": "A tool you leave out isn't in the subagent's session at all: Claude works without it, with no permission prompt or error.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o33-q10",
+      "objective": 33,
+      "pool": "practice",
+      "scenario": "Un coordinador tiene dos subagentes: `db-analyst` (tools de solo lectura sobre la base) y `db-migrator` (puede escribir migraciones). Sus descriptions son \"Ayuda con la base de datos\" y \"Trabaja con la base de datos\". Claude manda pedidos de análisis al migrador y viceversa. ¿Cuál es el fix?",
+      "options": [
+        "Fusionar los dos subagentes en uno con todas las tools, para que no haya que elegir entre ellos.",
+        "Escribir descriptions claras y específicas de cuándo usar cada uno: análisis de solo lectura vs. escribir migraciones.",
+        "Darle a los dos el mismo set de tools, así no importa a cuál de los dos le llegue cada pedido.",
+        "Poner el detalle de cada rol solo en el system prompt de cada subagente y dejar las descriptions cortas como están."
+      ],
+      "correct": 1,
+      "why_correct": "Claude usa la `description` de cada subagente para decidir a quién delegar. Si las dos dicen casi lo mismo, el ruteo es un volado. Descriptions específicas hacen que cada pedido llegue al rol con las tools correctas.",
+      "why_wrong": {
+        "0": "Junta las tools de escritura con el análisis: se pierde justo la separación de roles.",
+        "2": "Le daría permisos de escritura al analista; el reparto por rol deja de proteger.",
+        "3": "El system prompt solo se carga cuando el subagente ya corre; para elegir a quién delegar, Claude mira la description."
+      },
+      "rule": "Ruteo entre subagentes = description clara de cuándo usar cada uno.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "Claude uses each subagent's description to decide when to delegate tasks. When you create a subagent, write a clear description so Claude knows when to use it.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

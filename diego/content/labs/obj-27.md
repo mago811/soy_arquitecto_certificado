@@ -10,7 +10,9 @@ sources:
     title: "Strict tool use"
   - url: https://platform.claude.com/docs/en/api/errors
     title: "Errors (Forced tool use not supported)"
-status: no_verificado
+  - url: https://platform.claude.com/docs/en/build-with-claude/thinking
+    title: "Thinking (thinking por defecto y max_tokens)"
+status: verificada
 ---
 
 ## Objetivo
@@ -67,7 +69,7 @@ from tools import TOOL, MENSAJES
 client = anthropic.Anthropic()
 for m in MENSAJES:
     r = client.messages.create(
-        model="claude-haiku-5-5", max_tokens=500, tools=[TOOL],
+        model="claude-haiku-5-5", max_tokens=2048, tools=[TOOL],
         messages=[{"role": "user", "content": m}],
     )
     tipos = [b.type for b in r.content]
@@ -108,7 +110,7 @@ from tools import TOOL
 client = anthropic.Anthropic()
 try:
     client.messages.create(
-        model="claude-sonnet-5-5", max_tokens=500, tools=[TOOL],
+        model="claude-sonnet-5-5", max_tokens=2048, tools=[TOOL],
         tool_choice={"type": "any"},
         messages=[{"role": "user", "content": "Quiero dos cajas de tornillos"}],
     )
@@ -128,6 +130,7 @@ Fix según la doc: `tool_choice` `auto` + `strict: true`, una instrucción clara
 
 ## Si algo falla
 
-- `tool_choice` con `claude-haiku-5-5` da 400 → revisá que no tengas `thinking={"type": "enabled", ...}` (thinking manual no acepta `any`/`tool`).
+- `tool_choice` con `claude-haiku-5-5` da 400 → revisá que no tengas `thinking={"type": "enabled", ...}`: Haiku 5.5 no acepta thinking manual (400), y en los modelos que sí lo aceptan, thinking manual no admite `any`/`tool`. Dejá el thinking por defecto.
 - 400 por `strict` → revisá que el schema use solo features soportadas (sin `minimum`, `maxLength`, etc.) y `additionalProperties: false`.
+- Con `auto` aparece `stop_reason: max_tokens` → el thinking por defecto de Haiku 5.5 consume `max_tokens`; subilo.
 - Con `auto` nunca contesta en texto → probá mensajes todavía más conversacionales; el comportamiento es probabilístico, justamente ese es el punto.

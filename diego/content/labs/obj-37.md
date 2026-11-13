@@ -12,7 +12,7 @@ sources:
     title: "Handle tool calls"
   - url: https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools
     title: "Define tools (Forcing tool use)"
-status: no_verificado
+status: verificada
 ---
 
 ## Objetivo
@@ -78,7 +78,7 @@ from base import TOOLS, ejecutar
 
 client = anthropic.Anthropic()
 r = client.messages.create(
-    model="claude-haiku-5-5", max_tokens=500, tools=TOOLS,
+    model="claude-haiku-5-5", max_tokens=2048, tools=TOOLS,
     tool_choice={"type": "tool", "name": "emitir_reembolso"},
     messages=[{"role": "user", "content": "Reembolsá $500 a ana@x.com"}],
 )
@@ -98,7 +98,7 @@ from base import TOOLS, ejecutar
 client = anthropic.Anthropic()
 messages = [{"role": "user", "content": "Reembolsá $500 a ana@x.com"}]
 while True:
-    r = client.messages.create(model="claude-haiku-5-5", max_tokens=1000,
+    r = client.messages.create(model="claude-haiku-5-5", max_tokens=2048,
                                tools=TOOLS, messages=messages)
     print("stop_reason:", r.stop_reason)
     if r.stop_reason != "tool_use":
@@ -143,14 +143,14 @@ Ahora sale **a lo sumo una** tool por respuesta. (Ponerlo como parámetro top-le
     messages.append({"role": "user", "content": [{"type": "text", "text": "acá van"}] + resultados})
 ```
 
-Esperás un **400**: los `tool_result` tienen que ir **primero** en el `content`. Volvé a dejarlo bien.
+La doc dice que los `tool_result` tienen que ir **primero** en el `content` y que el texto va después de todos. Mirá qué responde la API: sea un error o no, ese formato viola la regla documentada. Volvé a dejarlo bien.
 
 ## Cómo sabés que salió bien
 
 - `a_mal.py` muestra un `customer_id` que no salió de ningún lado.
 - `b_loop.py` imprime `buscar_cliente` → `emitir_reembolso(cus_8F3K2, 500)` → `end_turn`.
 - Con `disable_parallel_tool_use` dentro de `tool_choice`, nunca hay dos `tool_use` en la misma respuesta.
-- Texto antes del `tool_result` → 400.
+- Sabés explicar por qué el texto va **después** de los `tool_result` en el mensaje `user`.
 
 ## Si algo falla
 

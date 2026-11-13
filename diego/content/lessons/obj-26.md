@@ -11,7 +11,7 @@ sources:
     title: "Define tools (input_examples)"
   - url: https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations
     title: "Reduce hallucinations"
-status: no_verificado
+status: verificada
 ---
 
 ## Qué es

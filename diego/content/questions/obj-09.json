@@ -1,0 +1,245 @@
+{
+  "objective": 9,
+  "questions": [
+    {
+      "id": "o09-q01",
+      "objective": 9,
+      "pool": "practice",
+      "scenario": "Un pipeline de research corre 6 etapas con subagentes (búsqueda, análisis de PDFs, verificación…) y tarda 40 minutos. Si el proceso se cae en la etapa 5, el script vuelve a empezar desde la etapa 1 y repite todo el gasto. ¿Qué diseño resuelve esto?",
+      "options": [
+        "Subir `max_turns` y `max_budget_usd` del coordinador para que el pipeline tenga margen y no se corte a mitad de camino.",
+        "Correr todo el pipeline dentro de una sola sesión larga y, si se cae, usar `continue_conversation=True` para seguirla.",
+        "Agregar reintentos automáticos con backoff alrededor del script completo, para relanzarlo apenas falle.",
+        "Que cada etapa guarde su resultado en una ubicación conocida y un manifiesto marque qué terminó; al relanzar, saltear lo hecho."
+      ],
+      "correct": 3,
+      "why_correct": "Reiniciar desde cero es caro: hay que poder retomar donde estaba el agente. El patrón es estado estructurado por agente en un lugar conocido más un manifiesto que el coordinador lee al retomar, para saltear lo terminado e inyectar sus resultados en los prompts siguientes.",
+      "why_wrong": {
+        "0": "Más límites no evitan caídas de red o de proceso. Y si se cae, igual vuelve a empezar.",
+        "1": "Una sola sesión gigante acumula contexto y depende de un único transcript. Además `continue` toma la sesión más reciente del directorio, no necesariamente esta.",
+        "2": "Reintentar el script completo repite justo el trabajo que querías no repetir."
+      },
+      "rule": "Crash recovery = estado por etapa en lugar conocido + manifiesto que dice qué está hecho.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "Instead, we built systems that can resume from where the agent was when the errors occurred.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o09-q02",
+      "objective": 9,
+      "pool": "practice",
+      "scenario": "Un backend corre jobs de auditoría para muchos clientes a la vez con el Agent SDK (Python). Cuando un worker se reinicia, retoma cada job con `continue_conversation=True`. Varios clientes reciben resultados mezclados con los de otro cliente. ¿Cuál es el fix?",
+      "options": [
+        "Usar `fork_session=True` en cada reinicio para que cada job arranque en una sesión separada del resto.",
+        "Guardar el `session_id` de cada job (está en el result message) y retomar con `resume=<ese id>`.",
+        "Seguir con `continue_conversation=True`, pero escribir el ID del cliente al principio del prompt del job.",
+        "Desactivar la persistencia de sesiones para que ningún job pueda retomar la conversación de otro."
+      ],
+      "correct": 1,
+      "why_correct": "`continue` toma la sesión más reciente del directorio, sin ID. Con muchos jobs, esa no es la tuya. La doc dice que `resume` con un ID es lo requerido cuando hay varias sesiones, por ejemplo una por usuario.",
+      "why_wrong": {
+        "0": "Forkear crea una rama a partir de una sesión; si la sesión de origen es la equivocada, la rama también.",
+        "2": "El texto del prompt no elige la sesión: `continue` igual retoma la más reciente del directorio, sea de quien sea.",
+        "3": "Elimina el problema eliminando la capacidad de retomar, que es justo lo que se necesita."
+      },
+      "rule": "Muchos jobs o usuarios → guardá el `session_id` y usá `resume`; `continue` es solo 'la más reciente'.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
+      "source_quote": "Required when you have multiple sessions (for example, one per user in a multi-user app) or want to return to one that isn't the most recent.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o09-q03",
+      "objective": 9,
+      "pool": "practice",
+      "scenario": "Un pipeline multiagente corre en contenedores efímeros: cada etapa puede terminar en un host distinto. El equipo guarda el `session_id` y llama a `resume` en el siguiente contenedor, pero la sesión nunca aparece. ¿Qué opción es la correcta según la doc del SDK?",
+      "options": [
+        "Mirrorear los transcripts con un adaptador `session_store`, o guardar los resultados como estado de la aplicación y pasarlos a una sesión nueva.",
+        "Pasar `fork_session=True` junto con `resume`, porque el fork crea una copia de la sesión que viaja con el ID.",
+        "Usar `continue_conversation=True` en lugar de `resume`, porque busca la sesión más reciente en cualquier host.",
+        "Subir `cleanupPeriodDays` para que el archivo de la sesión no se borre entre una etapa y la siguiente."
+      ],
+      "correct": 0,
+      "why_correct": "Los archivos de sesión son locales a la máquina que los creó. Para otro host, la doc ofrece un adaptador de session store, mover el archivo, o no depender del resume: capturar los resultados como estado y pasarlos al prompt de una sesión nueva.",
+      "why_wrong": {
+        "1": "El fork también necesita encontrar la sesión original en disco. No la transporta entre máquinas.",
+        "2": "`continue` busca en el directorio actual de la máquina actual. Tampoco ve otros hosts.",
+        "3": "No es un problema de borrado: el archivo nunca estuvo en el nuevo contenedor."
+      },
+      "rule": "Sesiones = archivos locales. Otro host → session store, o estado de la app inyectado en sesión nueva.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
+      "source_quote": "Capture the results you need (analysis output, decisions, file diffs) as application state and pass them into a fresh session's prompt. This is often more robust than shipping transcript files around.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o09-q04",
+      "objective": 9,
+      "pool": "practice",
+      "scenario": "Un agente de análisis de un monorepo terminó con `error_max_turns` después de 25 minutos de trabajo útil. El script captura la excepción y vuelve a lanzar la misma consulta desde cero con un `max_turns` más alto. ¿Qué tendría que hacer en cambio?",
+      "options": [
+        "Lanzar la consulta de nuevo con `continue_conversation=True` y el mismo `max_turns`, para que siga solo desde donde quedó.",
+        "Lanzarla desde cero pero con `fork_session=True`, así conserva una copia limpia del intento que falló.",
+        "Tomar el `session_id` del result message (viene aunque haya error) y retomar con `resume` y un límite más alto.",
+        "Pasar la consulta a un subagente con `maxTurns` mayor, porque el agente principal no se puede retomar."
+      ],
+      "correct": 2,
+      "why_correct": "La doc lista justamente 'recuperarse de un límite' como motivo para `resume`: si el run terminó en `error_max_turns`, se retoma con un límite mayor. El `session_id` está en todo result message, con éxito o con error.",
+      "why_wrong": {
+        "0": "Con el mismo límite vuelve a cortarse. Y `continue` depende de que esa sea la sesión más reciente.",
+        "1": "`fork_session` va con `resume`; 'desde cero con fork' no tiene sentido y no recupera el trabajo hecho.",
+        "3": "Falso: la sesión principal se retoma con `resume`. Mover el trabajo a un subagente lo empieza de cero."
+      },
+      "rule": "Run cortado por límite → `resume` con el `session_id` y un límite mayor, no relanzar de cero.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
+      "source_quote": "Recover from a limit. The first run ended with `error_max_turns` or `error_max_budget_usd`",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o09-q05",
+      "objective": 9,
+      "pool": "practice",
+      "scenario": "Después de un análisis largo de una base de código (sesión A), un equipo quiere comparar dos estrategias de testing partiendo de ese mismo análisis, sin que una contamine a la otra ni se pierda el original. ¿Qué hacés con el Agent SDK?",
+      "options": [
+        "Retomar la sesión A dos veces con `resume`, una por estrategia, en dos procesos en paralelo.",
+        "Retomar A con `resume` y `fork_session=True` para cada estrategia: cada fork tiene su propio ID y A queda intacta.",
+        "Copiar el último mensaje de A en dos sesiones nuevas y pedir en cada una que \"continúe el análisis\".",
+        "Usar `continue_conversation=True` dos veces seguidas, primero con una estrategia y después con la otra."
+      ],
+      "correct": 1,
+      "why_correct": "Fork crea una sesión nueva con copia del historial y diverge desde ahí; el original no cambia. Es el mecanismo para explorar caminos alternativos desde una base compartida.",
+      "why_wrong": {
+        "0": "Retomar la misma sesión dos veces sin forkear mezcla las dos líneas en un solo historial.",
+        "2": "Pierde casi todo el análisis: un mensaje no es el historial completo.",
+        "3": "Las dos continúan la misma sesión: la segunda estrategia arranca contaminada por la primera."
+      },
+      "rule": "Probar alternativas desde la misma base → `resume` + `fork_session=True`.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
+      "source_quote": "Forking creates a new session that starts with a copy of the original's history but diverges from that point.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o09-q06",
+      "objective": 9,
+      "pool": "practice",
+      "scenario": "Siguiendo con dos forks de la misma sesión, cada uno implementa una estrategia de refactor distinta en el mismo directorio del repo. Al final, los archivos tienen cambios de las dos estrategias mezclados. ¿Qué entendió mal el equipo?",
+      "options": [
+        "Que había que usar `continue_conversation=True` en lugar de forks para separar el trabajo de cada estrategia.",
+        "Que los forks comparten `session_id`, y por eso escriben en el mismo lugar del disco sin darse cuenta.",
+        "Que `fork_session` solo funciona si los dos forks se ejecutan uno después del otro, nunca en paralelo.",
+        "Que el fork separa la conversación, no el filesystem; cada rama necesita su propio directorio o un mecanismo para revertir archivos."
+      ],
+      "correct": 3,
+      "why_correct": "La doc es explícita: forkear ramifica el historial de conversación, no el sistema de archivos. Si un fork edita archivos, los cambios son reales para cualquier sesión en ese directorio. Hay que aislar el disco (otro directorio o worktree) o usar file checkpointing o git.",
+      "why_wrong": {
+        "0": "`continue` es aún peor: ni siquiera separa las conversaciones.",
+        "1": "Falso: cada fork tiene su propio `session_id`. El problema no es el ID sino el disco compartido.",
+        "2": "No hay tal restricción en la doc. En serie igual se pisarían los archivos."
+      },
+      "rule": "Fork = rama de conversación. Archivos compartidos siguen compartidos.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
+      "source_quote": "Forking branches the conversation history, not the filesystem. If a forked agent edits files, those changes are real and visible to any session working in the same directory.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o09-q07",
+      "objective": 9,
+      "pool": "practice",
+      "scenario": "Un coordinador de auditoría guardó ayer la sesión de análisis del módulo de pagos. Hoy, antes de seguir, el equipo hizo merge de 14 commits que tocaron 9 archivos de ese módulo. Retoman con `resume` y el agente razona sobre código que ya no existe. ¿Qué es más confiable?",
+      "options": [
+        "Retomar igual con `resume`, pero subir `max_turns` para que el agente tenga margen de notar los cambios solo.",
+        "Retomar con `resume` y `fork_session=True`, porque el fork vuelve a leer los archivos actuales del disco.",
+        "Arrancar una sesión nueva e inyectarle un resumen estructurado de los hallazgos de ayer más la lista de archivos que cambiaron.",
+        "Borrar los hallazgos de ayer y repetir el análisis completo del módulo desde cero, para no arrastrar errores."
+      ],
+      "correct": 2,
+      "why_correct": "Los resultados de tools de ayer quedaron viejos. La doc del SDK sugiere capturar los resultados como estado de la aplicación y pasarlos a una sesión nueva. Con la lista de archivos cambiados, el agente re-analiza solo eso y no repite el resto.",
+      "why_wrong": {
+        "0": "El agente arranca creyendo que el contexto viejo es válido. Más turnos no lo corrigen.",
+        "1": "El fork copia el mismo historial viejo. No relee nada por sí solo.",
+        "3": "Pierde el trabajo válido de ayer: es exactamente 'repetir trabajo completado'."
+      },
+      "rule": "Contexto viejo (código cambió) → sesión nueva + resumen estructurado + qué cambió.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
+      "source_quote": "Don't rely on session resume. Capture the results you need (analysis output, decisions, file diffs) as application state and pass them into a fresh session's prompt.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o09-q08",
+      "objective": 9,
+      "pool": "practice",
+      "scenario": "El agente líder de un sistema de research arma un plan de 12 sub-investigaciones. Horas después, con el contexto lleno de resultados, el agente ya no recuerda partes del plan y re-delega sub-investigaciones que ya estaban hechas. ¿Qué patrón lo evita?",
+      "options": [
+        "Que el líder guarde el plan (y el estado de cada sub-investigación) en memoria externa y lo relea en lugar de depender del contexto.",
+        "Pedirle al líder en el system prompt que \"no olvide el plan\" y que lo repita en cada turno de la conversación.",
+        "Subir el `max_turns` del líder para que tenga más espacio antes de que el contexto se llene de resultados.",
+        "Reemplazar el plan por una lista fija de subagentes en el código para que el líder no tenga que planificar."
+      ],
+      "correct": 0,
+      "why_correct": "Anthropic describe que su LeadResearcher guarda el plan en Memory para persistir el contexto, porque si la ventana se excede se trunca. Persistir el plan y el estado afuera permite retomar sin repetir trabajo.",
+      "why_wrong": {
+        "1": "Repetirlo en cada turno ocupa más contexto y sigue siendo guía, no persistencia.",
+        "2": "Los turnos no son el problema: el contexto se llena igual. Más turnos lo empeoran.",
+        "3": "Pierde la planificación adaptativa. El problema era recordar el plan, no tenerlo."
+      },
+      "rule": "Plan y estado importantes → afuera del contexto (archivo o memoria externa), y se releen al retomar.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "The LeadResearcher begins by thinking through the approach and saving its plan to Memory to persist the context, since if the context window exceeds 200,000 tokens it will be truncated and it is important to retain the plan.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o09-q09",
+      "objective": 9,
+      "pool": "practice",
+      "scenario": "Un pipeline lleva el progreso en un `progress.txt` en prosa libre: \"Terminé auth, pagos casi, falta reportes…\". Al retomar tras un corte, el agente interpreta \"pagos casi\" como terminado y nunca lo completa. ¿Qué cambio recomienda la doc?",
+      "options": [
+        "Escribir el `progress.txt` en mayúsculas y con viñetas, así el agente lo lee con más atención al retomar.",
+        "Eliminar el archivo y confiar en que el agente reconstruya el estado leyendo el código del repositorio.",
+        "Guardar el estado en la conversación con `resume`, que es más confiable que cualquier archivo de progreso.",
+        "Llevar el estado de cada tarea en JSON (por ejemplo `pending`/`in_progress`/`done`) y dejar la prosa solo para notas."
+      ],
+      "correct": 3,
+      "why_correct": "La doc de prompting recomienda formatos estructurados como JSON para el estado (resultados, estado de tareas) y texto libre solo para notas de progreso. Un `status` explícito no se puede malinterpretar como 'casi terminado'.",
+      "why_wrong": {
+        "0": "Sigue siendo prosa ambigua. El formato visual no define estados.",
+        "1": "Reconstruir desde el código no dice qué tarea quedó a medias. Es adivinar.",
+        "2": "La sesión guarda la conversación, no un estado de tareas consultable; y si se cae en otro host o el contexto queda viejo, falla."
+      },
+      "rule": "Estado de tareas → JSON con estados explícitos; prosa solo para notas.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "When tracking structured information (such as test results or task status), use JSON or other structured formats to make schema requirements explicit to Claude.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o09-q10",
+      "objective": 9,
+      "pool": "practice",
+      "scenario": "En Claude Code, una sesión de migración se cortó mientras corría un script Bash largo que movía archivos. Al día siguiente la retomás con `claude --resume migracion` y esperás que el script se termine de ejecutar solo. No pasó nada. ¿Qué explica la doc?",
+      "options": [
+        "Que `--resume` con nombre solo restaura el modelo y los permisos, pero no la conversación anterior.",
+        "Que una tool que estaba corriendo cuando el proceso se cortó no se vuelve a ejecutar al retomar: hay que verificar y relanzar lo pendiente.",
+        "Que hay que retomar con `--fork-session` para que Claude Code vuelva a correr las tools interrumpidas.",
+        "Que el script se re-ejecuta solo, pero recién después de que Claude complete el siguiente turno."
+      ],
+      "correct": 1,
+      "why_correct": "La doc de sesiones dice que una llamada a tool que seguía corriendo cuando terminó el proceso (por ejemplo, en un crash) no se re-ejecuta al retomar. Por eso tu estado (manifiesto, git) tiene que decir qué quedó a medias para verificarlo y relanzarlo.",
+      "why_wrong": {
+        "0": "Falso: retomar restaura la conversación, incluidos mensajes, tool calls y resultados.",
+        "2": "El fork copia la conversación a una sesión nueva; no re-ejecuta tools.",
+        "3": "No hay re-ejecución automática diferida. Claude ve la conversación y vos decidís qué relanzar."
+      },
+      "rule": "Retomar no re-ejecuta lo interrumpido: tu estado tiene que decir qué verificar y relanzar.",
+      "source_url": "https://code.claude.com/docs/en/sessions",
+      "source_quote": "Interrupted tool calls: a tool that was still running when the previous process ended, for example in a crash, doesn't get rerun when you resume.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

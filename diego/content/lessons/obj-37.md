@@ -13,7 +13,7 @@ sources:
     title: "Handle tool calls"
   - url: https://platform.claude.com/docs/en/build-with-claude/thinking
     title: "Thinking (Response prefill and forced tool use)"
-status: no_verificado
+status: verificada
 ---
 
 ## Qué es

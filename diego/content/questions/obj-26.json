@@ -22,8 +22,12 @@
       "rule": "Si el dato puede faltar, el schema tiene que poder decir null. Requerido + no-nullable = invitación a inventar.",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
       "source_quote": "Allow Claude to say “I don’t know”: Explicitly give Claude permission to admit uncertainty. This technique can drastically reduce false information.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "null es tipo soportado en structured outputs; cita textual de reduce-hallucinations. format date solo valida forma."
+      }
     },
     {
       "id": "o26-q02",
@@ -46,8 +50,12 @@
       "rule": "Conjunto cerrado de valores → enum en el schema, no normalización después.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "For classification tasks, use either tools with an enum field containing your valid labels or structured outputs.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual en best practices (clasificación con enum o structured outputs)."
+      }
     },
     {
       "id": "o26-q03",
@@ -61,17 +69,21 @@
         "Agregar un valor \"otro\" al enum y un campo de detalle nullable para describir el caso."
       ],
       "correct": 3,
-      "why_correct": "Un enum sin salida obliga a elegir el valor más cercano aunque no corresponda. Agregar \"otro\" le da al modelo una forma válida de decir \"no encaja\", y el campo de detalle guarda la información para revisión. Los enums aceptan strings y nulls, así que el diseño es válido.",
+      "why_correct": "Un enum sin salida obliga a elegir el valor más cercano aunque no corresponda. Agregar \"otro\" le da al modelo una forma válida de decir \"no encaja\": es aplicar al schema el consejo de la doc de darle permiso para admitir incertidumbre. El detalle nullable es válido porque null es un tipo soportado en structured outputs, y guarda la información para revisión.",
       "why_wrong": {
         "0": "Volvés al problema de los valores inconsistentes y perdés la clasificación útil.",
         "1": "Un reclamo sin clasificar desaparece del pipeline. Y si la tool está forzada, ni siquiera es posible.",
         "2": "Una categoría ausente es ambigua (¿no encaja o se olvidó?). Un valor explícito es más claro y fácil de contar."
       },
       "rule": "Enum cerrado sin salida de escape = el modelo fuerza el valor más parecido. Agregá \"otro\".",
-      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
-      "source_quote": "enum (strings, numbers, booleans, or nulls only, no complex types).",
-      "status": "no_verificado",
-      "verification": null
+      "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
+      "source_quote": "Explicitly give Claude permission to admit uncertainty. This technique can drastically reduce false information.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "La cita original (enum acepta strings/nulls) solo probaba que el schema es válido, no el diseño. Cambié source a reduce-hallucinations ('permission to admit uncertainty') y reescribí why_correct apoyado en eso + null como tipo soportado."
+      }
     },
     {
       "id": "o26-q04",
@@ -94,8 +106,12 @@
       "rule": "Strict/JSON outputs: máx. 24 opcionales y 16 union types por request. Hacé required lo que puedas.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "Make parameters required where possible. Each optional parameter roughly doubles a portion of the grammar’s state space.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Tabla de límites: 24 opcionales y 16 union types por request; tips: required donde se pueda, aplanar anidados. Cita textual."
+      }
     },
     {
       "id": "o26-q05",
@@ -118,8 +134,12 @@
       "rule": "En structured outputs, un dict sin keys solo puede volver {}: listá las keys o usá un array de key/value.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "The SDK sends a dict field as an object with empty properties, so Claude can only return {} for it.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Sección 'Objects with arbitrary keys': SDK manda dict con properties vacías, solo puede volver {}; usar array key/value. additionalProperties distinto de false no soportado."
+      }
     },
     {
       "id": "o26-q06",
@@ -137,13 +157,17 @@
       "why_wrong": {
         "1": "Si telefono es el único opcional funcionaría por casualidad, pero con más opcionales el problema vuelve. El fix documentado es todo required o no depender del orden.",
         "2": "\"order\" no es una keyword soportada. No inventes parámetros.",
-        "3": "La regla de ordenamiento aplica igual a strict tool use. No cambia nada."
+        "3": "La doc no dice que el input_schema de una tool respete siempre el orden, y pasar a una tool cambia dónde leés los datos (tool_use.input). El fix documentado es todo required o adaptar el parseo."
       },
       "rule": "En structured outputs, las required salen primero. Si el orden importa: todo required (+ nullable).",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "If property order in the output is important to your application, mark all properties as required, or account for this reordering in your parsing logic.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "why_wrong de la opción D afirmaba que la regla de orden aplica a strict tool use; la doc no lo dice. Reescrito a algo respaldado. Resto confirmado (Property ordering, cita textual)."
+      }
     },
     {
       "id": "o26-q07",
@@ -166,8 +190,12 @@
       "rule": "Para enseñar cuándo omitir un opcional: input_examples (few-shot) + description, no más required.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
       "source_quote": "These patterns indicate when to include optional parameters, what formats to use, and how to structure complex inputs.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "define-tools 'Providing tool use examples': cita textual sobre cuándo incluir parámetros opcionales."
+      }
     },
     {
       "id": "o26-q08",
@@ -181,17 +209,21 @@
         "Agregar un campo confianza (number de 0 a 1) y descartar automáticamente lo que tenga menos de 0.8."
       ],
       "correct": 1,
-      "why_correct": "Un integer requerido obliga a elegir un número. Si es nullable, el modelo puede decir \"no hay un único valor\", y el campo de nota guarda la frase para revisión. Es aplicar \"permitile decir no sé\" al schema: el dato ambiguo queda representado sin inventar un valor.",
+      "why_correct": "Un integer requerido obliga a elegir un número. Si es nullable (null es un tipo soportado en structured outputs), el modelo puede decir \"no hay un único valor\", y el campo de nota guarda la frase para revisión humana. Es aplicar al schema el consejo de la doc: darle permiso para admitir incertidumbre.",
       "why_wrong": {
         "0": "Perdés el tipo para todos los contratos claros y tenés que parsear texto libre después.",
         "2": "Es una regla de negocio inventada que vuelve a ocultar la ambigüedad. Sigue fabricando un valor.",
-        "3": "Una autoconfianza numérica no está garantizada como calibrada, y descartar en automático pierde los casos que Legales quiere ver."
+        "3": "La doc no respalda usar un número de autoconfianza como filtro. Y descartar en automático pierde justo los casos que Legales quiere ver."
       },
       "rule": "Dato ambiguo → null + nota, no un número elegido a dedo.",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
       "source_quote": "Explicitly give Claude permission to admit uncertainty.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "corregida",
+        "notes": "why_wrong D afirmaba algo no documentado (calibración de confianza): suavizado. why_correct ahora se apoya en null como tipo soportado + cita textual de reduce-hallucinations."
+      }
     },
     {
       "id": "o26-q09",
@@ -214,8 +246,12 @@
       "rule": "Enum = valores simples (string, number, boolean, null). Nada de objetos.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "enum (strings, numbers, booleans, or nulls only, no complex types).",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "'Complex types within enums' en Not supported; external $ref no soportado."
+      }
     },
     {
       "id": "o26-q10",
@@ -238,8 +274,12 @@
       "rule": "strict = forma garantizada, no verdad. El schema tiene que poder decir \"no está\".",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview",
       "source_quote": "Claude Sonnet might ask, especially when prompted to think before outputting a tool request. But it might also infer a reasonable value.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "strict-tool-use: strict restringe el muestreo a salidas válidas para el schema (no verifica contra la fuente). Cita textual del overview sobre Sonnet infiriendo valores. Respuesta es inferencia directa de lo documentado; distractores claramente falsos."
+      }
     }
   ]
 }

@@ -1,0 +1,245 @@
+{
+  "objective": 1,
+  "questions": [
+    {
+      "id": "o01-q01",
+      "objective": 1,
+      "pool": "practice",
+      "scenario": "Un agente de soporte con la Messages API recibe respuestas con dos o tres bloques `tool_use` (consultar pedido, consultar envío, consultar factura). El código ejecuta cada tool y agrega al historial un mensaje `user` por cada `tool_result`. Con el correr de la conversación, Claude empieza a pedir una sola tool por turno y la latencia total se duplica. ¿Cuál es el fix?",
+      "options": [
+        "Agregar `parallel_tool_calls: true` como parámetro top-level de la request para volver a habilitar las llamadas múltiples por turno.",
+        "Devolver todos los `tool_result` de esa respuesta juntos en un único mensaje `user`, cada uno con su `tool_use_id`.",
+        "Cambiar a `tool_choice: {\"type\": \"any\"}` para obligar a Claude a llamar herramientas en todos los turnos del bucle.",
+        "Intercalar un mensaje `assistant` vacío entre cada `tool_result` para que el historial respete la alternancia de roles."
+      ],
+      "correct": 1,
+      "why_correct": "La doc lo marca como el problema más común: mandar cada resultado en un mensaje `user` separado le \"enseña\" a Claude a evitar las llamadas en paralelo. Lo correcto es un solo mensaje `user` con todos los `tool_result`.",
+      "why_wrong": {
+        "0": "Ese parámetro no existe en la API de Claude. El paralelismo ya está activado por defecto; lo que lo rompe es el formato del historial.",
+        "2": "`any` obliga a usar alguna tool, pero no arregla el historial mal formateado que desalienta el paralelismo. Y en algunos modelos `any` ni siquiera está soportado.",
+        "3": "Meter mensajes entre el `tool_use` y sus resultados está prohibido: los `tool_result` tienen que seguir inmediatamente al mensaje con los `tool_use`."
+      },
+      "rule": "N tool_use en una respuesta → N tool_result en UN solo mensaje user.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
+      "source_quote": "The most common issue is formatting tool results incorrectly in the conversation history. This “teaches” Claude to avoid parallel calls.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o01-q02",
+      "objective": 1,
+      "pool": "practice",
+      "scenario": "Un equipo arma el mensaje de vuelta después de una respuesta con dos `tool_use`. Para que el log sea legible, el `content` del mensaje `user` empieza con un bloque de texto \"Resultados de las herramientas:\" y después los dos `tool_result`. La API devuelve un error 400. ¿Qué cambian?",
+      "options": [
+        "Poner los dos `tool_result` primero en el array `content` y, si hace falta texto, agregarlo después de ellos.",
+        "Mover el texto explicativo al `system` prompt de la request siguiente y dejar solo los `tool_result` en el turno.",
+        "Mandar el texto en un mensaje `user` propio antes del mensaje que lleva los dos bloques `tool_result`.",
+        "Envolver el texto dentro del `content` del primer `tool_result` y quitar el `tool_use_id` del segundo bloque."
+      ],
+      "correct": 0,
+      "why_correct": "La regla de formato: en el mensaje que lleva resultados, los bloques `tool_result` van PRIMERO y cualquier texto va DESPUÉS de todos ellos. Con texto antes, la API responde 400.",
+      "why_wrong": {
+        "1": "No hace falta tocar el `system` prompt; el problema es solo el orden de los bloques dentro del mensaje.",
+        "2": "No puede haber ningún mensaje entre el `assistant` con los `tool_use` y el `user` con los resultados. Un mensaje intermedio rompe la secuencia.",
+        "3": "Cada `tool_result` necesita su `tool_use_id`. Sacarlo deja un `tool_use` sin resultado y la request falla igual."
+      },
+      "rule": "En el mensaje de resultados: primero todos los tool_result, después (si querés) texto.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "source_quote": "In the user message containing tool results, the `tool_result` blocks must come FIRST in the content array. Any text must come AFTER all tool results.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o01-q03",
+      "objective": 1,
+      "pool": "practice",
+      "scenario": "Un agente de despliegue recibe en un mismo turno `write_file` y `run_migration`. El código las ejecuta en orden y, como `write_file` falla, decide no correr `run_migration` y devuelve solo el `tool_result` de `write_file` con `is_error: true`. La siguiente request falla con \"tool_use ids were found without tool_result blocks immediately after\". ¿Cuál es el fix?",
+      "options": [
+        "Reintentar `write_file` hasta que funcione y recién entonces mandar un único `tool_result` con el resultado exitoso.",
+        "Mandar el `tool_result` de `run_migration` en un segundo mensaje `user`, aparte, después del que lleva `write_file`.",
+        "Devolver también un `tool_result` para `run_migration` con `is_error: true` y una explicación de por qué no se ejecutó.",
+        "Configurar `disable_parallel_tool_use: true` como parámetro top-level para que nunca vengan dos tools juntas."
+      ],
+      "correct": 2,
+      "why_correct": "Cada `tool_use` necesita su `tool_result`. Si decidís no ejecutar una llamada (porque corriste en secuencia y una anterior falló), igual le devolvés un `tool_result` con `is_error: true` y una explicación breve.",
+      "why_wrong": {
+        "0": "Sigue faltando el resultado de `run_migration`; además reintentar a ciegas no es lo que pide la doc.",
+        "1": "Todos los `tool_result` de una respuesta van juntos en el siguiente mensaje `user`. Repartirlos en dos mensajes es el formato que la doc marca como incorrecto.",
+        "3": "`disable_parallel_tool_use` no es top-level: va dentro de `tool_choice`. Y no arregla el resultado faltante de esta respuesta."
+      },
+      "rule": "Tool que no corriste → igual devolvés su tool_result con is_error: true.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
+      "source_quote": "If you choose not to run a particular call (for example, because you ran the batch sequentially and an earlier call failed), still return a `tool_result` for it with `is_error: true` and a brief explanation.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o01-q04",
+      "objective": 1,
+      "pool": "practice",
+      "scenario": "Un sistema de pagos usa la Messages API con `tool_choice` en `auto`. Por un requisito de auditoría, cada respuesta de Claude puede pedir como máximo una herramienta, para registrarlas de a una. Un dev agregó `\"disable_parallel_tool_use\": true` al nivel raíz de la request, junto a `model` y `tools`, y no funciona. ¿Qué configuración es la correcta?",
+      "options": [
+        "Dejarlo en el nivel raíz y agregar al system prompt \"Llamá solo una herramienta por respuesta\" para reforzarlo.",
+        "Cambiar a `tool_choice: {\"type\": \"none\"}` para que Claude elija de a una herramienta por cada turno del bucle.",
+        "Reducir `max_tokens` a un valor bajo para que la respuesta no tenga espacio para generar un segundo `tool_use`.",
+        "Poner `tool_choice: {\"type\": \"auto\", \"disable_parallel_tool_use\": true}`, dentro del objeto `tool_choice`."
+      ],
+      "correct": 3,
+      "why_correct": "`disable_parallel_tool_use` va dentro del objeto `tool_choice`; no es un parámetro top-level. Con `type: auto`, hace que Claude llame como mucho una herramienta por respuesta (y todavía puede contestar solo con texto).",
+      "why_wrong": {
+        "0": "En el nivel raíz el campo no es válido. Y un pedido en el prompt orienta, no garantiza el requisito de auditoría.",
+        "1": "`none` hace que Claude no llame ninguna herramienta; no es \"de a una\".",
+        "2": "Recortar `max_tokens` puede cortar la respuesta a la mitad (`stop_reason: max_tokens`); no es un control sobre la cantidad de tools."
+      },
+      "rule": "Apagar paralelismo = disable_parallel_tool_use DENTRO de tool_choice.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
+      "source_quote": "To turn it off, set `disable_parallel_tool_use: true` inside the `tool_choice` object. It is not a top-level request parameter.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o01-q05",
+      "objective": 1,
+      "pool": "practice",
+      "scenario": "Un agente de investigación corta el bucle apenas la respuesta de Claude trae un bloque de texto, y muestra ese texto al usuario. Muchas veces el usuario ve \"Voy a consultar las tres bases...\" y nada más, aunque la misma respuesta traía tres bloques `tool_use`. ¿Cómo debería decidir el bucle si sigue o termina?",
+      "options": [
+        "Cortar solo cuando el texto supere cierta cantidad de caracteres, señal de que Claude ya redactó la respuesta final.",
+        "Mirar `stop_reason`: si es `tool_use`, ejecutar las tools y seguir; si es `end_turn`, la respuesta está completa.",
+        "Agregar al system prompt \"No escribas texto antes de usar herramientas\" para que el bloque de texto no aparezca nunca.",
+        "Forzar `tool_choice: {\"type\": \"any\"}` en todas las requests para que la respuesta no pueda terminar con texto."
+      ],
+      "correct": 1,
+      "why_correct": "Una respuesta puede traer texto y tool calls a la vez. Lo que dice por qué paró es `stop_reason`: `tool_use` significa que Claude está llamando herramientas que vos tenés que ejecutar; `end_turn`, que terminó naturalmente.",
+      "why_wrong": {
+        "0": "El largo del texto no indica nada. Es una heurística frágil que ignora el campo que la API da justamente para esto.",
+        "2": "Es guía, no garantía, y no arregla la lógica del bucle: el corte sigue dependiendo de algo que no es `stop_reason`.",
+        "3": "Con `any` Claude nunca podría terminar con una respuesta en texto, y además no está soportado en todos los modelos."
+      },
+      "rule": "El bucle lo maneja stop_reason: tool_use → seguís; end_turn → terminás.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
+      "source_quote": "When Claude calls tools, the response has a `stop_reason` of `tool_use` and can contain several `tool_use` blocks in a single assistant turn.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o01-q06",
+      "objective": 1,
+      "pool": "practice",
+      "scenario": "Un asistente de viajes recibe en una respuesta cuatro `tool_use` de solo lectura (vuelos, hoteles, clima, tipo de cambio), cada uno de unos 2 segundos. El código los ejecuta con un `for` y `await` uno tras otro, y el turno tarda 8 segundos. El formato del historial ya es correcto. ¿Qué cambio reduce la latencia sin romper nada?",
+      "options": [
+        "Pedirle a Claude en el system prompt que llame una herramienta por turno para que cada una arranque antes.",
+        "Agregar `disable_parallel_tool_use: true` dentro de `tool_choice` para que el bucle procese menos herramientas.",
+        "Ejecutar las cuatro llamadas de forma concurrente, por ejemplo con `asyncio.gather`, y devolver todos los resultados juntos.",
+        "Responder con el primer `tool_result` apenas esté listo y mandar los otros tres en los mensajes siguientes."
+      ],
+      "correct": 2,
+      "why_correct": "La API no impone un orden de ejecución: podés correr las llamadas en paralelo (`Promise.all`, `asyncio.gather`). Para operaciones independientes y de solo lectura, eso baja la latencia. Después devolvés los cuatro `tool_result` en un solo mensaje.",
+      "why_wrong": {
+        "0": "Una tool por turno suma un ida y vuelta por cada herramienta: más latencia, no menos.",
+        "1": "Apagar el paralelismo obliga a más requests secuenciales. Es lo contrario de lo que se busca.",
+        "3": "Mandar resultados en mensajes separados rompe el formato: todos los `tool_result` de una respuesta van juntos en el siguiente mensaje `user`."
+      },
+      "rule": "Tools independientes y de solo lectura → ejecutalas concurrentes; el orden lo decidís vos.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
+      "source_quote": "Independent, read-only operations are usually safe to run in parallel for lower latency. Tools with side effects, shared state, or ordering requirements might be better run sequentially.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o01-q07",
+      "objective": 1,
+      "pool": "practice",
+      "scenario": "Un coordinador del Agent SDK tiene tres subagentes de investigación (mercado, regulación, competencia) cuyas tareas no dependen entre sí. Hoy el coordinador lanza uno, espera su informe, recién después lanza el siguiente, y la corrida tarda la suma de los tres. ¿Qué cambio de diseño corresponde?",
+      "options": [
+        "Que el coordinador lance los tres subagentes en la misma respuesta, para que corran a la vez y terminen al ritmo del más lento.",
+        "Fusionar los tres subagentes en uno solo con todas las herramientas para que haga las tres investigaciones seguidas.",
+        "Encadenar los subagentes pasando el informe de cada uno al siguiente, así cada investigación reutiliza la anterior.",
+        "Subir `maxTurns` del coordinador para que tenga margen de esperar a cada subagente sin cortar la corrida antes."
+      ],
+      "correct": 0,
+      "why_correct": "Si las subtareas son independientes, se paralelizan: varios subagentes corren a la vez y el total tarda lo del más lento, no la suma. Para eso el coordinador tiene que pedir las tres invocaciones en el mismo turno, no una por turno.",
+      "why_wrong": {
+        "1": "Un solo agente haciendo las tres cosas sigue siendo secuencial, y además pierde el aislamiento de contexto de cada subagente.",
+        "2": "Encadenar sirve cuando un paso depende del anterior. Acá no hay dependencia; encadenar mantiene la latencia sumada.",
+        "3": "`maxTurns` limita cuántos turnos puede dar el agente; no hace que los subagentes corran en paralelo."
+      },
+      "rule": "Subtareas independientes → varios subagentes lanzados en el mismo turno, no uno por turno.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "source_quote": "multiple subagents can run concurrently, so independent subtasks finish in the time of the slowest one rather than the sum of all of them.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o01-q08",
+      "objective": 1,
+      "pool": "practice",
+      "scenario": "Una app con el Agent SDK define una custom tool `lookup_customer` que solo lee de un CRM. Claude la pide cinco veces en un mismo turno, pero el SDK las ejecuta una tras otra, mientras que los `Read` del mismo agente sí corren a la vez. ¿Qué cambio hace que esas llamadas puedan correr en paralelo?",
+      "options": [
+        "Listar `lookup_customer` en `allowedTools` para que el SDK la apruebe sin prompt y la pueda correr en paralelo.",
+        "Agregar al system prompt \"ejecutá las herramientas en paralelo\" para que el SDK cambie su estrategia de ejecución.",
+        "Configurar `permissionMode: \"bypassPermissions\"` para que ninguna llamada espere aprobación y se ejecuten juntas.",
+        "Marcar la tool con `readOnlyHint` en sus annotations, porque las custom tools corren en secuencia por defecto."
+      ],
+      "correct": 3,
+      "why_correct": "En el Agent SDK, las tools de solo lectura pueden correr concurrentes y las que modifican estado van en secuencia. Las custom tools son secuenciales por defecto; para habilitar ejecución paralela hay que poner `readOnlyHint` en sus annotations.",
+      "why_wrong": {
+        "0": "`allowedTools` solo auto-aprueba la tool. No cambia si el SDK la ejecuta en paralelo o en secuencia.",
+        "1": "El prompt influye en qué pide Claude (ya pide las cinco juntas). Cómo las ejecuta el SDK depende de la anotación de la tool.",
+        "2": "Saltear permisos no cambia la estrategia de ejecución, y abre mucho más de lo necesario."
+      },
+      "rule": "Agent SDK: custom tool paralela solo si tiene readOnlyHint; si no, va en secuencia.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
+      "source_quote": "Custom tools default to sequential execution. To enable parallel execution for a custom tool, set `readOnlyHint` in its annotations.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o01-q09",
+      "objective": 1,
+      "pool": "practice",
+      "scenario": "Un agente de archivos a veces pide en el mismo turno `create_folder` y `write_file` dentro de esa carpeta. El código corre todo en paralelo y `write_file` falla porque la carpeta todavía no existía. El equipo quiere seguir aprovechando el paralelismo para lecturas. ¿Qué hacen según la doc?",
+      "options": [
+        "Apagar el paralelismo para todo el agente con `disable_parallel_tool_use: true` y aceptar más idas y vueltas en cada tarea.",
+        "Devolver el error con `is_error: true` para que Claude reintente, y pedir en el system prompt que solo agrupe llamadas independientes.",
+        "Reordenar en el código los `tool_use` por nombre de tool y descartar sin resultado los que dependan de otro bloque.",
+        "Reintentar `write_file` en el mismo turno en un loop interno hasta que la carpeta exista y devolver solo el éxito."
+      ],
+      "correct": 1,
+      "why_correct": "Si una llamada en paralelo falla porque su prerequisito no terminó, devolvés `is_error: true` con el error natural y Claude la reemite en el turno siguiente. Para que no vengan juntas llamadas dependientes, la doc sugiere el prompt \"Only batch tool calls that are independent of each other.\"",
+      "why_wrong": {
+        "0": "Funciona, pero tira el beneficio del paralelismo para las lecturas, que es justo lo que quieren conservar.",
+        "2": "Descartar `tool_use` sin devolver su `tool_result` rompe la request siguiente: cada llamada necesita su resultado.",
+        "3": "Esconder el error con reintentos internos no es el patrón documentado; además puede colgarse si el prerequisito nunca llega."
+      },
+      "rule": "Llamadas dependientes en el mismo lote → is_error y prompt \"solo agrupá llamadas independientes\".",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
+      "source_quote": "To reduce dependent calls appearing together, add this to your system prompt: “Only batch tool calls that are independent of each other.”",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o01-q10",
+      "objective": 1,
+      "pool": "practice",
+      "scenario": "Un agente con un modelo Claude 4 o posterior tiene el historial bien formateado (todos los `tool_result` juntos y primero). Aun así, al pedirle \"revisá los logs de estos 5 servicios\", hace una llamada por turno. Midieron un promedio de 1.0 tool calls por respuesta con tools. ¿Qué es lo siguiente que recomienda la doc?",
+      "options": [
+        "Agregar al system prompt que, para operaciones independientes, invoque todas las herramientas relevantes simultáneamente.",
+        "Pasar a `tool_choice: {\"type\": \"tool\", \"name\": \"read_logs\"}` para que llame esa herramienta las cinco veces seguidas.",
+        "Unificar las cinco consultas en una sola request con `stop_sequences` para que el modelo no corte entre llamada y llamada.",
+        "Subir `max_tokens` porque las respuestas con varias tool calls necesitan más espacio que las que tienen una sola."
+      ],
+      "correct": 0,
+      "why_correct": "Si el formato está bien y el paralelismo igual no aparece, el siguiente problema típico es el prompting. La doc sugiere un system prompt que pida invocar todas las tools relevantes a la vez para operaciones independientes.",
+      "why_wrong": {
+        "1": "Forzar una tool por nombre no pide varias llamadas por turno; además `tool` no está soportado en todos los modelos.",
+        "2": "`stop_sequences` sirve para cortar la generación en un texto dado; no tiene relación con cuántas tools pide Claude.",
+        "3": "La respuesta no se está cortando por `max_tokens`; el problema es que Claude elige una tool por turno."
+      },
+      "rule": "Formato bien pero poco paralelismo → system prompt pidiendo tools simultáneas.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
+      "source_quote": "For maximum efficiency, whenever you need to perform multiple independent operations, invoke all relevant tools simultaneously rather than sequentially.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

@@ -22,8 +22,12 @@
       "rule": "Dependencia entre tools = requests encadenados con tool_result, nunca forzar la tool dependiente.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
       "source_quote": "The model can’t run your code, so every tool call is a round trip: the model asks, you execute, you report back, the model continues.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "how-tool-use-works: cada tool call es un round trip (el dato llega por tool_result). overview: Sonnet puede inferir valores faltantes. define-tools: forzar hace que la respuesta arranque con el tool_use. Juntas respaldan la respuesta; escenario aclara modelo que acepta forzar."
+      }
     },
     {
       "id": "o37-q02",
@@ -46,8 +50,12 @@
       "rule": "disable_parallel_tool_use va DENTRO de tool_choice; con auto = máximo una tool por respuesta.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
       "source_quote": "To turn it off, set disable_parallel_tool_use: true inside the tool_choice object. It is not a top-level request parameter.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "parallel-tool-use: disable_parallel_tool_use va dentro de tool_choice, no top-level; con auto = como mucho una tool."
+      }
     },
     {
       "id": "o37-q03",
@@ -70,8 +78,12 @@
       "rule": "Resultados de tools paralelas: un solo mensaje user, con todos los tool_result primero.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
       "source_quote": "Correct: all tool results together in a single user message",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "parallel-tool-use troubleshooting: el problema más común es mandar un user message por resultado; correcto: todos juntos en un mensaje."
+      }
     },
     {
       "id": "o37-q04",
@@ -94,8 +106,12 @@
       "rule": "tool_use → tool_result inmediatamente después; nada en el medio; tool_result primero en el content.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
       "source_quote": "Tool result blocks must immediately follow their corresponding tool use blocks in the message history. You cannot include any messages between the assistant’s tool use message and the user’s tool result message.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "handle-tool-calls: tool_result inmediatamente después del tool_use, sin mensajes en el medio; tool_result antes del texto."
+      }
     },
     {
       "id": "o37-q05",
@@ -118,8 +134,12 @@
       "rule": "any/tool + disable_parallel_tool_use = exactamente una tool; auto + disable = como mucho una.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
       "source_quote": "When the tool_choice type is any or tool, setting disable_parallel_tool_use: true means Claude calls exactly one tool.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "parallel-tool-use: con any/tool + disable_parallel_tool_use = exactamente una tool. Haiku 5.5 acepta forced tool use."
+      }
     },
     {
       "id": "o37-q06",
@@ -142,8 +162,12 @@
       "rule": "Tool que falló por dependencia → tool_result con is_error: true; Claude la reintenta.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
       "source_quote": "If you run in parallel and a call fails because its prerequisite hadn’t completed, return is_error: true with the natural error message. Claude will reissue the call on the next turn.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "parallel-tool-use troubleshooting #4: cita textual."
+      }
     },
     {
       "id": "o37-q07",
@@ -166,8 +190,12 @@
       "rule": "Cambiar tool_choice entre requests = se pierde el cache de los mensajes (no el de tools/system).",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
       "source_quote": "When using prompt caching, changes to the tool_choice parameter will invalidate cached message blocks. Tool definitions and system prompts remain cached, but message content must be reprocessed.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "define-tools: cita textual sobre tool_choice y prompt caching."
+      }
     },
     {
       "id": "o37-q08",
@@ -190,8 +218,12 @@
       "rule": "El loop se maneja con stop_reason == \"tool_use\", no con la posición del bloque.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
       "source_quote": "In practice this reads as: while stop_reason == \"tool_use\", run the tools and continue the conversation.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "how-tool-use-works: loop 'while stop_reason == tool_use'; define-tools: Claude puede escribir texto antes de tool_use."
+      }
     },
     {
       "id": "o37-q09",
@@ -214,8 +246,12 @@
       "rule": "Si falta un prerrequisito, dale a Claude una forma de obtenerlo (otra tool o preguntar), no lo fuerces a adivinar.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview",
       "source_quote": "Claude (particularly Claude Sonnet) might guess values you didn’t supply:",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "overview 'When required parameters are missing': Sonnet puede adivinar location. Agregar una tool que trae el dato es la única opción que da un camino real."
+      }
     },
     {
       "id": "o37-q10",
@@ -238,8 +274,12 @@
       "rule": "Modelo sin forced tool use → auto + strict + prompt + validación en tu código.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
       "source_quote": "Prompting still influences which tool auto picks.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "api/errors y define-tools: Opus 5.5 rechaza any/tool con 400; usar auto + strict; 'Prompting still influences which tool auto picks'. Prefill 400 en 4.6+."
+      }
     }
   ]
 }

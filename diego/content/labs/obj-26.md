@@ -10,14 +10,16 @@ sources:
     title: "Reduce hallucinations"
   - url: https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview
     title: "Tool use with Claude (When required parameters are missing)"
-status: no_verificado
+  - url: https://platform.claude.com/docs/en/build-with-claude/thinking
+    title: "Thinking (thinking por defecto y max_tokens)"
+status: verificada
 ---
 
 ## Objetivo
 
 Extraer datos de tres facturas (una completa, una sin vencimiento, una ambigua) con dos schemas: uno "todo requerido, todo string" y otro con **nullable**, **enum** con salida de escape e instrucciones + ejemplos con `null`. Comparar cuánto inventa cada uno. Después romper un schema a propósito (`dict` sin keys, enum con objetos).
 
-Modelo: `claude-sonnet-5-5`.
+Modelo: `claude-sonnet-5-5`. Trae thinking prendido por defecto y esos tokens cuentan para `max_tokens`, por eso los scripts usan 2048 y leen el bloque de tipo `text`.
 
 ## Pasos
 
@@ -61,7 +63,7 @@ SCHEMA_V1 = {
 client = anthropic.Anthropic()
 for nombre, texto in FACTURAS.items():
     r = client.messages.create(
-        model="claude-sonnet-5-5", max_tokens=400,
+        model="claude-sonnet-5-5", max_tokens=2048,
         messages=[{"role": "user", "content": f"Extraé los datos de esta factura: {texto}"}],
         output_config={"format": {"type": "json_schema", "schema": SCHEMA_V1}},
     )
@@ -118,7 +120,7 @@ Salida: {"numero": "Z-2", "vencimiento": "2026-01-10", "moneda": "ambigua", "med
 client = anthropic.Anthropic()
 for nombre, texto in FACTURAS.items():
     r = client.messages.create(
-        model="claude-sonnet-5-5", max_tokens=400, system=SYSTEM,
+        model="claude-sonnet-5-5", max_tokens=2048, system=SYSTEM,
         messages=[{"role": "user", "content": f"Factura: {texto}"}],
         output_config={"format": {"type": "json_schema", "schema": SCHEMA_V2}},
     )
@@ -146,7 +148,7 @@ class Factura(BaseModel):
 
 client = anthropic.Anthropic()
 r = client.messages.parse(
-    model="claude-sonnet-5-5", max_tokens=400, output_format=Factura,
+    model="claude-sonnet-5-5", max_tokens=2048, output_format=Factura,
     messages=[{"role": "user", "content": "Factura A-1. Sucursal 3. Vendedor: Ana. Caja 2."}],
 )
 print(r.parsed_output)

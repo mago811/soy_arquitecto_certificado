@@ -11,7 +11,9 @@ sources:
     title: "Strict tool use"
   - url: https://platform.claude.com/docs/en/api/errors
     title: "Errors (Forced tool use not supported)"
-status: no_verificado
+  - url: https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works
+    title: "How tool use works"
+status: verificada
 ---
 
 ## Qué es

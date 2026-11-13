@@ -1,0 +1,245 @@
+{
+  "objective": 4,
+  "questions": [
+    {
+      "id": "o04-q01",
+      "objective": 4,
+      "pool": "practice",
+      "scenario": "Un sistema de research con el Agent SDK delega a un subagente buscador con este prompt: \"1) Buscá 'precio litio 2025' 2) Abrí los 3 primeros resultados 3) Copiá la cifra de precio 4) Devolvé las cifras\". En el paso 2 el subagente encuentra que la fuente oficial publica el precio en otra unidad y por trimestre, pero igual copia tres cifras incomparables de blogs. ¿Cuál es el fix?",
+      "options": [
+        "Agregar más pasos al guion: \"5) Si las unidades difieren, convertí a USD/tonelada\" y \"6) Si hay datos trimestrales, promediá\".",
+        "Subirle `maxTurns` al subagente para que tenga margen de abrir más resultados antes de devolver las cifras.",
+        "Delegar por objetivo: qué cifra se necesita, criterio de calidad (fuente primaria, unidad homogénea), formato de salida y límites.",
+        "Cambiar el subagente a un modelo más grande con `model: opus` para que razone mejor sobre cada paso del guion."
+      ],
+      "correct": 2,
+      "why_correct": "El problema es que el guion no deja adaptarse a lo que aparece. Anthropic describe que cada subagente necesita objetivo, formato de salida, guía de fuentes y límites claros. Con eso el subagente puede cambiar de camino (buscar la fuente oficial, normalizar) y entregar lo pedido.",
+      "why_wrong": {
+        "0": "Parchear el guion con más pasos solo cubre este caso. El próximo imprevisto vuelve a romperlo: sigue siendo delegación procedural.",
+        "1": "No le faltan turnos: le sobra rigidez. Con más turnos sigue el mismo guion equivocado.",
+        "3": "El modelo no es el cuello de botella. Un modelo más capaz igual obedece el guion que le diste."
+      },
+      "rule": "Investigación abierta → delegá objetivo + criterios + formato + límites, no un guion de pasos.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "Each subagent needs an objective, an output format, guidance on the tools and sources to use, and clear task boundaries.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o04-q02",
+      "objective": 4,
+      "pool": "practice",
+      "scenario": "El coordinador de un pipeline de research lanza tres subagentes en paralelo, a cada uno con el encargo \"investigá la escasez de semiconductores\". Los tres reportes vuelven casi iguales: mismas búsquedas, mismas fuentes, y nadie cubrió el impacto en la industria automotriz. ¿Qué cambiás?",
+      "options": [
+        "Darle a cada subagente un objetivo distinto con límites explícitos (qué subtema y qué período cubre cada uno) y el formato de salida esperado.",
+        "Pasar a un solo subagente con más presupuesto de turnos, así no hay duplicación posible entre agentes en paralelo.",
+        "Darles a los tres un guion idéntico de 10 pasos para que el trabajo sea predecible y fácil de comparar después.",
+        "Permitir que los subagentes se manden mensajes entre ellos para que se repartan el trabajo sin pasar por el coordinador."
+      ],
+      "correct": 0,
+      "why_correct": "El encargo era vago y nadie tenía límites. Anthropic cuenta exactamente esto: instrucciones cortas como 'research the semiconductor shortage' hicieron que los subagentes repitieran las mismas búsquedas. El fix es repartir objetivos y bordes claros desde el coordinador.",
+      "why_wrong": {
+        "1": "Saca el paralelismo y no ataca la causa: un solo agente con un encargo vago igual puede dejar huecos.",
+        "2": "Tres guiones idénticos producen tres trabajos idénticos. Peor duplicación, y encima sin adaptación.",
+        "3": "Saca la coordinación del coordinador: pierde visibilidad y control sobre quién cubre qué."
+      },
+      "rule": "Duplicación entre subagentes = objetivos vagos o sin límites. Repartí subtemas desde el coordinador.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "found these instructions often were vague enough that subagents misinterpreted the task or performed the exact same searches as other agents.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o04-q03",
+      "objective": 4,
+      "pool": "practice",
+      "scenario": "Una consultora delega investigaciones por objetivo y los subagentes se adaptan bien. Pero el coordinador no puede saber qué revisó cada uno ni qué quedó sin cubrir, así que no sabe si re-delegar. Un arquitecto propone volver a instrucciones paso a paso \"para tener control\". ¿Qué hacés en cambio?",
+      "options": [
+        "Activar `background: true` en cada subagente para que el coordinador pueda seguir trabajando mientras ellos investigan.",
+        "Dejar que el subagente de síntesis decida solo si hacen falta más búsquedas y que las pida directo a los buscadores.",
+        "Volver al guion paso a paso, pero solo para los subagentes que más se desvían del encargo original.",
+        "Mantener la delegación por objetivo y exigir un formato de salida con fuentes consultadas, cobertura y huecos pendientes."
+      ],
+      "correct": 3,
+      "why_correct": "La visibilidad no se gana dictando pasos: se gana con el formato de salida que el coordinador pide. Si cada subagente reporta qué consultó y qué le faltó, el coordinador decide si re-delegar sin quitarle adaptabilidad.",
+      "why_wrong": {
+        "0": "`background` cambia si el padre espera o no al subagente. No le da información al coordinador sobre la cobertura.",
+        "1": "Saca la decisión del coordinador y arma comunicación directa entre subagentes: menos visibilidad, no más.",
+        "2": "Vuelve a matar la adaptación justo en los casos difíciles, que es donde más se necesita."
+      },
+      "rule": "Control y visibilidad = formato de reporte obligatorio (fuentes, cobertura, huecos), no guion de pasos.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "Each subagent needs an objective, an output format, guidance on the tools and sources to use, and clear task boundaries.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o04-q04",
+      "objective": 4,
+      "pool": "practice",
+      "scenario": "Un coordinador de research delega por objetivo. Para preguntas simples (\"¿en qué año se fundó X?\") lanza 8 subagentes que buscan durante minutos y la factura se dispara. Para preguntas complejas a veces lanza uno solo. ¿Cuál es el mejor primer fix en el prompt del coordinador?",
+      "options": [
+        "Fijar en el código un pipeline de 5 subagentes por consulta, siempre los mismos, para que el costo sea predecible.",
+        "Incluir reglas de escala de esfuerzo: cuántos subagentes y cuántas tool calls corresponden según la complejidad de la consulta.",
+        "Sacar la tool `Agent` del coordinador en las consultas simples para obligarlo a responder sin delegar.",
+        "Pasar los subagentes a instrucciones paso a paso con una cantidad fija de búsquedas cada uno."
+      ],
+      "correct": 1,
+      "why_correct": "Los agentes juzgan mal cuánto esfuerzo merece cada tarea. Anthropic lo resolvió embebiendo reglas de escala en el prompt del coordinador: 1 agente para hechos simples, 2–4 para comparaciones, 10+ para research complejo. Sigue siendo delegación por objetivo, con presupuesto.",
+      "why_wrong": {
+        "0": "Un pipeline fijo sobra para lo simple y queda corto para lo complejo. Pierde la decisión adaptativa del coordinador.",
+        "2": "Requiere clasificar la consulta antes, por fuera del agente, y no arregla el caso complejo con un solo subagente.",
+        "3": "Ataca los subagentes, cuando el error de dimensionamiento lo comete el coordinador al decidir cuántos lanzar."
+      },
+      "rule": "Esfuerzo mal calibrado → presupuestos explícitos en el prompt del coordinador según complejidad.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "Simple fact-finding requires just 1 agent with 3-10 tool calls, direct comparisons might need 2-4 subagents with 10-15 calls each, and complex research might use more than 10 subagents with clearly divided responsibilities.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o04-q05",
+      "objective": 4,
+      "pool": "practice",
+      "scenario": "Un estudio jurídico procesa contratos en 4 etapas: extraer cláusulas → clasificarlas → comparar contra la plantilla → redactar observaciones. El orden es fijo, y auditoría exige revisar la salida de cada etapa antes de la siguiente. Hoy un único agente recibe \"revisá el contrato como te parezca\" y a veces saltea la comparación. ¿Qué diseño corresponde?",
+      "options": [
+        "Mantener un único agente por objetivo, pero agregar al prompt criterios de calidad más exigentes para la comparación.",
+        "Lanzar un subagente por objetivo para cada contrato y dejar que cada uno elija qué etapas hacen falta en su caso.",
+        "Encadenar las etapas como llamadas separadas en orden fijo, inspeccionando la salida de cada una antes de pasar a la siguiente.",
+        "Pedirle al agente que piense más a fondo antes de responder, para que no se olvide ninguna de las etapas."
+      ],
+      "correct": 2,
+      "why_correct": "Acá el orden importa y hay que inspeccionar salidas intermedias: es el caso donde la doc recomienda prompt chaining explícito. Delegar por objetivo es para investigación abierta; un pipeline predecible y auditado va por pasos.",
+      "why_wrong": {
+        "0": "Más criterios siguen siendo guía dentro de un solo paso. No garantiza el orden ni deja inspeccionar cada etapa.",
+        "1": "Darle libertad para elegir etapas es justo lo contrario de lo que auditoría exige.",
+        "3": "Pensar más no crea puntos de inspección entre etapas ni fija el orden."
+      },
+      "rule": "Orden fijo + inspeccionar cada salida → prompt chaining por pasos. Lo abierto → por objetivo.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Explicit prompt chaining (breaking a task into sequential API calls) is still useful when you need to inspect intermediate outputs or enforce a specific pipeline structure.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o04-q06",
+      "objective": 4,
+      "pool": "practice",
+      "scenario": "Un equipo evalúa su sistema multiagente comparando la traza de cada subagente contra la secuencia de herramientas \"correcta\" que definieron. Marcan como falla un caso donde el subagente usó 3 búsquedas en vez de 7 pero llegó a la respuesta correcta y bien citada. ¿Qué deberían cambiar?",
+      "options": [
+        "Agregar al prompt del subagente la secuencia exacta de 7 búsquedas para que la evaluación deje de fallar.",
+        "Evaluar el resultado final (que la respuesta sea correcta, completa y bien citada) en lugar del camino exacto que tomó.",
+        "Bajar `maxTurns` del subagente para forzarlo a usar siempre la misma cantidad de búsquedas por consulta.",
+        "Descartar los casos en que el subagente tome un camino distinto y evaluar solo los que coinciden con la secuencia."
+      ],
+      "correct": 1,
+      "why_correct": "Con delegación por objetivo, distintos caminos válidos llegan a la misma meta. Anthropic recomienda evaluar el estado final, no si siguió un proceso prescripto. Castigar caminos alternativos te empuja a volver a los guiones rígidos.",
+      "why_wrong": {
+        "0": "Ajusta el agente a la evaluación en vez de al objetivo. Pierde la adaptabilidad que justifica delegar por objetivo.",
+        "2": "`maxTurns` es un techo, no un molde: no hace que todos los caminos sean iguales y puede cortar runs válidos.",
+        "3": "Esconde justamente los casos donde el agente se adaptó bien. La evaluación queda sesgada."
+      },
+      "rule": "Agentes adaptativos se evalúan por el resultado final, no por si siguieron 'tu' camino.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "Instead of judging whether the agent followed a specific process, evaluate whether it achieved the correct final state.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o04-q07",
+      "objective": 4,
+      "pool": "practice",
+      "scenario": "En una auditoría de código, el coordinador delega: \"Corré grep de 'eval(' en src/, leé cada match y reportá los que usan input del usuario\". El subagente devuelve \"sin hallazgos\". Después, un pentester encuentra ejecución dinámica en `templates/render.js` usando `new Function` con datos del request. ¿Cuál es la causa raíz?",
+      "options": [
+        "El subagente necesitaba más herramientas, como `Bash`, para poder ejecutar el código y detectar el problema en runtime.",
+        "El grep tendría que haber sido recursivo desde la raíz del repo; con ese ajuste al paso 1 alcanzaba.",
+        "El subagente debería haber sido un fork para heredar la conversación completa del coordinador.",
+        "La delegación fue un guion de pasos con patrón y carpeta fijos, en vez de un objetivo con criterio y alcance."
+      ],
+      "correct": 3,
+      "why_correct": "El subagente cumplió el guion al pie de la letra; el guion era el problema. Con un objetivo ('ejecución dinámica alimentada por input del usuario'), un alcance (src/ y templates/) y un criterio de hallazgo, el subagente elige qué buscar y sigue el dato hasta `templates/`.",
+      "why_wrong": {
+        "0": "No hacía falta ejecutar nada: el problema es visible leyendo. Además sumar `Bash` agranda el riesgo sin atacar la causa.",
+        "1": "Ampliar la carpeta no alcanza: el patrón `eval(` igual no matchea `new Function`. Es otro parche al guion.",
+        "2": "Al subagente no le faltaba contexto de la conversación; le faltaba libertad para buscar distinto."
+      },
+      "rule": "Si el subagente 'no encontró lo obvio' siguiendo tu receta, el problema es la receta: delegá el objetivo.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "Our prompting strategy focuses on instilling good heuristics rather than rigid rules.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o04-q08",
+      "objective": 4,
+      "pool": "practice",
+      "scenario": "Una startup pasa su agente de research a delegación por objetivo con el Agent SDK. Funciona mejor, pero en una consulta el coordinador generó un árbol de subagentes que consumió USD 40. El CTO pide \"control\" y propone reescribir todo como pipeline fijo. ¿Qué hacés?",
+      "options": [
+        "Mantener la delegación por objetivo y sumar límites que el SDK aplica: `max_budget_usd`, `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` y `maxTurns`.",
+        "Agregar al system prompt del coordinador \"IMPORTANTE: no gastes más de USD 5 por consulta\" y confiar en que lo respete.",
+        "Reescribir como pipeline fijo de tres etapas, porque la delegación por objetivo no admite ningún tipo de límite.",
+        "Quitar la tool `Agent` del coordinador y hacer que él mismo ejecute todas las búsquedas en un solo contexto."
+      ],
+      "correct": 0,
+      "why_correct": "Adaptación y control no se excluyen. La doc del SDK lista límites de profundidad, concurrencia y gasto que Claude Code hace cumplir, y aclara que las instrucciones en el prompt solo orientan. Mantenés la flexibilidad y ponés techo.",
+      "why_wrong": {
+        "1": "Es solo guía: el modelo puede no cumplirlo. La doc dice que además hay que poner los límites que se aplican.",
+        "2": "Falso: el SDK tiene límites explícitos de gasto, profundidad, concurrencia y turnos. No hace falta tirar la adaptabilidad.",
+        "3": "Pierde paralelismo y aislamiento de contexto, que es para lo que existen los subagentes."
+      },
+      "rule": "Adaptativo + control = delegar por objetivo y poner límites que el SDK aplica (gasto, profundidad, turnos).",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "source_quote": "Either instruction only steers Claude, so set the limits as well. Claude Code enforces them however Claude decides to delegate.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o04-q09",
+      "objective": 4,
+      "pool": "practice",
+      "scenario": "En un sistema multiagente, el subagente buscador le pasa sus resultados directamente al subagente de síntesis para ahorrar un salto. Desde el cambio, el coordinador no se entera cuando una búsqueda falla o queda corta, y los informes salen con huecos que nadie detecta. ¿Qué corregís?",
+      "options": [
+        "Darle al subagente de síntesis acceso a todas las tools de búsqueda para que complete solo los huecos que encuentre.",
+        "Hacer que el buscador escriba en un archivo compartido que la síntesis lea, sin que el coordinador intervenga.",
+        "Que cada subagente devuelva sus resultados al coordinador, y que el coordinador evalúe y pase el contexto relevante al siguiente.",
+        "Agregar al prompt del sintetizador \"si notás huecos, avisá al final del informe\" y mantener el flujo directo."
+      ],
+      "correct": 2,
+      "why_correct": "El coordinador pierde visibilidad cuando la información lo saltea. En el patrón de encadenar subagentes, cada uno devuelve su resultado a Claude (el coordinador), que decide y pasa el contexto relevante al siguiente. Así detecta fallas y huecos y puede re-delegar.",
+      "why_wrong": {
+        "0": "Sobre-equipa a la síntesis y sigue dejando al coordinador ciego sobre qué falló.",
+        "1": "Cambia el canal pero mantiene al coordinador afuera de la decisión: sigue sin poder evaluar ni re-delegar.",
+        "3": "Es un parche de guía al final del proceso: el coordinador sigue sin poder actuar antes de la síntesis."
+      },
+      "rule": "Todo resultado vuelve al coordinador: ahí está la visibilidad y el control del flujo.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "Each subagent completes its task and returns results to Claude, which then passes relevant context to the next subagent.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o04-q10",
+      "objective": 4,
+      "pool": "practice",
+      "scenario": "Usuarios de un asistente de research reportan que \"a veces no encuentra información obvia\". Los subagentes se delegan por objetivo y el equipo no sabe si fallan las búsquedas, las fuentes elegidas o alguna tool. Un dev propone pasar todo a pasos fijos \"para que sea predecible y depurable\". ¿Cuál es el mejor primer paso?",
+      "options": [
+        "Pasar a pasos fijos como propone el dev, porque los agentes adaptativos no se pueden depurar de forma sistemática.",
+        "Agregar tracing de producción de las decisiones de los agentes (consultas, tools, fuentes) para diagnosticar dónde fallan.",
+        "Subir `maxTurns` de todos los subagentes para que busquen más antes de dar una respuesta al coordinador.",
+        "Reemplazar el coordinador por uno con un modelo más grande, que delegue con instrucciones más largas."
+      ],
+      "correct": 1,
+      "why_correct": "Sin observabilidad no sabés qué arreglar. Anthropic cuenta que agregar tracing completo de producción les permitió diagnosticar por qué fallaban los agentes y corregirlo de forma sistemática, sin renunciar a la delegación adaptativa.",
+      "why_wrong": {
+        "0": "Cambia la arquitectura a ciegas y pierde la adaptación. Primero hay que saber dónde está la falla.",
+        "2": "Es un tiro al aire: si la falla es una tool rota o una mala fuente, más turnos no ayudan.",
+        "3": "Otro cambio a ciegas. Puede que el coordinador no sea el problema."
+      },
+      "rule": "Agente adaptativo que falla raro → primero observabilidad (tracing), después el fix.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "Adding full production tracing let us diagnose why agents failed and fix issues systematically.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

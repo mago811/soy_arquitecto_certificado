@@ -1,0 +1,245 @@
+{
+  "objective": 18,
+  "questions": [
+    {
+      "id": "o18-q01",
+      "objective": 18,
+      "pool": "practice",
+      "scenario": "Un worker de extracción con el Agent SDK devuelve texto libre (\"El proveedor es ACME, factura por $1.200…\") y el paso siguiente lo parsea con regex. Una de cada diez veces el formato cambia y el pipeline se rompe. ¿Cuál es el fix?",
+      "options": [
+        "Pasar un JSON Schema en `output_format` (TS: `outputFormat`) y leer los datos validados de `structured_output` en el result message.",
+        "Agregar al prompt \"respondé siempre con el mismo formato\" y tres ejemplos del texto esperado para que el regex no falle.",
+        "Leer los datos del bloque `tool_use` llamado `StructuredOutput` en el stream, sin configurar ningún schema en las opciones.",
+        "Bajar la temperatura del worker a 0 para que el texto salga idéntico en todas las corridas y el regex siempre matchee."
+      ],
+      "correct": 0,
+      "why_correct": "Con `output_format` el SDK valida la salida contra tu schema y re-pregunta si no matchea; al final el result message trae `structured_output` con datos ya validados. Ningún regex sobre prosa da esa garantía.",
+      "why_wrong": {
+        "1": "Sigue siendo texto libre con guía. Reduce fallas, pero no las elimina ni valida tipos.",
+        "2": "`StructuredOutput` solo aparece si configuraste `output_format`. Y la doc pide leer `structured_output` del result, no del `tool_use`.",
+        "3": "No es un parámetro del SDK descrito en esta doc, y aunque lo fuera no convierte prosa en datos validados."
+      },
+      "rule": "Datos para código → schema en `output_format` + leer `structured_output`. Nada de parsear prosa.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/structured-outputs",
+      "source_quote": "When the agent finishes, the result message includes a `structured_output` field with validated data matching your schema.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o18-q02",
+      "objective": 18,
+      "pool": "practice",
+      "scenario": "Un subagente de análisis de documentos devuelve hallazgos con un schema donde `publication_date` es obligatorio. Cuando la fuente no tiene fecha, aparecen fechas plausibles pero falsas, o el run termina en `error_max_structured_output_retries`. ¿Qué cambiás?",
+      "options": [
+        "Dejar `publication_date` obligatorio y agregar al prompt \"no inventes fechas\" en mayúsculas.",
+        "Cambiar el tipo de `publication_date` a `number` para que el modelo tenga que devolver un año exacto.",
+        "Hacer `publication_date` opcional en el schema, para que el agente lo omita cuando el documento no lo trae.",
+        "Subir el límite de reintentos de validación hasta que el agente encuentre una fecha que pase el schema."
+      ],
+      "correct": 2,
+      "why_correct": "La doc del SDK es directa: si la tarea puede no tener toda la información que pide el schema, esos campos van opcionales. Un campo obligatorio sin dato fuerza a inventar o a fallar la validación.",
+      "why_wrong": {
+        "0": "El schema sigue exigiendo un valor que no existe. Pedir 'no inventes' choca con un `required` que obliga a poner algo.",
+        "1": "Cambiar el tipo no crea el dato. Sigue siendo obligatorio y sigue forzando a inventar.",
+        "3": "Más reintentos sobre un dato que no existe solo dan más chances de inventarlo."
+      },
+      "rule": "Campo que puede faltar en la fuente → opcional. Obligatorio = invitación a inventar.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/structured-outputs",
+      "source_quote": "If the task might not have all the information your schema requires, make those fields optional.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o18-q03",
+      "objective": 18,
+      "pool": "practice",
+      "scenario": "El coordinador de un pipeline lee la salida de cada worker así: `if msg.subtype == \"success\": usar(msg.structured_output)`. En producción a veces explota porque `structured_output` es `None`, aunque el subtype dice `success`. ¿Cuál es el chequeo correcto?",
+      "options": [
+        "Reintentar el worker cada vez que `structured_output` sea `None`, sin mirar ningún otro campo del resultado.",
+        "Leer el JSON del último bloque `tool_use` llamado `StructuredOutput` cuando `structured_output` venga vacío.",
+        "Considerar `None` como \"sin hallazgos\" y pasarle a la síntesis una lista vacía para que el pipeline siga.",
+        "Tratar como falla si `is_error` es `true` o si `structured_output` no está, aunque el subtype sea `success`."
+      ],
+      "correct": 3,
+      "why_correct": "La doc aclara que `success` por sí solo no significa que hubo respuesta. Hay que tratar como falla un resultado con `is_error` en `true` o sin `structured_output`, y manejarlo como error, no como dato.",
+      "why_wrong": {
+        "0": "Reintentar a ciegas puede repetir un error que no es transitorio (por ejemplo una refusal). Primero hay que distinguir el caso.",
+        "1": "La doc pide leer los datos validados del result message, no de un `tool_use` que pudo haber fallado la validación.",
+        "2": "Convierte una falla en 'resultado vacío exitoso': la síntesis afirma que no hay hallazgos cuando en realidad hubo un error."
+      },
+      "rule": "`success` ≠ hay datos. Chequeá `is_error` y que exista `structured_output`.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/structured-outputs",
+      "source_quote": "A `success` subtype doesn't by itself mean the run produced an answer. Treat a result as a failure when the result's `is_error` is `true` or `structured_output` is absent",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o18-q04",
+      "objective": 18,
+      "pool": "practice",
+      "scenario": "Un equipo usa la Messages API para extraer cifras de informes PDF. Quieren JSON garantizado y, además, que cada cifra apunte a la página exacta del PDF. Activan `citations` en los documentos y mandan `output_config.format` con su schema. La API responde 400. ¿Qué hacen?",
+      "options": [
+        "Mandar `output_config.format` en una request y `citations` en otra request simultánea, y mergear las dos respuestas.",
+        "Sacar `output_config.format`, pedir una línea por campo (`campo: valor`) con citations activas, y parsear las líneas en su código.",
+        "Mantener las dos opciones y cambiar el schema para que incluya un campo `citations` como array de strings.",
+        "Usar `strict: true` en una tool de extracción junto con citations, que sí es compatible con documentos citados."
+      ],
+      "correct": 1,
+      "why_correct": "Citations y structured outputs son incompatibles: con citations activas y `output_config.format`, la API devuelve 400. La doc propone, para tener una cita por valor, pedir una línea por campo y parsear las líneas a datos estructurados en tu código.",
+      "why_wrong": {
+        "0": "Dos requests independientes pueden extraer valores distintos: las citas de una no respaldan los valores de la otra.",
+        "2": "Sigue mandando `output_config.format` con citations activas: mismo 400. Además un campo de strings no son citas verificadas.",
+        "3": "La doc no presenta strict tool use como forma de combinar citations y schema; el camino documentado es una línea por campo."
+      },
+      "rule": "Citations + `output_config.format` = 400. Dato con cita → una línea por campo y parseo propio.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/citations",
+      "source_quote": "If you enable citations on any user-provided document (`document` blocks or `search_result` blocks) and also include the `output_config.format` parameter (or the deprecated `output_format` parameter), the API returns a 400 error.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o18-q05",
+      "objective": 18,
+      "pool": "practice",
+      "scenario": "Para un sistema de compliance, un worker extrae datos de contratos con Citations activado. El system prompt dice \"Return only a JSON object, no other text\". Las requests responden 200, pero casi ningún valor trae citas. ¿Qué cambiás?",
+      "options": [
+        "Agregar `output_config.format` con un schema para que las citas se adjunten a cada campo del JSON.",
+        "Activar citations también en el system prompt además de en cada documento, para que aplique a toda la respuesta.",
+        "Quitar la instrucción de \"solo JSON\" y pedir una línea por campo citando el documento, y armar el JSON en tu código.",
+        "Repetir la request hasta que vuelva con citas, porque la cantidad de citas varía entre corridas."
+      ],
+      "correct": 2,
+      "why_correct": "La doc de Citations avisa que los prompts que piden solo JSON funcionan pero pueden devolver pocas o ninguna cita. Lo recomendado es pedir una línea por campo con su cita y construir los datos estructurados en tu código.",
+      "why_wrong": {
+        "0": "Con citations activas, `output_config.format` devuelve 400. Empeora el problema.",
+        "1": "Las citations se activan por documento; no existe activarlas en el system prompt.",
+        "3": "El problema es la instrucción, no el azar. Repetir gasta tokens sin atacar la causa."
+      },
+      "rule": "Con Citations, no pidas 'solo JSON': pedí línea por campo con cita y armá el JSON vos.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/citations",
+      "source_quote": "Avoid user or system prompts that ask for only JSON, such as “Return only a JSON object, no other text.” A request with such a prompt succeeds, but the response might contain few or no citations.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o18-q06",
+      "objective": 18,
+      "pool": "practice",
+      "scenario": "En un sistema de research, el subagente analizador devuelve un único campo `summary` con un párrafo que mezcla cifras, conclusiones y nombres de fuentes. El sintetizador no logra saber qué fuente respalda cada afirmación y el informe final sale sin citas. ¿Cómo rediseñás la salida del subagente?",
+      "options": [
+        "Un array de hallazgos, cada uno con afirmación, extracto, URL o documento, página y fecha si existen, más un campo de resumen aparte.",
+        "Un `summary` más largo, con instrucciones de poner la fuente entre paréntesis después de cada oración del párrafo.",
+        "Un solo campo `report` en Markdown con una tabla al final que liste todas las fuentes consultadas.",
+        "Dos subagentes: uno que escribe el `summary` y otro que, por separado, vuelve a buscar las fuentes del texto."
+      ],
+      "correct": 0,
+      "why_correct": "Separar datos, prosa y metadatos de cita deja que la síntesis use cada parte sin re-parsear texto. Con structured outputs obtenés datos tipados que el código o el siguiente agente consumen directo, y la relación afirmación→fuente queda explícita por hallazgo.",
+      "why_wrong": {
+        "1": "Sigue siendo prosa: la atribución depende de parsear paréntesis y se rompe al resumir.",
+        "2": "Una lista de fuentes al final no dice qué fuente respalda qué afirmación.",
+        "3": "Re-buscar fuentes después puede encontrar otras distintas a las que generaron las afirmaciones."
+      },
+      "rule": "Salida de subagente = hallazgos tipados con su cita + resumen en campo aparte.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/structured-outputs",
+      "source_quote": "Structured outputs give you typed data you can pass directly to your application logic, database, or UI components.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o18-q07",
+      "objective": 18,
+      "pool": "practice",
+      "scenario": "Un pipeline de extracción manda cada PDF a la Messages API con Citations. Para conservar el origen ponen en el `title` del documento un JSON largo con nombre de archivo, cliente, fecha de carga y número de expediente. Parte de esa metadata se pierde. ¿Dónde va?",
+      "options": [
+        "En el texto del propio documento, al principio, para que las citas también puedan apuntar a la metadata.",
+        "En un campo `metadata` dentro de cada bloque de cita que devuelve la respuesta de la API.",
+        "En el system prompt, como una lista con la metadata de todos los documentos de la request.",
+        "En el campo `context` del documento, que sirve para guardar metadata como texto o JSON en string."
+      ],
+      "correct": 3,
+      "why_correct": "La doc de Citations explica que `title` tiene largo limitado y que `context` es útil para guardar metadata como texto o JSON stringificado. Ambos se le pasan al modelo pero no son contenido citable, así que la metadata no se mezcla con las citas.",
+      "why_wrong": {
+        "0": "Mezcla metadata con el contenido citable: las citas podrían apuntar a la metadata en vez de al texto real.",
+        "1": "Ese campo no existe en la respuesta documentada. No inventes campos.",
+        "2": "Se pierde la asociación metadata↔documento y cada vez que cambian los documentos hay que reescribir el prompt."
+      },
+      "rule": "Metadata de un documento citado → `context` (el `title` es corto).",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/citations",
+      "source_quote": "`title` is limited in length, so the `context` field is useful for storing document metadata as text or stringified JSON.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o18-q08",
+      "objective": 18,
+      "pool": "practice",
+      "scenario": "Con el Agent SDK, un subagente redactor produce un informe técnico detallado. El usuario necesita ese informe tal cual, pero el agente principal siempre devuelve una versión resumida y pierde tablas y citas. ¿Qué indica la doc?",
+      "options": [
+        "Configurar `output_format` en el `AgentDefinition` del redactor para que su salida no pueda resumirse.",
+        "Incluir en el prompt o `systemPrompt` del `query()` principal la instrucción de preservar textual la salida del subagente.",
+        "Pasar el redactor a `background: true` para que su informe llegue directo al usuario sin pasar por el padre.",
+        "Subir el `max_tokens` del agente principal para que tenga lugar de copiar el informe completo del subagente."
+      ],
+      "correct": 1,
+      "why_correct": "El padre recibe el informe final del subagente pero puede resumirlo en su respuesta. La doc dice que, para preservarlo textual, hay que pedirlo en el prompt o en el `systemPrompt` del `query()` principal.",
+      "why_wrong": {
+        "0": "`AgentDefinition` no tiene un campo `output_format`. No inventes parámetros.",
+        "2": "`background` solo hace que el padre no lo espere: el informe igual vuelve al padre.",
+        "3": "El problema no es espacio sino que el padre decide resumir. Hay que pedirle que no lo haga."
+      },
+      "rule": "¿Querés la salida del subagente literal? Pedilo en el prompt del agente principal.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "source_quote": "To preserve subagent output verbatim in the user-facing response, include an instruction to do so in the prompt or `systemPrompt` option you pass to the main `query()` call.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o18-q09",
+      "objective": 18,
+      "pool": "practice",
+      "scenario": "Un subagente de análisis genera una tabla de 4.000 filas de precios y la devuelve entera como texto al coordinador, que la copia al prompt del sintetizador. El informe final sale con filas perdidas y el costo en tokens se dispara. ¿Qué patrón recomienda Anthropic?",
+      "options": [
+        "Que el subagente guarde la tabla en un sistema externo (por ejemplo un archivo) y le devuelva al coordinador una referencia liviana.",
+        "Que el coordinador resuma la tabla en un párrafo antes de pasarla, para ahorrar tokens en el prompt de síntesis.",
+        "Que el subagente devuelva la tabla en partes, en varios mensajes seguidos, para no superar el contexto del coordinador.",
+        "Que el sintetizador tenga un `max_tokens` más alto para poder copiar la tabla completa al informe final."
+      ],
+      "correct": 0,
+      "why_correct": "Anthropic recomienda que los subagentes guarden su trabajo en sistemas externos y pasen referencias livianas al coordinador. Así evitan el 'teléfono descompuesto': no se pierde información en el camino y no se gastan tokens copiando salidas grandes por la conversación.",
+      "why_wrong": {
+        "1": "Resumir datos tabulares es justo cómo se pierden filas y cifras exactas.",
+        "2": "Sigue pasando todo por el historial del coordinador: mismo costo y mismo riesgo de pérdida.",
+        "3": "Ataca la salida final, pero el problema está en copiar la tabla por la conversación entre agentes."
+      },
+      "rule": "Salida grande de subagente → archivo + referencia liviana, no copiarla por la conversación.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "Subagents call tools to store their work in external systems, then pass lightweight references back to the coordinator.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o18-q10",
+      "objective": 18,
+      "pool": "practice",
+      "scenario": "Un asistente de research pide en el prompt \"agregá [fuente: nombre del documento] después de cada afirmación\". En revisión, el 8% de las citas apunta a documentos que no estaban en la request o a frases que no existen. Trabajan con documentos que mandan ellos a la Messages API. ¿Qué cambio da la garantía que buscan?",
+      "options": [
+        "Agregar tres ejemplos de citas correctas al prompt para que el modelo aprenda el formato exacto de cita.",
+        "Pedirle al modelo que verifique cada cita antes de terminar la respuesta y que borre las que no encuentre.",
+        "Activar `citations` en los documentos: la API extrae `cited_text` y las citas apuntan a ubicaciones válidas de esos documentos.",
+        "Usar `output_config.format` con un campo `fuente` de tipo `enum` que liste los nombres de los documentos enviados."
+      ],
+      "correct": 2,
+      "why_correct": "Con la feature Citations, la API parsea las citas y extrae `cited_text` directamente, así que las citas están garantizadas a apuntar a ubicaciones válidas de los documentos provistos. Es mejor que pedir citas por prompt.",
+      "why_wrong": {
+        "0": "Mejora el formato pero no garantiza que la cita exista. Sigue siendo prompt.",
+        "1": "Autoverificación por prompt: puede ayudar, pero no da garantía.",
+        "3": "Un enum asegura que el nombre sea uno de los enviados, pero no que la frase citada exista. Y si después activás citations junto con `output_config.format`, da 400."
+      },
+      "rule": "Citas que tienen que ser reales → feature Citations, no 'citá' en el prompt.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/citations",
+      "source_quote": "Because the API parses citations into the response formats described in the following sections and extracts `cited_text` directly, citations are guaranteed to contain valid pointers to the provided documents.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

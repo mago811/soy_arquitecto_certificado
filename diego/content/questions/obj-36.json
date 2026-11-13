@@ -1,0 +1,149 @@
+{
+  "objective": 36,
+  "questions": [
+    {
+      "id": "o36-q01",
+      "objective": 36,
+      "pool": "practice",
+      "scenario": "Un server MCP de e-commerce tiene `search_orders` (\"Searches records.\") y `search_returns` (\"Searches records in the system.\"). Cuando un cliente pregunta \"¿dónde está mi devolución?\", Claude llama `search_orders` la mitad de las veces. ¿Qué cambio ataca la causa?",
+      "options": [
+        "Agregar al system prompt del agente: \"Para devoluciones usá siempre search_returns\".",
+        "Forzar con `tool_choice` la tool `search_returns` cada vez que el pedido contenga \"devolución\".",
+        "Reescribir ambas descripciones: qué busca cada una, qué devuelve, cuándo usarla y cuándo usar la otra.",
+        "Renombrar `search_returns` a `search_returns_v2` para que Claude la vea como la tool más reciente."
+      ],
+      "correct": 2,
+      "why_correct": "Claude elige la tool por su descripción. La doc dice que las descripciones detalladas son por lejos el factor más importante, y que deben explicar qué hace la tool y cuándo usarla (y cuándo no). Con dos descripciones casi idénticas, el ruteo es un volado.",
+      "why_wrong": {
+        "0": "Es un parche que orienta, pero las descripciones siguen siendo ambiguas para cualquier otro caso parecido.",
+        "1": "Ruteás con palabras clave en tu código: frágil, y no arregla la selección del modelo.",
+        "3": "Un sufijo de versión no le dice a Claude qué hace la tool ni cuándo usarla."
+      },
+      "rule": "Misrouting entre tools parecidas → arreglá las descripciones (qué hace, cuándo sí, cuándo no).",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "source_quote": "**Provide extremely detailed descriptions.** This is by far the most important factor in tool performance.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o36-q02",
+      "objective": 36,
+      "pool": "practice",
+      "scenario": "Una tool `schedule_meeting` tiene un parámetro `start` de tipo string sin descripción. En desarrollo, Claude a veces manda \"mañana a las 3\" y a veces omite parámetros obligatorios, y el backend falla. ¿Qué es lo primero que recomienda la doc?",
+      "options": [
+        "Mejorar las `description` de la tool y de cada parámetro, incluyendo el formato esperado de `start`.",
+        "Subir `max_tokens` para que Claude tenga más espacio para armar el input completo de la tool.",
+        "Cambiar `tool_choice` a `any` para que Claude se vea obligado a completar todos los campos.",
+        "Capturar el error en el backend y devolver un `tool_result` vacío para que Claude no se trabe."
+      ],
+      "correct": 0,
+      "why_correct": "Si Claude usa mal una tool (por ejemplo, faltan parámetros), suele ser porque no tenía información suficiente. La doc dice que lo mejor en desarrollo es reintentar con `description` más detalladas, incluyendo qué significa cada parámetro.",
+      "why_wrong": {
+        "1": "El input no se corta por falta de tokens; falta información sobre el formato.",
+        "2": "`any` obliga a llamar alguna tool; no le explica el formato de `start`. Además no está soportado en todos los modelos.",
+        "3": "Un resultado vacío esconde el error; la doc sugiere, si acaso, devolverlo con `is_error: true` y un mensaje útil."
+      },
+      "rule": "Parámetros mal o faltantes → descripciones más detalladas, con formato.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "source_quote": "The best approach during development is to try the request again with more-detailed `description` values in your tool definitions.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o36-q03",
+      "objective": 36,
+      "pool": "practice",
+      "scenario": "Un agente integra GitHub, Jira y Slack con tools llamadas `list`, `search`, `create` y `get` en cada servicio (con descripciones decentes). Al crecer la biblioteca, Claude empieza a crear tickets de Jira cuando le pedían issues de GitHub. ¿Qué práctica de la doc aplica?",
+      "options": [
+        "Agregar un parámetro `service` obligatorio a cada tool para que Claude indique el destino en el input.",
+        "Unificar las descripciones de las tools parecidas para que tengan el mismo texto y el modelo no dude.",
+        "Pasar todas las tools de los tres servicios a una sola tool genérica sin parámetros de acción.",
+        "Usar nombres con prefijo por servicio, como `github_create_issue` y `jira_create_ticket`, para desambiguar."
+      ],
+      "correct": 3,
+      "why_correct": "La doc recomienda namespacing: cuando las tools cruzan varios servicios, prefijar el nombre con el servicio hace que la selección no sea ambigua a medida que la biblioteca crece.",
+      "why_wrong": {
+        "0": "El modelo igual tiene que elegir entre varias tools que se llaman igual; un parámetro extra no arregla el nombre ambiguo.",
+        "1": "Descripciones idénticas aumentan la confusión: es lo opuesto a diferenciar.",
+        "2": "Una tool sin parámetros de acción no puede expresar qué hacer; consolidar es con un parámetro `action`, no sin él."
+      },
+      "rule": "Tools de varios servicios → prefijo por servicio en el nombre.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "source_quote": "When your tools span multiple services or resources, prefix names with the service (for example, `github_list_prs`, `slack_send_message`). This makes tool selection unambiguous as your library grows",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o36-q04",
+      "objective": 36,
+      "pool": "practice",
+      "scenario": "Un server MCP de repositorio expone `create_pr`, `update_pr`, `review_pr`, `approve_pr`, `merge_pr` y `close_pr`, todas con descripciones parecidas. Claude a veces llama `approve_pr` cuando le pidieron revisar. ¿Qué rediseño sugiere la doc?",
+      "options": [
+        "Separar cada una en dos tools más específicas (por ejemplo, `review_pr_comments` y `review_pr_files`).",
+        "Consolidarlas en una sola tool de PRs con un parámetro `action` y una descripción clara de cada acción.",
+        "Dejar solo `create_pr` y `merge_pr` y que el resto de las acciones las haga un humano por fuera.",
+        "Ordenar las tools alfabéticamente en `tools/list` para que Claude las recorra siempre en el mismo orden."
+      ],
+      "correct": 1,
+      "why_correct": "La doc recomienda agrupar operaciones relacionadas en menos tools: en vez de `create_pr`, `review_pr`, `merge_pr`, una tool con un parámetro `action`. Menos tools más capaces reducen la ambigüedad de selección.",
+      "why_wrong": {
+        "0": "Más tools parecidas = más ambigüedad, no menos.",
+        "2": "Sacar capacidades no es un fix de descripción; el agente deja de poder hacer su trabajo.",
+        "3": "El orden de la lista no cambia qué entiende Claude de cada tool."
+      },
+      "rule": "Muchas operaciones relacionadas → una tool con parámetro action.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "source_quote": "Fewer, more capable tools reduce selection ambiguity and make your tool surface easier for Claude to navigate.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o36-q05",
+      "objective": 36,
+      "pool": "practice",
+      "scenario": "En Claude Code, un server MCP propio tiene una tool cargada de entrada (no diferida) con una descripción de unos 6.000 caracteres: historia del sistema, ejemplos y, al final, \"No usar para borrar registros: para eso usar admin_delete\". Claude ignora sistemáticamente esa última frase. ¿Cuál es el fix?",
+      "options": [
+        "Repetir la frase final en mayúsculas dos veces más dentro de la misma descripción para darle más peso.",
+        "Mover el texto a las instrucciones del server MCP, que no tienen límite de largo en Claude Code.",
+        "Acortar la descripción y poner lo crítico (cuándo sí, cuándo no y la tool alternativa) al principio.",
+        "Pasar la descripción a un CLAUDE.md del proyecto y dejar la descripción de la tool vacía."
+      ],
+      "correct": 2,
+      "why_correct": "Claude Code corta las descripciones de tools que pasan el límite (4.096 caracteres para las cargadas de entrada) y Claude solo ve lo anterior al corte. La doc pide descripciones concisas con los detalles críticos cerca del principio.",
+      "why_wrong": {
+        "0": "Si la frase queda después del corte, repetirla al final no sirve: Claude nunca la ve.",
+        "1": "Las instrucciones del server también tienen límite (4.096 caracteres) y se cortan igual.",
+        "3": "Una descripción vacía es lo peor para la selección; la descripción es el mecanismo principal para elegir la tool."
+      },
+      "rule": "Descripciones MCP en Claude Code: concisas y con lo crítico al principio.",
+      "source_url": "https://code.claude.com/docs/en/mcp",
+      "source_quote": "Keep descriptions and instructions concise, and put critical details near the start.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o36-q06",
+      "objective": 36,
+      "pool": "practice",
+      "scenario": "Una tool `create_shipment` recibe un objeto anidado con direcciones, paquetes y un código de servicio con formato estricto. La descripción ya es detallada (qué hace, cuándo usarla, qué significa cada campo), pero Claude todavía arma mal algunos objetos anidados. ¿Qué agregás?",
+      "options": [
+        "El campo `input_examples` con ejemplos de inputs válidos, además de la descripción que ya tiene.",
+        "Una segunda tool `create_shipment_simple` con menos campos, para que Claude elija la más fácil.",
+        "Un system prompt que diga \"revisá dos veces el JSON antes de llamar a create_shipment\".",
+        "Reemplazar la descripción detallada por tres ejemplos de input, que son más claros que el texto."
+      ],
+      "correct": 0,
+      "why_correct": "La doc indica priorizar las descripciones y, para tools con inputs complejos, objetos anidados o parámetros sensibles al formato, sumar `input_examples` con ejemplos que validan contra el schema.",
+      "why_wrong": {
+        "1": "Agrega una tool parecida y con eso más ambigüedad de selección, sin arreglar el formato.",
+        "2": "Orienta poco y no le muestra a Claude cómo es un input válido.",
+        "3": "La doc dice que las descripciones claras son lo más importante; los ejemplos complementan, no reemplazan."
+      },
+      "rule": "Input complejo o con formato estricto → descripción + input_examples.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "source_quote": "for tools with complex inputs, nested objects, or format-sensitive parameters, you can use the `input_examples` field to provide schema-validated examples.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

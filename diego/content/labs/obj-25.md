@@ -10,7 +10,9 @@ sources:
     title: "Errors (Prefill not supported)"
   - url: https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/increase-consistency
     title: "Increase output consistency"
-status: no_verificado
+  - url: https://platform.claude.com/docs/en/build-with-claude/thinking
+    title: "Thinking (thinking por defecto y max_tokens)"
+status: verificada
 ---
 
 ## Objetivo
@@ -18,6 +20,8 @@ status: no_verificado
 Ver con tus propios ojos por qué, cuando el JSON lo consume código, el único método confiable es **structured outputs** (`output_config.format`). Vas a probar el prompt solo, ver cómo el prefill da 400 en un modelo actual, y romper structured outputs a propósito (constraint no soportado, `max_tokens` corto).
 
 Modelo: `claude-sonnet-5-5` (activo). No uses `claude-sonnet-4-5`: está deprecado y se retira el 30/11/2026.
+
+Ojo: en los modelos Claude 5 el thinking viene prendido por defecto. Los tokens de thinking cuentan para `max_tokens` y la respuesta puede traer un bloque `thinking` antes del `text`. Por eso los scripts usan `max_tokens=2048` y buscan el bloque de tipo `text` en vez de leer `content[0]`.
 
 ## Pasos
 
@@ -45,11 +49,11 @@ fallas = 0
 for f in facturas:
     r = client.messages.create(
         model="claude-sonnet-5-5",
-        max_tokens=300,
+        max_tokens=2048,
         messages=[{"role": "user", "content":
             f'Devolvé SOLO un JSON con "numero" (string) y "total" (number). Factura: {f}'}],
     )
-    texto = r.content[0].text
+    texto = next(b.text for b in r.content if b.type == "text")
     try:
         print(json.loads(texto))
     except json.JSONDecodeError:
@@ -69,7 +73,7 @@ client = anthropic.Anthropic()
 try:
     client.messages.create(
         model="claude-sonnet-5-5",
-        max_tokens=300,
+        max_tokens=2048,
         messages=[
             {"role": "user", "content": 'JSON con "numero" y "total": Factura A-0001 por $12500'},
             {"role": "assistant", "content": "{"},
@@ -98,7 +102,7 @@ schema = {
 }
 r = client.messages.create(
     model="claude-sonnet-5-5",
-    max_tokens=300,
+    max_tokens=2048,
     messages=[{"role": "user", "content": "Extraé: Nro 0003-00001234 / Importe: 9.999,90"}],
     output_config={"format": {"type": "json_schema", "schema": schema}},
 )
@@ -121,7 +125,7 @@ class Factura(BaseModel):
 client = anthropic.Anthropic()
 r = client.messages.parse(
     model="claude-sonnet-5-5",
-    max_tokens=300,
+    max_tokens=2048,
     output_format=Factura,
     messages=[{"role": "user", "content": "Extraé: Factura B-77 por USD 300"}],
 )
@@ -130,7 +134,7 @@ print(r.parsed_output)
 
 6. **Rompelo 1: constraint no soportado.** En `c_structured.py`, cambiá `"total": {"type": "number"}` por `"total": {"type": "number", "minimum": 0}` y corré. Esperás un **400**: `minimum` no está soportado en el schema que va a la API. Volvé a correr `d_parse.py` (que tiene `ge=0`, o sea `minimum`): **anda**, porque el SDK saca el constraint del schema, lo pasa a la descripción y valida la respuesta en tu código.
 
-7. **Rompelo 2: `max_tokens` corto.** En `c_structured.py` poné `max_tokens=5`. Mirá `stop_reason`: `max_tokens`. El JSON viene cortado. Por eso se chequea `stop_reason` antes de parsear.
+7. **Rompelo 2: `max_tokens` corto.** En `c_structured.py` poné `max_tokens=5`. Mirá `stop_reason`: `max_tokens`. El JSON viene cortado o directamente no llega (el thinking también consume `max_tokens`). Por eso se chequea `stop_reason` antes de parsear.
 
 8. **Rompelo 3: el parámetro viejo.** En `c_structured.py` cambiá `output_config={"format": {...}}` por `output_format={"type": "json_schema", "schema": schema}`. Con el SDK de Python 1.x, un dict en `output_format` tira `TypeError`. El nombre correcto es `output_config.format`.
 
