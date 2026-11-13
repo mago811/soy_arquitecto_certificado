@@ -1,0 +1,149 @@
+{
+  "objective": 6,
+  "questions": [
+    {
+      "id": "o06-s01",
+      "objective": 6,
+      "pool": "sim",
+      "scenario": "Para recortar costos, el equipo de una edtech seteó `CLAUDE_CODE_SUBAGENT_MODEL=haiku` en el bloque `env` de `.claude/settings.json`, esperando que todos los subagentes corran en Haiku. En `/tasks` ven que `security-auditor` (que tiene `model: opus` en su frontmatter) sigue corriendo en Opus, y que a veces Claude pasa `model: sonnet` al lanzar otros subagentes. Finanzas quiere que no haya ninguna excepción. ¿Cuál es el diagnóstico y el fix?",
+      "options": [
+        "La variable solo aplica a subagentes de usuario: hay que mover `security-auditor` a `~/.claude/agents/` para que tome el modelo de la variable.",
+        "La variable es un default que pierde contra el frontmatter y el parámetro de cada invocación: hay que sumar `CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1`.",
+        "La variable se lee solo al iniciar la sesión principal: hay que pasar también `--model haiku` en el comando que lanza Claude Code.",
+        "La variable necesita un ID completo de modelo: con el alias `haiku` se ignora y cada subagente cae al orden normal de resolución."
+      ],
+      "correct": 1,
+      "why_correct": "Claude Code resuelve el modelo de un subagente en este orden: el parámetro `model` de la invocación, el `model` del frontmatter, la variable `CLAUDE_CODE_SUBAGENT_MODEL` y, por último, el modelo de la conversación principal. La variable es solo un default. Para aplicar un modelo a todos los subagentes sin excepción hay que sumar `CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1`: con eso se ignora el `model` de las definiciones y Claude no puede pasar otro modelo al lanzar.",
+      "why_wrong": {
+        "0": "La variable no distingue entre scopes de subagentes: aplica igual a proyecto y usuario, y en todos pierde contra el frontmatter.",
+        "2": "`--model` cambia el modelo de la sesión principal, no fuerza el de los subagentes que tienen su propio `model` o reciben uno en la invocación.",
+        "3": "La variable acepta un alias o un ID de modelo; el alias `haiku` es válido."
+      },
+      "rule": "`CLAUDE_CODE_SUBAGENT_MODEL` es un default; para que no haya excepciones, sumá `CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1`.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "`CLAUDE_CODE_SUBAGENT_MODEL` is a default, so a subagent's definition or a model Claude passes still takes precedence over it.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o06-s02",
+      "objective": 6,
+      "pool": "sim",
+      "scenario": "Una empresa distribuye a sus equipos un plugin interno con el subagente `ticket-triage`. Su frontmatter declara en `mcpServers` un servidor inline de Jira y además `permissionMode: dontAsk`. En las máquinas de los devs el subagente arranca, pero no tiene ninguna tool de Jira y pide permisos como cualquier otro. No hay errores en pantalla. Quieren que el servidor de Jira exista solo dentro de ese subagente, no en toda la sesión. ¿Qué pasa y qué hacen?",
+      "options": [
+        "El servidor inline necesita aprobación en `/mcp` la primera vez: hay que pedirle a cada dev que lo habilite manualmente desde ese menú.",
+        "Los plugins cargan sus subagentes como forks, que ignoran el frontmatter: hay que pedir que Claude invoque el subagente con una @-mención.",
+        "Falta el prefijo del plugin en el nombre del servidor (`mi-plugin:jira`): sin él, Claude Code no puede asociar el servidor con el subagente.",
+        "Los subagentes de plugins ignoran `hooks`, `mcpServers` y `permissionMode`: hay que copiar el archivo a `.claude/agents/` o a `~/.claude/agents/`."
+      ],
+      "correct": 3,
+      "why_correct": "Por seguridad, los subagentes que vienen de un plugin no soportan `hooks`, `mcpServers` ni `permissionMode`: esos campos se ignoran al cargarlos, sin error. Si se necesitan, la doc indica copiar el archivo a `.claude/agents/` o `~/.claude/agents/`. La otra vía documentada (declarar el servidor en el `.mcp.json` del plugin) lo activa siempre que el plugin está habilitado, no solo dentro del subagente.",
+      "why_wrong": {
+        "0": "No es un tema de aprobación: el campo `mcpServers` se descarta al cargar un subagente de plugin, así que el servidor nunca se declara.",
+        "1": "Los subagentes de plugin no se cargan como forks, y la @-mención solo elige qué subagente corre; no cambia qué campos del frontmatter se respetan.",
+        "2": "El nombre con prefijo identifica al subagente del plugin (por ejemplo `mi-plugin:ticket-triage`), no a sus servidores; renombrar el servidor no cambia que el campo se ignore."
+      },
+      "rule": "Subagente de plugin: `hooks`, `mcpServers` y `permissionMode` se ignoran; para usarlos, copiá el archivo a `.claude/agents/`.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "For security reasons, plugin subagents don't support the `hooks`, `mcpServers`, or `permissionMode` frontmatter fields.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o06-s03",
+      "objective": 6,
+      "pool": "sim",
+      "scenario": "El equipo de datos de una cadena de farmacias configuró un servidor MCP llamado `reports__v2` y definió el subagente `kpi-builder` con `tools: Read, Grep, mcp__reports__v2`. El subagente arranca sin errores y lee archivos, pero nunca ve ninguna tool de reportes, mientras que el agente principal sí las usa. ¿Cuál es el fix?",
+      "options": [
+        "Renombrar el servidor sin el doble guion bajo, porque Claude Code no admite `__` en nombres de servidores MCP y lo descarta en silencio.",
+        "Agregar `mcpServers: [reports__v2]` al subagente, porque las tools MCP del padre no se heredan cuando el subagente tiene una lista `tools`.",
+        "Escribir la entrada como `mcp__reports__v2__*`: sin el `__*` final, `mcp__reports__v2` no coincide con ninguna tool de ese servidor.",
+        "Agregar `disallowedTools: mcp__reports` para evitar el choque con un servidor `reports` y así liberar las tools de `reports__v2`."
+      ],
+      "correct": 2,
+      "why_correct": "La doc cubre este caso: cuando el nombre del servidor tiene `__`, en `tools` hay que escribir `mcp__` + el nombre completo del servidor + `__*`, como `mcp__reports__v2__*`. Sin el `__*` final, la entrada no coincide con ninguna tool del servidor, y el subagente arranca igual, sin error.",
+      "why_wrong": {
+        "0": "Los nombres con `__` están soportados; la doc explica cómo escribir las entradas para esos servidores.",
+        "1": "Las tools MCP del padre sí se pueden habilitar desde `tools`; el problema es la forma de la entrada, no la herencia.",
+        "3": "Es al revés: `mcp__reports` en `disallowedTools` saca también todas las tools de `reports__v2`, porque sus nombres empiezan con `mcp__reports__`."
+      },
+      "rule": "Servidor con `__` en el nombre: en `tools`, `mcp__<nombre-completo>__*`.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "Without the trailing `__*`, `mcp__reports__v2` matches none of that server's tools.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o06-s04",
+      "objective": 6,
+      "pool": "sim",
+      "scenario": "Una plataforma de e-learning lanza unos 30 subagentes en paralelo con el Agent SDK de TypeScript y veía errores `Concurrent subagent limit reached`. Para subir el límite, agregaron a las opciones de `query()` `env: { CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS: \"30\" }`. Desde ese deploy el error de concurrencia desapareció, pero los subagentes fallan al correr `git` y `node` por Bash con \"command not found\". ¿Qué pasó?",
+      "options": [
+        "En TypeScript, `env` reemplaza todo el entorno del subproceso: hay que esparcir `process.env` en ese objeto para conservar `PATH`.",
+        "La variable de concurrencia apaga los subagentes en background, que son los únicos que tienen Bash: hay que volver a bajarla a 20.",
+        "En TypeScript, `env` se fusiona con el entorno, pero los subagentes no heredan `PATH`: hay que pasarlo en cada `AgentDefinition`.",
+        "El valor 30 supera el máximo permitido y el SDK cae a un modo restringido sin Bash: hay que repartir el trabajo en tandas de 20."
+      ],
+      "correct": 0,
+      "why_correct": "Los dos SDKs tratan `env` distinto: el de TypeScript reemplaza el entorno del subproceso con ese objeto, así que perdés `PATH` y todo lo demás si no lo incluís; el de Python lo fusiona con el entorno heredado. El fix es `env: { ...process.env, CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS: \"30\" }`.",
+      "why_wrong": {
+        "1": "La variable solo cambia cuántos subagentes pueden correr a la vez; no saca tools. Y los subagentes en background conservan `Bash` entre sus tools.",
+        "2": "Es al revés: el que fusiona es el SDK de Python. Y `AgentDefinition` no tiene un campo para variables de entorno.",
+        "3": "La variable acepta cualquier número entero positivo; no existe un modo restringido por pasarse de un tope."
+      },
+      "rule": "En el SDK de TypeScript, `env` reemplaza el entorno: siempre esparcí `process.env`.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "source_quote": "the TypeScript SDK replaces the subprocess environment with it, so spread `process.env` into it to keep variables like `PATH`",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o06-s05",
+      "objective": 6,
+      "pool": "sim",
+      "scenario": "Hace un mes, para cortar un árbol de subagentes que había disparado los costos, alguien agregó `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=1` al `settings.json` del proyecto. Ahora el equipo diseñó un `pr-reviewer` que debería lanzar un `verifier` por cada hallazgo, y nota que el revisor nunca delega: verifica todo él mismo, en serie, y tarda cuatro veces más. El `pr-reviewer` tiene `Agent` en su lista `tools` y la definición del `verifier` es válida. ¿Qué está pasando?",
+      "options": [
+        "`Agent` en la lista `tools` de un subagente se ignora siempre: solo funciona en agentes que corren como hilo principal con `claude --agent`.",
+        "Con profundidad 1 se apaga el anidamiento: el revisor queda en el último nivel, no recibe la tool `Agent` y hace él mismo el trabajo delegado.",
+        "El `verifier` no está en una lista `Agent(verifier)` dentro de las tools del revisor, y sin esa lista no se puede lanzar ningún tipo de subagente.",
+        "Se alcanzó el límite de 20 subagentes concurrentes y el revisor recibe `Concurrent subagent limit reached` en cada intento de delegar."
+      ],
+      "correct": 1,
+      "why_correct": "La profundidad cuenta capas de subagentes debajo de la conversación principal; con `1`, el anidamiento queda apagado. En el último nivel, Claude Code le quita la tool `Agent` al subagente, que entonces hace él mismo lo que iba a delegar y devuelve un solo resumen. Es exactamente el síntoma.",
+      "why_wrong": {
+        "0": "En un subagente, `Agent` en `tools` sí le permite lanzar sus propios subagentes mientras lo permita el límite de profundidad; lo que se ignora es la lista de tipos entre paréntesis.",
+        "2": "La sintaxis `Agent(tipo)` aplica solo a un agente que corre como hilo principal con `claude --agent`; dentro de una definición de subagente se ignora la lista y alcanza con `Agent`.",
+        "3": "Si fuera el límite de concurrencia, el revisor recibiría ese error; acá directamente no tiene la tool para intentarlo."
+      },
+      "rule": "`CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=1` apaga el anidamiento: el subagente del último nivel no recibe `Agent`.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "source_quote": "Leaves a subagent at the bottom layer unable to spawn, so it does its delegated work itself.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o06-s06",
+      "objective": 6,
+      "pool": "sim",
+      "scenario": "Un pipeline de CI corre `claude -p` en un runner efímero sobre un repo recién clonado. El subagente `release-notes` está en `.claude/agents/` del repo y declara un servidor MCP inline de GitHub en `mcpServers`. En la máquina de los devs funciona, pero en CI el subagente nunca tiene las tools de GitHub, y el debug log menciona `hasTrustDialogAccepted`. En el runner nadie puede aceptar diálogos. ¿Qué cambio lo resuelve?",
+      "options": [
+        "Marcar como confiable la carpeta padre del runner (por ejemplo `/home/runner`), porque esa confianza se hereda a todos los repos clonados adentro.",
+        "Mover la definición del servidor a los `hooks` del frontmatter, que en las sesiones `-p` se consideran de confianza en forma automática.",
+        "Nada de confianza: en sesiones `-p` es automática; el problema es que el runner bloquea la red y hay que permitir el host de GitHub.",
+        "Pasar la definición del subagente con `--agents` (o con `agents` en el SDK): sus servidores inline cargan sin chequear la confianza de la carpeta."
+      ],
+      "correct": 3,
+      "why_correct": "Claude Code carga un servidor MCP inline de un archivo en `.claude/agents/` del proyecto solo después de que confiás en esa carpeta. Hasta entonces saltea todos los servidores inline del archivo y deja en el debug log la clave `hasTrustDialogAccepted` que falta. La confianza de una carpeta padre no cuenta, y la confianza automática que tiene una sesión `-p` para los hooks de settings tampoco. Lo que no pasa por ese chequeo son las definiciones pasadas por `--agents` o por la opción `agents` del SDK.",
+      "why_wrong": {
+        "0": "La doc dice que la confianza de una carpeta padre no cuenta para este chequeo.",
+        "1": "Los hooks del frontmatter de un subagente de proyecto también requieren aceptar la confianza de la carpeta, y en `-p` no se consideran confiables. Y un hook no declara servidores MCP.",
+        "2": "La confianza automática de `-p` aplica a los hooks de archivos de settings, no a los servidores inline de un subagente; el debug log apunta justo a la falta de confianza."
+      },
+      "rule": "MCP inline en `.claude/agents/` del proyecto requiere confiar en la carpeta; en CI, pasá la definición por `--agents` o el SDK.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "Claude Code skips every inline server in that agent file",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

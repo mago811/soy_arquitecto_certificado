@@ -1,0 +1,149 @@
+{
+  "objective": 5,
+  "questions": [
+    {
+      "id": "o05-s01",
+      "objective": 5,
+      "pool": "sim",
+      "scenario": "Una aseguradora usa el Agent SDK para cotizar pólizas. El agente principal invoca al inicio la skill `tarifario-2026` (reglas de recargo por zona y edad) y cotiza bien. Cuando delega cotizaciones masivas en el subagente programático `quoter`, este cotiza sin recargos o inventa porcentajes. El `prompt` de `quoter` dice \"aplicá el tarifario vigente\". El equipo no quiere copiar las 300 líneas del tarifario en el prompt de cada delegación. ¿Qué configurás?",
+      "options": [
+        "Nada en la definición: los subagentes heredan las skills que el agente principal ya cargó, así que alcanza con nombrar la skill en la delegación.",
+        "Agregar `Skill` a la lista `tools` de `quoter`, porque eso precarga en su contexto todas las skills que el agente principal ya usó.",
+        "Agregar `skills: [\"tarifario-2026\"]` al `AgentDefinition` de `quoter`, que inyecta el contenido completo de la skill cuando arranca.",
+        "Setear `omitClaudeMd: false` en `quoter`, porque las skills del proyecto viajan junto con el CLAUDE.md al contexto de cada subagente."
+      ],
+      "correct": 2,
+      "why_correct": "Un subagente arranca con contexto nuevo: no recibe el contenido de skills que el padre ya cargó, salvo las que estén listadas en `AgentDefinition.skills`. Ese campo inyecta el contenido completo de cada skill al arrancar, así `quoter` tiene el tarifario sin que lo pegues en cada delegación.",
+      "why_wrong": {
+        "0": "Es falso que los subagentes hereden las skills ya cargadas por el padre: la doc lo lista entre lo que el subagente no recibe.",
+        "1": "La tool `Skill` le permite invocar skills durante la ejecución, pero no precarga nada; depender de que la invoque por su cuenta no garantiza que la use.",
+        "3": "CLAUDE.md y skills son mecanismos distintos: cargar CLAUDE.md no trae el contenido de ninguna skill. Además, `omitClaudeMd: false` ya es el comportamiento por defecto."
+      },
+      "rule": "Conocimiento estable que el subagente siempre necesita → `skills` en su definición, no esperar que lo herede.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "source_quote": "Preloaded skill content, unless listed in `AgentDefinition.skills`",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o05-s02",
+      "objective": 5,
+      "pool": "sim",
+      "scenario": "En un equipo de plataforma, los devs trabajan en Claude Code en modo `acceptEdits` para no aprobar cada edición. Definieron `.claude/agents/arch-reviewer.md` con `permissionMode: plan`, para que el revisor de arquitectura solo lea y proponga. Pero en una sesión el revisor editó tres archivos de configuración. El equipo no quiere cambiar el modo de la sesión principal. ¿Qué hacés para que el revisor no pueda editar?",
+      "options": [
+        "Darle una lista `tools` sin `Edit` ni `Write` (por ejemplo `Read, Grep, Glob`), porque con la sesión en `acceptEdits` se ignora su `permissionMode`.",
+        "Cambiar a `permissionMode: dontAsk`, que deniega cualquier llamada que pediría permiso aunque la sesión principal esté en `acceptEdits`.",
+        "Agregar al cuerpo del archivo \"Estás en modo plan: nunca edites archivos\", para reforzar el `permissionMode` con una instrucción explícita.",
+        "Mover el archivo a `~/.claude/agents/`, porque los subagentes de usuario tienen prioridad y en ellos el `permissionMode` se respeta siempre."
+      ],
+      "correct": 0,
+      "why_correct": "Cuando la conversación principal está en `bypassPermissions`, `acceptEdits` o auto, el subagente corre en ese mismo modo y Claude Code ignora el `permissionMode` de su definición. Lo que sí se aplica siempre es la lista `tools`: una tool que no está ahí no existe para el subagente. Sin `Edit` ni `Write`, no puede editar.",
+      "why_wrong": {
+        "1": "`dontAsk` corre la misma suerte que `plan`: con la sesión principal en `acceptEdits`, el `permissionMode` del subagente se ignora.",
+        "2": "Una instrucción en el prompt es guidance: no impide que el subagente use `Edit` si la tool está disponible y el modo la aprueba.",
+        "3": "Los subagentes de proyecto tienen más prioridad que los de usuario, no menos; y la regla de herencia del modo de permisos es igual para los dos."
+      },
+      "rule": "Si el modo de la sesión pisa el `permissionMode` del subagente, restringí con `tools`: lo que no está en la lista no existe.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "the subagent runs in that same mode and Claude Code ignores the `permissionMode` you set",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o05-s03",
+      "objective": 5,
+      "pool": "sim",
+      "scenario": "Un retailer tiene el subagente `db-analyst` en `.claude/agents/`. Necesita `Bash` para correr `psql` y responder preguntas de negocio, pero un `UPDATE` accidental sobre la base de reportes ya costó un día de reconstrucción. El equipo quiere que el subagente pueda correr consultas `SELECT` y que cualquier escritura quede bloqueada, sin afectar lo que puede hacer la sesión principal. ¿Qué configurás?",
+      "options": [
+        "Agregar `disallowedTools: Bash(psql -c \"UPDATE*)` en el frontmatter de `db-analyst`, así se bloquean solo las sentencias de escritura.",
+        "Un hook `PreToolUse` con matcher `Bash` en el frontmatter de `db-analyst` que valide el comando y salga con código 2 si no es solo lectura.",
+        "Escribir en el system prompt de `db-analyst` \"Solo podés ejecutar SELECT; cualquier otra sentencia está prohibida\", con ejemplos de cada caso.",
+        "Setear `permissionMode: plan` en `db-analyst`, porque el modo plan deja correr comandos de lectura en Bash y bloquea los que escriben datos."
+      ],
+      "correct": 1,
+      "why_correct": "Cuando necesitás permitir algunas operaciones de una tool y bloquear otras, la doc propone un hook `PreToolUse`. Definido en el frontmatter, corre solo mientras ese subagente está activo: el script lee el comando por stdin y sale con código 2 para bloquear lo que no sea lectura. Eso es enforcement, no una sugerencia.",
+      "why_wrong": {
+        "0": "En `disallowedTools`, una entrada con especificador como `Bash(...)` saca la tool `Bash` entera: el subagente se quedaría sin poder correr ni los `SELECT`.",
+        "2": "Una regla en el prompt orienta pero no garantiza: después de un incidente real, el requisito es bloquear, no pedir.",
+        "3": "El modo plan es exploración de solo lectura en general; no entiende SQL ni distingue un `SELECT` de un `UPDATE` dentro de `psql`. Además, si la sesión está en `acceptEdits` o `bypassPermissions`, se ignora."
+      },
+      "rule": "Permitir una parte de una tool y bloquear otra → hook `PreToolUse` que valida y sale con código 2.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "This is useful when you need to allow some operations of a tool while blocking others.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o05-s04",
+      "objective": 5,
+      "pool": "sim",
+      "scenario": "Una empresa de salud definió el subagente `security-reviewer` sin campo `tools`, con un prompt que dice que solo debe leer y reportar. Con el anidamiento de subagentes activo (el valor por defecto), en una revisión el `security-reviewer` lanzó un subagente `general-purpose` para \"arreglar rápido\" un hallazgo, y ese subagente editó código. El equipo quiere que el revisor siga pudiendo leer y buscar, pero que no edite ni delegue. ¿Qué cambio aplicás?",
+      "options": [
+        "Setear `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=1` en la sesión, porque eso le quita al revisor la capacidad de editar y también la de delegar.",
+        "Agregar `disallowedTools: Edit, Write` al revisor, porque los subagentes que él lance heredan esa misma restricción automáticamente.",
+        "Agregar al prompt del revisor \"nunca delegues ni edites\" y aclarar en su `description` que es un agente de solo lectura.",
+        "Darle al revisor `tools: Read, Grep, Glob`, sin `Agent` ni tools de edición, así no puede editar ni lanzar otros subagentes."
+      ],
+      "correct": 3,
+      "why_correct": "Sin campo `tools`, el subagente hereda todas las tools disponibles, incluidas `Edit` y `Agent`. La doc lo dice directo: para que un revisor de solo lectura no lance subagentes, sacá `Agent` de su lista `tools` (o ponelo en `disallowedTools`). Con una lista explícita de solo lectura, tampoco puede editar.",
+      "why_wrong": {
+        "0": "La profundidad 1 apaga el anidamiento para toda la sesión, pero el revisor seguiría heredando `Edit` y podría editar él mismo.",
+        "1": "Un subagente anidado se configura y resuelve igual que uno de primer nivel: no hereda las restricciones de quien lo lanza. Y el revisor seguiría teniendo `Agent`.",
+        "2": "Prompt y `description` son guidance: no sacan tools. El revisor ya tenía una instrucción de solo leer y la ignoró."
+      },
+      "rule": "Revisor de solo lectura → lista `tools` explícita sin `Agent` ni tools de edición.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "To keep one subagent from spawning while nesting is on, such as a reviewer that should stay read-only, omit `Agent` from its",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o05-s05",
+      "objective": 5,
+      "pool": "sim",
+      "scenario": "En una consultora, un dev trabaja en su checkout mientras le pide a Claude Code que pruebe una migración experimental de ORM con el subagente `orm-trial`. El subagente edita decenas de archivos en el mismo directorio de trabajo y el dev pierde la noción de cuáles cambios son suyos. Quieren que `orm-trial` pueda editar y correr tests con libertad sin tocar el checkout del dev, y que si no cambia nada no quede basura. ¿Qué configurás?",
+      "options": [
+        "`isolation: worktree` en el frontmatter de `orm-trial`, para que trabaje en una copia aislada del repo en un worktree temporal de git.",
+        "Lanzar `orm-trial` como fork, así trabaja sobre una copia de la conversación y sus ediciones quedan separadas del checkout principal.",
+        "Activar file checkpointing y rebobinar los archivos que toque `orm-trial` cada vez que el dev quiera recuperar su propio estado.",
+        "`permissionMode: plan` en `orm-trial`, para que proponga los cambios de la migración sin aplicarlos sobre el checkout del dev."
+      ],
+      "correct": 0,
+      "why_correct": "Un subagente arranca en el mismo directorio de trabajo que la conversación principal. Para darle una copia aislada del repo, se usa `isolation: worktree`: corre en un worktree temporal de git (por defecto, creado desde la rama por defecto, no desde el `HEAD` de la sesión), y si no hace cambios se limpia solo.",
+      "why_wrong": {
+        "1": "Un fork copia la conversación, no los archivos: sus ediciones siguen cayendo en el mismo directorio de trabajo.",
+        "2": "El rewind del SDK no sigue las ediciones de subagentes, y rebobinar después no evita que se mezclen los cambios mientras el dev trabaja.",
+        "3": "En modo plan el subagente no puede aplicar ni probar la migración, que es justamente lo que tiene que hacer."
+      },
+      "rule": "Subagente que tiene que editar sin tocar tu checkout → `isolation: worktree`.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "To give the subagent an isolated copy of the repository instead, set",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o05-s06",
+      "objective": 5,
+      "pool": "sim",
+      "scenario": "Un equipo de 40 devs comparte el subagente `changelog-writer` en `.claude/agents/`. Tiene que usar las tools built-in (leer, buscar, correr `git log`), pero nunca ninguna tool MCP: cada dev tiene servidores distintos (Slack, Jira, bases internas) y escribir un changelog no debería disparar nada externo. Mantener una lista `tools` exhaustiva no es viable, porque las tools built-in cambian entre versiones de Claude Code. ¿Qué ponés en el frontmatter?",
+      "options": [
+        "`tools: Read, Grep, Glob, Bash`, y revisar la lista en cada actualización de Claude Code para sumar las tools nuevas que hagan falta.",
+        "`mcpServers: []`, porque una lista vacía de servidores hace que el subagente arranque sin ninguna de las tools MCP del padre.",
+        "`disallowedTools: mcp__*`, que saca del subagente todas las tools MCP de cualquier servidor y conserva todo lo demás que hereda.",
+        "`permissionMode: dontAsk`, para que cualquier tool MCP que necesite aprobación quede denegada automáticamente dentro del subagente."
+      ],
+      "correct": 2,
+      "why_correct": "`disallowedTools` funciona como lista de exclusión sobre lo que el subagente hereda, y acepta patrones por servidor. `mcp__*` saca todas las tools MCP de cualquier servidor; el resto (las built-in) se sigue heredando sin que tengas que mantener una lista.",
+      "why_wrong": {
+        "0": "Funciona hoy, pero es justo la lista exhaustiva que el equipo no quiere mantener.",
+        "1": "`mcpServers` agrega servidores al subagente; dejarlo vacío no saca las tools MCP que hereda de la sesión principal.",
+        "3": "`dontAsk` solo deniega lo que pediría permiso: una tool MCP ya aprobada en settings se ejecutaría igual."
+      },
+      "rule": "Para sacar una familia entera de tools sin listar las demás, usá `disallowedTools` con patrón (`mcp__*`).",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "Withhold every MCP tool from any server",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

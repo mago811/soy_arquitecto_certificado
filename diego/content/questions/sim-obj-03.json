@@ -1,0 +1,149 @@
+{
+  "objective": 3,
+  "questions": [
+    {
+      "id": "o03-s01",
+      "objective": 3,
+      "pool": "sim",
+      "scenario": "En Banco Litoral corren Claude Code en modo no interactivo para revisar pull requests. El agente principal delega en un subagente `pr-reviewer`, y este, por cada hallazgo, lanza un subagente `verifier` anidado para confirmarlo. El principal le pasa a `pr-reviewer` el SHA del commit, la rama y la lista de archivos tocados. Pero los `verifier` descartan hallazgos reales: revisan el código de `main`, no el del PR. El `pr-reviewer` tiene todos esos datos en su contexto. ¿Dónde está el problema y cuál es el fix?",
+      "options": [
+        "Cada subagente arranca solo con el mensaje que le escribe quien lo lanza: el prompt de `pr-reviewer` tiene que exigirle pasar SHA, rama, archivos y hallazgo a cada `verifier`.",
+        "Los `verifier` heredan el contexto de `pr-reviewer` pero lo pierden al compactar: hay que subir el `autoCompactWindow` en la definición del `verifier`.",
+        "Los subagentes anidados no reciben información del repo: hay que escribir el SHA del PR en el CLAUDE.md del proyecto antes de cada corrida del pipeline.",
+        "El anidamiento viene apagado por defecto: hay que setear `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` en 2 para que los `verifier` reciban el contexto del revisor."
+      ],
+      "correct": 0,
+      "why_correct": "Un subagente que no es fork arranca con contexto nuevo: no ve la conversación de quien lo lanzó. Quien delega escribe un mensaje que resume la tarea, y el subagente trabaja desde ahí. Esto vale en cada nivel: si `pr-reviewer` no pone SHA, rama y archivos en el prompt de cada `verifier`, el verificador no los tiene. La regla de \"pasá todo lo que necesita\" tiene que estar en las instrucciones de quien delega en cada nivel.",
+      "why_wrong": {
+        "1": "Los subagentes no heredan el contexto de quien los lanza; el problema no es la compactación. Además, `autoCompactWindow` solo sirve para bajar la ventana de compactación, no para subirla.",
+        "2": "Usar CLAUDE.md para datos de cada corrida es frágil (se pisa entre PRs que corren en paralelo) y no es el mecanismo: los datos de la tarea viajan en el prompt de delegación.",
+        "3": "El anidamiento ya está activo por defecto (hasta tres niveles), y la profundidad no tiene nada que ver con qué contexto recibe cada subagente."
+      },
+      "rule": "En cada nivel de delegación, lo que el subagente necesita va en el prompt que le escribe quien lo lanza.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "Claude composes a delegation message that summarizes the task, and the subagent works from there.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o03-s02",
+      "objective": 3,
+      "pool": "sim",
+      "scenario": "MesaÁgil arma un agente de gestión de incidentes con el Agent SDK. Por cada incidente, el backend construye el `systemPrompt` del agente principal con el ID del incidente, el cliente afectado, su plan contratado y la hora de inicio. El coordinador delega en dos subagentes definidos en `agents`: `log-analyst` y `customer-comms`. Los dos devuelven trabajo genérico: comunicaciones redacta para un cliente \"Enterprise\" que en realidad tiene plan Básico, y el analista busca logs de otra franja horaria. Las definiciones de los subagentes son estáticas y el equipo no quiere generarlas por request. ¿Qué cambiás?",
+      "options": [
+        "Repetir los datos del incidente en el `systemPrompt` del coordinador con la palabra IMPORTANT adelante, para que los subagentes les den más peso.",
+        "Mover los datos del incidente al campo `description` de cada `AgentDefinition`, que es lo que Claude lee cuando decide a quién delegar.",
+        "Instruir al coordinador para que copie ID, cliente, plan y franja horaria en el prompt de cada llamada al Agent tool que haga.",
+        "Cargar los datos del incidente en el `initialPrompt` de cada `AgentDefinition`, para que entren como primer turno de cada subagente."
+      ],
+      "correct": 2,
+      "why_correct": "Un subagente no recibe el system prompt del padre ni su historial. Lo único que pasa del padre al subagente es el texto de la llamada al Agent tool. Los datos de cada corrida (IDs, plan, franja horaria) tienen que viajar ahí, y las reglas estables del rol quedan en la definición del subagente.",
+      "why_wrong": {
+        "0": "El subagente no ve el system prompt del padre, así que enfatizar ahí no cambia nada para él.",
+        "1": "`description` sirve para que Claude decida cuándo delegar; no es el contexto de trabajo del subagente. Y además la definición es estática.",
+        "3": "`initialPrompt` solo se usa cuando el agente corre como agente principal; se ignora cuando se lo invoca como subagente."
+      },
+      "rule": "Datos de la corrida → prompt de la llamada al Agent tool; reglas estables del rol → definición del subagente.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "source_quote": "The only content you pass from parent to subagent is the Agent tool's prompt string, so include any file paths, error messages, or decisions the subagent needs directly in that prompt.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o03-s03",
+      "objective": 3,
+      "pool": "sim",
+      "scenario": "Un coordinador en Claude Code corre sobre un modelo con ventana extendida de 1M de tokens y ya analizó un monorepo de 900 archivos. Para delegar la escritura de tests de integración en un subagente definido con `model: haiku`, arma un prompt de delegación que pega el contenido completo de los 180 archivos que leyó, \"para que no le falte nada\". El subagente compacta enseguida o falla, y los tests salen escritos contra interfaces equivocadas. ¿Qué hacés?",
+      "options": [
+        "Cambiar a `model: inherit` y subir el `autoCompactWindow` del subagente a 1.000.000, para que entre todo el material pegado sin compactar.",
+        "Mantener el pegado completo pero poner la tarea arriba y los archivos al final, para que el subagente lea primero qué tiene que hacer.",
+        "Pedirle al coordinador que resuma los 180 archivos en un párrafo de prosa, así el prompt de delegación entra holgado en cualquier ventana.",
+        "Pasar en el prompt las rutas relevantes, las interfaces y decisiones ya confirmadas y el criterio de éxito, y dejar que el subagente lea lo que necesite."
+      ],
+      "correct": 3,
+      "why_correct": "La ventana de un subagente la define su propio modelo, no la del padre: si delegás en un modelo con ventana más chica, el subagente tiene esa ventana más chica. Un prompt completo no es uno con todo pegado: es uno con lo que el subagente necesita y no puede descubrir solo (rutas, hallazgos, interfaces confirmadas, decisiones y criterio de éxito). El subagente tiene sus propias tools para leer archivos.",
+      "why_wrong": {
+        "0": "`autoCompactWindow` solo permite bajar la ventana de compactación de un subagente, no ampliarla. Y aunque heredara la ventana grande, pegar 180 archivos sigue llenando el contexto con material que el subagente puede leer él mismo.",
+        "1": "El orden no resuelve el tamaño: el material sigue sin entrar en la ventana del subagente. Además, para documentos largos la doc recomienda poner los datos arriba y la consulta al final.",
+        "2": "Un párrafo en prosa pierde justo los detalles que el subagente necesita (firmas, interfaces, decisiones) y lo vuelve a dejar adivinando."
+      },
+      "rule": "Prompt completo = lo que el subagente no puede descubrir solo, no todo pegado; su ventana depende de su propio modelo.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "Delegating to a model with a smaller window gives that subagent the smaller window.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o03-s04",
+      "objective": 3,
+      "pool": "sim",
+      "scenario": "En Claude Code, un subagente custom `perf-auditor` pasó 25 minutos perfilando el checkout de una tienda online: definió métricas base, descartó dos hipótesis y devolvió un informe con tres cuellos de botella. El dev le pide al agente principal: \"ahora que el auditor revise también el carrito con el mismo criterio\". El principal hace una nueva llamada al Agent tool con `perf-auditor` y el prompt \"revisá también el carrito\". El nuevo auditor vuelve a medir el checkout desde cero e ignora las métricas base. ¿Qué tendría que haber hecho el principal?",
+      "options": [
+        "Relanzar `perf-auditor` con `isolation: worktree`, para que trabaje en una copia del repo y no se mezcle con lo que hizo la corrida anterior.",
+        "Retomar el mismo `perf-auditor` con `SendMessage` usando su agent ID, porque cada invocación nueva crea una instancia que no ve la corrida anterior.",
+        "Lanzar el subagente built-in `Explore`, que conserva lo explorado por otros subagentes de la sesión y sale más barato para seguir el análisis.",
+        "Subir `maxTurns` en la definición de `perf-auditor`, porque el auditor nuevo se quedó sin turnos antes de llegar a leer el informe anterior."
+      ],
+      "correct": 1,
+      "why_correct": "Cada invocación de un subagente crea una instancia nueva, con contexto vacío. Para continuar el trabajo de uno que ya terminó, Claude lo retoma con `SendMessage` usando su agent ID o nombre: el subagente retomado conserva todo su historial (tool calls, resultados y razonamiento), incluidas las métricas base y las hipótesis descartadas.",
+      "why_wrong": {
+        "0": "Un worktree aísla archivos, no contexto: la instancia nueva seguiría arrancando sin las métricas ni las hipótesis de la corrida anterior.",
+        "2": "`Explore` también arranca con contexto nuevo y no ve lo que hicieron otros subagentes. Además es de una sola vuelta: no devuelve agent ID y no se puede retomar.",
+        "3": "El problema no son los turnos: la instancia nueva nunca tuvo el informe en su contexto, así que más turnos solo repiten el trabajo."
+      },
+      "rule": "Para seguir el trabajo de un subagente, retomalo; una invocación nueva arranca de cero.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "Each subagent invocation creates a new instance rather than continuing an earlier one.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o03-s05",
+      "objective": 3,
+      "pool": "sim",
+      "scenario": "Una fintech usa Claude Code para operaciones de soporte. El agente principal conversa con la analista y delega en un subagente custom `db-fixer` la corrección de un saldo. En el chat, la analista aclaró que el ajuste va contra la base de staging y que el monto correcto es el del ticket #4471, no el que figura en el correo del cliente. El principal delega con \"corregí el saldo del cliente 8812\". En la traza, el `db-fixer` duda entre staging y producción, no tiene cómo consultarle a la analista y elige producción. ¿Cuál es el fix de diseño?",
+      "options": [
+        "Agregar `AskUserQuestion` a la lista `tools` de `db-fixer`, para que le pregunte a la analista cada vez que tenga dudas sobre el entorno.",
+        "Escribir en el CLAUDE.md del proyecto que staging es el entorno por defecto, así todos los subagentes lo leen al arrancar.",
+        "Que el principal resuelva la ambigüedad antes de delegar e incluya en el prompt el entorno, el ticket, el monto y por qué se descartó el del correo.",
+        "Correr `db-fixer` en primer plano, para que sus dudas pasen a la analista como pasan los pedidos de permiso mientras el subagente trabaja."
+      ],
+      "correct": 2,
+      "why_correct": "Claude Code saca algunas tools de todo subagente, entre ellas `AskUserQuestion`: un subagente no puede hacerle preguntas al humano. Lo que la analista decidió en la conversación del principal no llega solo, porque el subagente arranca con contexto nuevo. Por eso el principal tiene que resolver las ambigüedades y mandar las decisiones (entorno, ticket, monto y motivo) en el prompt de delegación.",
+      "why_wrong": {
+        "0": "`AskUserQuestion` está en la lista de tools que Claude Code quita de todo subagente; sumarla a `tools` no la habilita.",
+        "1": "Un default fijo en CLAUDE.md no captura decisiones de cada caso (el ticket, el monto) y es solo guidance: no garantiza que el subagente no elija otro entorno.",
+        "3": "En primer plano pasan los pedidos de permiso de tools, no preguntas abiertas: el subagente sigue sin poder preguntar qué entorno usar."
+      },
+      "rule": "Un subagente no puede preguntarle al humano: las decisiones tienen que viajar resueltas en el prompt de delegación.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "narrowed by two filters: the first removes a short list of tools from every subagent",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o03-s06",
+      "objective": 3,
+      "pool": "sim",
+      "scenario": "Telco Patagonia tiene un agente de soporte con el Agent SDK. El coordinador ya verificó la identidad del cliente (OTP por SMS, validado a las 10:42), consultó la factura en disputa y confirmó que existe un cargo duplicado. Después delega en el subagente `refund-agent` con el texto \"cliente verificado, procesá el reintegro del cargo duplicado\". El `refund-agent` vuelve a mandar un OTP (el cliente se queja), vuelve a consultar la factura y a veces reintegra el cargo equivocado, porque había dos cargos del mismo monto. ¿Qué cambiás en la delegación?",
+      "options": [
+        "Pasar en el prompt un bloque estructurado con lo ya hecho: método y hora de verificación, ID de factura, ID exacto del cargo duplicado y qué falta hacer.",
+        "Agregar al `prompt` del `AgentDefinition` la regla \"si el coordinador dice que el cliente está verificado, no vuelvas a verificar identidad\".",
+        "Activar `continue_conversation=True` en el coordinador, así el subagente comparte la sesión y ve las consultas que el coordinador ya hizo.",
+        "Agregar al coordinador un hook `PostToolUse` que copie cada `tool_result` al contexto del subagente en el momento en que lo lanza."
+      ],
+      "correct": 0,
+      "why_correct": "El subagente no recibe el historial ni los resultados de tools del padre. Si el prompt dice solo \"cliente verificado\", el subagente no sabe qué se verificó ni cuál de los dos cargos es el duplicado. Un bloque estructurado con lo ya hecho y sus identificadores exactos evita repetir pasos con efectos (el OTP) y elegir el cargo equivocado.",
+      "why_wrong": {
+        "1": "La regla evita el segundo OTP, pero no le da al subagente el ID del cargo: sigue pudiendo reintegrar el equivocado.",
+        "2": "`continue_conversation` retoma la sesión más reciente del agente principal en otra llamada a `query()`; no hace que un subagente vea el historial del padre.",
+        "3": "Los hooks no inyectan resultados en el contexto de un subagente de esa forma. Lo único que pasa del padre al subagente es el prompt de la llamada al Agent tool."
+      },
+      "rule": "Delegá con los hechos ya establecidos y sus IDs exactos, en formato estructurado, para que el subagente no repita ni adivine.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "source_quote": "The parent's conversation history or tool results",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

@@ -1,0 +1,149 @@
+{
+  "objective": 10,
+  "questions": [
+    {
+      "id": "o10-s01",
+      "objective": 10,
+      "pool": "sim",
+      "scenario": "Un banco revisa con Claude cada cambio que toca el módulo de pagos antes de desplegar, buscando vulnerabilidades. Hoy hay una sola llamada con un prompt de revisión y, en la auditoría trimestral, se descubrió que dejó pasar dos fallas reales. El equipo de seguridad prioriza no dejar pasar nada aunque la revisión tarde más y cueste más; los cambios son chicos y no hace falta dividirlos. ¿Qué patrón corresponde?",
+      "options": [
+        "Un orquestador que divida cada cambio en subtareas dinámicas según los archivos tocados y delegue cada una a un worker distinto.",
+        "Una cadena secuencial donde una segunda llamada reformatee la salida de la primera como un reporte estructurado para el equipo.",
+        "Varias revisiones en paralelo del mismo cambio con prompts distintos, que marcan el cambio si cualquiera encuentra un problema.",
+        "Un único prompt más largo con una checklist exhaustiva de vulnerabilidades, para que una sola llamada cubra todos los tipos de falla."
+      ],
+      "correct": 2,
+      "why_correct": "El requisito es confiabilidad, no velocidad ni división del trabajo. Eso es paralelización por votación: correr la misma tarea varias veces, con distintos prompts, para tener más perspectivas. El ejemplo oficial es exactamente revisar código buscando vulnerabilidades con varios prompts que marcan si encuentran algo.",
+      "why_wrong": {
+        "0": "El problema no es dividir el cambio (son chicos): es que una sola mirada se pierde fallas. Más workers sobre partes distintas no suman perspectivas sobre lo mismo.",
+        "1": "Reformatear no agrega detección. La segunda llamada solo ve lo que la primera ya encontró.",
+        "3": "Sigue siendo una única mirada. Una checklist más larga en una llamada no da la redundancia que pide el requisito."
+      },
+      "rule": "Máxima confiabilidad en una misma tarea → votación: varias pasadas en paralelo y se marca si cualquiera encuentra algo.",
+      "source_url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "source_quote": "Reviewing a piece of code for vulnerabilities, where several different prompts review and flag the code if they find a problem.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o10-s02",
+      "objective": 10,
+      "pool": "sim",
+      "scenario": "Una consultora de energía usa un sistema de research donde el coordinador lanza 4 subagentes en paralelo con instrucciones de una línea, como \"investigá el mercado de baterías\". Los informes llegan rápido, pero tres subagentes cubrieron casi lo mismo (precios del litio en 2025) y nadie miró reciclaje ni regulación, que el cliente había pedido. El tiempo de respuesta actual está bien y no puede aumentar. ¿Qué cambiás?",
+      "options": [
+        "Que el coordinador reparta el alcance en partes distintas y le dé a cada subagente objetivo, formato, fuentes y límites claros.",
+        "Ejecutar los 4 subagentes en secuencia, para que cada uno lea lo que encontró el anterior y no repita lo que ya se cubrió.",
+        "Duplicar los subagentes a 8 con la misma instrucción, para que suba la probabilidad de que alguno cubra reciclaje y regulación.",
+        "Agregar un subagente final que borre del informe los párrafos repetidos antes de que el coordinador entregue la síntesis."
+      ],
+      "correct": 0,
+      "why_correct": "Con instrucciones vagas, los subagentes se pisan y dejan huecos. El fix está en el coordinador: partir el alcance en porciones distintas y darle a cada subagente objetivo, formato de salida, fuentes y límites claros. Se mantiene el paralelismo y, con él, el tiempo de respuesta.",
+      "why_wrong": {
+        "1": "Reduce la duplicación, pero suma latencia y viola la restricción de tiempo. Además, nadie asignó reciclaje ni regulación.",
+        "2": "Con la misma instrucción vaga, más subagentes duplican más. La cobertura queda librada al azar.",
+        "3": "Limpia el síntoma (texto repetido) pero no agrega lo que falta: reciclaje y regulación siguen sin investigar."
+      },
+      "rule": "Subagentes que se pisan o dejan huecos → el coordinador parte el alcance con límites claros para cada uno.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "Without detailed task descriptions, agents duplicate work, leave gaps, or fail to find necessary information.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o10-s03",
+      "objective": 10,
+      "pool": "sim",
+      "scenario": "Una prepaga atiende consultas con un pipeline secuencial fijo: cada mensaje pasa por cinco agentes especialistas (facturación, autorizaciones, cartilla, reclamos y legales) y al final un agente une las respuestas. Una consulta simple tarda 90 segundos y las respuestas traen párrafos irrelevantes de especialistas que no tenían nada que aportar. Necesitan bajar la latencia sin perder la calidad de los especialistas. ¿Qué estructura corresponde?",
+      "options": [
+        "Ejecutar los cinco especialistas en paralelo en lugar de en secuencia, y que el agente final siga uniendo las cinco respuestas.",
+        "Reemplazar los cinco especialistas por un solo agente generalista con un system prompt que combine las cinco especialidades.",
+        "Mantener el pipeline y pedirle al agente final que descarte los párrafos que no tengan relación directa con la consulta original.",
+        "Un paso inicial que clasifique la consulta y la derive solo al especialista (o los pocos) que corresponda, sin pasar por todos."
+      ],
+      "correct": 3,
+      "why_correct": "No todas las consultas necesitan a todos los especialistas. El patrón routing clasifica el input y lo manda a la tarea especializada que corresponde: separa responsabilidades y mantiene prompts especializados. Baja latencia y costo, y saca el ruido de los que no aportan.",
+      "why_wrong": {
+        "0": "Baja la latencia, pero sigue gastando cinco llamadas por consulta y el ruido de los especialistas que no aplican sigue llegando a la síntesis.",
+        "1": "Pierde la especialización que pide la restricción: optimizar un prompt para un tipo de consulta puede empeorar los otros.",
+        "2": "Sigue pagando los 90 segundos del pipeline completo; solo limpia el texto al final."
+      },
+      "rule": "Inputs de tipos distintos → routing: clasificar y derivar al especialista que corresponde, no pasar por todos.",
+      "source_url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "source_quote": "Routing classifies an input and directs it to a specialized followup task. This workflow allows for separation of concerns, and building more specialized prompts.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o10-s04",
+      "objective": 10,
+      "pool": "sim",
+      "scenario": "Una aseguradora usa un sistema de research para analizar riesgos de clientes corporativos. El coordinador ya lanza 4 subagentes en paralelo, pero cada subagente hace sus 6 búsquedas de a una: busca, espera, lee y recién después lanza la siguiente, aunque las búsquedas no dependen entre sí. El análisis tarda 14 minutos y el área comercial pide bajarlo a la mitad sin recortar cobertura. ¿Qué cambiás?",
+      "options": [
+        "Bajar de 6 a 3 las búsquedas por subagente, priorizando las fuentes que más información aportaron en los análisis anteriores.",
+        "Que cada subagente lance en paralelo, en un mismo turno, las búsquedas que no dependen entre sí, en vez de hacerlas de a una.",
+        "Subir `max_tokens` de cada subagente para que pueda procesar más resultados de búsqueda en cada respuesta del modelo.",
+        "Reemplazar los subagentes por una cadena secuencial donde cada etapa haga una búsqueda y le pase el resultado a la siguiente."
+      ],
+      "correct": 1,
+      "why_correct": "Hay dos niveles de paralelismo: subagentes en paralelo y tools en paralelo dentro de cada subagente. El primero ya está; falta el segundo. En el sistema de research de Anthropic, esas dos paralelizaciones juntas bajaron mucho el tiempo en consultas complejas. Los modelos actuales ejecutan en paralelo las tool calls independientes.",
+      "why_wrong": {
+        "0": "Baja el tiempo, pero viola la restricción: recorta cobertura.",
+        "2": "`max_tokens` limita el largo de la respuesta; no cambia que las búsquedas se hagan de a una.",
+        "3": "Una cadena secuencial es lo más lento posible para búsquedas que no dependen entre sí."
+      },
+      "rule": "Latencia con subagentes ya en paralelo → que cada subagente también haga en paralelo sus tool calls independientes.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "(1) the lead agent spins up 3-5 subagents in parallel rather than serially; (2) the subagents use 3+ tools in parallel.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o10-s05",
+      "objective": 10,
+      "pool": "sim",
+      "scenario": "Un banco tiene un asistente de chat donde una sola llamada al modelo hace dos cosas: responder al cliente y chequear si el pedido viola la política (por ejemplo, pedir datos de una cuenta ajena). Desde que sumaron el chequeo, las respuestas empeoraron y el chequeo deja pasar pedidos prohibidos cuando la conversación es larga. Restricción: no pueden sumar latencia perceptible antes de responder. ¿Qué estructura corresponde?",
+      "options": [
+        "Dos llamadas en paralelo: una genera la respuesta y otra, con su propio prompt, evalúa solo si el pedido viola la política.",
+        "Una cadena secuencial: primero la llamada de política y, solo si da negativo, recién ahí otra llamada genera la respuesta.",
+        "Mantener una sola llamada y poner la instrucción de chequeo de política en mayúsculas, al principio del system prompt.",
+        "Un orquestador que en cada mensaje decida qué subagentes de evaluación lanzar antes de empezar a generar la respuesta."
+      ],
+      "correct": 0,
+      "why_correct": "Mezclar guardrail y respuesta en la misma llamada empeora las dos cosas. La paralelización por secciones separa: una instancia responde y otra filtra, cada una con foco propio. Al correr en paralelo, la latencia es la de la más lenta, no la suma.",
+      "why_wrong": {
+        "1": "Separa bien las tareas, pero en secuencia suma la latencia de las dos llamadas, y eso viola la restricción.",
+        "2": "Sigue siendo una sola llamada con dos responsabilidades; resaltar la instrucción no le da foco separado.",
+        "3": "Agrega una decisión dinámica innecesaria (el chequeo es siempre el mismo) y suma latencia antes de responder."
+      },
+      "rule": "Guardrail + respuesta → dos llamadas en paralelo, no una que haga las dos cosas.",
+      "source_url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "source_quote": "This tends to perform better than having the same LLM call handle both guardrails and the core response.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o10-s06",
+      "objective": 10,
+      "pool": "sim",
+      "scenario": "Una firma de M&A corre un sistema de due diligence de 45 minutos: un coordinador y 8 subagentes en paralelo. Cuando la API de un registro societario devuelve timeout, el subagente aborta, el run entero falla y el equipo lo relanza desde cero. Pasa en uno de cada cuatro runs. Restricción: el registro es inestable y no depende de ellos. ¿Qué cambiás para ganar confiabilidad?",
+      "options": [
+        "Lanzar los 8 subagentes en secuencia en lugar de en paralelo, para no saturar el registro y bajar la cantidad de timeouts.",
+        "Subir el timeout global del sistema a 90 minutos y relanzar automáticamente el run completo cada vez que falle algún subagente.",
+        "Reintentos deterministas y checkpoints para retomar sin empezar de cero, y que el subagente reporte la falla para que se adapte.",
+        "Sacar el registro societario de las fuentes y que los subagentes completen esos datos con lo que encuentren en prensa y en la web."
+      ],
+      "correct": 2,
+      "why_correct": "Los agentes tienen estado y los errores se acumulan; reiniciar todo es caro. El enfoque del sistema de research de Anthropic combina la adaptabilidad del agente (avisarle que una tool falla y dejar que se adapte) con salvaguardas deterministas: reintentos y checkpoints regulares para retomar desde donde estaba.",
+      "why_wrong": {
+        "0": "Multiplica la latencia por 8 y no resuelve la causa: el registro sigue fallando y el run sigue abortando entero.",
+        "1": "Más timeout no arregla un registro inestable, y relanzar todo repite 45 minutos de trabajo cada vez.",
+        "3": "Cambia una fuente oficial por otras menos confiables: gana estabilidad a costa de la calidad del due diligence."
+      },
+      "rule": "Errores en multi-agente → reintentos + checkpoints + avisarle al agente para que se adapte; nunca reiniciar todo.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "We combine the adaptability of AI agents built on Claude with deterministic safeguards like retry logic and regular checkpoints.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

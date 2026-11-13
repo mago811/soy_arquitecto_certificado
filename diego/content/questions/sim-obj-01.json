@@ -1,0 +1,149 @@
+{
+  "objective": 1,
+  "questions": [
+    {
+      "id": "o01-s01",
+      "objective": 1,
+      "pool": "sim",
+      "scenario": "Aseguradora Austral tiene un agente de siniestros sobre la Messages API (Claude Sonnet 5.5). Cuando un cliente reporta un choque, Claude suele devolver en una sola respuesta cuatro bloques `tool_use`: `get_policy`, `get_claim_history` y `get_repair_quotes` (las tres solo leen) y `open_claim`, que crea el expediente en el sistema central y le manda un SMS al cliente. Hoy el código ejecuta las cuatro con `asyncio.gather`, y cuando el sistema central está lento, `open_claim` se pisa con un reintento interno y se crean expedientes duplicados. Producto exige bajar la latencia del turno (hoy ronda los 6 segundos) y Operaciones exige que no haya duplicados. ¿Qué cambiás en el harness?",
+      "options": [
+        "Agregar `disable_parallel_tool_use: true` dentro de `tool_choice` para que Claude pida una sola tool por respuesta y controlar así cada efecto lateral.",
+        "Correr las tres lecturas en paralelo y `open_claim` aparte, en secuencia, y devolver los cuatro `tool_result` juntos en un solo mensaje `user`.",
+        "Seguir con `asyncio.gather` para las cuatro y devolver cada `tool_result` en su propio mensaje `user` a medida que va terminando cada tool.",
+        "Correr las lecturas en paralelo, no ejecutar `open_claim` en ese turno y omitir su `tool_result` para que Claude la vuelva a pedir más adelante."
+      ],
+      "correct": 1,
+      "why_correct": "La API no impone un orden de ejecución: lo decidís vos según lo que hace cada tool. La doc recomienda paralelo para operaciones independientes de solo lectura y secuencial para las que tienen efectos laterales o estado compartido. Así bajás la latencia de las lecturas y controlás `open_claim`. Igual tenés que devolver un `tool_result` por cada `tool_use`, todos juntos en el siguiente mensaje `user`.",
+      "why_wrong": {
+        "0": "Desactivar el paralelismo suma idas y vueltas: cada lectura pasa a costar un turno entero y la latencia sube, que es justo lo que Producto no quiere. El problema no es que Claude pida varias tools, sino cómo las ejecutás vos.",
+        "2": "Mandar un mensaje `user` por cada resultado es el error de formato más común: le 'enseña' a Claude a no pedir tools en paralelo. Y no resuelve los duplicados de `open_claim`.",
+        "3": "Cada `tool_use` necesita su `tool_result` en el mensaje siguiente; si no lo devolvés, la request falla. Si decidís no ejecutar una llamada, igual devolvés su resultado con `is_error: true` y una explicación."
+      },
+      "rule": "Lecturas independientes en paralelo, efectos laterales en secuencia; los resultados vuelven siempre todos juntos.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
+      "source_quote": "Independent, read-only operations are usually safe to run in parallel for lower latency. Tools with side effects, shared state, or ordering requirements might be better run sequentially.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o01-s02",
+      "objective": 1,
+      "pool": "sim",
+      "scenario": "Codeforge arma su propio agente de código sobre la Messages API con Claude Fable 5.1 y tres tools: `read_file`, `grep` y `run_tests`. En las trazas ven que, cuando la tarea implica leer varios archivos que el usuario no nombró, el modelo pide un `read_file` por turno: tareas de 40 turnos que podrían resolverse en 15. Cuando el usuario sí nombra los archivos, los pide en paralelo sin problema. El equipo de plataforma no permite headers beta en producción, y el historial tiene que ser append-only: no se reescriben turnos anteriores. ¿Qué hacés?",
+      "options": [
+        "Agregar el bloque `<use_parallel_tool_calls>` al system prompt y reescribir ese system prompt en cada request con un resumen actualizado del estado de la tarea.",
+        "Mandar en cada request un mensaje con `role: \"system\"` y `clear_at: \"next_user_message\"` que le pida a Claude agrupar las llamadas independientes.",
+        "Poner la frase que pide agrupar llamadas en un bloque de texto al principio del mensaje `user`, antes de los `tool_result`, para que se lea primero.",
+        "Agregar la frase que pide pedir juntas las llamadas independientes en un bloque de texto después de los `tool_result`, en cada mensaje `user`."
+      ],
+      "correct": 3,
+      "why_correct": "La guía de Fable 5.1 describe este caso: en loops de código donde las próximas lecturas están implícitas, el modelo puede pedir una tool por turno. El fix es una frase corta en cada turno. La vía preferida es un mensaje de sistema con alcance de turno, pero eso requiere un header beta; sin la beta, la frase va en un bloque de texto después de los `tool_result` del mismo mensaje `user`.",
+      "why_wrong": {
+        "0": "Reescribir lo que ya se mandó en turnos anteriores rompe la regla de historial append-only, y la guía de Fable 5.1 advierte que editar turnos previos invalida bloques de thinking posteriores.",
+        "1": "Los mensajes de sistema con alcance de turno (`clear_at`) están en beta y requieren un header beta, que plataforma no permite.",
+        "2": "En el mensaje que lleva resultados, los `tool_result` tienen que ir primero; un bloque de texto antes de ellos da un error 400."
+      },
+      "rule": "Fable 5.1 en loops de código: empujoncito de una frase en cada turno, después de los `tool_result`.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-1",
+      "source_quote": "Without the beta, place the sentence in a text block after the `tool_result` blocks in the same user message instead.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o01-s03",
+      "objective": 1,
+      "pool": "sim",
+      "scenario": "Viajes Delta automatiza el check-in web de sus pasajeros con el browser use tool. Para bajar la latencia, un dev cambió el ejecutor: cuando Claude devuelve en un mismo turno `left_click` sobre el campo de búsqueda, `type` con el código de reserva y `key` con Enter, el ejecutor lanza los tres con `Promise.all`. Desde el cambio, a veces el código se tipea en el campo equivocado y otras veces se presiona Enter antes de terminar de escribir. ¿Cómo tiene que ejecutar el harness estas llamadas?",
+      "options": [
+        "En el orden en que aparecen, frenando en la primera que falle y respondiendo las siguientes con `is_error: true` y el texto de corte que define la tool.",
+        "En paralelo, como cualquier otro lote de tool calls, pero devolviendo los tres `tool_result` en mensajes `user` separados para que Claude vea cada paso.",
+        "En paralelo, y si alguna falla, reintentarla automáticamente dentro del mismo turno sin avisarle a Claude, para no sumar una ida y vuelta extra.",
+        "Ejecutar solo la primera llamada de cada turno y descartar las otras sin devolverles resultado, para que Claude las vuelva a pedir de a una."
+      ],
+      "correct": 0,
+      "why_correct": "Con computer use y browser use, varias llamadas en un turno forman una acción por lotes (batch action), y la regla es más estricta que en tool use común: se ejecutan en el orden en que aparecen, se frena en la primera falla y cada llamada posterior se responde con `is_error: true` y el texto exacto `Not executed: an earlier action in this turn failed.`. El click, el tipeo y el Enter dependen uno del otro.",
+      "why_wrong": {
+        "1": "En un batch de browser use las llamadas dependen entre sí, así que no se corren en paralelo. Además, los resultados van todos juntos en un mismo mensaje `user`, no en mensajes separados.",
+        "2": "Seguir en paralelo no arregla el orden, y reintentar en silencio esconde el error: la doc pide devolver el error en el `tool_result` y aplicar la regla de corte a las llamadas siguientes.",
+        "3": "Toda llamada necesita respuesta: si no devolvés un `tool_result` por cada `tool_use`, la próxima request se rechaza. Si querés una sola llamada por turno, la vía documentada es `disable_parallel_tool_use: true`."
+      },
+      "rule": "Batch de browser o computer use: en orden, frenar en la primera falla y responder todas las llamadas.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/browser-use-tool",
+      "source_quote": "A turn with several member calls is a batch action: run the calls in the order they appear, stop at the first failure, and answer every later call with `is_error: true` and the exact text `Not executed: an earlier action in this turn failed.`",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o01-s04",
+      "objective": 1,
+      "pool": "sim",
+      "scenario": "Un banco digital procesa órdenes de transferencia con Claude Haiku 5.5 y dos tools: `registrar_transferencia` y `marcar_para_revision`. Auditoría exige dos cosas: que cada respuesta del modelo llame exactamente a una de las dos tools (nunca texto suelto, nunca dos llamadas en la misma respuesta) y que el log tenga una entrada por respuesta. Hoy usan `tool_choice: {\"type\": \"auto\", \"disable_parallel_tool_use\": true}` y cada tanto llega una respuesta que es solo texto. ¿Qué configuración cumple los dos requisitos?",
+      "options": [
+        "Dejar `auto` con `disable_parallel_tool_use: true` y sumar al system prompt \"Siempre llamá exactamente una tool; nunca respondas en texto\".",
+        "Usar `tool_choice: {\"type\": \"any\"}` y poner `disable_parallel_tool_use: true` como parámetro de primer nivel de la request, junto a `tools`.",
+        "Usar `tool_choice: {\"type\": \"any\", \"disable_parallel_tool_use\": true}`, que en un modelo que acepta forzar hace que Claude llame exactamente una tool.",
+        "Usar `tool_choice: {\"type\": \"tool\", \"name\": \"registrar_transferencia\"}` y resolver en código cuándo hay que marcar la orden para revisión."
+      ],
+      "correct": 2,
+      "why_correct": "Con `auto`, `disable_parallel_tool_use: true` significa \"como máximo una tool\": Claude todavía puede contestar en texto. Con `any` o `tool`, el mismo campo significa \"exactamente una\". `any` deja que Claude elija entre las dos tools. Haiku 5.5 acepta forzar tools; en Opus 5.5 o Sonnet 5.5 esta configuración daría 400.",
+      "why_wrong": {
+        "0": "Una instrucción en el prompt orienta pero no garantiza. Con `auto` el modelo puede seguir respondiendo solo en texto, que es lo que hoy rompe el requisito.",
+        "1": "`disable_parallel_tool_use` va dentro del objeto `tool_choice`; no es un parámetro de primer nivel de la request.",
+        "3": "Forzar una tool específica le saca a Claude la decisión entre registrar y marcar para revisión, que es justamente lo que el sistema necesita que decida."
+      },
+      "rule": "`auto` + disable = como máximo una; `any` + disable = exactamente una (solo en modelos que aceptan forzar).",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
+      "source_quote": "When the `tool_choice` type is `any` or `tool`, setting `disable_parallel_tool_use: true` means Claude calls exactly one tool.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o01-s05",
+      "objective": 1,
+      "pool": "sim",
+      "scenario": "Una startup de logística tiene un agente de seguimiento de envíos con seis tools de consulta. Su loop escrito a mano falla una y otra vez con errores 400 del tipo \"tool_use ids were found without tool_result blocks immediately after\" cuando Claude pide varias tools en la misma respuesta: un sprint lo arreglan agrupando resultados, al siguiente alguien agrega un bloque de texto adelante y se vuelve a romper. No necesitan un orden especial de ejecución ni batching propio. El equipo es chico y quiere dejar de mantener ese código sin perder el paralelismo. ¿Qué recomendás?",
+      "options": [
+        "Desactivar el paralelismo con `disable_parallel_tool_use: true`, así cada respuesta trae un solo `tool_use` y el loop manual queda más simple de mantener.",
+        "Agregar al system prompt que nunca pida más de una tool por respuesta y validar en el loop que siempre llegue un único bloque `tool_use`.",
+        "Reintentar automáticamente cada request que vuelva con 400, reconstruyendo el último mensaje `user` hasta que la API lo acepte.",
+        "Migrar el loop al Tool Runner del SDK, que maneja respuestas con varias tool calls y arma los resultados con el formato correcto."
+      ],
+      "correct": 3,
+      "why_correct": "La doc recomienda el Tool Runner para la mayoría de las aplicaciones: maneja las respuestas con varias tool calls y formatea los resultados por vos. El patrón manual tiene sentido cuando necesitás control directo (batching propio, orden de ejecución, manejo de errores especial), que no es este caso. Así conservás el paralelismo y dejás de mantener el formateo.",
+      "why_wrong": {
+        "0": "Apagar el paralelismo esconde el bug de formato a costa de más idas y vueltas, y el requisito es no perder el paralelismo.",
+        "1": "Pedirle al modelo que no use paralelismo es guidance, no garantía, y además sacrifica latencia sin arreglar el código que arma mal los mensajes.",
+        "2": "Reintentar a ciegas no corrige el formato: el 400 se repite porque el mensaje sigue mal armado (resultados separados o texto antes de los `tool_result`)."
+      },
+      "rule": "Sin necesidades especiales de orden o batching, usá el Tool Runner en vez de un loop a mano.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
+      "source_quote": "handles responses with multiple tool calls and formats the results for you, so you don’t write this handling yourself.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o01-s06",
+      "objective": 1,
+      "pool": "sim",
+      "scenario": "Una consultora tiene un agente de código propio con Claude Fable 5.1 como agente líder. El líder puede lanzar subagentes con una tool `start_subagent` (por ejemplo, uno arregla tests rotos y otro actualiza la documentación). Hoy `start_subagent` bloquea hasta que el subagente termina y recién ahí devuelve el `tool_result`, así que el líder queda ocioso varios minutos aunque tenga trabajo independiente por hacer. Quieren bajar el tiempo total de cada tarea sin perder calidad ni subir el costo. ¿Qué cambio de diseño sugiere la doc?",
+      "options": [
+        "Que `start_subagent` lance todos los subagentes juntos y espere a que terminen todos antes de devolver un único `tool_result` con los resultados combinados.",
+        "Que `start_subagent` devuelva enseguida, mandar cada resultado al líder en un mensaje `user` posterior y darle una tool aparte para esperar.",
+        "Que el líder pida en el mismo turno `start_subagent` y una tool de espera, para que la espera arranque en paralelo con el subagente.",
+        "Bajar el `effort` del líder a `low`, para que piense menos mientras espera y cada turno bloqueado le cueste menos tiempo."
+      ],
+      "correct": 1,
+      "why_correct": "La guía de Fable 5.1 recomienda no obligar al líder a frenar y esperar a cada subagente: dejarlo seguir trabajando baja el tiempo promedio con calidad, tokens y costo similares. Para eso: la tool que lanza el subagente devuelve enseguida, el resultado llega después en un mensaje `user`, y el líder tiene una tool separada para esperar cuando lo necesita.",
+      "why_wrong": {
+        "0": "Esperar a todos juntos sigue bloqueando al líder: no puede avanzar con trabajo independiente mientras los subagentes corren.",
+        "2": "Pedir la espera en el mismo turno vuelve a bloquear al líder hasta que el subagente termina; el beneficio viene de que el líder siga trabajando y espere solo cuando lo necesite.",
+        "3": "Bajar el esfuerzo no cambia que el líder esté bloqueado esperando un `tool_result`, y puede empeorar la calidad del trabajo del líder."
+      },
+      "rule": "Para subagentes en paralelo con Fable 5.1: la tool de lanzar vuelve enseguida y el líder espera solo cuando lo necesita.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-1",
+      "source_quote": "Have the tool that starts a subagent return immediately.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

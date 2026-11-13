@@ -1,0 +1,149 @@
+{
+  "objective": 4,
+  "questions": [
+    {
+      "id": "o04-s01",
+      "objective": 4,
+      "pool": "sim",
+      "scenario": "Una software factory tiene un coordinador con dos subagentes. `release-agent` publica versiones: crear el tag, compilar, firmar el binario y publicarlo, en ese orden y sin saltear pasos (un binario sin firmar publicado es un incidente de seguridad). `bug-hunter` investiga reportes de clientes que casi nunca se parecen entre sí. Hoy los dos reciben el mismo estilo de delegación: un objetivo de una línea. El `release-agent` a veces publica antes de firmar, y el `bug-hunter` funciona bien. ¿Qué estilo de delegación corresponde a cada uno?",
+      "options": [
+        "Pasos numerados para los dos, así el coordinador controla siempre la secuencia y puede auditar cada paso de cada subagente de la misma forma.",
+        "Objetivo para los dos, y ponerle al `release-agent` un `maxTurns` bajo para que no tenga margen de saltearse ni reordenar pasos.",
+        "Objetivo con criterios de calidad para el `release-agent`, y pasos fijos para el `bug-hunter`, porque los bugs requieren un método repetible.",
+        "Pasos numerados para el `release-agent`, donde el orden importa, y objetivo con criterios de éxito para el `bug-hunter`, que tiene que adaptarse."
+      ],
+      "correct": 3,
+      "why_correct": "No hay un estilo ganador para todo. Cuando el orden o la completitud de los pasos importa (tag, build, firma, publicación), la doc recomienda instrucciones en pasos numerados. Cuando el camino no se puede predecir (bugs distintos cada vez), conviene delegar por objetivo con criterios de éxito para que el subagente se adapte. Si \"firmar antes de publicar\" tiene que cumplirse siempre, además sumá enforcement (por ejemplo, un hook), porque un prompt solo orienta.",
+      "why_wrong": {
+        "0": "Pasos fijos para el `bug-hunter` le quitan la capacidad de adaptarse a reportes que no se parecen entre sí, justo lo que hoy funciona bien.",
+        "1": "`maxTurns` limita cuánto trabaja el subagente, no el orden en que hace las cosas: con pocos turnos puede seguir publicando antes de firmar.",
+        "2": "Está invertido: el proceso de release es fijo y crítico (pasos), y la investigación de bugs es abierta (objetivo)."
+      },
+      "rule": "Orden crítico → pasos numerados; camino impredecible → objetivo con criterios. Y lo que debe cumplirse siempre, con enforcement.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Provide instructions as sequential steps using numbered lists or bullet points when the order or completeness of steps matters.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o04-s02",
+      "objective": 4,
+      "pool": "sim",
+      "scenario": "Un estudio contable pasó su sistema de research tributario a delegación por objetivo con el Agent SDK (TypeScript), y la calidad de los informes mejoró. Pero compliance exige poder reconstruir, para cada informe, qué subagente produjo cada mensaje y cuándo arrancó y terminó cada uno. Un gerente propone volver a instrucciones paso a paso \"así sabemos qué hizo cada uno\". ¿Qué proponés?",
+      "options": [
+        "Volver a pasos fijos solo en los subagentes que tocan normativa, y dejar por objetivo el resto, así se audita al menos la parte crítica.",
+        "Mantener la delegación por objetivo y rastrear la ejecución: `parent_tool_use_id` y `agent_id` en los mensajes, más hooks `SubagentStart` y `SubagentStop`.",
+        "Pedirle a cada subagente que cierre su informe con una bitácora en prosa de los pasos que siguió, y archivar esa bitácora junto al informe.",
+        "Desactivar los subagentes y que el coordinador haga todo él mismo, así queda una sola traza lineal y simple de auditar de punta a punta."
+      ],
+      "correct": 1,
+      "why_correct": "La visibilidad no exige quitarle autonomía al subagente. El SDK marca los mensajes que salen de un subagente con `parent_tool_use_id` (y en TypeScript con `agent_id`), y los hooks `SubagentStart` y `SubagentStop` avisan cuándo arranca y termina cada uno. Así el coordinador (y compliance) tiene trazabilidad sin perder la mejora de calidad.",
+      "why_wrong": {
+        "0": "Rigidizar una parte resigna la adaptación que mejoró los informes, y tampoco da una traza real de qué mensaje produjo cada subagente.",
+        "2": "Una bitácora escrita por el propio modelo es un relato, no una traza: puede omitir o reconstruir mal pasos, y no da tiempos confiables.",
+        "3": "Sin subagentes perdés paralelismo y aislamiento de contexto, que es de donde viene la mejora; es una solución desproporcionada."
+      },
+      "rule": "Para tener control con delegación por objetivo, instrumentá la ejecución en vez de rigidizar las instrucciones.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "source_quote": "Messages from within a subagent's context include a `parent_tool_use_id` field.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o04-s03",
+      "objective": 4,
+      "pool": "sim",
+      "scenario": "Un think tank usa un sistema multiagente para producir informes de políticas públicas. En la revisión manual detectan un sesgo: los subagentes eligen sistemáticamente sitios optimizados para SEO por encima de papers académicos y documentos oficiales menos posicionados. Un analista propone darle a cada subagente una secuencia fija: \"1) buscá en estos 12 dominios, 2) si no hay nada, buscá en Google Scholar, 3)...\". El problema es que los temas cambian cada semana y las mejores fuentes también. ¿Qué cambio recomienda Anthropic?",
+      "options": [
+        "Agregar al prompt heurísticas de calidad de fuentes (preferir fuentes primarias y autorizadas por sobre las secundarias) y mantener la delegación por objetivo.",
+        "Adoptar la lista fija de dominios y pasos, porque es la única forma de asegurar que todos los subagentes usen siempre las mismas fuentes.",
+        "Aumentar la cantidad de subagentes por consulta, así la mayor cobertura compensa que algunos subagentes elijan fuentes de baja calidad.",
+        "Sumar un juez LLM al final que puntúe la calidad de las fuentes y descarte los informes con nota baja, sin tocar los prompts de los subagentes."
+      ],
+      "correct": 0,
+      "why_correct": "Es el mismo problema que describe Anthropic en su sistema de research: los testers humanos notaron que los agentes elegían granjas de contenido SEO, y lo resolvieron sumando heurísticas de calidad de fuentes a los prompts. La estrategia es dar buenas heurísticas en vez de reglas rígidas, así el subagente sigue adaptándose a temas que cambian.",
+      "why_wrong": {
+        "1": "Una lista fija de dominios no escala a temas que cambian cada semana y deja al subagente sin margen cuando la mejor fuente está afuera de la lista.",
+        "2": "Más subagentes con el mismo sesgo multiplican el costo y las fuentes malas; no corrigen el criterio de selección.",
+        "3": "Evaluar al final sirve para medir, pero no corrige la causa: los subagentes siguen eligiendo mal y gastás tokens en informes que después descartás."
+      },
+      "rule": "Para que un subagente elija mejor, dale heurísticas (qué es una buena fuente), no una receta fija.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "Adding source quality heuristics to our prompts helped resolve this issue.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o04-s04",
+      "objective": 4,
+      "pool": "sim",
+      "scenario": "Una agencia migró su app del Agent SDK a Claude Opus 5 y, de paso, reemplazó el preset `claude_code` por un `systemPrompt` propio con la voz de la marca. Desde entonces el agente lanza subagentes hasta para buscar un dato en un solo archivo, y el costo por consulta se triplicó. Marketing no acepta volver al preset. ¿Qué hacés para recuperar el control sin perder la delegación cuando sí hace falta?",
+      "options": [
+        "Volver al preset `claude_code`, porque con Opus 5 ese preset saca el Agent tool de la sesión y así el agente deja de delegar por completo.",
+        "Sacar `Agent` de `allowedTools`, porque esa lista define qué tools existen en la sesión y así el agente deja de lanzar subagentes.",
+        "Sumar a tu prompt la instrucción de delegación de la guía de Opus 5 y, además, fijar límites de profundidad, concurrencia y gasto.",
+        "Agregar al prompt \"CRITICAL: NUNCA uses subagentes\", porque Opus 5 responde mejor a instrucciones enfáticas escritas en mayúsculas."
+      ],
+      "correct": 2,
+      "why_correct": "Opus 5 delega más fácilmente que modelos anteriores. Con el preset `claude_code`, Claude Code agrega una línea que le pide no usar el Agent tool salvo que se lo pidan; con un prompt propio esa línea no está, así que tenés que sumar vos la instrucción de la guía. Como esa instrucción solo orienta, la doc pide además fijar los límites (profundidad, concurrencia y `maxBudgetUsd`), que Claude Code sí hace cumplir.",
+      "why_wrong": {
+        "0": "El preset agrega una instrucción, pero el Agent tool sigue disponible. Y Marketing no acepta volver al preset.",
+        "1": "`allowedTools` aprueba tools automáticamente; no las saca de la sesión. Una tool que no está en la lista sigue disponible y pasa por el modo de permisos.",
+        "3": "Prohibir todo mata también la delegación útil, y la doc advierte que los modelos recientes responden de más al lenguaje agresivo: conviene redacción normal."
+      },
+      "rule": "Prompt para orientar cuándo delegar, límites para garantizar cuánto se puede delegar.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "source_quote": "Either instruction only steers Claude, so set the limits as well.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o04-s05",
+      "objective": 4,
+      "pool": "sim",
+      "scenario": "En una migración de Angular a React, el coordinador lanza en paralelo dos subagentes con encargos por objetivo: \"mejorá la cobertura de tests del módulo de pagos\" y \"modernizá los componentes de checkout\". Los dos terminan editando los mismos componentes compartidos de `src/shared/`, uno pisa los cambios del otro, y nadie actualiza los tests de `src/checkout/`. El equipo quiere seguir delegando por objetivo. ¿Qué le falta a la delegación?",
+      "options": [
+        "Pasar a instrucciones paso a paso, con la lista exacta de archivos y cambios para cada subagente, armada por el coordinador antes de delegar.",
+        "Correr los subagentes uno después del otro, así el segundo ve los cambios del primero y no hay conflictos en los archivos de `src/shared/`.",
+        "Darle a cada subagente `isolation: worktree`, así trabajan en copias separadas del repo y no se pisan los archivos mientras corren.",
+        "Que cada encargo tenga, además del objetivo, límites claros (qué carpetas toca cada uno y quién es dueño de `src/shared/`) y un formato de salida."
+      ],
+      "correct": 3,
+      "why_correct": "Anthropic aprendió que cada subagente necesita un objetivo, un formato de salida, guía sobre tools y fuentes, y límites claros de la tarea. Sin descripciones detalladas, los agentes duplican trabajo, dejan huecos o se pisan. Definir quién es dueño de qué carpeta resuelve el choque en `src/shared/` y el hueco en `src/checkout/` sin pasar a pasos rígidos.",
+      "why_wrong": {
+        "0": "Una lista exacta de archivos y cambios convierte la delegación en procedural: el coordinador tendría que resolver de antemano lo que los subagentes deberían descubrir.",
+        "1": "En serie se evita el choque de escritura, pero se pierde el paralelismo y sigue sin estar claro quién cubre `src/checkout/`.",
+        "2": "Los worktrees evitan que se pisen mientras corren, pero los dos cambios sobre `src/shared/` igual chocan al integrarlos, y el hueco de tests sigue ahí."
+      },
+      "rule": "Delegar por objetivo no es delegar vago: objetivo + formato de salida + tools/fuentes + límites claros.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "Each subagent needs an objective, an output format, guidance on the tools and sources to use, and clear task boundaries.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o04-s06",
+      "objective": 4,
+      "pool": "sim",
+      "scenario": "Un fondo de inversión usa subagentes de búsqueda web para mapear competidores de startups. Las trazas muestran consultas larguísimas y muy específicas (\"startups argentinas de pagos B2B con licencia PSP fundadas entre 2019 y 2021 con más de 50 empleados\") que devuelven pocos resultados, y los subagentes concluyen \"no hay competidores\". Un dev propone darles las cinco consultas exactas que tienen que correr. ¿Qué cambio es mejor?",
+      "options": [
+        "Darles las cinco consultas exactas y prohibir otras, así se controla la calidad de la búsqueda y los resultados se pueden comparar entre corridas.",
+        "Indicarles en el prompt que arranquen con consultas cortas y amplias, evalúen qué hay disponible y recién después vayan acotando.",
+        "Subirles el `maxTurns`, para que tengan más intentos con consultas específicas antes de concluir que el mercado no tiene competidores.",
+        "Cambiar la tool de búsqueda para que repita la misma consulta, en otros buscadores, hasta juntar al menos 20 resultados por consulta."
+      ],
+      "correct": 1,
+      "why_correct": "Anthropic vio el mismo patrón: los agentes tienden a consultas largas y específicas que devuelven poco. Lo corrigieron con una heurística en el prompt: empezar con consultas cortas y amplias, evaluar qué hay y después acotar. Es una regla de criterio, no una lista fija, así que el subagente sigue adaptándose a cada startup.",
+      "why_wrong": {
+        "0": "Cinco consultas fijas no se adaptan a cada startup ni a lo que aparece en los resultados: es delegación procedural para un problema abierto.",
+        "2": "Más turnos con la misma estrategia producen más consultas demasiado específicas; el problema es el criterio de búsqueda, no la cantidad de intentos.",
+        "3": "Repetir la misma consulta demasiado específica en más lugares no cambia el planteo: forzar volumen de resultados no arregla el criterio de búsqueda."
+      },
+      "rule": "En búsqueda: empezar amplio y después acotar; enseñale el criterio al subagente, no la lista de consultas.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "We counteracted this tendency by prompting agents to start with short, broad queries, evaluate what’s available, then progressively narrow focus.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

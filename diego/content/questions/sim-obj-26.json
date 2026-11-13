@@ -1,0 +1,101 @@
+{
+  "objective": 26,
+  "questions": [
+    {
+      "id": "o26-s01",
+      "objective": 26,
+      "pool": "sim",
+      "scenario": "Un estudio de escribanos extrae 22 campos de escrituras con una tool `registrar_escritura` con `strict: true`. Para no inventar datos, a los 22 campos los definieron como `\"type\": [\"string\", \"null\"]` y todos en `required`. Legales exige que en la base quede claro qué dato no figura en la escritura (null) y que se conserve la garantía de schema. La API rechaza la request por la complejidad del schema. ¿Qué cambio respeta las dos exigencias?",
+      "options": [
+        "Cambiar las type arrays por `anyOf: [{\"type\": \"string\"}, {\"type\": \"null\"}]` en cada campo, que la API compila de forma más simple.",
+        "Dejar los 22 campos como strings requeridos y pedirle al modelo que escriba una cadena vacía cuando un dato no figure en la escritura.",
+        "Repartir la extracción en dos requests (por ejemplo, partes y datos del inmueble), cada una con 16 campos nullable como máximo.",
+        "Sacar `strict: true` de la tool para evitar el límite, y validar los 22 campos nullable en el código después de cada llamada."
+      ],
+      "correct": 2,
+      "why_correct": "Hay un límite explícito de 16 parámetros con union types (`anyOf` o type arrays como `[\"string\", \"null\"]`) sumando todos los schemas estrictos de una request. Con 22 te pasás. Para mantener null donde falta el dato y la garantía de schema, la doc sugiere, entre otras estrategias, dividir en varias requests: cada una queda bajo el límite.",
+      "why_wrong": {
+        "0": "`anyOf` cuenta igual que las type arrays para el límite de union types; no cambia nada.",
+        "1": "Una cadena vacía es un valor centinela: mezcla \"no figura\" con \"vacío\" y viola el requisito de dejar claro qué dato falta.",
+        "3": "Sin `strict` perdés la garantía de schema, que es una de las dos exigencias."
+      },
+      "rule": "Nullable cuesta: hasta 16 union types en total por request; si te pasás, dividí la extracción.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "source_quote": "Total parameters that use `anyOf` or type arrays (for example, `\"type\": [\"string\", \"null\"]`) across all strict schemas.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o26-s02",
+      "objective": 26,
+      "pool": "sim",
+      "scenario": "Un hospital extrae datos de órdenes médicas con una tool `registrar_orden` con `strict: true`. Para evitar que el modelo invente pacientes, un dev armó cada mañana el schema con `\"paciente\": {\"enum\": [...]}` con los nombres y DNI de los 300 pacientes de la agenda del día. El extractor dejó de inventar nombres, pero el área de compliance (HIPAA) frena el pase a producción. ¿Qué diseño corresponde?",
+      "options": [
+        "Mantener el enum de pacientes pero cifrar los nombres con un hash, así el schema no contiene datos legibles y el enum sigue validando.",
+        "Mover la lista de pacientes a una regex `pattern` en el campo `paciente`, porque los patterns no se cachean como el resto del schema.",
+        "Dejar `paciente` como string, mandar la agenda en el contenido del mensaje y validar en el código que el paciente extraído exista en la agenda.",
+        "Mantener el enum y sacar `strict: true`, porque sin strict el schema no pasa por la compilación de gramáticas y no se cachea."
+      ],
+      "correct": 2,
+      "why_correct": "Strict tool use es apto para HIPAA, pero la PHI no puede ir en la definición del schema: la API cachea los schemas compilados aparte del contenido de los mensajes, sin las mismas protecciones. La doc prohíbe PHI en nombres de propiedades, valores de `enum` o `const` y regex de `pattern`. La PHI va en el contenido del mensaje, y el control de que el paciente exista lo hace tu código.",
+      "why_wrong": {
+        "0": "Un hash de nombre y DNI sigue siendo un identificador del paciente dentro del schema; y además le quita al modelo el texto que tiene que reconocer.",
+        "1": "La doc nombra a los `pattern` explícitamente entre los lugares donde no puede ir PHI.",
+        "3": "Sin strict perdés la garantía del schema, y la regla de no poner PHI en el schema no cambia: la PHI va en el contenido del mensaje."
+      },
+      "rule": "PHI nunca en el schema (enum, const, pattern, nombres de propiedades): va en el mensaje y se valida en código.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/strict-tool-use",
+      "source_quote": "Do not include PHI in `input_schema` property names, `enum` values, `const` values, or `pattern` regular expressions.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o26-s03",
+      "objective": 26,
+      "pool": "sim",
+      "scenario": "Un distribuidor extrae órdenes de compra con structured outputs. El schema ya está bien: `fecha_entrega` es `[\"string\", \"null\"]` y la instrucción dice \"si el dato no figura, devolvé null\". Igual, en las órdenes sin fecha, el 30% vuelve con una fecha inventada. El prompt incluye tres ejemplos de entrada y salida, y en los tres ejemplos todos los campos tienen valor. ¿Qué cambio ataca la causa?",
+      "options": [
+        "Sacar `null` del tipo de `fecha_entrega` y marcarlo como opcional, así el modelo directamente omite el campo cuando no encuentra la fecha.",
+        "Agregar ejemplos diversos que cubran los casos borde, incluidas órdenes sin fecha donde la salida muestra `fecha_entrega: null`.",
+        "Agregar `\"format\": \"date\"` a `fecha_entrega`, así el modelo no puede devolver fechas que no tengan el formato correcto.",
+        "Subir la cantidad de ejemplos a diez, todos con los campos completos, para que el modelo entienda mejor la forma exacta de la salida."
+      ],
+      "correct": 1,
+      "why_correct": "Los ejemplos son de las formas más fuertes de guiar la salida, y el modelo imita patrones. Si todos los ejemplos tienen fecha, el modelo aprende que siempre hay fecha. La doc pide ejemplos relevantes y diversos que cubran casos borde para que el modelo no tome patrones no buscados: sumar ejemplos con `null` le muestra cómo se ve un dato faltante.",
+      "why_wrong": {
+        "0": "El schema no es el problema: ya permite null. Volverlo opcional no cambia lo que los ejemplos le enseñan al modelo.",
+        "2": "El formato garantiza la forma de la fecha, no que sea real: una fecha inventada con formato correcto pasa igual.",
+        "3": "Más ejemplos con el mismo sesgo refuerzan el patrón que causa el problema."
+      },
+      "rule": "Few-shot para extracción: incluí ejemplos con datos faltantes y su `null`, no solo casos completos.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Cover edge cases and vary enough that Claude doesn’t pick up unintended patterns.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o26-s04",
+      "objective": 26,
+      "pool": "sim",
+      "scenario": "Una aseguradora extrae datos de denuncias de siniestro con `output_config.format`. Para que auditoría entienda cada valor nulo o dudoso, el equipo agregó al schema un campo requerido `razonamiento_paso_a_paso` donde el modelo tiene que explicar todo lo que pensó antes de cada valor. Desde el cambio, algunas respuestas vuelven con status 200 pero con `stop_reason: \"refusal\"` y sin el JSON esperado. ¿Qué cambiás en el schema?",
+      "options": [
+        "Subir `max_tokens`, porque el razonamiento largo agota el presupuesto de salida antes de que el modelo termine de completar el JSON.",
+        "Mantener el campo y reintentar automáticamente hasta tres veces cada respuesta con `refusal`, porque es un error transitorio del modelo.",
+        "Mover `razonamiento_paso_a_paso` al final del schema, porque el orden de las propiedades hace que se pida razonamiento antes de los datos.",
+        "Reemplazarlo por un campo corto de explicación o evidencia (por ejemplo, la cita del texto que respalda el valor o el motivo del null)."
+      ],
+      "correct": 3,
+      "why_correct": "Un campo que le pide al modelo su pensamiento o razonamiento paso a paso puede provocar una negativa de tipo `reasoning_extraction`, y una negativa tiene prioridad sobre el schema. La doc indica pedir una explicación corta. Para auditoría, una cita del texto o el motivo del null es más útil que un razonamiento completo.",
+      "why_wrong": {
+        "0": "No es un corte por tokens: eso vendría con `stop_reason: \"max_tokens\"`, no con `refusal`.",
+        "1": "La negativa la provoca el pedido de razonamiento; reintentar con el mismo schema la repite y la pagás cada vez.",
+        "2": "Las propiedades requeridas salen en el orden del schema, pero el problema no es el orden sino lo que el campo pide."
+      },
+      "rule": "En un schema, pedí explicación o evidencia corta, no razonamiento paso a paso.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "source_quote": "A property that asks for the model’s thinking or step-by-step reasoning might lead to a `reasoning_extraction` refusal. Ask for a short explanation instead.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

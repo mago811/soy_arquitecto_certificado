@@ -1,0 +1,101 @@
+{
+  "objective": 25,
+  "questions": [
+    {
+      "id": "o25-s01",
+      "objective": 25,
+      "pool": "sim",
+      "scenario": "Una inmobiliaria tiene un formulario de carga de propiedades: el agente lee la descripción libre que escribe el vendedor y la UI va completando los campos (ambientes, superficie, expensas, amenities) a medida que llega la respuesta en streaming, con Claude Sonnet 5.5. Hoy el prompt dice \"respondé solo con JSON\" y el código parsea al final: el 1,5% de las respuestas no parsea y el formulario queda en blanco. Producto no acepta perder el llenado progresivo. ¿Qué implementás?",
+      "options": [
+        "Prefill del turno de asistente con `{` para obligar a que la respuesta arranque como JSON, manteniendo el streaming y el parseo al final.",
+        "`tool_choice: {\"type\": \"tool\"}` con una tool `cargar_propiedad`, y leer los `input_json_delta` del stream para ir completando la UI.",
+        "Apagar el streaming y reintentar cada respuesta que no parsee, mostrando un spinner hasta tener un JSON válido completo para la UI.",
+        "`output_config.format` con el schema del formulario y streaming activado: structured outputs se transmite como una respuesta común."
+      ],
+      "correct": 3,
+      "why_correct": "Structured outputs garantiza que la respuesta cumpla el schema mediante decodificación restringida, y es compatible con streaming: se transmite como una respuesta normal. Con eso mantenés el llenado progresivo y eliminás el JSON inválido. Las otras vías chocan con el modelo (Sonnet 5.5) o con el requisito de producto.",
+      "why_wrong": {
+        "0": "Desde los modelos 4.6, el prefill del último turno de asistente devuelve 400; Sonnet 5.5 no lo acepta.",
+        "1": "Sonnet 5.5 no acepta forzar tools: `tool_choice` de tipo `tool` o `any` devuelve 400.",
+        "2": "Resuelve el JSON inválido a costa de perder el llenado progresivo, que Producto no acepta. Y los reintentos suman costo y latencia."
+      },
+      "rule": "Structured outputs también funciona con streaming: no tenés que elegir entre UX progresiva y JSON garantizado.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "source_quote": "Stream structured outputs like normal responses",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o25-s02",
+      "objective": 25,
+      "pool": "sim",
+      "scenario": "Un banco procesa cada noche 180.000 resúmenes de tarjeta con Claude Sonnet 5.5 para extraer movimientos a un JSON que un loader en Java carga a la base. El loader se rompe con cualquier JSON inválido, nadie necesita los resultados antes de la mañana y Finanzas pidió recortar el costo de este proceso. Hoy usan la Messages API, un prompt que pide JSON y reintentos cuando el parseo falla. ¿Qué cambiás?",
+      "options": [
+        "Pasar a la Message Batches API con `output_config.format` y el schema del loader: JSON garantizado con un 50% de descuento sobre el costo.",
+        "Mantener la Messages API, agregar `output_config.format` y subir la concurrencia para terminar antes y bajar el costo por documento.",
+        "Pasar a la Message Batches API manteniendo el prompt que pide JSON, y mandar en un segundo batch solo los documentos que no parseen.",
+        "Pasar a la Message Batches API con una tool `guardar_movimientos` con `strict: true` y `tool_choice: {\"type\": \"any\"}` en cada request."
+      ],
+      "correct": 0,
+      "why_correct": "Son dos restricciones: el loader necesita JSON garantizado y Finanzas necesita bajar el costo sin apuro de latencia. Structured outputs (`output_config.format`) cubre lo primero y funciona con batch processing, que procesa a escala con un 50% de descuento. Como nadie necesita los resultados en tiempo real, el batch es la opción natural.",
+      "why_wrong": {
+        "1": "Más concurrencia no baja el precio por token; sin el descuento de batch, el costo sigue igual.",
+        "2": "El prompt sigue sin garantizar el schema, y el segundo batch de reintentos suma costo y una corrida más; con structured outputs no hacen falta reintentos por violaciones de schema.",
+        "3": "Sonnet 5.5 no acepta `tool_choice` de tipo `any` o `tool`: cada request del batch fallaría con 400."
+      },
+      "rule": "Sin apuro y con schema obligatorio: Batches API + structured outputs.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "source_quote": "Process structured outputs at scale with a 50 percent discount",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o25-s03",
+      "objective": 25,
+      "pool": "sim",
+      "scenario": "Un equipo de RR.HH. puntúa entrevistas con el SDK de Python: un modelo Pydantic `Evaluacion` con `puntaje: int = Field(ge=1, le=10)` y `client.messages.parse(..., output_format=Evaluacion)`. Antes probaron mandando a mano un schema con `minimum` y `maximum` en `output_config.format` y la API devolvió 400; con `parse()` funciona. En la revisión de diseño, QA pregunta: \"¿quién garantiza que el puntaje esté entre 1 y 10?\". ¿Qué le respondés?",
+      "options": [
+        "La API, porque con `parse()` el SDK manda el schema por una ruta beta que sí admite `minimum` y `maximum` en la decodificación restringida.",
+        "Nadie: el SDK descarta las restricciones que la API no soporta y la respuesta puede traer cualquier entero sin que el código se entere.",
+        "El SDK: saca la restricción del schema que manda, la agrega a la descripción del campo y valida la respuesta contra el modelo original.",
+        "El modelo, porque `parse()` agrega las restricciones al system prompt y Claude las respeta siempre por instrucción, sin validación posterior."
+      ],
+      "correct": 2,
+      "why_correct": "Los helpers del SDK transforman los schemas con restricciones que la API no soporta: quitan `minimum`/`maximum`, agregan la restricción a la descripción del campo (así Claude la ve como guía) y, en los helpers que validan respuestas, validan contra el schema original. La API garantiza el tipo `int`; el rango lo hace cumplir tu código vía el SDK, así que tenés que manejar el caso de un valor fuera de rango.",
+      "why_wrong": {
+        "0": "No hay ruta beta: la API no soporta restricciones numéricas en structured outputs. Por eso el schema manual dio 400.",
+        "1": "El SDK no descarta la restricción en silencio: la agrega a la descripción y la valida en la respuesta.",
+        "3": "La descripción orienta al modelo, pero no es una garantía; la garantía del rango viene de la validación que hace el SDK sobre la respuesta."
+      },
+      "rule": "Restricciones que la API no soporta: el SDK las mueve a la descripción y las valida en tu código.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "source_quote": "Claude receives a simplified schema, but a helper that validates responses still enforces every constraint in your code.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o25-s04",
+      "objective": 25,
+      "pool": "sim",
+      "scenario": "Un integrador mantiene un clasificador de reclamos que corre en Claude Haiku 4.5, donde el prefill todavía funciona: el último mensaje es `{\"role\": \"assistant\", \"content\": \"{\\\"categoria\\\": \\\"\"}`. Ahora el cliente exige JSON garantizado, y el equipo quiere agregar `output_config.format` con el schema \"y dejar el prefill por las dudas, como doble seguro\". ¿Qué le recomendás?",
+      "options": [
+        "Dejar los dos: el prefill fija el arranque de la respuesta y `output_config.format` valida el resto, así se cubren dos riesgos distintos.",
+        "Dejar solo el prefill y sumar un validador de JSON en el código, porque en Haiku 4.5 el prefill ya es la forma más confiable de obtener JSON.",
+        "Pasar el prefill al system prompt (\"empezá siempre con {\\\"categoria\\\":\") y mantener `output_config.format` para la garantía del schema.",
+        "Sacar el prefill y usar solo `output_config.format`: el prefill es incompatible con JSON outputs y el schema ya garantiza la estructura."
+      ],
+      "correct": 3,
+      "why_correct": "La doc de structured outputs lista el prefill de mensajes como incompatible con JSON outputs. Además no aporta nada: la decodificación restringida ya garantiza que la respuesta sea JSON válido que cumple el schema. Y si el día de mañana migran a un modelo 4.6 o posterior, el prefill directamente devuelve 400.",
+      "why_wrong": {
+        "0": "No es un doble seguro: el prefill es incompatible con JSON outputs, y la garantía completa ya la da el schema.",
+        "1": "El prefill orienta el formato pero no garantiza el schema completo; el cliente pidió JSON garantizado.",
+        "2": "Una instrucción así es redundante con el schema y le agrega al modelo una restricción de formato que el grammar ya maneja."
+      },
+      "rule": "Prefill y JSON outputs no se combinan: si usás `output_config.format`, sacá el prefill.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "source_quote": "Prefilling is incompatible with JSON outputs.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

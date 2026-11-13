@@ -1,0 +1,149 @@
+{
+  "objective": 2,
+  "questions": [
+    {
+      "id": "o02-s01",
+      "objective": 2,
+      "pool": "sim",
+      "scenario": "Una fintech tiene un asistente de onboarding hecho con el Agent SDK en Python. Corre en un único servidor y todas las conversaciones usan el mismo directorio de trabajo. Cuando un cliente vuelve, el backend llama a `query()` con `continue_conversation=True` para que el agente recuerde lo que ya analizó de sus documentos. Con tres clientes en simultáneo empezaron a aparecer respuestas que mencionan documentos de OTRO cliente. Restricción: no pueden separar servidores ni directorios por cliente. ¿Cuál es el fix?",
+      "options": [
+        "Pasar `fork_session=True` junto con `continue_conversation=True`, así cada cliente trabaja sobre una copia aislada de la sesión.",
+        "Agregar al system prompt la instrucción de ignorar cualquier documento que no sea del cliente que está escribiendo en ese momento.",
+        "Guardar el `session_id` de cada cliente (viene en el `ResultMessage`) y, cuando vuelve, llamar a `query()` con `resume` y ese ID.",
+        "Seguir con `continue_conversation=True` pero encolar las peticiones, para que nunca haya dos clientes conversando a la vez."
+      ],
+      "correct": 2,
+      "why_correct": "`continue_conversation` retoma la sesión más reciente del directorio, sin importar de qué cliente sea. Con varios clientes, la más reciente suele ser la de otro. Para volver a una sesión específica hay que guardar su ID y pasarlo a `resume`: la doc dice que es obligatorio cuando hay una sesión por usuario.",
+      "why_wrong": {
+        "0": "El fork copia la historia de la sesión que se retoma. Si `continue` elige la sesión de otro cliente, la copia también es la de otro cliente.",
+        "1": "Es guidance sobre un problema de estado: el historial cargado ya es el equivocado. Una instrucción no cambia qué sesión se retomó.",
+        "3": "Encolar no cambia la regla: `continue` sigue tomando la sesión más reciente del directorio, que es la del último cliente atendido."
+      },
+      "rule": "Varios usuarios = guardás un `session_id` por usuario y usás `resume`; `continue` es solo para \"la última\".",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
+      "source_quote": "Required when you have multiple sessions (for example, one per user in a multi-user app) or want to return to one that isn't the most recent.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o02-s02",
+      "objective": 2,
+      "pool": "sim",
+      "scenario": "El equipo de SRE de una telco lanzó ayer `claude -n incidente-4471 --mcp-config ./mcp-observabilidad.json` para investigar un corte. Claude consultó métricas y logs con las tools de ese servidor MCP y dejó tres hipótesis rankeadas. Hoy un ingeniero retoma con `claude --resume incidente-4471` y pide validar la hipótesis 1: Claude dice que no tiene tools de métricas y propone revisar logs a mano con `grep`. El historial de ayer está completo y sigue vigente. ¿Qué hace el ingeniero?",
+      "options": [
+        "Salir y retomar con `claude --resume incidente-4471 --mcp-config ./mcp-observabilidad.json`, porque ese flag no se restaura solo.",
+        "Retomar con `--fork-session`, porque la copia de la sesión arranca con la misma configuración con la que se lanzó la original.",
+        "Abrir una sesión nueva con el mismo `--mcp-config` y pegarle un resumen de las tres hipótesis, porque el historial ya quedó viejo.",
+        "Retomar con `--session-id` y el UUID de la sesión de ayer, para que la conversación cargue junto con los servidores que tenía."
+      ],
+      "correct": 0,
+      "why_correct": "Retomar restaura la conversación, pero no todos los flags del lanzamiento original. La doc nombra `--mcp-config` entre los que hay que volver a pasar al retomar. El historial sirve; solo falta la config, así que se retoma por nombre con el flag de nuevo.",
+      "why_wrong": {
+        "1": "El fork copia la conversación, no vuelve a aplicar los flags del lanzamiento original. Seguiría sin el servidor MCP.",
+        "2": "Funciona, pero tira contexto que sigue siendo válido. El problema no es el historial: es que falta un flag.",
+        "3": "`--session-id` solo fija el UUID de la conversación. No es el mecanismo para retomar ni restaura servidores MCP."
+      },
+      "rule": "Al retomar, volvé a pasar `--mcp-config`, `--settings`, `--plugin-dir` y `--add-dir`: no vienen con la sesión.",
+      "source_url": "https://code.claude.com/docs/en/sessions",
+      "source_quote": "If the session depended on `--mcp-config`, `--settings`, `--plugin-dir`, `--fallback-model`, or directories added with `--add-dir`, pass them again when you resume",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o02-s03",
+      "objective": 2,
+      "pool": "sim",
+      "scenario": "En una e-commerce, una dev le pidió a Claude Code que corriera un script de backfill que actualiza 2 millones de filas en lotes y anota cada lote terminado en `backfill.log`. A mitad del script se le colgó la notebook y el proceso murió. Al volver corre `claude --continue` y escribe \"seguí\": Claude responde como si el backfill hubiera terminado y propone borrar la columna vieja. Restricción: no se puede volver a correr el backfill completo (tarda 6 horas y bloquea tablas). ¿Qué hace?",
+      "options": [
+        "Correr `/compact` para que el resumen deje el backfill como pendiente y Claude siga desde el último paso que quedó en el historial.",
+        "Retomar con `--fork-session` para tener una copia limpia y pedirle ahí que vuelva a ejecutar el backfill entero desde el principio.",
+        "Escribirle \"el backfill terminó bien, continuá con el plan\" para que siga con el paso de borrar la columna vieja como tenía previsto.",
+        "Avisarle que el script se cortó por el crash, pedirle que lea `backfill.log`, verifique hasta qué lote llegó y siga desde ahí."
+      ],
+      "correct": 3,
+      "why_correct": "Una tool que seguía corriendo cuando murió el proceso no se vuelve a ejecutar al retomar, y el historial no sabe cómo terminó. Hay que inyectarle el dato que falta (\"se cortó\") y pedirle un chequeo dirigido del estado real (`backfill.log`). Así sigue desde el último lote sin repetir las 6 horas.",
+      "why_wrong": {
+        "0": "Compactar resume lo que ya está en el historial. Ahí no figura cómo terminó el script, así que el resumen no puede saberlo.",
+        "1": "Viola la restricción: repite 6 horas de trabajo y bloquea tablas. Además el fork copia la historia, no arregla nada del estado real.",
+        "2": "Le confirma un dato falso. Borraría la columna vieja con filas que todavía no se migraron."
+      },
+      "rule": "Crash en medio de una tool: al retomar, decile qué se cortó y que verifique el estado real antes de seguir.",
+      "source_url": "https://code.claude.com/docs/en/sessions",
+      "source_quote": "Interrupted tool calls: a tool that was still running when the previous process ended, for example in a crash, doesn't get rerun when you resume.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o02-s04",
+      "objective": 2,
+      "pool": "sim",
+      "scenario": "Una consultora corre de noche, con el Agent SDK en Python, un agente que audita la seguridad de 30 repos de clientes. Las 30 corridas van en paralelo desde el mismo directorio de trabajo. En los repos grandes, la corrida termina con `error_max_turns` después de 40 minutos de lecturas y análisis. Hoy el script reintenta esos repos desde cero con `max_turns` duplicado, y el costo de la noche se duplicó. ¿Qué cambiás para no repetir el trabajo ya hecho?",
+      "options": [
+        "Reintentar con `continue_conversation=True` y un `max_turns` más alto, así el SDK retoma la última sesión sin tener que guardar ningún ID.",
+        "Guardar el `session_id` del `ResultMessage` con el error y reintentar con `resume` y ese ID, subiendo `max_turns` en la nueva llamada.",
+        "Reintentar desde cero con `max_turns` duplicado, pero pidiéndole en el prompt que lea solo los archivos que considere más riesgosos.",
+        "Envolver `query()` en un retry automático con los mismos parámetros, para que vuelva a intentar apenas aparezca el error de límite."
+      ],
+      "correct": 1,
+      "why_correct": "El `ResultMessage` trae `session_id` aunque la corrida termine en error. Retomar esa sesión con un límite más alto conserva los 40 minutos de lecturas y análisis. La doc pone justamente \"recuperarse de un límite\" como caso de uso de `resume`.",
+      "why_wrong": {
+        "0": "`continue` toma la sesión más reciente del directorio. Con 30 corridas en paralelo en el mismo directorio, puede ser la de otro repo.",
+        "2": "Sigue empezando de cero: tira el trabajo hecho y encima recorta cobertura de la auditoría.",
+        "3": "Con los mismos parámetros vuelve a chocar con el mismo límite, y cada intento repite todo desde cero."
+      },
+      "rule": "`error_max_turns` → `resume` con el `session_id` del resultado y un límite más alto, no reintento desde cero.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
+      "source_quote": "Recover from a limit. The first run ended with `error_max_turns` or `error_max_budget_usd` (see Handle the result); resume with a higher limit.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o02-s05",
+      "objective": 2,
+      "pool": "sim",
+      "scenario": "Un estudio jurídico usa Claude Code para revisar un repo de plantillas de contratos. En una sesión larga, Claude listó 47 hallazgos con archivo y línea, y la sesión se compactó automáticamente dos veces. Al día siguiente retoman con `claude --resume revision-plantillas` y piden \"arreglá los hallazgos 30 a 47\": Claude no tiene el detalle y empieza a revisar de nuevo todo el repo. Quieren que la próxima revisión larga no tenga este problema. ¿Qué cambian?",
+      "options": [
+        "Antes de cerrar, correr `/compact` pidiendo que conserve los 47 hallazgos, para que el resumen los guarde enteros dentro de la sesión.",
+        "Pedirle que vuelque cada hallazgo a un archivo (por ejemplo `hallazgos.md`) a medida que avanza y, al retomar, indicarle que lo lea.",
+        "Retomar siempre con `--fork-session`, porque la copia se arma desde el transcript original completo, de antes de las compactaciones.",
+        "Retomar con `claude --continue` en vez de `--resume <name>`, porque así se recarga la conversación completa del directorio actual."
+      ],
+      "correct": 1,
+      "why_correct": "Al retomar una sesión compactada, Claude sigue desde el último resumen: los mensajes que ese resumen cubrió no se vuelven a cargar. Si el detalle importa, tiene que vivir fuera de la conversación, en un archivo de notas que el agente actualiza y que al retomar le indicás leer. Es inyección de contexto dirigida, sin re-explorar el repo.",
+      "why_wrong": {
+        "0": "Sigue dependiendo de un resumen dentro de la conversación, que una compactación posterior puede volver a resumir. No persiste nada afuera.",
+        "2": "El fork copia la conversación tal como está ahora, compactación incluida. No recupera los mensajes que ya se resumieron.",
+        "3": "`--continue` retoma la misma sesión (la más reciente) con el mismo comportamiento: arranca desde el último resumen."
+      },
+      "rule": "Lo que no puede perderse en una compactación va a un archivo; al retomar, le decís que lo lea.",
+      "source_url": "https://code.claude.com/docs/en/sessions",
+      "source_quote": "The messages that the last compaction summarized aren't loaded again.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o02-s06",
+      "objective": 2,
+      "pool": "sim",
+      "scenario": "En una empresa de logística, un job nocturno en una VM compartida corre `claude -p \"analizá los tests flaky de la última semana\" --output-format json` y guarda la salida en `informe.json`. A la mañana, un dev entra por SSH a esa misma VM, va al mismo directorio y corre `claude --continue` para seguir charlando sobre ese análisis: se abre una sesión vieja suya, no la del job. No quieren volver a pagar el análisis. ¿Qué corre el dev?",
+      "options": [
+        "`claude --continue --fork-session`, para que la copia tome la sesión más reciente del directorio, incluida la que dejó el job.",
+        "`claude --session-id <uuid>` con el UUID que figura en `informe.json`, para abrir esa conversación del job en modo interactivo.",
+        "`claude --resume <session-id>` con el `session_id` que figura en `informe.json`, que es como se retoma una sesión creada con `-p`.",
+        "`claude --resume` y buscar la sesión del job en el picker, filtrando por la rama actual con `Ctrl+B` para encontrarla más rápido."
+      ],
+      "correct": 2,
+      "why_correct": "Las sesiones creadas con `claude -p` quedan fuera del picker y de `claude --continue`, por eso se abrió otra. Se pueden retomar igual pasando su ID a `claude --resume`. La salida JSON de `-p` trae el ID de la sesión, así que el dev lo saca de `informe.json`.",
+      "why_wrong": {
+        "0": "`--continue` saltea las sesiones de `-p`; sumar `--fork-session` no cambia cuál sesión elige, solo crea una copia de esa.",
+        "1": "`--session-id` solo fija el UUID de una conversación. No es el mecanismo para retomar una sesión existente.",
+        "3": "El picker tampoco muestra las sesiones creadas con `-p`, por más filtros que uses."
+      },
+      "rule": "Sesión de `claude -p` o del Agent SDK → `claude --resume <session-id>`; no aparece en `--continue` ni en el picker.",
+      "source_url": "https://code.claude.com/docs/en/sessions",
+      "source_quote": "Claude Code leaves sessions created with `claude -p` or the Agent SDK out of the session picker and out of `claude --continue`. You can still resume one by passing its session ID to `claude --resume <session-id>`.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

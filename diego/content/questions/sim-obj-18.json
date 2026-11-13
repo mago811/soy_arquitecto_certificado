@@ -1,0 +1,125 @@
+{
+  "objective": 18,
+  "questions": [
+    {
+      "id": "o18-s01",
+      "objective": 18,
+      "pool": "sim",
+      "scenario": "Un estudio jurídico tiene un subagente que analiza contratos con la Messages API y Citations activado en cada documento PDF, para que el sintetizador pueda mostrar la página exacta de cada cláusula. Con el mismo prompt, más o menos la mitad de los contratos vuelve con citas por página y la otra mitad vuelve con texto sin ninguna cita. Revisando, ven que los contratos sin citas son todos de una sucursal que digitaliza con un escáner viejo. ¿Cuál es la causa más probable?",
+      "options": [
+        "Citations tiene que estar activado en todos los documentos o en ninguno: al mezclar sucursales, la API desactiva las citas de la mitad de los PDFs.",
+        "Esos PDFs son escaneos sin texto extraíble: como todavía no hay citas de imágenes, no son citables y hay que darles una capa de texto antes de mandarlos.",
+        "Los PDFs escaneados ocupan más tokens y Claude prioriza terminar la respuesta: hay que subir `max_tokens` para que le queden tokens para citar.",
+        "Para PDFs escaneados hay que usar documentos de contenido custom, porque solo ese tipo de documento admite citas a nivel de página."
+      ],
+      "correct": 1,
+      "why_correct": "En los PDFs, Citations extrae el texto y lo divide en oraciones citables. Las citas de imágenes todavía no están soportadas, así que un PDF que es un escaneo sin texto extraíble no es citable: Claude lo puede leer, pero no puede devolver citas sobre él. El patrón coincide con una sola sucursal y un escáner viejo.",
+      "why_wrong": {
+        "0": "La regla de todos o ninguno existe, pero se refiere a habilitar `citations` en todos los documentos de una request; acá están todos habilitados y el patrón depende del escáner.",
+        "2": "El largo no explica que justo los escaneos vuelvan sin citas; además, `cited_text` ni siquiera cuenta como tokens de salida.",
+        "3": "Los documentos custom citan por índice de bloque, no por página, y no resuelven que el PDF no tenga texto extraíble."
+      },
+      "rule": "Sin texto extraíble no hay citas: un PDF escaneado no es citable.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/citations",
+      "source_quote": "As image citations are not yet supported, PDFs that are scans of documents and do not contain extractable text are not citable.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o18-s02",
+      "objective": 18,
+      "pool": "sim",
+      "scenario": "Un call center procesa grabaciones transcriptas: un subagente resume cada llamada y el sintetizador arma un informe semanal donde cada hallazgo tiene que apuntar al turno exacto de habla (\"Agente, 12:03\" o \"Cliente, 12:04\"). Hoy mandan cada transcripción como documento de texto plano con Citations, y las citas cortan en medio de un turno o juntan pedazos de dos hablantes, así que el sintetizador no puede atribuir bien quién dijo qué. ¿Qué cambiás?",
+      "options": [
+        "Activar `output_config.format` con un schema que tenga `hablante` y `hora` por hallazgo, para que cada cita quede asociada a un turno concreto.",
+        "Pedirle al subagente en el prompt que cite siempre turnos completos y que nunca mezcle a dos hablantes dentro de una misma cita.",
+        "Mandar cada transcripción como PDF, porque en los PDFs las citas incluyen el número de página y eso da una referencia más estable.",
+        "Mandar cada transcripción como documento de contenido custom, con un bloque por turno de habla, para que cada cita apunte a índices de bloque."
+      ],
+      "correct": 3,
+      "why_correct": "El texto plano se divide automáticamente en oraciones, y esa es la granularidad mínima de las citas. Para controlar la granularidad (bullets, transcripciones), la doc recomienda documentos de contenido custom: los bloques que mandás se usan tal cual, sin dividirlos más, y las citas vuelven como índices de bloque. Un bloque por turno hace que cada cita apunte a un hablante y una hora.",
+      "why_wrong": {
+        "0": "Citations y `output_config.format` son incompatibles: la API devuelve un error 400 si combinás los dos.",
+        "1": "La división en oraciones la hace la API, no el modelo: pedirlo en el prompt no cambia dónde pueden empezar y terminar las citas.",
+        "2": "Un PDF también se divide en oraciones; la página es una referencia más gruesa, no una más precisa, y no separa a los hablantes."
+      },
+      "rule": "Para controlar la granularidad de las citas (turnos, bullets), usá documentos de contenido custom.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/citations",
+      "source_quote": "If you need more control over citation granularity (for example, for bullet points or transcripts), use custom content documents instead.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o18-s03",
+      "objective": 18,
+      "pool": "sim",
+      "scenario": "En una consultora, cada worker del Agent SDK devuelve su informe de mercado con `output_format` y un schema (cifras, conclusiones y fuentes). El coordinador no espera al resultado: recorre el stream, toma el primer bloque `tool_use` llamado `StructuredOutput` y usa su `input` como informe. En producción, uno de cada veinte informes llega sin el campo `fuentes` o con tipos incorrectos, aunque el schema los exige. ¿Cuál es el fix?",
+      "options": [
+        "Leer el dato validado del campo `structured_output` del mensaje de resultado, y no del bloque `tool_use`, y tratar como falla un resultado con `is_error` o sin ese campo.",
+        "Tomar el último bloque `StructuredOutput` del stream en vez del primero, porque siempre es el que pasó la validación contra el schema.",
+        "Agregar `fuentes` a `required` en todos los niveles del schema, porque el SDK solo valida los campos requeridos del primer nivel.",
+        "Definir una tool propia `report_output` con el mismo schema y pedirle al worker que la llame al final, en lugar de usar `output_format`."
+      ],
+      "correct": 0,
+      "why_correct": "Con `output_format`, el agente devuelve su respuesta llamando a una tool `StructuredOutput` que agrega Claude Code. Si el objeto no coincide con el schema, el `tool_result` vuelve con `is_error: true` y el agente lo intenta de nuevo, así que en el stream puede haber varios intentos. La doc pide leer el dato validado de `structured_output` en el mensaje de resultado y tratar como falla un resultado con `is_error` o sin `structured_output`.",
+      "why_wrong": {
+        "1": "El último intento tampoco está garantizado: si se agotan los reintentos, el resultado es un error y ningún bloque es válido. La fuente confiable es `structured_output` del resultado.",
+        "2": "El SDK valida contra el schema completo; el problema es leer un intento que todavía no pasó la validación.",
+        "3": "Una tool propia te saca la validación con reintentos que ya hace el SDK y te deja validando a mano: es más trabajo y menos garantía."
+      },
+      "rule": "Con structured outputs en el SDK, leé `structured_output` del resultado, nunca el `tool_use` de `StructuredOutput`.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/structured-outputs",
+      "source_quote": "Read the validated data from `structured_output` on the result message rather than from a `tool_use` block",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o18-s04",
+      "objective": 18,
+      "pool": "sim",
+      "scenario": "Un medio digital tiene subagentes del Agent SDK que verifican datos y devuelven, con `output_format`, una lista de afirmaciones con `texto`, `veredicto` (enum) y `fuente_url`, definida con `\"type\": \"string\", \"format\": \"uri\"`. El sintetizador arma con eso un recuadro de fuentes clickeables. Cada tanto llegan valores como \"informe interno de la redacción\" o \"ver nota anterior\" en `fuente_url`, el resultado igual dice `success` y los links salen rotos. ¿Qué hacés?",
+      "options": [
+        "Actualizar el SDK a una versión posterior a la v2.1.205, porque recién ahí el validador empieza a aplicar `format` en los schemas de salida.",
+        "Mover `fuente_url` al principio de la lista `required`, porque el validador del SDK revisa el formato solo en los campos requeridos.",
+        "Validar `fuente_url` en tu código antes de sintetizar, porque el SDK acepta `format` como anotación y no lo hace cumplir.",
+        "Agregar al prompt de los subagentes \"usá siempre URLs válidas que empiecen con https\", porque el schema ya garantiza el resto."
+      ],
+      "correct": 2,
+      "why_correct": "El SDK valida la salida con JSON Schema draft-07, pero la palabra clave `format` (por ejemplo `\"format\": \"email\"` o `uri`) se acepta solo como anotación: el validador del SDK no la hace cumplir. Un string cualquiera pasa la validación. El control de que sea una URL usable tiene que estar en tu código antes de que el dato llegue al sintetizador.",
+      "why_wrong": {
+        "0": "Desde la v2.1.205 los schemas con `format` dejaron de tratarse como inválidos, pero `format` sigue siendo una anotación que no se hace cumplir.",
+        "1": "El orden de `required` no cambia qué se valida, y `format` no se hace cumplir en ningún campo.",
+        "3": "Una instrucción en el prompt orienta pero no garantiza; y el schema no garantiza el formato, porque `format` no se aplica."
+      },
+      "rule": "En el Agent SDK, `format` es solo una anotación: lo que tenga que cumplirse, validalo en tu código.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/structured-outputs",
+      "source_quote": "is accepted as an annotation and isn't enforced by the SDK's validator.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o18-s05",
+      "objective": 18,
+      "pool": "sim",
+      "scenario": "Una consultora de energía tiene un sistema de research: cinco subagentes buscan en paralelo y devuelven hallazgos con sus documentos fuente, y un sintetizador escribe el informe final y, en la misma pasada, agrega las citas. En la revisión, el 15% de las afirmaciones tiene una cita que apunta a un documento que no la respalda: el sintetizador mezcla fuentes mientras redacta. El informe tiene que salir con cada afirmación bien atribuida. ¿Qué cambio de arquitectura recomienda Anthropic?",
+      "options": [
+        "Pedirle a cada subagente que escriba sus hallazgos ya redactados como párrafos finales con citas en prosa, y que el sintetizador solo los concatene.",
+        "Agregar al final una pasada aparte, un agente de citas, que procese los documentos y el informe para identificar dónde está la fuente de cada afirmación.",
+        "Darle al sintetizador un modelo con ventana más grande, así tiene todos los documentos completos en contexto mientras redacta y cita.",
+        "Agregar al prompt del sintetizador \"verificá dos veces cada cita antes de escribirla\" y bajar la temperatura para que mezcle menos fuentes."
+      ],
+      "correct": 1,
+      "why_correct": "En el sistema de research de Anthropic, cuando termina la investigación, todos los hallazgos pasan a un CitationAgent, que procesa los documentos y el informe para identificar las ubicaciones exactas de las citas. Separar la atribución de la redacción hace que cada afirmación quede respaldada por su fuente.",
+      "why_wrong": {
+        "0": "Concatenar párrafos de cinco subagentes da un informe sin síntesis, y las citas en prosa siguen sin poder verificarse contra los documentos.",
+        "2": "Más contexto no separa las dos tareas: el sintetizador sigue redactando y atribuyendo al mismo tiempo, con más material para mezclar.",
+        "3": "Pedirle que tenga cuidado es una instrucción vaga; no cambia que una sola pasada haga dos trabajos distintos."
+      },
+      "rule": "Atribuir fuentes es un trabajo aparte: una pasada final de citas sobre el informe y los documentos.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "passes all findings to a CitationAgent, which processes the documents and research report to identify specific locations for citations.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

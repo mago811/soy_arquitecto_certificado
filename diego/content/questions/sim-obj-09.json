@@ -1,0 +1,125 @@
+{
+  "objective": 9,
+  "questions": [
+    {
+      "id": "o09-s01",
+      "objective": 9,
+      "pool": "sim",
+      "scenario": "Una aseguradora corre en workers autoescalados (sin disco compartido) un pipeline del Agent SDK que reescribe plantillas de pólizas en varias etapas. Para retomar en otro host después de un corte, agregaron un `SessionStore` sobre Postgres. Para poder deshacer las ediciones de archivos de una etapa fallida, también dejaron `enable_file_checkpointing=True`. Desde ese cambio, ninguna corrida arranca: el SDK tira un error al iniciar. Necesitan las dos cosas: retomar en cualquier host y poder volver atrás los archivos de una etapa. ¿Qué hacés?",
+      "options": [
+        "Mantener las dos opciones y pasar además `CLAUDE_CONFIG_DIR` a un directorio temporal, para que los backups de checkpointing también se repliquen en el store.",
+        "Sacar el `SessionStore` y copiar a mano los `.jsonl` de `~/.claude/projects/` entre hosts, porque es la única forma compatible con checkpointing.",
+        "Quitar el file checkpointing en las corridas con store y versionar los cambios de archivos de cada etapa con git (un commit por etapa) para poder revertir.",
+        "Implementar `listSubkeys` en el adaptador, porque el store necesita descubrir los backups de checkpointing para poder restaurarlos en otro host."
+      ],
+      "correct": 2,
+      "why_correct": "La doc es explícita: dos opciones chocan con el espejo del store y el SDK tira un error al iniciar si combinás cualquiera de ellas con un store: `persistSession: false` y el file checkpointing, que escribe sus backups directo en el disco local y el SDK no replica. Para retomar en cualquier host te quedás con el store; para revertir archivos por etapa, git te da checkpoints restaurables que viajan con el repo.",
+      "why_wrong": {
+        "0": "No hay forma documentada de que los backups de checkpointing se repliquen: el SDK no los manda al store, y la combinación falla al iniciar igual.",
+        "1": "Mover los archivos de sesión es una alternativa para retomar, pero no es \"la única compatible\", y te saca la durabilidad del store sin darte reversión de archivos entre hosts.",
+        "3": "`listSubkeys` sirve para descubrir transcripts de subagentes al retomar; no tiene nada que ver con los backups de checkpointing, que el SDK nunca manda al store."
+      },
+      "rule": "`SessionStore` no se combina con file checkpointing ni con `persistSession: false`; para revertir archivos entre hosts, usá git.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/session-storage",
+      "source_quote": "Two options conflict with the mirror, and the SDK throws at startup if you combine either with a store:",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o09-s02",
+      "objective": 9,
+      "pool": "sim",
+      "scenario": "Un estudio de auditoría corre con el Agent SDK un coordinador que delega en subagentes custom el análisis de cada área de un cliente, y guarda los transcripts en un `SessionStore` propio sobre Redis que implementa solo `append` y `load`. Cuando un worker se cae, otro host retoma la sesión con `resume`: el coordinador vuelve con todo su historial, pero cuando intenta retomar a sus subagentes para que terminen el análisis, ninguno conserva su trabajo previo y arrancan de cero. ¿Qué falta?",
+      "options": [
+        "Implementar `listSubkeys` en el adaptador: si no está, al retomar desde el store solo se restaura el transcript principal y no los de subagentes.",
+        "Implementar `listSessionSummaries`, porque sin ese método el SDK no puede listar los subagentes que pertenecen a cada sesión principal.",
+        "Pasar `continue_conversation=True` en vez de `resume`, porque `continue` restaura la sesión más reciente junto con todos sus subagentes.",
+        "Implementar `delete` en el adaptador, porque sin él los transcripts de subagentes quedan huérfanos y el SDK los descarta al retomar."
+      ],
+      "correct": 0,
+      "why_correct": "El store direcciona cada transcript con una clave; los de subagentes van con un `subpath`. Al retomar, el SDK usa el método opcional `listSubkeys` para descubrir esos transcripts. Si no está implementado, solo se restaura el transcript principal, que es justo lo que pasa: el coordinador vuelve con su historial y sus subagentes no.",
+      "why_wrong": {
+        "1": "`listSessionSummaries` sirve para leer en una sola llamada la metadata de todas las sesiones al listarlas; no participa en restaurar transcripts de subagentes.",
+        "2": "`continue` solo cambia cómo se elige la sesión (la más nueva del store); sin `listSubkeys`, igual se restaura solo el transcript principal.",
+        "3": "`delete` lo usa `deleteSession()`; si falta, borrar no hace nada. No afecta qué se restaura al retomar."
+      },
+      "rule": "Con `SessionStore`, retomar subagentes requiere implementar `listSubkeys`.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/session-storage",
+      "source_quote": "During resume, to discover subagent transcripts. If undefined, only the main transcript is restored.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o09-s03",
+      "objective": 9,
+      "pool": "sim",
+      "scenario": "En Claude Code, un dev le pidió al agente principal mapear las dependencias de un monorepo de 4.000 paquetes con el subagente custom `dep-mapper`, que tiene `maxTurns: 40`. A los 40 turnos el subagente para y devuelve su salida marcada como parcial, con dos tercios del mapa hecho. El agente principal lanza otra llamada al Agent tool con `dep-mapper` y el prompt \"terminá el mapa\", y el nuevo subagente vuelve a recorrer los paquetes desde el principio. ¿Qué hubiera evitado repetir el trabajo?",
+      "options": [
+        "Usar el built-in `Explore` en vez de `dep-mapper`, porque está pensado para exploraciones largas y continúa solo donde quedó la corrida anterior.",
+        "Sacar `maxTurns` de la definición, porque un subagente sin límite de turnos nunca termina con salida parcial y no hace falta retomarlo.",
+        "Pegar en el prompt de la nueva llamada la lista completa de los 4.000 paquetes, marcando cuáles ya estaban mapeados en la salida parcial.",
+        "Retomar el mismo `dep-mapper` con su agent ID: un subagente retomado conserva todo su historial y sigue desde donde lo cortó el límite."
+      ],
+      "correct": 3,
+      "why_correct": "Cuando un subagente para por `maxTurns`, Claude Code marca la salida como parcial justamente para que Claude sepa que el trabajo no terminó y pueda retomarlo. Un subagente retomado conserva todo su historial (tool calls, resultados y razonamiento), así que sigue desde ahí. Una llamada nueva crea otra instancia que arranca de cero.",
+      "why_wrong": {
+        "0": "`Explore` y `Plan` son de una sola vuelta: no devuelven agent ID y no se pueden retomar. Usar `Explore` empeora el problema.",
+        "1": "Sin límite de turnos perdés el control de costo y tiempo, y si algo corta la corrida igual tenés que poder retomarla; el límite no es el problema.",
+        "2": "Un resumen pegado ayuda algo, pero pierde el razonamiento y el estado intermedio, y le hace repetir lecturas que el subagente ya tenía en su historial."
+      },
+      "rule": "Salida parcial por `maxTurns` → retomá ese mismo subagente; no lances uno nuevo.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "Resumed subagents retain their full conversation history, including all previous tool calls, results, and reasoning.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o09-s04",
+      "objective": 9,
+      "pool": "sim",
+      "scenario": "Un banco hace auditorías trimestrales de accesos con Claude Code: en la primera semana, varios subagentes analizan cada sistema; la consolidación se hace recién a los 45 días, retomando esos subagentes para que completen sus hallazgos. En el último trimestre, la consolidación falló: los subagentes ya no estaban y sus hallazgos se perdieron. Seguridad de la información prohíbe conservar transcripts de conversaciones más de 30 días. ¿Qué diseño corresponde?",
+      "options": [
+        "Subir `cleanupPeriodDays` a 90 en la configuración, así los transcripts de los subagentes siguen disponibles al momento de consolidar.",
+        "Que cada subagente exporte sus hallazgos estructurados a un almacén propio del equipo, y que la consolidación lea de ahí en una sesión nueva.",
+        "Retomar los subagentes por nombre en vez de por agent ID, porque los nombres sobreviven a la limpieza de transcripts viejos.",
+        "Hacer `/compact` en la conversación principal antes de cerrarla, porque la compactación conserva los transcripts de los subagentes."
+      ],
+      "correct": 1,
+      "why_correct": "Claude Code borra los transcripts de subagentes después del período `cleanupPeriodDays`, 30 días por defecto. Como la política prohíbe guardar transcripts más tiempo, no podés depender de retomar subagentes a los 45 días. El estado que importa (los hallazgos) tiene que vivir afuera de la conversación, en un formato estructurado que una sesión nueva pueda leer.",
+      "why_wrong": {
+        "0": "Técnicamente extendería la retención, pero viola la política de no conservar transcripts más de 30 días.",
+        "2": "Retomar por nombre no recupera un transcript que ya se borró: sin el archivo no hay nada para retomar, sea por nombre o por ID.",
+        "3": "La compactación de la conversación principal no afecta a los transcripts de subagentes, que viven en archivos separados, y no evita que se borren por antigüedad."
+      },
+      "rule": "Si el trabajo tiene que sobrevivir más que los transcripts, persistí los hallazgos como estado propio, fuera de la conversación.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "Claude Code deletes subagent transcripts after the `cleanupPeriodDays` retention period, 30 days by default",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o09-s05",
+      "objective": 9,
+      "pool": "sim",
+      "scenario": "Una fintech usa un agente de código propio sobre la Messages API para migrar 300 endpoints de una API legacy. La tarea ocupa varias ventanas de contexto. Hoy, al llenarse la ventana, compactan, y en cada resumen se pierden detalles: qué endpoints ya tienen tests verdes, qué decisiones de diseño se tomaron y qué cambios quedaron a medias. El equipo quiere retomar sin rehacer trabajo ni perder lo encontrado. ¿Qué estrategia recomienda la doc?",
+      "options": [
+        "Pedir resúmenes de compactación más largos, con la instrucción de copiar textual todas las decisiones y el estado de cada uno de los 300 endpoints.",
+        "Mover toda la migración a un solo modelo con ventana de 1M de tokens, así la tarea entra en una única ventana y no hace falta retomar.",
+        "Llevar el estado en el repo (tests en un `tests.json`, notas de progreso y commits de git) y arrancar cada ventana nueva leyendo esos archivos y el git log.",
+        "Guardar el `session_id` al final de cada ventana y retomarlo con `resume`, porque la sesión retomada recupera también los detalles que la compactación perdió."
+      ],
+      "correct": 2,
+      "why_correct": "Para tareas que ocupan varias ventanas, la doc recomienda considerar empezar con una ventana nueva en lugar de compactar, porque los modelos recientes descubren muy bien el estado desde el filesystem. El estado estructurado (tests en JSON), las notas de progreso y git (un log de lo hecho con checkpoints restaurables) permiten retomar sin repetir. La primera instrucción de cada ventana es leer `progress.txt`, `tests.json` y el git log.",
+      "why_wrong": {
+        "0": "Un resumen más largo sigue siendo un resumen generado: sigue pudiendo omitir o deformar detalles, y crece con cada ventana.",
+        "1": "Una ventana más grande posterga el problema, no lo resuelve: 300 endpoints igual pueden pasarse, y si el proceso se corta no hay estado durable.",
+        "3": "`resume` y `session_id` son conceptos del Agent SDK, no de un agente propio sobre la Messages API, que es stateless. Y retomar una conversación no recupera lo que la compactación ya descartó."
+      },
+      "rule": "Tareas de varias ventanas: estado en archivos (JSON + notas + git) y ventana nueva que arranca leyéndolos.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Claude’s latest models perform especially well in using git to track state across multiple sessions.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

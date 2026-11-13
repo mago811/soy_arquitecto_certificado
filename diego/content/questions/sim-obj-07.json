@@ -1,0 +1,149 @@
+{
+  "objective": 7,
+  "questions": [
+    {
+      "id": "o07-s01",
+      "objective": 7,
+      "pool": "sim",
+      "scenario": "Una software factory armó un sistema que implementa tickets en un monorepo. Para cada ticket, el código lanza siempre los mismos cinco workers en paralelo: frontend, backend, base de datos, tests y docs. En tickets que solo tocan una migración de base, los workers de frontend y docs inventan cambios innecesarios; en tickets que requieren tocar la config de infraestructura, nadie lo hace. El volumen y la variedad de tickets van a crecer. ¿Qué estructura corresponde?",
+      "options": [
+        "Agregar un sexto worker fijo de infraestructura y pedirle a cada worker que no toque nada si su área no aplica al ticket.",
+        "Pasar a una cadena fija: los cinco workers en secuencia, cada uno recibiendo los cambios del anterior para no pisarse.",
+        "Reemplazar los workers por un único prompt grande que implemente el ticket completo de una vez, con todo el monorepo.",
+        "Un orquestador que lea cada ticket, decida qué subtareas hacen falta y cuántas, las delegue a workers y sintetice el resultado."
+      ],
+      "correct": 3,
+      "why_correct": "Las subtareas dependen de cada ticket y no se pueden predecir. Ese es el caso del patrón orquestador-workers: a diferencia de la paralelización fija, las subtareas no están predefinidas, las decide el orquestador según el input. Así no se lanzan workers que sobran ni faltan los que hacen falta.",
+      "why_wrong": {
+        "0": "Sigue siendo una lista predefinida. El próximo tipo de cambio que nadie previó vuelve a quedar sin cubrir.",
+        "1": "Cambia el orden pero no el problema: las cinco subtareas siguen fijas, sobren o falten para el ticket.",
+        "2": "Pierde la delegación y el foco por área. En tickets grandes, un solo prompt con todo el monorepo rinde peor."
+      },
+      "rule": "Subtareas que dependen del input → orquestador que las decide en cada caso, no una lista fija de workers.",
+      "source_url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "source_quote": "the key difference from parallelization is its flexibility—subtasks aren't pre-defined, but determined by the orchestrator based on the specific input.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o07-s02",
+      "objective": 7,
+      "pool": "sim",
+      "scenario": "Un equipo usa un agente de larga duración para portar una librería de cálculo actuarial de Java a Python. El trabajo ocupa muchas ventanas de contexto. Cada vez que arranca una ventana nueva, el agente vuelve a planificar desde cero: arma una lista de subtareas distinta a la anterior, rehace módulos ya portados y deja otros sin tocar. No hay ningún archivo de estado en el repo. ¿Qué cambiás?",
+      "options": [
+        "Usar la primera ventana para armar el marco (tests en `tests.json`, setup, lista de pendientes) y que las siguientes iteren sobre esa lista.",
+        "Escribir en el system prompt la lista completa y fija de los 60 módulos a portar, en orden, para que cada ventana la siga sin replanificar.",
+        "Desactivar la compactación y darle la ventana de contexto más grande disponible, para que el plan original nunca salga de su contexto.",
+        "Al arrancar cada ventana, pedirle que vuelva a analizar todo el código Java y arme un plan nuevo, más detallado que el anterior."
+      ],
+      "correct": 0,
+      "why_correct": "El plan vivía solo en la conversación, así que cada ventana nueva lo reinventaba. La práctica recomendada es usar la primera ventana para armar el marco (tests, scripts, lista de pendientes) y que las siguientes iteren sobre esa lista. El plan queda en archivos, se actualiza con lo que se descubre y no se rehace desde cero.",
+      "why_wrong": {
+        "1": "Una lista fija no se adapta a dependencias que aparecen en el camino, y tampoco registra qué módulos ya están portados.",
+        "2": "Posterga el problema: un trabajo de muchas ventanas termina llenando cualquier contexto. El estado sigue sin estar fuera de la conversación.",
+        "3": "Es exactamente lo que pasa hoy: replanificar desde cero en cada ventana, rehacer trabajo y dejar huecos."
+      },
+      "rule": "Trabajo de muchas ventanas: primera ventana = marco + lista de pendientes en archivos; las demás iteran sobre esa lista.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Use the first context window to set up a framework (write tests, create setup scripts), then use future context windows to iterate on a todo-list.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o07-s03",
+      "objective": 7,
+      "pool": "sim",
+      "scenario": "Una agencia de inteligencia competitiva tiene un coordinador que le da a cada subagente una lista cerrada de cinco búsquedas para ejecutar al pie de la letra. En un caso, la primera búsqueda revela que la empresa investigada se fusionó y opera con otra marca desde marzo. El subagente igual ejecuta las otras cuatro búsquedas con el nombre viejo, que devuelven casi nada, y reporta \"poca actividad reciente\". ¿Qué cambiás?",
+      "options": [
+        "Ampliar la lista cerrada a diez búsquedas por subagente, con variantes del nombre, para cubrir más casos posibles desde el inicio.",
+        "Agregar un subagente verificador que, al final, revise los cinco resultados y marque el reporte como dudoso si vienen casi vacíos.",
+        "Darle al subagente el objetivo y margen para evaluar cada resultado y reformular su próxima búsqueda según lo que va encontrando.",
+        "Que el coordinador ejecute él mismo las cinco búsquedas en paralelo y use subagentes solo para redactar el reporte final."
+      ],
+      "correct": 2,
+      "why_correct": "El hallazgo intermedio (la fusión) tenía que cambiar las búsquedas siguientes. En el sistema de research de Anthropic, los subagentes planifican y, después de cada resultado, evalúan calidad, detectan huecos y refinan la próxima consulta. Eso pide un objetivo, no una lista cerrada.",
+      "why_wrong": {
+        "0": "Sigue siendo un plan fijo armado antes de saber nada. Ninguna lista previa anticipa una fusión que nadie conocía.",
+        "1": "Detecta el problema al final, pero no lo corrige: el subagente nunca investigó la marca nueva.",
+        "3": "Las búsquedas siguen siendo fijas y nadie adapta el rumbo con lo que aparece; solo cambia quién las ejecuta."
+      },
+      "rule": "Cada resultado puede cambiar la próxima búsqueda: objetivo + evaluación después de cada tool, no lista cerrada.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "Subagents also plan, then use interleaved thinking after tool results to evaluate quality, identify gaps, and refine their next query.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o07-s04",
+      "objective": 7,
+      "pool": "sim",
+      "scenario": "Una fintech investiga con un agente por qué algunas transferencias quedan duplicadas una vez cada miles de operaciones. En el primer paso el agente concluye que es un problema de reintentos del cliente móvil, arma un plan de 12 pasos alrededor de esa hipótesis y lo ejecuta entero, aunque en el paso 4 los logs muestran duplicados también en transferencias hechas desde la web. El informe final insiste en el cliente móvil. ¿Qué cambiás en el prompt?",
+      "options": [
+        "Pedirle que antes de empezar arme un plan más detallado, de 25 pasos, que cubra todos los canales posibles desde el principio.",
+        "Pedirle que mantenga varias hipótesis en competencia, con su confianza, en un archivo de notas y que revise el plan con cada hallazgo.",
+        "Pedirle que se concentre en la hipótesis más probable y la investigue a fondo, para no dispersarse en caminos que no llevan a nada.",
+        "Partir el plan de 12 pasos en 12 subagentes en paralelo, uno por paso, para que cada uno evalúe su parte sin el sesgo del anterior."
+      ],
+      "correct": 1,
+      "why_correct": "El agente se casó con la primera hipótesis y ejecutó un plan fijo aunque la evidencia la contradecía. La doc de prompting sugiere, para research complejo, desarrollar hipótesis en competencia, registrar la confianza en notas y autocriticar el plan con regularidad. Así el plan cambia cuando aparece un dato como el del paso 4.",
+      "why_wrong": {
+        "0": "Un plan más largo sigue siendo fijo. Tampoco reacciona a un hallazgo que contradice la hipótesis de partida.",
+        "2": "Es exactamente el sesgo que causó el error: insistir en la primera hipótesis aunque la evidencia diga otra cosa.",
+        "3": "Los 12 pasos salieron de la hipótesis equivocada. Paralelizarlos no los revisa, y nadie integra el hallazgo del paso 4."
+      },
+      "rule": "Investigación abierta: hipótesis en competencia + notas + autocrítica del plan; el plan cambia con cada hallazgo.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "As you gather data, develop several competing hypotheses. Track your confidence levels in your progress notes to improve calibration. Regularly self-critique your approach and plan.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o07-s05",
+      "objective": 7,
+      "pool": "sim",
+      "scenario": "Una aseguradora procesa cada denuncia de fraude con un pipeline: 1) extraer los datos del formulario, 2) investigar, 3) redactar el dictamen en el formato del regulador. Los pasos 1 y 3 son siempre iguales. El paso 2 varía muchísimo: a veces alcanza con revisar una póliza; otras hay que cruzar talleres, peritos y siniestros previos. Hoy el paso 2 es una lista fija de 6 consultas y en los casos complejos se queda corto. ¿Qué diseño corresponde?",
+      "options": [
+        "Convertir todo el proceso en un agente autónomo que decida en cada denuncia también cómo extraer los datos y cómo redactar el dictamen.",
+        "Sumar consultas a la lista fija del paso 2 hasta cubrir los cruces de talleres, peritos y siniestros que aparecieron en casos pasados.",
+        "Correr las 6 consultas del paso 2 en paralelo en vez de en secuencia, para tener tiempo de sumar una segunda ronda en los casos difíciles.",
+        "Mantener la cadena fija para los pasos 1 y 3, y que el paso 2 sea un orquestador que decida qué investigar según lo que va encontrando."
+      ],
+      "correct": 3,
+      "why_correct": "Los patrones se combinan. Lo predecible (extraer y redactar en formato fijo) va en cadena: es consistente y se puede inspeccionar. Lo abierto (investigar) necesita descomposición dinámica que se adapte a lo que aparece. Cada parte usa el patrón que le corresponde.",
+      "why_wrong": {
+        "0": "Pierde la consistencia de los pasos que ya son predecibles; el formato del regulador no gana nada con decisiones dinámicas.",
+        "1": "Sigue siendo una lista fija: el próximo tipo de cruce que nadie previó vuelve a quedar afuera.",
+        "2": "Baja la latencia, pero las consultas siguen predefinidas y no se adaptan a lo que encuentra cada denuncia."
+      },
+      "rule": "Partes predecibles → cadena fija; parte abierta → descomposición dinámica. Se combinan.",
+      "source_url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "source_quote": "These building blocks aren't prescriptive. They're common patterns that developers can shape and combine to fit different use cases.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o07-s06",
+      "objective": 7,
+      "pool": "sim",
+      "scenario": "Un agente tiene que arreglar el build roto de un monorepo de TypeScript después de subir de versión una dependencia. Lee el código, arma de entrada una lista de 8 correcciones, las aplica todas y recién al final corre el build: aparecen 40 errores nuevos, varios causados por sus propias correcciones, y no queda claro cuál rompió qué. Hay que bajar el retrabajo sin quitarle autonomía al agente. ¿Qué cambiás?",
+      "options": [
+        "Que corra el build o los tests después de cada corrección y use esa salida para decidir cuál es la próxima corrección a aplicar.",
+        "Que antes de tocar nada arme una lista más larga y exhaustiva, con todas las correcciones posibles, y recién ahí las aplique.",
+        "Que aplique las 8 correcciones en paralelo con 8 subagentes, uno por corrección, y que el coordinador corra el build al final.",
+        "Que un humano apruebe la lista de 8 correcciones antes de aplicarlas, para filtrar las que podrían romper otras partes del build."
+      ],
+      "correct": 0,
+      "why_correct": "El agente planificó todo de entrada y no miró el resultado real hasta el final. Durante la ejecución, el agente tiene que obtener \"ground truth\" del entorno en cada paso (salida del build, tests) para evaluar su progreso. Cada corrección se valida y la siguiente se decide con esa información.",
+      "why_wrong": {
+        "1": "Más planificación previa no reemplaza el feedback real. La lista sigue armada antes de ver qué rompe cada cambio.",
+        "2": "Los cambios interactúan entre sí; en paralelo y validados recién al final, el problema empeora.",
+        "3": "Le quita autonomía (va contra la restricción) y un humano tampoco puede prever los efectos sin correr el build."
+      },
+      "rule": "Feedback del entorno en cada paso (build, tests) y el próximo paso se decide con ese resultado.",
+      "source_url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "source_quote": "During execution, it's crucial for the agents to gain “ground truth” from the environment at each step (such as tool call results or code execution) to assess its progress.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

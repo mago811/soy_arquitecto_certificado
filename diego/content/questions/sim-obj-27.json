@@ -1,0 +1,101 @@
+{
+  "objective": 27,
+  "questions": [
+    {
+      "id": "o27-s01",
+      "objective": 27,
+      "pool": "sim",
+      "scenario": "Una empresa de logística procesa documentos de proveedores con Claude Opus 5.5 (no lo pueden cambiar por temas de calidad). Cada documento es una factura, un remito o una nota de crédito, y el sistema siguiente necesita siempre un objeto con la misma forma: `tipo_documento` (enum de los tres), `numero`, `fecha`, `total` y `items`. Si llega texto suelto, el pipeline se rompe. Un dev propone tres tools (una por tipo) y `tool_choice: {\"type\": \"any\"}`. ¿Qué implementás?",
+      "options": [
+        "Las tres tools con `strict: true` y `tool_choice: {\"type\": \"any\"}`, así Claude siempre llama una de ellas con inputs que cumplen el schema.",
+        "Las tres tools con `strict: true` y `tool_choice` en `auto`, más una instrucción en el prompt que diga que siempre llame a una de ellas.",
+        "`output_config.format` con un solo schema que incluye `tipo_documento` como enum, porque Opus 5.5 rechaza forzar tools y la forma es fija.",
+        "Una sola tool con `tool_choice: {\"type\": \"tool\", \"name\": \"extraer_documento\"}` y `disable_parallel_tool_use: true` para recibir una llamada por documento."
+      ],
+      "correct": 2,
+      "why_correct": "Opus 5.5 está entre los modelos que rechazan `tool_choice` de tipo `any` o `tool` con un 400. Para esos modelos, la doc propone `auto` con strict tool use (inputs válidos cuando hay llamada) o structured outputs cuando necesitás la respuesta en una forma JSON fija. Acá la salida siempre tiene la misma forma, así que un único schema con `tipo_documento` como enum garantiza el objeto sin depender de que el modelo llame a una tool.",
+      "why_wrong": {
+        "0": "En Opus 5.5, `tool_choice: any` devuelve 400 `invalid_request_error`.",
+        "1": "Con `auto`, strict garantiza los inputs cuando hay una llamada, pero no garantiza que haya una: Claude puede contestar en texto y romper el pipeline.",
+        "3": "Forzar una tool específica también da 400 en Opus 5.5, con o sin `disable_parallel_tool_use`."
+      },
+      "rule": "En modelos que no aceptan forzar tools y con salida de forma fija: structured outputs con un discriminador enum.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "source_quote": "`auto` with strict tool use to guarantee schema-valid tool inputs, or structured outputs when you need a response in a fixed JSON shape",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o27-s02",
+      "objective": 27,
+      "pool": "sim",
+      "scenario": "Un e-commerce extrae datos de pedidos con Claude Haiku 5.5, una tool `registrar_pedido` con `strict: true` y `tool_choice: {\"type\": \"tool\", \"name\": \"registrar_pedido\"}`. Funciona perfecto. Para los picos de tráfico configuraron un fallback: si Haiku 5.5 devuelve error de sobrecarga, la misma request se reenvía a Claude Sonnet 5.5. Durante el último Hot Sale, todas las requests de fallback fallaron con `invalid_request_error`. ¿Qué cambiás en la ruta de fallback?",
+      "options": [
+        "Reenviar a Sonnet 5.5 con `tool_choice: {\"type\": \"any\"}` en vez de `tool`, porque `any` es menos restrictivo y los modelos 5.5 sí lo aceptan.",
+        "En el fallback a Sonnet 5.5, usar `tool_choice` en `auto` con la tool estricta y verificar en código que haya `tool_use`, o pasar a structured outputs.",
+        "Agregar al fallback un prefill del turno de asistente que arranque la llamada a la tool, para obligar a Sonnet 5.5 a responder con un `tool_use`.",
+        "Reintentar el fallback con backoff exponencial, porque durante los picos los 400 son una forma de rate limiting de los modelos más grandes."
+      ],
+      "correct": 1,
+      "why_correct": "Sonnet 5.5 no acepta forzar tools: `tool` y `any` devuelven 400 con `tool_choice: type \"tool\" and \"any\" are not supported for this model.`. La request de fallback tiene que ser válida para el modelo al que va: `auto` con strict tool use (y controlar que la respuesta traiga `tool_use`) o structured outputs si necesitás una forma JSON fija.",
+      "why_wrong": {
+        "0": "`any` también es una forma de forzar: Sonnet 5.5 rechaza tanto `any` como `tool`.",
+        "2": "Desde los modelos 4.6, el prefill del último turno de asistente devuelve 400; Sonnet 5.5 no lo acepta.",
+        "3": "Un 400 `invalid_request_error` es un error de request inválida, no de capacidad: reintentar la misma request falla igual."
+      },
+      "rule": "Un fallback de modelo tiene que mandar una request válida para ese modelo: los 5.5 grandes no aceptan forzar tools.",
+      "source_url": "https://platform.claude.com/docs/en/api/errors",
+      "source_quote": "tool_choice: type \"tool\" and \"any\" are not supported for this model.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o27-s03",
+      "objective": 27,
+      "pool": "sim",
+      "scenario": "Una fintech clasifica operaciones sospechosas con Claude Haiku 5.5 y una tool `reportar_operacion` con `strict: true`. Para garantizar la llamada, usan `tool_choice: {\"type\": \"tool\", \"name\": \"reportar_operacion\"}`. El analista de riesgo nota que, en los casos ambiguos, las decisiones son peores que cuando probaron con `auto`: con `auto` las respuestas traían un bloque de thinking antes de la llamada, y ahora no. Prioridad: calidad en los casos ambiguos; si alguna vez no llega `tool_use`, el código puede reintentar. ¿Qué hacés?",
+      "options": [
+        "Agregar a la tool un parámetro `razonamiento_paso_a_paso` obligatorio, para que el modelo razone dentro del input antes de decidir la clasificación.",
+        "Activar `thinking: {\"type\": \"enabled\", \"budget_tokens\": 4000}` manteniendo el `tool_choice` forzado, para que el modelo piense antes de llamar.",
+        "Subir el `effort` del request a `high` y mantener el `tool_choice` forzado, porque con más esfuerzo el modelo vuelve a generar thinking.",
+        "Pasar a `tool_choice` en `auto` con la instrucción de usar `reportar_operacion` en el mensaje, y reintentar en código cuando no llegue `tool_use`."
+      ],
+      "correct": 3,
+      "why_correct": "Forzar una tool saltea el thinking en todos los modelos que aceptan forzar: la respuesta arranca con el `tool_use` y no tiene bloque de thinking. Para dejar que el modelo piense antes de llamar, la doc indica usar `auto` con una instrucción en el prompt. Como el negocio prioriza calidad y acepta reintentar, `auto` más un chequeo en código es el equilibrio correcto.",
+      "why_wrong": {
+        "0": "Un parámetro que pide razonamiento paso a paso puede provocar una negativa `reasoning_extraction`; la doc pide una explicación corta, no el razonamiento.",
+        "1": "Con extended thinking manual, `tool_choice` de tipo `any` o `tool` no está soportado y da error.",
+        "2": "El esfuerzo no cambia la regla: con una tool forzada la respuesta igual empieza por el `tool_use`, sin thinking."
+      },
+      "rule": "Forzar una tool apaga el thinking; si la calidad depende de pensar, usá `auto` con instrucción y verificá en código.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "source_quote": "Forcing a tool also skips thinking on every model that accepts forced tool use: the response starts with the `tool_use` block and has no `thinking` block.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o27-s04",
+      "objective": 27,
+      "pool": "sim",
+      "scenario": "Una aerolínea registra reprogramaciones con Claude Haiku 5.5, una tool `reprogramar_vuelo` y `tool_choice: {\"type\": \"any\"}`. La tool tiene `strict: true` y `nueva_fecha` es `{\"type\": \"string\"}`. El backend en Go exige fechas ISO (`2026-12-03`), pero cada tanto llega `03/12/2026` o \"3 de diciembre\" y la reprogramación falla. Quieren una garantía, no una mejora estadística. ¿Qué cambiás en la definición de la tool?",
+      "options": [
+        "Agregar `\"format\": \"date\"` a `nueva_fecha`: es uno de los formatos de string soportados y con `strict: true` el input tiene que cumplirlo.",
+        "Agregar `input_examples` con tres llamadas que usen fechas ISO, para que el modelo copie el formato correcto en cada llamada.",
+        "Agregar a `nueva_fecha` un `pattern` con lookahead que valide año, mes y día por separado, para rechazar cualquier fecha mal formada.",
+        "Ampliar la `description` de `nueva_fecha` con \"usá siempre el formato YYYY-MM-DD, nunca otro\", con dos ejemplos de fechas válidas."
+      ],
+      "correct": 0,
+      "why_correct": "Strict tool use garantiza que el `input` cumpla el `input_schema`, y entre las features soportadas del schema están los formatos de string, incluido `date`. Un string libre cumple el schema aunque no sea ISO; con `\"format\": \"date\"` el formato pasa a ser parte de lo que el schema exige.",
+      "why_wrong": {
+        "1": "Los ejemplos de input orientan al modelo, pero no son una garantía: siguen pudiendo llegar formatos distintos.",
+        "2": "Los lookahead no están soportados en los `pattern` de structured outputs; un pattern complejo puede dar 400.",
+        "3": "La descripción es guidance: mejora la tasa, pero no garantiza el formato."
+      },
+      "rule": "Si un formato tiene que cumplirse siempre, ponelo en el schema (formato soportado + strict), no en la descripción.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "source_quote": "String formats: `date-time`, `time`, `date`, `duration`, `email`, `hostname`, `uri`, `ipv4`, `ipv6`, `uuid`",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}
