@@ -134,8 +134,12 @@
       "rule": "Si la confianza del modelo no discrimina, usá el desacuerdo entre corridas (por campo) como señal de ruteo, no el azar ni el voto.",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
       "source_quote": "Run Claude through the same prompt multiple times and compare the outputs. Inconsistencies across outputs could indicate hallucinations.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-13",
+        "verdict": "ok",
+        "notes": "Cita textual (Best-of-N verification) en reduce-hallucinations. La explicación atribuye a la doc solo la comparación entre corridas; el ruteo por campo queda como diseño, con la salvedad de que coincidir no prueba que esté bien. Distractores no defendibles. Distinto de o22-q04 (calibrar umbral) y de o22-s01..s04."
+      }
     }
   ]
 }
