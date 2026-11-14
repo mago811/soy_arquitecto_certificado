@@ -1,6 +1,6 @@
 # Reporte de contenido
 
-Generado: 2026-11-13
+Generado: 2026-11-14
 
 **Totales:** 508 preguntas generadas · 505 verificadas (77 con corrección) · 3 descartadas · 0 sin verificar.
 

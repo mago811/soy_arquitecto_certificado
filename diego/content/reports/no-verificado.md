@@ -1,6 +1,6 @@
 # Lo que no se pudo verificar contra la documentación oficial
 
-Generado: 2026-11-13. Nada de esto se muestra en práctica ni simulacros.
+Generado: 2026-11-14. Nada de esto se muestra en práctica ni simulacros.
 
 ## Preguntas sin verificar (0)
 
