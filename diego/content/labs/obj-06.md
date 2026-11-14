@@ -2,7 +2,7 @@
 objective: 6
 title: "Lab: romper (y arreglar) un subagente que no arranca con el Agent SDK"
 minutes: 50
-needs: ["API key de Anthropic", "Python 3.10+", "Claude Agent SDK para Python"]
+needs: ["API key de Anthropic", "Python 3.10+ (lanzador py)", "PowerShell", "VS Code o Notepad"]
 sources:
   - url: https://code.claude.com/docs/en/agent-sdk/subagents
     title: "Subagents in the SDK"
@@ -12,6 +12,8 @@ sources:
     title: "Configure permissions"
   - url: https://code.claude.com/docs/en/errors
     title: "Error reference"
+  - url: https://code.claude.com/docs/en/agent-sdk/quickstart
+    title: "Agent SDK quickstart (Setup en Windows)"
 status: verificada
 ---
 
@@ -21,18 +23,22 @@ Tener un coordinador con un subagente `auditor`, romper los tres "cables" (coord
 
 ## Pasos
 
-1. Entorno:
+1. Entorno, en PowerShell:
 
-```bash
-mkdir -p ~/lab-subagentes/sql && cd ~/lab-subagentes
-python3 -m venv .venv && source .venv/bin/activate
+```powershell
+New-Item -ItemType Directory -Force $HOME\lab-subagentes\sql | Out-Null
+Set-Location $HOME\lab-subagentes
+py -m venv .venv
+.\.venv\Scripts\Activate.ps1
 pip install claude-agent-sdk
-export ANTHROPIC_API_KEY=...   # tu key
-echo "DELETE FROM clientes WHERE id = 7;" > sql/limpieza.sql
-echo "SELECT * FROM pedidos;" > sql/reporte.sql
+$env:ANTHROPIC_API_KEY = "sk-ant-..."
+Set-Content -Encoding utf8 -Path sql\limpieza.sql -Value 'DELETE FROM clientes WHERE id = 7;'
+Set-Content -Encoding utf8 -Path sql\reporte.sql -Value 'SELECT * FROM pedidos;'
 ```
 
-2. Creá `coord.py` (versión SANA):
+Si PowerShell bloquea `Activate.ps1` por la execution policy, corré `Set-ExecutionPolicy -Scope Process RemoteSigned` y repetí la activación. `$env:ANTHROPIC_API_KEY` dura solo esa ventana: corré todo el lab en la misma.
+
+2. Creá `coord.py` con el editor (`code coord.py` o `notepad coord.py`) y pegá la versión SANA:
 
 ```python
 import asyncio
@@ -76,18 +82,22 @@ asyncio.run(main())
 
 7. **Rotura 3 — snake_case.** Cambiá `maxTurns=8` por `max_turns=8`. Corré. Restaurá.
 
-8. **Rotura 4 — la definición no llega.** Mové el agente a archivo:
+8. **Rotura 4 — la definición no llega.** Mové el agente a archivo. Creá la carpeta y abrí el archivo con el editor:
 
-```bash
-mkdir -p .claude/agents
-cat > .claude/agents/auditor.md <<'MD'
+```powershell
+New-Item -ItemType Directory -Force .claude\agents | Out-Null
+code .claude\agents\auditor.md
+```
+
+Pegá esto y guardá (el `---` tiene que ser la primera línea):
+
+```markdown
 ---
 name: auditor
 description: Audita archivos SQL y reporta sentencias de escritura.
 tools: Read, Grep, Glob
 ---
 Sos un auditor de SQL de solo lectura. Listá cada archivo con DELETE/UPDATE/INSERT.
-MD
 ```
 
 En `coord.py` quitá `agents=AGENTS` y agregá `setting_sources=[]`. Corré. Después cambiá a `setting_sources=["project"]` y corré de nuevo.
@@ -109,4 +119,5 @@ En `coord.py` quitá `agents=AGENTS` y agregá `setting_sources=[]`. Corré. Des
 
 - Si en el control (paso 4) Claude NO lanza el subagente, mirá si devolvió un error de tool o si simplemente eligió no delegar: pedile explícitamente "Usá el agente auditor". Según la doc de permisos, `dontAsk` deja correr las llamadas a `Agent`.
 - Si no ves `>> SUBAGENTE LANZADO` ni en la versión sana, pedí explícitamente "Usá el agente auditor" (la doc recomienda nombrarlo) y revisá que la `description` sea clara.
+- `python` no encuentra `claude_agent_sdk`: el venv no está activo en esa ventana. Corré `.\.venv\Scripts\Activate.ps1` (el prompt pasa a mostrar `(.venv)`).
 - En la rotura 2 el error sale como resultado del Agent tool (lo imprime la rama `ToolResultBlock`), no como excepción de Python.

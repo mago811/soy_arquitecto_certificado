@@ -2,7 +2,7 @@
 objective: 17
 title: "Lab: rastrear un flujo con Grep → Read → imports"
 minutes: 45
-needs: ["Claude Code", "git"]
+needs: ["Claude Code en Windows", "PowerShell", "Git for Windows"]
 sources:
   - url: https://code.claude.com/docs/en/tools-reference
     title: "Tools reference"
@@ -21,51 +21,69 @@ Hacer a mano (y después pedirle a Claude) una exploración incremental: encontr
 
 ### 0. Preparar el repo de juguete (8 min)
 
-```bash
-mkdir lab-obj17 && cd lab-obj17 && git init
-mkdir -p src/api src/services/refund src/lib/notify build/generated
-cat > src/lib/notify/send.ts <<'EOF'
+En PowerShell, parado en tu carpeta de trabajo (por ejemplo `$HOME`). Pegá los bloques de a uno:
+
+```powershell
+New-Item -ItemType Directory lab-obj17 | Out-Null
+Set-Location lab-obj17
+git init
+New-Item -ItemType Directory -Force src\api, src\services\refund, src\lib\notify, build\generated | Out-Null
+```
+
+Los archivos de código (con `Set-Content -Encoding utf8`; no uses `>` porque en PowerShell 5.1 escribe UTF-16):
+
+```powershell
+Set-Content -Encoding utf8 -Path src\lib\notify\send.ts -Value @'
 export function sendEmail(to: string, body: string) { return { to, body }; }
-EOF
-cat > src/lib/notify/index.ts <<'EOF'
+'@
+Set-Content -Encoding utf8 -Path src\lib\notify\index.ts -Value @'
 export { sendEmail as notifyUser, sendEmail as notifyAdmin } from "./send";
-EOF
-cat > src/services/refund/RefundService.ts <<'EOF'
+'@
+Set-Content -Encoding utf8 -Path src\services\refund\RefundService.ts -Value @'
 import { notifyUser } from "../../lib/notify";
 export function processRefund(orderId: string) { notifyUser("c@x.com", `refund ${orderId}`); return true; }
-EOF
-cat > src/services/refund/index.ts <<'EOF'
+'@
+Set-Content -Encoding utf8 -Path src\services\refund\index.ts -Value @'
 export { processRefund as issueRefund } from "./RefundService";
-EOF
-cat > src/api/refunds.ts <<'EOF'
+'@
+Set-Content -Encoding utf8 -Path src\api\refunds.ts -Value @'
 import { issueRefund } from "../services/refund";
 export function POST(orderId: string) { return issueRefund(orderId); }
-EOF
-cat > src/api/admin.ts <<'EOF'
+'@
+Set-Content -Encoding utf8 -Path src\api\admin.ts -Value @'
 import { notifyAdmin } from "../lib/notify";
 export function alertAdmin() { notifyAdmin("admin@x.com", "alerta"); }
-EOF
-echo 'export const LEGACY_PRICE_V2 = 99;' > build/generated/prices.js
-echo 'build/' > .gitignore
-for i in $(seq 1 150); do echo "export const v$i = $i;" > src/lib/gen_$i.ts; done
-seq 1 30000 | sed 's/^/\/\/ linea de relleno /' > src/legacy.js
-echo 'export function reconcileLedger() { return "ok"; }' >> src/legacy.js
+'@
 ```
 
-### 1. Habilitar Grep y Glob como tools (2 min)
+Ojo: el `'@` de cierre tiene que quedar pegado al margen izquierdo, sin espacios antes.
 
-En macOS, Linux y WSL, Grep y Glob no están en el set por defecto (Claude usa `grep`/`find` por Bash). Para ver las tools en acción, arrancá así:
+Las trampas (archivo gitignored, 150 archivos para el tope de Glob y un archivo enorme):
 
-```bash
-claude --allowedTools "Grep" "Glob"
+```powershell
+Set-Content -Encoding utf8 -Path build\generated\prices.js -Value 'export const LEGACY_PRICE_V2 = 99;'
+Set-Content -Encoding ascii -Path .gitignore -Value 'build/'
+1..150 | ForEach-Object { Set-Content -Encoding utf8 -Path "src\lib\gen_$_.ts" -Value "export const v$_ = $_;" }
+$relleno = 1..30000 | ForEach-Object { "// linea de relleno $_" }
+($relleno + 'export function reconcileLedger() { return "ok"; }') | Set-Content -Encoding utf8 -Path src\legacy.js
 ```
 
-La doc dice que nombrar cualquiera de las dos en `--allowedTools` devuelve ambas. En Windows ya vienen.
+Chequeo rápido: `(Get-ChildItem src\lib\gen_*.ts).Count` tiene que dar `150` y `(Get-Item src\legacy.js).Length` tiene que pasar de 262144 bytes (256 KB).
+
+### 1. Arrancar con solo las tools de exploración (2 min)
+
+En Windows, Glob y Grep ya vienen en el set de tools por defecto: no hay que habilitarlas. Pero Claude también tiene Bash (Git Bash) y PowerShell, y podría buscar con comandos de shell. Para que en este lab use solo las tools de exploración, **restringí** el set al arrancar:
+
+```powershell
+claude --tools "Read,Grep,Glob"
+```
+
+`--tools` limita qué tools existen en la sesión (con una lista, tenés solo las que nombrás). No lo confundas con `--allowedTools`, que solo las aprueba sin preguntar.
 
 ### 2. Punto de entrada y seguir imports (10 min)
 
 ```text
-Usando solo Grep, Glob y Read (sin Bash), explicame qué pasa cuando se llama al endpoint POST de reembolsos.
+Usando solo Grep, Glob y Read (sin comandos de shell), explicame qué pasa cuando se llama al endpoint POST de reembolsos.
 No leas archivos que no necesites. Al final, listame cada llamada a herramienta que hiciste.
 ```
 
@@ -105,6 +123,8 @@ Compará: ahora aparecen `RefundService.ts` y `admin.ts`.
 
 ## Si algo falla
 
-- Claude usa Bash igual: repetí "sin Bash" o arrancá con `claude --tools "Read,Grep,Glob"` (con `--tools` tenés solo las que listás).
-- `src/legacy.js` no supera el límite: agrandalo cambiando `30000` por `200000`.
+- Claude intenta correr comandos de shell: arrancaste sin `--tools`. Salí (`/exit`) y volvé a entrar con `claude --tools "Read,Grep,Glob"`.
+- `src/legacy.js` no supera el límite: en el paso 0 cambiá `30000` por `200000` y volvé a correr esas dos líneas.
+- En el paso 4.1 el primer Grep también encuentra `LEGACY_PRICE_V2`: fijate que `.gitignore` diga `build/` con `Get-Content .gitignore` y que lo hayas creado con `-Encoding ascii` (sin BOM).
 - En el paso 4.3 Claude leyó el archivo entero de una: desde Claude Code v2.1.296, Read acepta `allow_large: true` cuando le pedís el archivo completo. Repetí la consigna aclarando "sin allow_large".
+- PowerShell marca error en un bloque con `@'`: el `'@` de cierre quedó con espacios adelante. Borralos y pegá el bloque de nuevo.

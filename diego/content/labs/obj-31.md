@@ -19,33 +19,50 @@ Correr el mismo review con tres criterios (vago, "sé conservador" y límites ex
 
 ## Pasos
 
-1. Preparar (5 min):
+1. Preparar (5 min). En PowerShell:
 
-```bash
-mkdir lab-obj31 && cd lab-obj31 && git init
-cat > pagos.py <<'PY'
+```powershell
+New-Item -ItemType Directory -Force lab-obj31
+Set-Location lab-obj31
+git init
+New-Item -ItemType Directory -Force .claude\agents
+code pagos.py
+```
+
+(Si no usás VS Code, cambiá `code` por `notepad`.) Pegá esta versión base en `pagos.py` y guardá:
+
+```python
 def total(items):
     return sum(i["precio"] * i["cant"] for i in items)
-PY
-git add . && git commit -m base
-cat > pagos.py <<'PY'
+```
+
+Commiteala:
+
+```powershell
+git add .
+git commit -m base
+```
+
+Ahora volvé a abrir `pagos.py` (`code pagos.py`), **reemplazá todo** por esta versión y guardá. No la commitees: es el diff a revisar.
+
+```python
 import logging
 def total(items, Descuento=0):
     T = sum(i["precio"] * i["cant"] for i in items)
     logging.info("total para %s", items[0]["email"])   # bug 1: PII en logs
     return T - T*Descuento if Descuento<1 else T       # bug 2: descuento >= 1 se ignora en silencio
 def x(a,b): return a+b
-PY
-mkdir -p .claude/agents
 ```
 
-2. Creá el subagente `.claude/agents/revisor.md` y reiniciá `claude` (si la carpeta `agents` es nueva, hace falta reiniciar para que la cargue):
+Chequeá con `git diff` que se ve el cambio.
+
+2. Creá el subagente con `code .claude\agents\revisor.md`, pegá esto y reiniciá `claude` (si la carpeta `agents` es nueva, hace falta reiniciar para que la cargue):
 
 ```markdown
 ---
 name: revisor
 description: Revisa el diff de git del repo. Usar cuando el usuario pide un review.
-tools: Read, Grep, Glob, Bash
+tools: Read, Grep, Glob, Bash, PowerShell
 ---
 Revisá el diff (`git diff`) y reportá lo importante.
 ```
@@ -80,4 +97,14 @@ Repetí y anotá.
 
 - **El subagente no aparece**: revisá el frontmatter (`name` y `description` son obligatorios) y reiniciá la sesión.
 - **Rondas iguales**: el modelo varía entre corridas; repetí cada ronda dos veces antes de sacar conclusiones.
-- **Pide permiso para `git diff`**: aceptalo o agregá `Bash(git diff *)` a `permissions.allow`.
+- **Pide permiso para `git diff`**: aceptalo o agregá las dos reglas a `permissions.allow` en `.claude\settings.local.json` (creala con `code .claude\settings.local.json`): `Bash(git diff *)` y `PowerShell(git diff *)`. En Windows Claude puede correr `git diff` por la tool `Bash` (Git Bash) o por la tool `PowerShell`, y cada una tiene sus propias reglas.
+
+```json
+{
+  "permissions": {
+    "allow": ["Bash(git diff *)", "PowerShell(git diff *)"]
+  }
+}
+```
+
+- **`git commit` falla con "Please tell me who you are"**: configurá tu identidad una vez con `git config --global user.name "Diego"` y `git config --global user.email "diego@example.com"`.

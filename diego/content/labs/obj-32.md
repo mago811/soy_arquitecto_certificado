@@ -2,7 +2,7 @@
 objective: 32
 title: "Lab: diez tareas, cuatro herramientas"
 minutes: 40
-needs: ["Claude Code", "git"]
+needs: ["Claude Code en Windows", "PowerShell", "Git for Windows", "VS Code o Notepad"]
 sources:
   - url: https://code.claude.com/docs/en/tools-reference
     title: "Tools reference"
@@ -15,31 +15,52 @@ status: verificada
 
 ## Objetivo
 
-Antes de que Claude haga nada, vos decidís qué herramienta corresponde (Glob, Grep, Read, Bash, Edit, Write). Después comparás con lo que hizo. Y armás un subagente explorador de solo lectura donde el límite lo pone la config, no el prompt.
+Antes de que Claude haga nada, vos decidís qué herramienta corresponde (Glob, Grep, Read, Bash o PowerShell, Edit, Write). Después comparás con lo que hizo. Y armás un subagente explorador de solo lectura donde el límite lo pone la config, no el prompt.
 
 ## Pasos
 
 ### 0. Preparar (5 min)
 
-```bash
-mkdir lab-obj32 && cd lab-obj32 && git init -b main
-mkdir -p src/components migrations certs/local .claude/agents
-echo 'export const Button = () => null;' > src/components/Button.tsx
-echo 'test("button", () => {});' > src/components/Button.test.tsx
-echo 'export function calculateTax(x: number) { return x * 0.21; }' > src/tax.ts
-echo 'import { calculateTax } from "./tax"; export const t = calculateTax(100);' > src/checkout.ts
-printf 'paymentsClient: { timeout: 30 }\nsearchClient: { timeout: 30 }\n' > src/config.ts
-echo 'var x interface{}' > src/legacy.go
-touch migrations/001_init.sql migrations/002_users.sql
-echo '-----BEGIN CERTIFICATE-----' > certs/local/dev.pem
-echo 'certs/local/' > .gitignore
-git add -A && git commit -qm init && git checkout -qb feature
-echo '// cambio' >> src/checkout.ts && git commit -qam cambio
+En PowerShell, desde tu carpeta de trabajo. Creá los archivos con `Set-Content -Encoding utf8` (en PowerShell 5.1, `>` escribe UTF-16):
+
+```powershell
+New-Item -ItemType Directory lab-obj32 | Out-Null
+Set-Location lab-obj32
+git init -b main
+New-Item -ItemType Directory -Force src\components, migrations, certs\local, .claude\agents | Out-Null
+Set-Content -Encoding utf8 -Path src\components\Button.tsx -Value 'export const Button = () => null;'
+Set-Content -Encoding utf8 -Path src\components\Button.test.tsx -Value 'test("button", () => {});'
+Set-Content -Encoding utf8 -Path src\tax.ts -Value 'export function calculateTax(x: number) { return x * 0.21; }'
+Set-Content -Encoding utf8 -Path src\checkout.ts -Value 'import { calculateTax } from "./tax"; export const t = calculateTax(100);'
+Set-Content -Encoding utf8 -Path src\config.ts -Value 'paymentsClient: { timeout: 30 }', 'searchClient: { timeout: 30 }'
+Set-Content -Encoding utf8 -Path src\legacy.go -Value 'var x interface{}'
+New-Item -ItemType File migrations\001_init.sql, migrations\002_users.sql | Out-Null
+Set-Content -Encoding utf8 -Path certs\local\dev.pem -Value '-----BEGIN CERTIFICATE-----'
+Set-Content -Encoding ascii -Path .gitignore -Value 'certs/local/'
 ```
+
+Ahora los dos commits (uno en `main` y uno en la rama `feature`):
+
+```powershell
+git add -A
+git commit -qm init
+git checkout -qb feature
+Add-Content -Encoding utf8 -Path src\checkout.ts -Value '// cambio'
+git commit -qam cambio
+git log --oneline
+```
+
+`git log --oneline` tiene que mostrar dos commits: `cambio` e `init`.
 
 ### 1. El subagente explorador (5 min)
 
-Creá `.claude/agents/explorer.md`:
+Abrí el archivo con el editor y pegá el contenido (no lo crees desde la terminal: el frontmatter tiene que arrancar en la primera línea, sin BOM):
+
+```powershell
+code .claude\agents\explorer.md
+```
+
+(o `notepad .claude\agents\explorer.md`). Contenido:
 
 ```markdown
 ---
@@ -51,7 +72,7 @@ Usá Glob para encontrar archivos por nombre, Grep para buscar contenido y Read 
 Devolvé rutas y líneas exactas.
 ```
 
-Como deja afuera Bash y lista Grep y Glob, esas dos tools vuelven para este subagente aunque estés en Linux o macOS. Arrancá `claude`.
+`tools` es un allowlist: el explorer tiene Read, Grep y Glob, y **no** tiene Bash ni PowerShell. El límite lo pone la config, no el prompt. Guardá y arrancá `claude` en `lab-obj32`.
 
 ### 2. Predecí y comprobá (25 min)
 
@@ -70,7 +91,7 @@ Para cada tarea, **escribí en un papel tu predicción** y después pedile a Cla
 | 9 | Pedirle al explorer que corra `git log` | |
 | 10 | Crear `src/README.md` nuevo | |
 
-Respuestas esperadas: 1 Glob · 2 Grep · 3 Grep con `interface\{\}` · 4 Glob (no respeta `.gitignore` por defecto) · 5 `ls` por Bash (Read no lee carpetas) · 6 Bash con `git diff --name-only main...HEAD` · 7 Read · 8 Edit con `old_string` que incluya `paymentsClient` · 9 el explorer no puede: no tiene Bash · 10 Write.
+Respuestas esperadas: 1 Glob · 2 Grep · 3 Grep con `interface\{\}` · 4 Glob (no respeta `.gitignore` por defecto) · 5 un comando de shell (`Get-ChildItem` por PowerShell o `ls` por Bash) o Glob `migrations/*`; nunca Read, que no lee carpetas · 6 shell (PowerShell o Bash) con `git diff --name-only main...HEAD` · 7 Read · 8 Edit con `old_string` que incluya `paymentsClient` · 9 el explorer no puede: no tiene Bash ni PowerShell · 10 Write.
 
 ### 3. Romperlo a propósito (5 min)
 
@@ -89,6 +110,8 @@ Mirá el error por string no único. Después pedí que lo arregle y observá c�
 
 ## Si algo falla
 
-- El subagente no aparece: la carpeta `.claude/agents/` tiene que existir; reiniciá `claude` si la creaste con la sesión abierta.
+- El subagente no aparece: el archivo tiene que estar en `.claude\agents\explorer.md` (fijate con `Get-ChildItem .claude\agents`); reiniciá `claude` si lo creaste con la sesión abierta.
 - Claude no usa el subagente: nombralo explícitamente ("usá el subagente explorer").
-- La tarea 6 da vacío: confirmá que estás en la rama `feature` con `git branch`.
+- La tarea 6 da vacío: confirmá en tu PowerShell que estás en la rama `feature` con `git branch` (la rama actual sale con `*`).
+- `git commit` falla con "Please tell me who you are": configurá una vez `git config --global user.name "Diego"` y `git config --global user.email "diego@example.com"`, y repetí los commits.
+- En la tarea 5 o 6 Claude usó la tool PowerShell en vez de Bash (o al revés): está bien, las dos son tools de shell. Lo que cuenta es que no usó Read para la carpeta ni Glob para el diff.

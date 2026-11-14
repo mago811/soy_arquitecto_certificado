@@ -21,22 +21,36 @@ Correr la misma investigación con dos prompts: uno que **impone una secuencia f
 
 ### 1. Un "incidente" de juguete (5 min)
 
-```bash
-mkdir lab-obj07 && cd lab-obj07
-mkdir logs config db
-cat > logs/app.log <<'EOF'
+En PowerShell:
+
+```powershell
+New-Item -ItemType Directory -Force lab-obj07
+Set-Location lab-obj07
+New-Item -ItemType Directory -Force logs, config, db
+Set-Content -Path db\schema.sql -Value "SELECT 1; -- 48 tablas, nada raro" -Encoding utf8
+1..15 | ForEach-Object { Set-Content -Path "db\m$_.sql" -Value "-- migración $_ sin cambios relevantes" -Encoding utf8 }
+code logs\app.log
+```
+
+(Si no usás VS Code, cambiá `code` por `notepad`.) Pegá en `logs\app.log` y guardá:
+
+```text
 2026-11-13T10:00:01 INFO  start
 2026-11-13T10:00:02 ERROR TLS handshake failed: certificate expired (api.pagos.local)
 2026-11-13T10:00:03 ERROR retry 1 failed: certificate expired
-EOF
-echo '{"timeout_ms": 3000, "api": "https://api.pagos.local"}' > config/app.json
-echo 'SELECT 1; -- 48 tablas, nada raro' > db/schema.sql
-for i in $(seq 1 15); do echo "-- migración $i sin cambios relevantes" > db/m$i.sql; done
 ```
+
+Por último `code config\app.json` y pegá:
+
+```json
+{"timeout_ms": 3000, "api": "https://api.pagos.local"}
+```
+
+Chequeá con `Get-ChildItem -Recurse -File` que tenés 16 archivos en `db`, uno en `logs` y uno en `config`.
 
 ### 2. Prompt fijo (8 min)
 
-```bash
+```powershell
 claude -n plan-fijo
 ```
 
@@ -50,7 +64,7 @@ Contá cuántos archivos lee antes de llegar a `logs/`. Salí con `/exit`.
 
 ### 3. Prompt adaptativo (8 min)
 
-```bash
+```powershell
 claude -n plan-adaptativo
 ```
 
@@ -62,7 +76,7 @@ subtareas nuevas si aparecen y reordená. Pará cuando tengas evidencia
 suficiente de la causa raíz.
 ```
 
-Abrí `PLAN.md` al final y mirá cómo cambió.
+Abrí `PLAN.md` al final (`code PLAN.md` o `Get-Content PLAN.md`) y mirá cómo cambió.
 
 ### 4. Compará (5 min)
 
@@ -88,4 +102,5 @@ Pensá: "convertir 100 facturas: extraer → validar → formatear". ¿Querés q
 
 - Si el plan fijo se saltea el orden por su cuenta: anotalo. Claude a veces se adapta igual; lo que mirás es que tu prompt lo estaba empujando a no hacerlo.
 - Si el adaptativo no crea `PLAN.md`, aceptá el permiso de escritura cuando lo pida o repetí la instrucción.
-- Para volver a cualquiera de las dos corridas: `claude --resume plan-fijo` o `claude --resume plan-adaptativo`.
+- Para volver a cualquiera de las dos corridas: `claude --resume plan-fijo` o `claude --resume plan-adaptativo` (desde la carpeta `lab-obj07`).
+- Si el loop de `1..15` tira error, fijate que lo corriste en PowerShell y no en CMD: `ForEach-Object` y `$_` son de PowerShell.

@@ -23,24 +23,41 @@ Ver con tus ojos que una sesión retomada **recuerda los archivos como estaban**
 
 ### 1. Proyecto de juguete (3 min)
 
-```bash
-mkdir lab-obj02 && cd lab-obj02 && git init
-mkdir pagos
-cat > pagos/refund.js <<'EOF'
+En PowerShell:
+
+```powershell
+New-Item -ItemType Directory -Force lab-obj02
+Set-Location lab-obj02
+git init
+New-Item -ItemType Directory -Force pagos
+code pagos\refund.js
+```
+
+(Si no usás VS Code, cambiá `code` por `notepad`.) Pegá en `pagos\refund.js` y guardá:
+
+```javascript
 export function refund(amount) {
   if (amount > 500) throw new Error("requiere aprobación");
   return { ok: true, amount };
 }
-EOF
-cat > pagos/fees.js <<'EOF'
+```
+
+Después `code pagos\fees.js` y pegá:
+
+```javascript
 export const FEE = 0.03;
-EOF
-git add . && git commit -m "inicial"
+```
+
+Commiteá:
+
+```powershell
+git add .
+git commit -m "inicial"
 ```
 
 ### 2. Sesión con nombre (5 min)
 
-```bash
+```powershell
 claude -n pagos-audit
 ```
 
@@ -48,16 +65,18 @@ Pedile: `Leé pagos/ y resumime las reglas de negocio en 3 bullets.` Anotá lo q
 
 ### 3. Alguien cambia el código "por fuera" (2 min)
 
-```bash
-sed -i.bak 's/500/1000/' pagos/refund.js && rm pagos/refund.js.bak
+Con Claude cerrado, abrí `code pagos\refund.js`, cambiá `500` por `1000` y guardá. Después commiteá desde PowerShell:
+
+```powershell
 git commit -am "sube límite a 1000"
+git log -1 -p
 ```
 
-(En macOS el `-i.bak` funciona igual; borramos el backup.)
+`git log -1 -p` te muestra el cambio: una línea con `500` que sale y otra con `1000` que entra.
 
 ### 4. El error: retomar sin avisar (5 min)
 
-```bash
+```powershell
 claude --resume pagos-audit
 ```
 
@@ -65,7 +84,7 @@ Preguntale: `Sin leer nada, ¿cuál es el límite de refund?` Va a decir 500: lo
 
 ### 5. El fix: re-análisis dirigido (5 min)
 
-```bash
+```powershell
 claude --resume pagos-audit
 ```
 
@@ -87,7 +106,7 @@ Lo mismo desde la terminal: `claude --resume pagos-audit --fork-session`.
 
 ### 7. Cuándo NO retomar (3 min)
 
-Imaginá que cambiaron 30 archivos. Escribí en un `RESUMEN.md` lo que inyectarías en una sesión nueva: decisiones, archivos clave, pendientes. Abrí `claude` (sin resume) y empezá con `Leé RESUMEN.md y git log -5 antes de nada.`
+Imaginá que cambiaron 30 archivos. Escribí con `code RESUMEN.md` un `RESUMEN.md` lo que inyectarías en una sesión nueva: decisiones, archivos clave, pendientes. Abrí `claude` (sin resume) y empezá con `Leé RESUMEN.md y git log -5 antes de nada.`
 
 ## Cómo sabés que salió bien
 
@@ -100,4 +119,5 @@ Imaginá que cambiaron 30 archivos. Escribí en un `RESUMEN.md` lo que inyectar�
 
 - `claude --resume pagos-audit` abre el picker en vez de la sesión: el nombre es ambiguo o no coincide exacto. Elegila en la lista o renombrala con `Ctrl+R`.
 - `--continue` te abrió otra sesión: es lo esperado, abre la más reciente de la carpeta. Para una puntual, `--resume <nombre>`.
+- `git commit` falla con "Please tell me who you are": configurá tu identidad una vez con `git config --global user.name "Diego"` y `git config --global user.email "diego@example.com"`.
 - Si en el paso 4 Claude relee el archivo por su cuenta y dice 1000, repetí la pregunta aclarando "sin usar herramientas".

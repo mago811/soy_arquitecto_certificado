@@ -2,7 +2,7 @@
 objective: 16
 title: "Lab: cinco mecanismos, un proyecto — ¿quién aplica cuándo?"
 minutes: 55
-needs: ["Claude Code", "una carpeta de prueba", "git", "jq"]
+needs: ["Claude Code", "PowerShell", "una carpeta de prueba", "git"]
 sources:
   - url: https://code.claude.com/docs/en/memory
     title: "How Claude remembers your project"
@@ -12,6 +12,8 @@ sources:
     title: "Settings files and precedence"
   - url: https://code.claude.com/docs/en/hooks-guide
     title: "Automate actions with hooks"
+  - url: https://code.claude.com/docs/en/hooks
+    title: "Hooks reference"
   - url: https://code.claude.com/docs/en/skills
     title: "Extend Claude with skills"
   - url: https://code.claude.com/docs/en/commands
@@ -27,22 +29,28 @@ Armar en un proyecto de juguete los cinco mecanismos (CLAUDE.md, regla con `path
 
 ### 0. Preparar la carpeta (5 min)
 
-`jq` lo usan los ejemplos de hooks de la doc. Si no lo tenés: `brew install jq` (macOS) o `apt-get install jq` (Debian/Ubuntu).
+En PowerShell:
 
-```bash
-mkdir lab-obj16 && cd lab-obj16
+```powershell
+New-Item -ItemType Directory -Force $HOME\lab-obj16 | Out-Null
+Set-Location $HOME\lab-obj16
 git init
-mkdir -p src/api src/utils .claude/rules .claude/hooks .claude/skills/release-notes
-echo 'export function listarUsuarios() { return []; }' > src/api/usuarios.ts
-echo 'export function hoy() { return new Date(); }' > src/utils/fecha.ts
-echo 'DB_PASSWORD=super-secreto-de-mentira' > .env
+New-Item -ItemType Directory -Force src\api, src\utils, .claude\rules, .claude\hooks, .claude\skills\release-notes | Out-Null
 ```
 
-Creamos `.claude/skills/` ANTES de arrancar Claude Code: si la carpeta de skills no existía al empezar la sesión, hay que correr `/reload-skills`.
+Creá estos tres archivos con el editor (`code <archivo>`, o `notepad <archivo>` si no tenés VS Code), cada uno con una sola línea:
+
+| Archivo | Contenido |
+|---|---|
+| `src\api\usuarios.ts` | `export function listarUsuarios() { return []; }` |
+| `src\utils\fecha.ts` | `export function hoy() { return new Date(); }` |
+| `.env` | `DB_PASSWORD=super-secreto-de-mentira` |
+
+Creamos `.claude\skills\` ANTES de arrancar Claude Code: si la carpeta de skills no existía al empezar la sesión, hay que correr `/reload-skills`.
 
 ### 1. CLAUDE.md de proyecto: guía para todos (8 min)
 
-Creá `CLAUDE.md` en la raíz:
+Creá `CLAUDE.md` en la raíz (`code CLAUDE.md`):
 
 ```markdown
 # Proyecto lab-obj16
@@ -66,7 +74,7 @@ Anotá qué pasa. Puede negarse… o no. **Esa es la lección**: el CLAUDE.md or
 
 ### 2. Regla con `paths`: solo para `src/api/` (10 min)
 
-Creá `.claude/rules/api.md`:
+Creá `.claude\rules\api.md`:
 
 ```markdown
 ---
@@ -84,11 +92,11 @@ Pedile a Claude, en este orden:
 1. `Agregá a src/utils/fecha.ts una función ayer() que devuelva la fecha de ayer.`
 2. `Agregá a src/api/usuarios.ts una función crearUsuario(nombre: string).`
 
-Abrí los dos archivos. En `src/api/usuarios.ts` debería aparecer el comentario `// API pública: validar input`; en `src/utils/fecha.ts`, no. La regla se carga recién cuando Claude lee, escribe o edita un archivo que matchea el glob.
+Abrí los dos archivos. En `src\api\usuarios.ts` debería aparecer el comentario `// API pública: validar input`; en `src\utils\fecha.ts`, no. La regla se carga recién cuando Claude lee, escribe o edita un archivo que matchea el glob.
 
-### 3. `deny` en `.claude/settings.json`: ahora sí, garantía (8 min)
+### 3. `deny` en `.claude\settings.json`: ahora sí, garantía (8 min)
 
-Creá `.claude/settings.json` (JSON estricto: sin comentarios ni comas finales):
+Creá `.claude\settings.json` con el editor (`code .claude\settings.json`). No lo armes con `Set-Content` ni con `>`: en Windows PowerShell 5.1 pueden escribir el archivo con BOM o en UTF-16 y romper el JSON. JSON estricto: sin comentarios ni comas finales.
 
 ```json
 {
@@ -108,45 +116,68 @@ Claude Code recarga los settings solo. Corré:
 ```
 
 Tenés que ver las dos reglas `deny` y el archivo del que vienen (`.claude/settings.json`).
-Pedile otra vez: `Leé el archivo .env.` → ahora lo bloquea Claude Code, no la "buena voluntad" del modelo. Probá también `Mostrame .env con cat` → un deny de `Read` también cubre comandos de archivo que Claude Code reconoce, como `cat`.
+Pedile otra vez: `Leé el archivo .env.` → ahora lo bloquea Claude Code, no la "buena voluntad" del modelo.
 
-### 4. Hook `PreToolUse` que bloquea `git push` (12 min)
-
-Creá `.claude/hooks/block-push.sh`:
-
-```bash
-#!/bin/bash
-INPUT=$(cat)
-COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command')
-if echo "$COMMAND" | grep -q "git push"; then
-  echo "Bloqueado: en este proyecto no se hace git push desde Claude" >&2
-  exit 2
-fi
-exit 0
-```
-
-```bash
-chmod +x .claude/hooks/block-push.sh
-```
-
-Agregá el bloque `hooks` al MISMO `.claude/settings.json` (al lado de `permissions`):
+**La trampa de la shell.** Pedile: `Mostrame el contenido de .env con Get-Content.` En Windows, Claude corre comandos con la tool `PowerShell`. La doc promete que un deny de `Read` cubre las herramientas de archivo de Claude y los comandos de archivo que Claude Code reconoce **en Bash** (como `cat`); para la tool `PowerShell` no promete lo mismo. Anotá qué pasó. Para cerrar esa puerta con garantía, sumá una regla de PowerShell al mismo `deny`:
 
 ```json
 {
   "permissions": {
     "deny": [
       "Read(./.env)",
-      "Read(./.env.*)"
+      "Read(./.env.*)",
+      "PowerShell(Get-Content *.env*)"
+    ]
+  }
+}
+```
+
+Las reglas `PowerShell(...)` tienen la misma forma que las de Bash, y los alias comunes se normalizan: la regla escrita para `Get-Content` también matchea `cat`, `gc` y `type`. Repetí el pedido: ahora lo bloquea la regla.
+
+### 4. Hook `PreToolUse` que bloquea `git push` (12 min)
+
+Creá `.claude\hooks\block-push.ps1` con el editor. Dejá los mensajes sin acentos: PowerShell 5.1 lee un `.ps1` sin BOM como ANSI.
+
+```powershell
+# .claude/hooks/block-push.ps1
+$callInput = [Console]::In.ReadToEnd() | ConvertFrom-Json
+$command = $callInput.tool_input.command
+
+if ($command -match 'git push') {
+  [Console]::Error.WriteLine("Bloqueado: en este proyecto no se hace git push desde Claude")
+  exit 2
+}
+exit 0
+```
+
+En Windows no hace falta `chmod`: el hook lo corre `powershell.exe` con `-ExecutionPolicy Bypass`.
+
+Agregá el bloque `hooks` al MISMO `.claude\settings.json` (al lado de `permissions`). El matcher es `Bash|PowerShell` porque en Windows Claude puede correr el comando con cualquiera de las dos tools; un hook que matchea solo `Bash` no se entera de los comandos que van por PowerShell.
+
+```json
+{
+  "permissions": {
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "PowerShell(Get-Content *.env*)"
     ]
   },
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Bash",
+        "matcher": "Bash|PowerShell",
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/block-push.sh"
+            "command": "powershell.exe",
+            "args": [
+              "-NoProfile",
+              "-ExecutionPolicy",
+              "Bypass",
+              "-File",
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/block-push.ps1"
+            ]
           }
         ]
       }
@@ -155,12 +186,23 @@ Agregá el bloque `hooks` al MISMO `.claude/settings.json` (al lado de `permissi
 }
 ```
 
+Esto es la "exec form" (`command` + `args`): Claude Code lanza `powershell.exe` directo, sin shell en el medio, y reemplaza `${CLAUDE_PROJECT_DIR}` por la ruta del proyecto.
+
+Antes de probarlo con Claude, probá el script solo, desde PowerShell, simulando la entrada que le manda Claude Code:
+
+```powershell
+'{"tool_input":{"command":"git push origin main"}}' | powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\.claude\hooks\block-push.ps1
+$LASTEXITCODE
+```
+
+Tiene que imprimir el mensaje de bloqueo y `2`.
+
 Corré `/hooks`: el hook aparece bajo `PreToolUse`, con su origen (project settings).
 Pedile: `Corré git push origin main.` → el hook sale con código 2 y Claude recibe tu mensaje de stderr como feedback. Fijate: exit 2 = bloquear; exit 0 = "no tengo objeción" (sigue el flujo normal de permisos, no aprueba nada).
 
 ### 5. Skill bajo demanda (8 min)
 
-Creá `.claude/skills/release-notes/SKILL.md`:
+Creá `.claude\skills\release-notes\SKILL.md`:
 
 ```markdown
 ---
@@ -183,24 +225,24 @@ Después: `/release-notes` → ahí sí corre el procedimiento.
 |---|---|---|
 | `CLAUDE.md` "no leas .env" | | |
 | `.claude/rules/api.md` con `paths` | | |
-| `deny` `Read(./.env)` | | |
+| `deny` `Read(./.env)` + `PowerShell(Get-Content *.env*)` | | |
 | Hook `PreToolUse` `git push` | | |
 | Skill `release-notes` | | |
 
 ## Cómo sabés que salió bien
 
 - `/context all` lista tu `CLAUDE.md` en **Memory files**.
-- El comentario `// API pública: validar input` aparece en `src/api/usuarios.ts` y NO en `src/utils/fecha.ts`.
-- `/permissions` muestra los dos `deny` con su archivo de origen, y Claude no puede leer `.env`.
+- El comentario `// API pública: validar input` aparece en `src\api\usuarios.ts` y NO en `src\utils\fecha.ts`.
+- `/permissions` muestra los `deny` con su archivo de origen, y Claude no puede leer `.env` ni con su tool Read ni con `Get-Content`.
 - `/hooks` muestra el hook en `PreToolUse` y `git push` queda bloqueado con tu mensaje.
 - `/skills` lista `release-notes`; solo corre cuando tipeás `/release-notes`.
 - Tu tabla dice: los dos primeros y la Skill **orientan**; deny y hook **garantizan**.
 
 ## Si algo falla
 
-- **`/hooks` no muestra nada**: revisá que el JSON sea válido (sin comas finales) y que esté en `.claude/settings.json`. Si no aparece en unos segundos, reiniciá la sesión.
-- **El hook no bloquea**: ¿hiciste `chmod +x`? ¿Está instalado `jq`? Si el script sale con un código distinto de 0 o 2, la acción sigue adelante como error no bloqueante.
-- **Aparece un "Settings Error" al arrancar**: JSON inválido. Arreglalo o usá la opción para que Claude te ayude a corregirlo.
+- **`/hooks` no muestra nada**: revisá que el JSON sea válido (sin comas finales) y que esté en `.claude\settings.json`. Para chequearlo desde PowerShell: `Get-Content .claude\settings.json -Raw | ConvertFrom-Json`. Si no aparece en unos segundos, reiniciá la sesión.
+- **El hook no bloquea**: probá el script solo con el comando del paso 4 y mirá `$LASTEXITCODE`. ¿El matcher dice `Bash|PowerShell` y no solo `Bash`? ¿La ruta en `args` apunta a `.claude/hooks/block-push.ps1`? Si el script sale con un código distinto de 0 o 2 (o no arranca), la acción sigue adelante como error no bloqueante. Para que un hook roto bloquee en vez de dejar pasar, la doc ofrece `"onFailure": "block"` en el hook (Claude Code v2.1.295 o más nuevo).
+- **Aparece un "Settings Error" al arrancar**: JSON inválido. Si lo escribiste con `Set-Content` o `>`, borralo y crealo de nuevo con el editor. Arreglalo o usá la opción para que Claude te ayude a corregirlo.
 - **La regla de `src/api` no se aplicó**: la regla se carga cuando Claude usa Read, Write o Edit sobre un archivo que matchea. Pedile explícitamente que lea `src/api/usuarios.ts` y repetí. Revisá que el YAML del frontmatter parsee: si no parsea, la regla se carga como si no tuviera `paths`.
-- **`/skills` no muestra la Skill**: si la carpeta `.claude/skills/` no existía al arrancar, corré `/reload-skills`.
-- **Querés dejarlo personal y no commitearlo**: lo mismo en `.claude/settings.local.json` y `CLAUDE.local.md`. Agregá `CLAUDE.local.md` al `.gitignore`; con `settings.local.json`, si lo creás a mano, también (Claude Code lo excluye de git por su cuenta solo cuando él crea el archivo).
+- **`/skills` no muestra la Skill**: si la carpeta `.claude\skills\` no existía al arrancar, corré `/reload-skills`.
+- **Querés dejarlo personal y no commitearlo**: lo mismo en `.claude\settings.local.json` y `CLAUDE.local.md`. Agregá `CLAUDE.local.md` al `.gitignore`; con `settings.local.json`, si lo creás a mano, también (Claude Code lo excluye de git por su cuenta solo cuando él crea el archivo).

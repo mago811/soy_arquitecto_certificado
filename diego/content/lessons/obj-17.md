@@ -5,6 +5,8 @@ rule: "Nunca 'leé todo primero': Grep para el punto de entrada, Read de esos ar
 sources:
   - url: https://code.claude.com/docs/en/tools-reference
     title: "Tools reference"
+  - url: https://code.claude.com/docs/en/cli-reference
+    title: "CLI reference"
   - url: https://code.claude.com/docs/en/costs
     title: "Manage costs effectively (Reduce token usage)"
   - url: https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents
@@ -65,7 +67,9 @@ Read src/services/refund/RefundService.ts offset=120 limit=80
 
 Cinco llamadas, contexto chico, flujo entendido.
 
-Ojo práctico: en macOS, Linux y WSL las tools Grep y Glob no vienen por defecto; Claude usa `grep` y `find` por Bash. La estrategia es la misma.
+Ojo práctico en tu máquina: en Windows, Grep y Glob vienen en el set de tools por defecto. Si querés que Claude explore solo con ellas (sin Bash ni PowerShell), arrancá con `claude --tools "Read,Grep,Glob"`: `--tools` restringe qué tools existen; `--allowedTools` solo las aprueba sin preguntar.
+
+Dato de examen: en macOS, Linux y WSL Grep y Glob no vienen por defecto (Claude busca con `grep` y `find` por Bash) y vuelven si las nombrás en `--tools` o `--allowedTools`. La estrategia de exploración es la misma.
 
 ## Para recordar
 

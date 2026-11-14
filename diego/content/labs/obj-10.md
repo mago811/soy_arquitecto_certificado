@@ -21,15 +21,21 @@ Sentir la diferencia de **latencia** entre subagentes en serie y en paralelo, ve
 
 ### 1. Un repo con tres módulos independientes (4 min)
 
-```bash
-mkdir lab-obj10 && cd lab-obj10
-mkdir auth database api
-for m in auth database api; do
-  for i in 1 2 3 4; do
-    echo "// $m archivo $i: función $m$i(); TODO: manejar errores" > $m/f$i.js
-  done
-done
+En PowerShell:
+
+```powershell
+New-Item -ItemType Directory -Force lab-obj10
+Set-Location lab-obj10
+New-Item -ItemType Directory -Force auth, database, api
+foreach ($m in "auth", "database", "api") {
+  foreach ($i in 1..4) {
+    Set-Content -Path "$m\f$i.js" -Value "// $m archivo ${i}: función $m$i(); TODO: manejar errores" -Encoding utf8
+  }
+}
+Get-ChildItem -Recurse -File
 ```
+
+Tenés que ver 12 archivos (`f1.js` a `f4.js` en cada carpeta). Ojo con `${i}:` y no `$i:`: en PowerShell, `$i:` pegado a una palabra se lee como otra cosa y el comando falla.
 
 ### 2. En serie (6 min)
 
@@ -88,6 +94,6 @@ Pedí: `¿Qué dice auth/f1.js?` Si lanza un subagente, es sobrecosto: para algo
 ## Si algo falla
 
 - Si en el paso 2 Claude igual lanza los tres juntos, repetí remarcando "esperá a que termine cada uno".
-- En una sesión interactiva los subagentes arrancan en background por defecto y, con fork mode prendido (el default), Claude no puede quedarse esperando a uno: el reporte llega en un turno posterior. Si en los pasos 2 o 4 no logra esperar, poné `"env": { "CLAUDE_CODE_FORK_SUBAGENT": "0" }` en `settings.json`, volvé a abrir `claude` y pedile "esperá el reporte" (doc: *Let Claude wait for a subagent*).
+- En una sesión interactiva los subagentes arrancan en background por defecto y, con fork mode prendido (el default), Claude no puede quedarse esperando a uno: el reporte llega en un turno posterior. Si en los pasos 2 o 4 no logra esperar, poné `"env": { "CLAUDE_CODE_FORK_SUBAGENT": "0" }` en `.claude\settings.json` (abrilo con `code .claude\settings.json` y editalo a mano; no lo generes con `Set-Content`), volvé a abrir `claude` y pedile "esperá el reporte" (doc: *Let Claude wait for a subagent*).
 - Si no ves el panel de subagentes, mirá los mensajes de la tool `Agent` en el transcript.
 - Los subagentes gastan tokens propios: con este repo chiquito es poco, pero en uno real tenelo en cuenta.

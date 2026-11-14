@@ -2,7 +2,7 @@
 objective: 30
 title: "Lab: el review que se queja de todo, domado con CLAUDE.md"
 minutes: 40
-needs: ["Claude Code", "git", "una carpeta de prueba"]
+needs: ["Claude Code en Windows", "PowerShell", "Git for Windows", "API key de Anthropic (paso 4)"]
 sources:
   - url: https://code.claude.com/docs/en/code-review-local
     title: "Review locally with /code-review"
@@ -12,6 +12,8 @@ sources:
     title: "Run Claude Code programmatically (bare mode)"
   - url: https://code.claude.com/docs/en/memory
     title: "How Claude remembers your project"
+  - url: https://code.claude.com/docs/en/permissions
+    title: "Configure permissions (PowerShell rules)"
 status: verificada
 ---
 
@@ -23,26 +25,31 @@ Ver con tus ojos que un review sin contexto marca como "problema" cosas que tu e
 
 ### 0. Repo de juguete (5 min)
 
-```bash
-mkdir lab-obj30 && cd lab-obj30 && git init
-mkdir -p src/gen src/billing
-cat > src/billing/montos.ts <<'TS'
+En PowerShell (los archivos con `Set-Content -Encoding utf8`; en PowerShell 5.1, `>` escribe UTF-16):
+
+```powershell
+New-Item -ItemType Directory lab-obj30 | Out-Null
+Set-Location lab-obj30
+git init
+New-Item -ItemType Directory -Force src\gen, src\billing | Out-Null
+Set-Content -Encoding utf8 -Path src\billing\montos.ts -Value @'
 // Convención del equipo: montos en centavos, como enteros.
 export function total(itemsCentavos: number[]): number {
   return itemsCentavos.reduce((a, b) => a + b, 0);
 }
-TS
-cat > src/gen/cliente_api.ts <<'TS'
+'@
+Set-Content -Encoding utf8 -Path src\gen\cliente_api.ts -Value @'
 // ARCHIVO GENERADO. No editar a mano.
 export const x=1;export const y = 2 ;var z=  3
-TS
-git add . && git commit -m "base"
+'@
+git add .
+git commit -m "base"
 ```
 
-Ahora un cambio con un bug real y cosas que el equipo acepta:
+El `'@` de cierre va pegado al margen izquierdo. Ahora un cambio con un bug real y cosas que el equipo acepta (sin commitear):
 
-```bash
-cat > src/billing/montos.ts <<'TS'
+```powershell
+Set-Content -Encoding utf8 -Path src\billing\montos.ts -Value @'
 // Convención del equipo: montos en centavos, como enteros.
 export function total(itemsCentavos: number[]): number {
   return itemsCentavos.reduce((a, b) => a + b, 0);
@@ -50,9 +57,12 @@ export function total(itemsCentavos: number[]): number {
 export function conIva(centavos: number): number {
   return centavos * 21 / 100; // bug: devuelve solo el IVA, no el total con IVA
 }
-TS
-echo 'var w=4' >> src/gen/cliente_api.ts
+'@
+Add-Content -Encoding utf8 -Path src\gen\cliente_api.ts -Value 'var w=4'
+git status --short
 ```
+
+`git status --short` tiene que mostrar los dos archivos con ` M`.
 
 ### 1. Review sin contexto (8 min)
 
@@ -66,7 +76,7 @@ Anotá cada hallazgo en una tabla: ¿es el bug real de `conIva`? ¿Es sobre `src
 
 ### 2. Contexto persistente en `CLAUDE.md` (8 min)
 
-Creá `CLAUDE.md` en la raíz:
+Creá `CLAUDE.md` en la raíz con el editor (`code CLAUDE.md` o `notepad CLAUDE.md`) y pegá:
 
 ```markdown
 # Convenciones de review
@@ -86,18 +96,20 @@ Mové las dos últimas viñetas a un `REVIEW.md` en la raíz y sacalas de `CLAUD
 
 ### 4. `--bare` se saltea `CLAUDE.md` (8 min)
 
-Salí de la sesión. Probá desde la shell (con `ANTHROPIC_API_KEY` seteada, porque bare mode no usa tu login):
+Salí de la sesión (`/exit`). Bare mode no usa tu login de claude.ai: necesita la API key en la ventana de PowerShell. Guardá el prompt en una variable para no repetirlo:
 
-```bash
-claude --bare -p "Revisá el diff de git (git diff) y listá problemas" --allowedTools "Read,Bash(git diff *)"
+```powershell
+$env:ANTHROPIC_API_KEY = "sk-ant-..."
+$p = "Revisá el diff de git (git diff) y listá problemas"
+claude --bare -p $p --allowedTools "Read,Bash(git diff *),PowerShell(git diff *)"
 ```
+
+La regla va para las dos tools de shell porque en Windows Claude puede correr `git diff` por Bash (Git Bash) o por PowerShell, y cada una tiene sus propias reglas de permiso.
 
 ¿Volvió a sugerir decimales o a mirar `src/gen/`? Ahora pasale las reglas por flag:
 
-```bash
-claude --bare -p "Revisá el diff de git (git diff) y listá problemas" \
-  --allowedTools "Read,Bash(git diff *)" \
-  --append-system-prompt-file CLAUDE.md
+```powershell
+claude --bare -p $p --allowedTools "Read,Bash(git diff *),PowerShell(git diff *)" --append-system-prompt-file CLAUDE.md
 ```
 
 ### 5. Menos ruido, sin perder el bug (6 min)
@@ -115,5 +127,6 @@ Opcional: `/code-review low`. La doc: "At `low`, the review reports the findings
 
 - **`/code-review` no encuentra cambios**: con el repo sin upstream compara contra `main` o el commit anterior. Asegurate de que el cambio del paso 0 esté sin commitear.
 - **El ruido no desaparece del todo**: el modelo puede variar entre corridas. Escribí la regla más concreta ("no reportar nada en `src/gen/`") en vez de vaga ("ignorá lo irrelevante").
-- **`--bare` pide credenciales**: bare mode no usa tu login de claude.ai; exportá `ANTHROPIC_API_KEY`.
+- **`--bare` pide credenciales**: bare mode no usa tu login de claude.ai. Seteá `$env:ANTHROPIC_API_KEY = "sk-ant-..."` en la misma ventana de PowerShell donde corrés `claude` (si abriste otra ventana, la variable no está: comprobalo con `$env:ANTHROPIC_API_KEY`).
+- **En el paso 4 Claude se queda esperando permiso o dice que no puede correr `git diff`**: revisá que el valor de `--allowedTools` esté entre comillas dobles, entero, con `Bash(git diff *)` y `PowerShell(git diff *)`.
 - **Tu versión de Claude Code no tiene `/code-review`**: actualizá Claude Code. Antes de v2.1.147 el comando se llamaba `/simplify` y aplicaba los fixes por defecto.

@@ -2,12 +2,14 @@
 objective: 9
 title: "Lab: pipeline de 3 etapas que sobrevive a un corte"
 minutes: 55
-needs: ["API key de Anthropic", "Python 3.10+", "pip install claude-agent-sdk", "git"]
+needs: ["API key de Anthropic", "Python 3.10+ (lanzador py)", "PowerShell", "Git for Windows"]
 sources:
   - url: https://code.claude.com/docs/en/agent-sdk/sessions
     title: "Work with sessions"
   - url: https://code.claude.com/docs/en/agent-sdk/python
     title: "Agent SDK reference - Python"
+  - url: https://code.claude.com/docs/en/agent-sdk/quickstart
+    title: "Agent SDK quickstart (Setup en Windows)"
   - url: https://code.claude.com/docs/en/agent-sdk/structured-outputs
     title: "Get structured output from agents"
   - url: https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices
@@ -23,20 +25,26 @@ Armar un pipeline `inventario → análisis → síntesis` donde cada etapa guar
 
 ### 0. Preparar (5 min)
 
-```bash
-mkdir lab-obj09 && cd lab-obj09
+En PowerShell:
+
+```powershell
+New-Item -ItemType Directory lab-obj09 | Out-Null
+Set-Location lab-obj09
 git init
-python3 -m venv .venv && source .venv/bin/activate
+py -m venv .venv
+.\.venv\Scripts\Activate.ps1
 pip install claude-agent-sdk
-export ANTHROPIC_API_KEY=tu-api-key
-mkdir -p repo state
-echo 'def login(u, p): return u == "admin" and p == "1234"' > repo/auth.py
-echo 'def cobrar(monto): return monto * 1.21' > repo/pagos.py
+$env:ANTHROPIC_API_KEY = "sk-ant-..."
+New-Item -ItemType Directory -Force repo, state | Out-Null
+Set-Content -Encoding utf8 -Path repo\auth.py -Value 'def login(u, p): return u == "admin" and p == "1234"'
+Set-Content -Encoding utf8 -Path repo\pagos.py -Value 'def cobrar(monto): return monto * 1.21'
 ```
+
+Si PowerShell bloquea `Activate.ps1`, corré `Set-ExecutionPolicy -Scope Process RemoteSigned` y repetí. Hacé todo el lab en esta misma ventana (ahí viven el venv activo y `$env:ANTHROPIC_API_KEY`).
 
 ### 1. El pipeline con manifiesto (20 min)
 
-Creá `pipeline.py`:
+Creá `pipeline.py` con el editor (`code pipeline.py`) y pegá esto. Ojo con `encoding="utf-8"`: en Windows, Python lee y escribe archivos con la codificación regional (cp1252) si no se la indicás, y una respuesta con `→` o emojis rompe el `write_text`.
 
 ```python
 import asyncio, json, pathlib, sys
@@ -57,11 +65,11 @@ SCHEMA = {
 
 def cargar_manifest():
     if MANIFEST.exists():
-        return json.loads(MANIFEST.read_text())
+        return json.loads(MANIFEST.read_text(encoding="utf-8"))
     return {e: {"status": "pending"} for e in ETAPAS}
 
 def guardar_manifest(m):
-    MANIFEST.write_text(json.dumps(m, indent=2, ensure_ascii=False))
+    MANIFEST.write_text(json.dumps(m, indent=2, ensure_ascii=False), encoding="utf-8")
 
 def prompt_para(etapa, previos):
     contexto = json.dumps(previos, indent=2, ensure_ascii=False)
@@ -87,7 +95,7 @@ async def correr(etapa, previos, manifest):
             guardar_manifest(manifest)
             if not msg.is_error and msg.structured_output:
                 out = STATE / f"{etapa}.json"
-                out.write_text(json.dumps(msg.structured_output, indent=2, ensure_ascii=False))
+                out.write_text(json.dumps(msg.structured_output, indent=2, ensure_ascii=False), encoding="utf-8")
                 manifest[etapa].update(status="done", output=str(out))
                 guardar_manifest(manifest)
                 return msg.structured_output
@@ -99,7 +107,7 @@ async def main():
     for etapa in ETAPAS:
         if manifest[etapa]["status"] == "done":
             print(f"↷ {etapa}: ya estaba hecha, la salteo")
-            previos[etapa] = json.loads(pathlib.Path(manifest[etapa]["output"]).read_text())
+            previos[etapa] = json.loads(pathlib.Path(manifest[etapa]["output"]).read_text(encoding="utf-8"))
             continue
         print(f"▶ {etapa}")
         previos[etapa] = await correr(etapa, previos, manifest)
@@ -113,16 +121,25 @@ asyncio.run(main())
 
 ### 2. Cortarlo (5 min)
 
-```bash
+```powershell
 python pipeline.py --cortar
-cat state/manifest.json
+Get-Content -Encoding utf8 state\manifest.json
+```
+
+Para mirar solo los estados:
+
+```powershell
+$m = Get-Content -Encoding utf8 -Raw state\manifest.json | ConvertFrom-Json
+$m.inventario.status
+$m.analisis.status
+$m.sintesis.status
 ```
 
 Tenés que ver `inventario` y `analisis` en `done`, `sintesis` en `pending`, y un `session_id` por etapa corrida.
 
 ### 3. Retomarlo (5 min)
 
-```bash
+```powershell
 python pipeline.py
 ```
 
@@ -130,13 +147,13 @@ Esperable: `↷ inventario: ya estaba hecha`, `↷ analisis: ya estaba hecha`, `
 
 ### 4. Resume por ID y fork (15 min)
 
-Agregá `retomar.py`:
+Agregá `retomar.py` (con el editor, igual que antes):
 
 ```python
 import asyncio, json, sys
 from claude_agent_sdk import query, ClaudeAgentOptions, ResultMessage
 
-sid = json.load(open("state/manifest.json"))["analisis"]["session_id"]
+sid = json.load(open("state/manifest.json", encoding="utf-8"))["analisis"]["session_id"]
 fork = "--fork" in sys.argv
 
 async def main():
@@ -151,7 +168,7 @@ async def main():
 asyncio.run(main())
 ```
 
-```bash
+```powershell
 python retomar.py          # resume: misma sesión, responde sin releer el repo
 python retomar.py --fork   # fork: session_id NUEVO, el original queda intacto
 ```
@@ -172,4 +189,6 @@ Pensá (o probá): si en el fork le pedís "corregí `repo/auth.py`", ¿el archi
 - **`structured_output` viene vacío:** chequeá `is_error` y el `subtype` del result (por ejemplo `error_max_structured_output_retries`). Simplificá el schema.
 - **La síntesis vuelve a leer el repo:** no es un error grave (tiene `Read`), pero muestra que el prompt no le dejó claro que ya tiene los resultados. Decíselo explícito.
 - **Una etapa termina con un subtype `error_*` y el script explota:** en un `query()` de una sola vuelta el SDK levanta una excepción después de entregar ese result message. El `session_id` ya quedó en el manifiesto, así que podés retomar esa etapa con `resume` y un límite más alto.
+- **`UnicodeEncodeError` o `UnicodeDecodeError`:** te faltó algún `encoding="utf-8"` en `read_text`, `write_text` u `open`.
+- **`python` no encuentra `claude_agent_sdk`:** el venv no está activo en esa ventana. Corré `.\.venv\Scripts\Activate.ps1`.
 - **`resume` no encuentra la sesión:** los archivos de sesión son locales a la máquina. Corré `retomar.py` en la misma máquina y desde la misma carpeta.

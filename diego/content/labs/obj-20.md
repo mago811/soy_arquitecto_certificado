@@ -2,7 +2,7 @@
 objective: 20
 title: "Lab: explorar un repo real con subagentes, notas, /compact y /clear"
 minutes: 55
-needs: ["Claude Code", "git", "un repo open source mediano (ej. express)"]
+needs: ["Claude Code en Windows (PowerShell)", "Git for Windows", "un repo open source mediano (ej. express)"]
 sources:
   - url: https://code.claude.com/docs/en/context-window
     title: "Explore the context window"
@@ -25,10 +25,25 @@ Hacer una exploración de verdad y medir con `/context` qué pasa con la ventana
 
 ### 0. Preparar (5 min)
 
-```bash
+En PowerShell:
+
+```powershell
 git clone --depth 1 https://github.com/expressjs/express.git lab-obj20
-cd lab-obj20
-printf '# Lab obj-20\n\n- Respondé en español.\n' > CLAUDE.md
+Set-Location lab-obj20
+code CLAUDE.md
+```
+
+(Si no usás VS Code, cambiá `code` por `notepad`.) Pegá en `CLAUDE.md` y guardá:
+
+```markdown
+# Lab obj-20
+
+- Respondé en español.
+```
+
+Después arrancá Claude Code desde la misma carpeta:
+
+```powershell
 claude
 ```
 
@@ -59,7 +74,7 @@ Escribí en NOTES.md los hallazgos del subagente con rutas exactas y nombres de 
 De acá en adelante, antes de responder sobre el router, consultá NOTES.md.
 ```
 
-Abrí `NOTES.md` en tu editor y confirmá que tiene nombres concretos, no generalidades.
+Abrí `NOTES.md` en tu editor (`code NOTES.md`) y confirmá que tiene nombres concretos, no generalidades.
 
 ### 4. Instrucción en el chat vs. en CLAUDE.md (10 min)
 
@@ -75,11 +90,13 @@ Pedí un par de fragmentos para confirmar que la sigue. Después:
 /compact keep NOTES.md findings about the router
 ```
 
-Pedí otro fragmento. Puede que siga la regla (quedó en el resumen) o puede que no: **no está garantizado**. Ahora agregá la regla a `CLAUDE.md`:
+Pedí otro fragmento. Puede que siga la regla (quedó en el resumen) o puede que no: **no está garantizado**. Ahora agregá la regla a `CLAUDE.md`: en otra ventana de PowerShell (o desde VS Code) abrí `code CLAUDE.md`, sumá esta línea al final y guardá:
 
-```bash
-echo '- Cuando muestres código, poné la ruta del archivo en la primera línea.' >> CLAUDE.md
+```markdown
+- Cuando muestres código, poné la ruta del archivo en la primera línea.
 ```
+
+Confirmá desde PowerShell con `Get-Content CLAUDE.md`: tienen que verse las dos reglas.
 
 Corré `/compact` de nuevo y pedí otro fragmento. Corré `/context all` y fijate que `CLAUDE.md` figura entre los archivos de memoria cargados: se relee del disco después de compactar.
 

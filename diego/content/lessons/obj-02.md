@@ -52,7 +52,7 @@ Con el SDK en hosts efímeros, igual: "Capture the results you need (analysis ou
 
 Lunes: `claude -n pagos-audit`, Claude analiza el módulo de pagos. Martes: un compañero mergea un cambio en `pagos/refund.ts`.
 
-```bash
+```powershell
 claude --resume pagos-audit
 ```
 
