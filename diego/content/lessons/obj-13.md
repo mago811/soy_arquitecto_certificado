@@ -37,7 +37,7 @@ La doc de GitHub Actions dice: creá un `CLAUDE.md` en la raíz del repo con gu�
 | Dónde | ¿Lo ve el runner de CI? |
 |---|---|
 | `./CLAUDE.md` o `./.claude/CLAUDE.md` (proyecto) | Sí, viene con el checkout |
-| `~/.claude/CLAUDE.md` (tu usuario) | No, vive en tu máquina |
+| `$HOME\.claude\CLAUDE.md` (tu usuario) | No, vive en tu máquina |
 
 **Trampa:** `--bare` saltea el CLAUDE.md, "the repo's as well as the machine's". Si usás `--bare`, pasá los estándares con `--append-system-prompt-file`.
 
@@ -53,7 +53,7 @@ La doc de GitHub Actions dice: creá un `CLAUDE.md` en la raíz del repo con gu�
 
 Esta es la confusión clásica: `--allowedTools` no es una lista blanca. La doc lo dice: "To restrict which tools are available, use `--tools` instead."
 
-Otro truco: **pasale el diff por stdin** (`gh pr diff 123 | claude -p ...`). Así Claude no necesita Bash para leerlo. Y si necesitás Bash, acotalo: `Bash(git diff *)`. El espacio antes del `*` importa. Sin el espacio, `Bash(git diff*)` también matchea `git diff-index`.
+Otro truco: **pasale el diff por stdin** (`git diff main | claude -p ...`). Así Claude no necesita una shell para leerlo. Y si la necesita, acotala en las dos tools de shell que tiene en Windows: `Bash(git diff *)` y `PowerShell(git diff *)`. El espacio antes del `*` importa. Sin el espacio, `Bash(git diff*)` también matchea `git diff-index`.
 
 ### 3. Salida: JSON validado
 
@@ -67,22 +67,23 @@ Si la corrida termina sin una salida válida, por ejemplo porque Claude se negó
 - **"Le pido en el prompt que responda solo en JSON."** Eso es guidance. Si cambia una coma, el parser se rompe. El fix es `--json-schema`.
 - **"Le pongo `--allowedTools Read` para que sea de solo lectura."** No: eso aprueba Read, no saca Edit. Para restringir: `--tools` o `--disallowedTools`.
 - **"Reemplazo el system prompt con `--system-prompt` para darle rol de reviewer."** Perdés el comportamiento por defecto de Claude Code. Para sumar un rol: `--append-system-prompt`.
-- **"Los estándares están en mi `~/.claude/CLAUDE.md`."** El runner no los ve.
+- **"Los estándares están en mi `$HOME\.claude\CLAUDE.md`."** El runner no los ve.
 - **"Que la review se apruebe sola y mergee."** Code Review "never approves or blocks the pull request". El merge lo decide una persona o la protección de rama.
 
 ## Ejemplo
 
-```bash
-gh pr diff 123 | claude -p \
-  --append-system-prompt "Sos reviewer de seguridad. Seguí los criterios del CLAUDE.md." \
-  --tools "Read,Grep,Glob" \
-  --output-format json \
-  --json-schema '{"type":"object","properties":{"findings":{"type":"array","items":{"type":"object","properties":{"file":{"type":"string"},"line":{"type":"integer"},"severity":{"type":"string","enum":["high","medium","low"]},"issue":{"type":"string"}},"required":["file","severity","issue"]}}},"required":["findings"]}' \
-  > review.json
+En PowerShell:
 
-jq -e '.structured_output' review.json > /dev/null || { echo "sin salida estructurada"; exit 1; }
-jq '.structured_output.findings[] | select(.severity=="high")' review.json
+```powershell
+$schema = '{"type":"object","properties":{"findings":{"type":"array","items":{"type":"object","properties":{"file":{"type":"string"},"line":{"type":"integer"},"severity":{"type":"string","enum":["high","medium","low"]},"issue":{"type":"string"}},"required":["file","severity","issue"]}}},"required":["findings"]}' -replace '"', '\"'
+
+$review = git diff main | claude -p "Revisá este diff." --append-system-prompt "Sos reviewer de seguridad. Seguí los criterios del CLAUDE.md." --tools "Read,Grep,Glob" --output-format json --json-schema $schema | ConvertFrom-Json
+
+if ($review.PSObject.Properties.Name -notcontains 'structured_output') { Write-Host "sin salida estructurada"; exit 1 }
+$review.structured_output.findings | Where-Object { $_.severity -eq 'high' }
 ```
+
+El `-replace` escapa las comillas del JSON: Windows PowerShell 5.1 se las come al pasarle un argumento a un programa.
 
 En GitHub Actions, con el plugin `code-review`:
 

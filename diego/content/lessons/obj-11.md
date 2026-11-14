@@ -29,7 +29,7 @@ En un pipeline no hay nadie mirando la terminal. Entonces Claude Code tiene que:
 
 ## Cuándo se usa
 
-Cada vez que Claude corre solo: un job de GitHub Actions, un hook de git, un cron, un loop en bash.
+Cada vez que Claude corre solo: un job de GitHub Actions, un hook de git, una tarea programada, un script de PowerShell.
 
 Los flags que importan:
 
@@ -52,7 +52,7 @@ Ojo: `--max-turns` y `--max-budget-usd` son "print mode only". Solo funcionan co
 
 **Error 2: "le doy `bypassPermissions` y listo".** Ese modo es para "Isolated containers and VMs only". En un runner compartido, lo correcto es `--allowedTools` con lo justo y `--permission-mode dontAsk`.
 
-**Error 3: leer `.result` sin mirar `subtype`.** Si la corrida pegó contra el tope, el subtype es `error_max_turns` o `error_max_budget_usd`. En esos casos no hay `result`. (Estos subtypes están documentados en la página del agent loop del Agent SDK; `claude -p` es el Agent SDK usado desde la CLI.) Tu script publica "null" como si fuera la respuesta.
+**Error 3: leer `.result` sin mirar `subtype`.** Si la corrida pegó contra el tope, el subtype es `error_max_turns` o `error_max_budget_usd`. En esos casos no hay `result`. (Estos subtypes están documentados en la página del agent loop del Agent SDK; `claude -p` es el Agent SDK usado desde la CLI.) Tu script publica una respuesta vacía (`$null`) como si fuera el resultado.
 
 **Error 4: creer que el tope de gasto es exacto.** Claude Code compara el gasto *después* de cada respuesta. La respuesta que cruza el tope igual se completa. Por eso la doc dice "leave headroom".
 
@@ -62,18 +62,22 @@ Ojo: `--max-turns` y `--max-budget-usd` son "print mode only". Solo funcionan co
 
 Un job nocturno arregla lint:
 
-```bash
-claude -p "Corré el linter y arreglá los errores. Respondé OK o FAIL." \
-  --allowedTools "Read,Edit,Bash(npm run lint *)" \
-  --permission-mode dontAsk \
-  --max-turns 15 \
-  --max-budget-usd 3.00 \
-  --output-format json > out.json
+```powershell
+$opts = @(
+  "--allowedTools", "Read,Edit,Bash(npm run lint *),PowerShell(npm run lint *)",
+  "--permission-mode", "dontAsk",
+  "--max-turns", "15",
+  "--max-budget-usd", "3.00",
+  "--output-format", "json"
+)
+$out = claude -p "Corré el linter y arreglá los errores. Respondé OK o FAIL." @opts | ConvertFrom-Json
 
-jq -r '.subtype, .total_cost_usd, .num_turns' out.json
+$out | Select-Object subtype, total_cost_usd, num_turns
 ```
 
-- Si `subtype` es `success`, leés `.result`.
+En Windows, Claude puede correr el linter con la tool `Bash` (Git Bash) o con la tool `PowerShell`, así que el permiso se escribe para las dos.
+
+- Si `$out.subtype` es `success`, leés `$out.result`.
 - Si es `error_max_turns`, el job falla y alguien mira.
 - `total_cost_usd` va a tu dashboard de costos.
 

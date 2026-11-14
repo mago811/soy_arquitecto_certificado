@@ -2,7 +2,7 @@
 objective: 8
 title: "Lab: misma herramienta, dos tareas: ejecución directa vs plan mode (y una pasada multi-fase)"
 minutes: 45
-needs: ["Claude Code", "git", "una carpeta de prueba"]
+needs: ["Claude Code", "PowerShell", "git", "una carpeta de prueba"]
 sources:
   - url: https://code.claude.com/docs/en/permission-modes
     title: "Choose a permission mode"
@@ -27,38 +27,63 @@ Sentir en carne propia cuándo conviene cada arquitectura:
 
 ## Pasos
 
-1. Proyecto de prueba:
+1. **Proyecto de prueba.** En PowerShell, primero preparás la consola (una vez por ventana, para que los acentos viajen bien) y la carpeta:
 
-   ```bash
-   mkdir -p ~/lab-obj08 && cd ~/lab-obj08 && git init -q
-   echo "# Mi app. Para recieve mensajes, corré npm start." > README.md
-   cat > auth.js <<'EOF'
+   ```powershell
+   $OutputEncoding = [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding
+   New-Item -ItemType Directory -Force $HOME\lab-obj08 | Out-Null
+   Set-Location $HOME\lab-obj08
+   git init -q
+   ```
+
+   Creá tres archivos con el editor (`code <archivo>`, o `notepad <archivo>` si no tenés VS Code), pegá el contenido y guardá.
+
+   `README.md`:
+
+   ```markdown
+   # Mi app. Para recieve mensajes, corré npm start.
+   ```
+
+   `auth.js`:
+
+   ```javascript
    const crypto = require('crypto');
    function hashPassword(p) { return crypto.createHash('md5').update(p).digest('hex'); }
    function check(p, h) { return hashPassword(p) === h; }
    module.exports = { hashPassword, check };
-   EOF
-   cat > users.js <<'EOF'
+   ```
+
+   `users.js`:
+
+   ```javascript
    const { hashPassword, check } = require('./auth');
    const db = {};
    function register(u, p) { db[u] = hashPassword(p); }
    function login(u, p) { return check(p, db[u]); }
    module.exports = { register, login };
-   EOF
-   git add . && git commit -qm base
+   ```
+
+   Commiteá:
+
+   ```powershell
+   git add .
+   git commit -qm base
    ```
 
 2. **Tarea chica, directo:**
 
-   ```bash
-   time claude -p "Corregí el typo 'recieve' en README.md" \
-     --allowedTools "Read,Edit" --output-format json | jq '{subtype, num_turns, total_cost_usd}'
-   git diff --stat && git checkout README.md
+   ```powershell
+   $inicio = Get-Date
+   $r = claude -p "Corregí el typo 'recieve' en README.md" --allowedTools "Read,Edit" --output-format json | ConvertFrom-Json
+   "segundos: $([int](((Get-Date) - $inicio).TotalSeconds))"
+   $r | Select-Object subtype, num_turns, total_cost_usd
+   git diff --stat
+   git checkout README.md
    ```
 
 3. **Tarea chica, con plan mode** (interactivo):
 
-   ```bash
+   ```powershell
    claude --permission-mode plan
    ```
 
@@ -66,9 +91,9 @@ Sentir en carne propia cuándo conviene cada arquitectura:
 
 4. **Tarea riesgosa, directo** (para ver el problema):
 
-   ```bash
-   claude -p "Cambiá el hash de contraseñas a algo seguro" \
-     --allowedTools "Read,Edit" --output-format json | jq -r '.result'
+   ```powershell
+   $r = claude -p "Cambiá el hash de contraseñas a algo seguro" --allowedTools "Read,Edit" --output-format json | ConvertFrom-Json
+   $r.result
    git diff
    ```
 
@@ -81,7 +106,7 @@ Sentir en carne propia cuándo conviene cada arquitectura:
 
 5. **Tarea riesgosa, plan mode:**
 
-   ```bash
+   ```powershell
    claude --permission-mode plan
    ```
 
@@ -93,19 +118,22 @@ Sentir en carne propia cuándo conviene cada arquitectura:
 
 6. **Multi-fase en modo script** (cómo se haría en CI):
 
-   ```bash
+   ```powershell
    git checkout .
    # Fase 1: planificar. En -p, plan mode no edita.
-   claude -p "Planificá la migración del hash de contraseñas a scrypt con migración de usuarios existentes. Escribí el plan como lista numerada." \
-     --permission-mode plan --output-format json | jq -r '.result' > PLAN.md
-   git status --short    # tiene que aparecer solo PLAN.md (lo creó tu shell), sin cambios en .js
-   # Fase 2: VOS leés y editás PLAN.md. Esa es la aprobación humana.
+   $plan = claude -p "Planificá la migración del hash de contraseñas a scrypt con migración de usuarios existentes. Escribí el plan como lista numerada." --permission-mode plan --output-format json | ConvertFrom-Json
+   $plan.result | Set-Content -Encoding utf8 PLAN.md
+   git status --short    # tiene que aparecer solo PLAN.md (lo creó tu PowerShell), sin cambios en .js
+   ```
+
+   **Fase 2:** VOS abrís `PLAN.md` (`code PLAN.md`), lo leés y lo editás. Esa es la aprobación humana.
+
+   ```powershell
    # Fase 3: ejecutar en una corrida nueva, con el plan aprobado como entrada.
-   claude -p "Implementá exactamente el plan de PLAN.md. No hagas nada fuera del plan." \
-     --allowedTools "Read,Edit" --permission-mode dontAsk --max-turns 15 --output-format json | jq -r '.subtype'
+   $impl = claude -p "Implementá exactamente el plan de PLAN.md. No hagas nada fuera del plan." --allowedTools "Read,Edit" --permission-mode dontAsk --max-turns 15 --output-format json | ConvertFrom-Json
+   $impl.subtype
    # Fase 4: review independiente, en una corrida nueva que no vio la implementación.
-   git diff | claude -p "Revisá este diff contra PLAN.md. Reportá solo lo que falte o esté mal; ignorá estilo." \
-     --tools "Read,Grep,Glob"
+   git diff | claude -p "Revisá este diff contra PLAN.md. Reportá solo lo que falte o esté mal; ignorá estilo." --tools "Read,Grep,Glob"
    ```
 
 7. Completá esta tabla en tus notas:
@@ -125,5 +153,7 @@ Sentir en carne propia cuándo conviene cada arquitectura:
 
 - **No ves el plan ni las opciones de aprobación:** confirmá que la barra de estado diga `⏸ plan mode on`. Si no, apretá `Shift+Tab` hasta que aparezca.
 - **En el paso 2 no editó:** te faltó `--allowedTools "Read,Edit"`. En `-p`, lo que pide aprobación se niega.
-- **`Ctrl+G` no abre nada:** `Ctrl+G` abre el plan en tu editor de texto por defecto. Revisá que tu sistema tenga uno configurado y reintentá.
-- **En el paso 6, fase 1, no devuelve un plan en `result`:** mirá `.subtype`. Si es `error_max_turns`, sacá cualquier `--max-turns` bajo.
+- **`Ctrl+G` no abre nada:** `Ctrl+G` abre el plan en tu editor de texto por defecto. Revisá que tengas uno configurado y reintentá.
+- **`ConvertFrom-Json` tira "Invalid JSON primitive":** `claude` no imprimió JSON. Corré el mismo comando sin `| ConvertFrom-Json` y leé el error.
+- **Los acentos salen como `Ã¡` o `?`:** te faltó la primera línea del paso 1 en esta ventana. Corrélo y repetí.
+- **En el paso 6, fase 1, no devuelve un plan en `result`:** mirá `$plan.subtype`. Si es `error_max_turns`, sacá cualquier `--max-turns` bajo.
