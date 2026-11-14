@@ -2,7 +2,7 @@
 objective: 29
 title: "Lab (repaso): remitos de tres proveedores, un solo formato de salida"
 minutes: 30
-needs: ["API key de Anthropic", "Python 3.10+"]
+needs: ["API key de Anthropic", "Python 3.10+ para Windows (con el launcher py)", "PowerShell"]
 sources:
   - url: https://platform.claude.com/docs/en/build-with-claude/structured-outputs
     title: "Structured outputs"
@@ -21,7 +21,18 @@ Modelo: `claude-opus-5-5`, `max_tokens` 4000 (el thinking cuenta).
 
 ## Pasos
 
-1. Entorno: `python -m venv .venv && source .venv/bin/activate && pip install anthropic` y `export ANTHROPIC_API_KEY=...`.
+1. Entorno:
+
+```powershell
+New-Item -ItemType Directory -Force lab29
+Set-Location lab29
+py -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install anthropic
+$env:ANTHROPIC_API_KEY = "sk-ant-..."   # tu key; dura solo esta ventana de PowerShell
+```
+
+Cada `.py` de este lab lo creás con `code nombre.py` (o `notepad nombre.py`), pegás el contenido y guardás. Corré todo desde esta misma ventana de PowerShell, con el venv activado (el prompt empieza con `(.venv)`).
 
 2. `lab.py`:
 
@@ -76,3 +87,6 @@ for n, d in DOCS.items():
 - **`moneda` sale "usd"**: la capitalización de enums no está garantizada; compará con `.upper()`.
 - **`stop_reason` `max_tokens`**: subí a 8000.
 - **V2 inventa igual**: revisá que el ejemplo con `null` esté y que diga "SOLO lo que dice el documento".
+- **PowerShell no deja ejecutar `Activate.ps1`** ("la ejecución de scripts está deshabilitada en este sistema"): corré una sola vez `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`, contestá que sí y volvé a correr `.\.venv\Scripts\Activate.ps1`.
+- **`py` no se reconoce como comando**: instalá Python para Windows desde python.org (trae el launcher `py`) y abrí una ventana nueva de PowerShell.
+- **Abriste otra ventana de PowerShell y nada anda**: `$env:ANTHROPIC_API_KEY` y el venv duran solo esa sesión. En la ventana nueva, entrá a la carpeta del lab, activá el venv y volvé a cargar la key.

@@ -2,7 +2,7 @@
 objective: 34
 title: "Lab: ver tools, resources y prompts de un mismo server MCP"
 minutes: 40
-needs: ["Claude Code", "Node 22.19 o más nuevo (npx)", "una carpeta de prueba"]
+needs: ["Claude Code en Windows", "Node 22.19 o más nuevo para Windows (npx)", "PowerShell", "una carpeta de prueba"]
 sources:
   - url: https://code.claude.com/docs/en/mcp
     title: "Connect Claude Code to tools via MCP"
@@ -31,10 +31,11 @@ Después, diseñar en papel qué expondrías como resource y qué como tool en u
 
 ### 1. Mirar el server "desde afuera" con el Inspector (10 min)
 
-En una carpeta de prueba:
+En una ventana de PowerShell, en una carpeta de prueba (cada `npx` es un comando aparte, una línea por vez):
 
-```bash
-mkdir lab-obj34 && cd lab-obj34
+```powershell
+New-Item -ItemType Directory -Force lab-obj34
+Set-Location lab-obj34
 npx -y @modelcontextprotocol/inspector --cli npx -y @modelcontextprotocol/server-everything -- --method tools/list
 npx -y @modelcontextprotocol/inspector --cli npx -y @modelcontextprotocol/server-everything -- --method resources/list
 npx -y @modelcontextprotocol/inspector --cli npx -y @modelcontextprotocol/server-everything -- --method resources/templates/list
@@ -47,16 +48,18 @@ Anotá: ¿qué campos tiene cada resource? (buscá `uri`, `name`, `mimeType`). �
 
 Elegí una URI de la lista de resources y leela:
 
-```bash
+```powershell
 npx -y @modelcontextprotocol/inspector --cli npx -y @modelcontextprotocol/server-everything -- --method resources/read --uri "<una-uri-de-la-lista>"
 ```
 
 ### 2. Conectarlo a Claude Code (5 min)
 
-```bash
+```powershell
 claude mcp add --transport stdio everything -- npx -y @modelcontextprotocol/server-everything
 claude
 ```
+
+Corré `claude` desde la misma carpeta `lab-obj34`: el server queda guardado con scope `local`, atado a esa carpeta.
 
 Dentro de Claude Code:
 
@@ -96,7 +99,7 @@ Respuesta esperada: 1 resource · 2 tool · 3 tool · 4 resource template · 5 p
 
 ### 6. Limpieza
 
-```bash
+```powershell
 claude mcp remove everything
 ```
 
@@ -112,3 +115,5 @@ claude mcp remove everything
 - **`npx` se queja de la versión de Node**: el Inspector requiere Node 22.19.0 o más nuevo.
 - **`/mcp` muestra el server fallado**: corré `claude mcp get everything` y mirá la línea `Issue:`. Revisá que pusiste `--` antes de `npx`.
 - **`@everything:` no muestra nada**: esperá a que el server termine de conectar (mirá `/mcp`) y volvé a tipear `@`.
+- **PowerShell dice que no puede cargar `npx.ps1`** ("la ejecución de scripts está deshabilitada en este sistema"): corré una sola vez `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`, contestá que sí y volvé a probar en la misma ventana.
+- **`npx` o `node` no se reconocen como comando**: instalá Node.js para Windows y abrí una ventana nueva de PowerShell (la ventana vieja no ve el `PATH` nuevo). Probá con `node --version`.

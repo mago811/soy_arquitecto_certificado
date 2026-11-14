@@ -2,7 +2,7 @@
 objective: 35
 title: "Lab: un `.mcp.json` de equipo con variables, scopes que se pisan y verificación"
 minutes: 50
-needs: ["Claude Code", "Node (npx)", "git", "una carpeta de prueba", "opcional: Python 3.10+ para el paso del Agent SDK"]
+needs: ["Claude Code en Windows (PowerShell)", "Node para Windows (npx)", "Git for Windows", "una carpeta de prueba", "opcional: Python 3.10+ para Windows (launcher py) para el paso del Agent SDK"]
 sources:
   - url: https://code.claude.com/docs/en/mcp
     title: "Connect Claude Code to tools via MCP"
@@ -24,12 +24,18 @@ status: verificada
 
 ### 1. Repo de prueba con `.mcp.json` (10 min)
 
-```bash
-mkdir lab-obj35 && cd lab-obj35 && git init
-mkdir -p data && echo "hola" > data/nota.txt
+En PowerShell:
+
+```powershell
+New-Item -ItemType Directory -Force lab-obj35
+Set-Location lab-obj35
+git init
+New-Item -ItemType Directory -Force data
+Set-Content -Path data\nota.txt -Value "hola" -Encoding utf8
+code .mcp.json
 ```
 
-Creá `.mcp.json` en la raíz:
+(Si no usás VS Code, `notepad .mcp.json`.) Creá el `.mcp.json` con el editor, no con `Set-Content`: en PowerShell 5.1 puede salir con BOM o en UTF-16 y romper el JSON. Pegá esto en la raíz del proyecto y guardá:
 
 ```json
 {
@@ -46,13 +52,13 @@ Creá `.mcp.json` en la raíz:
 
 ### 2. Aprobación y verificación (10 min)
 
-```bash
+```powershell
 claude mcp list
 ```
 
 Vas a ver `files` como `⏸ Pending approval (run `claude` to approve)`: los servers de `.mcp.json` piden aprobación en sesiones interactivas.
 
-```bash
+```powershell
 claude
 ```
 
@@ -66,10 +72,12 @@ Tiene que aparecer `files` con ✔ y la cantidad de tools. Salí y corré `claud
 
 ### 3. Usar la variable (5 min)
 
-```bash
-export LAB_DIR="$(pwd)/data"
+```powershell
+$env:LAB_DIR = "$PWD\data"
 claude
 ```
+
+`$env:LAB_DIR` vive solo en esta ventana de PowerShell: `claude` la hereda porque lo lanzás desde acá. Si abrís otra ventana, la variable no está.
 
 Pedí: `Usando el server files, listá los archivos disponibles.` Tiene que ver `nota.txt`.
 
@@ -77,57 +85,69 @@ Pedí: `Usando el server files, listá los archivos disponibles.` Tiene que ver 
 
 Cambiá en `.mcp.json` `"${LAB_DIR:-.}"` por `"${LAB_DIR}"` (sin default) y corré:
 
-```bash
-unset LAB_DIR
+```powershell
+Remove-Item Env:LAB_DIR -ErrorAction SilentlyContinue
 claude mcp list
 ```
 
 Buscá el warning de variable faltante: la config carga igual, pero con el texto `${LAB_DIR}` sin expandir. Volvé a poner el default.
 
-Pregunta para vos: si hacés `export LAB_DIR=""`, ¿`${LAB_DIR:-.}` da `.`? No: una variable en string vacío cuenta como seteada y expande a vacío. Para usar el default hay que hacer `unset`.
+Pregunta para vos: si una variable está seteada en string vacío, ¿`${LAB_DIR:-.}` da `.`? No: según la doc, una variable en string vacío cuenta como seteada y expande a vacío. Para usar el default hay que borrar la variable (en PowerShell, `Remove-Item Env:LAB_DIR`), no dejarla vacía.
 
 ### 5. El mismo nombre en dos scopes (10 min)
 
 Agregá otro `files` en scope local (el default), apuntando a otra carpeta:
 
-```bash
-claude mcp add --transport stdio files -- npx -y @modelcontextprotocol/server-filesystem /tmp
+```powershell
+claude mcp add --transport stdio files -- npx -y @modelcontextprotocol/server-filesystem $env:TEMP
 claude mcp list
 claude mcp get files
 ```
+
+`$env:TEMP` es tu carpeta temporal de Windows (algo como `C:\Users\Diego\AppData\Local\Temp`); PowerShell la reemplaza por la ruta antes de pasársela a `claude`.
 
 - Local tiene más precedencia que project: Claude Code usa **una sola** definición, entera, sin mezclar campos.
 - Si te muestra el warning de mismo nombre en más de un scope, la doc dice que te quedes con uno y borres el otro.
 
 Limpiá el local:
 
-```bash
+```powershell
 claude mcp remove files --scope local
 ```
 
 ### 6. Scope user (5 min)
 
-```bash
+```powershell
 claude mcp add --transport http cc-docs --scope user https://code.claude.com/docs/mcp
-cd .. && mkdir otro-proyecto && cd otro-proyecto
+Set-Location ..
+New-Item -ItemType Directory -Force otro-proyecto
+Set-Location otro-proyecto
 claude mcp list
 ```
 
 `cc-docs` aparece también acá: user = todos tus proyectos. `files` no aparece: era del otro proyecto. Limpiá:
 
-```bash
+```powershell
 claude mcp remove cc-docs --scope user
-cd ../lab-obj35
+Set-Location ..\lab-obj35
 ```
+
+Los servers de scope user y local se guardan en `$HOME\.claude.json`; los de project, en el `.mcp.json` del repo.
 
 ### 7. (Opcional) Verificar desde el Agent SDK (5 min)
 
-```bash
-python -m venv .venv && source .venv/bin/activate
+Parado en `lab-obj35`:
+
+```powershell
+py -m venv .venv
+.\.venv\Scripts\Activate.ps1
 pip install claude-agent-sdk
+code check.py
 ```
 
-`check.py`:
+Si PowerShell no te deja correr `Activate.ps1` ("la ejecución de scripts está deshabilitada"), corré una sola vez `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` y volvé a activar. Con el venv activo, el prompt arranca con `(.venv)`.
+
+Pegá en `check.py`:
 
 ```python
 import asyncio
@@ -145,7 +165,7 @@ async def main():
 asyncio.run(main())
 ```
 
-```bash
+```powershell
 python check.py
 ```
 
@@ -163,5 +183,6 @@ Probá sacar `allowed_tools`: Claude ve las tools pero no puede llamarlas sin pe
 ## Si algo falla
 
 - **`✘ Failed to connect`**: `claude mcp get files` muestra el detalle en la línea `Issue:`.
-- **El server stdio no arranca con `claude mcp add`**: revisá que pusiste `--` antes de `npx`.
+- **El server stdio no arranca con `claude mcp add`**: revisá que pusiste `--` antes de `npx`. Probá también `npx --version` en la misma ventana: si PowerShell no lo encuentra, falta Node en el `PATH` (cerrá y abrí la terminal después de instalarlo).
+- **El server lista otra carpeta en el paso 3**: abriste `claude` en una ventana donde no seteaste `$env:LAB_DIR`. Revisalo con `$env:LAB_DIR` (tiene que imprimir la ruta a `data`).
 - **En el SDK el server no aparece**: si configuraste `settingSources` a mano, tiene que incluir `"project"` para que se cargue `.mcp.json`. Corré el script desde la raíz del repo.

@@ -2,7 +2,7 @@
 objective: 23
 title: "Lab: el mismo trabajo, síncrono y en batch"
 minutes: 50
-needs: ["API key de Anthropic", "Python 3.10+"]
+needs: ["API key de Anthropic", "Python 3.10+ para Windows (con el launcher py)", "PowerShell"]
 sources:
   - url: https://platform.claude.com/docs/en/build-with-claude/batch-processing
     title: "Batch processing"
@@ -17,12 +17,16 @@ Clasificar 10 reseñas de dos formas: con la Messages API (síncrona) y con la M
 
 ### 0. Preparar (5 min)
 
-```bash
-mkdir lab-obj23 && cd lab-obj23
-python3 -m venv .venv && source .venv/bin/activate
+```powershell
+New-Item -ItemType Directory -Force lab-obj23
+Set-Location lab-obj23
+py -m venv .venv
+.\.venv\Scripts\Activate.ps1
 pip install anthropic
-export ANTHROPIC_API_KEY="tu-key"
+$env:ANTHROPIC_API_KEY = "sk-ant-..."   # tu key; dura solo esta ventana de PowerShell
 ```
+
+Cada `.py` de este lab lo creás con `code nombre.py` (o `notepad nombre.py`), pegás el contenido y guardás. Corré todo desde esta misma ventana de PowerShell, con el venv activado (el prompt empieza con `(.venv)`).
 
 Creá `datos.py`:
 
@@ -103,7 +107,8 @@ requests.append(
 
 message_batch = client.messages.batches.create(requests=requests)
 print(message_batch.id, message_batch.processing_status)
-open("batch_id.txt", "w").write(message_batch.id)
+with open("batch_id.txt", "w", encoding="utf-8") as fh:
+    fh.write(message_batch.id)
 ```
 
 Corré `python crear_batch.py`. Tiene que imprimir un id `msgbatch_…` y `in_progress`.
@@ -119,7 +124,7 @@ import time
 import anthropic
 
 client = anthropic.Anthropic()
-MESSAGE_BATCH_ID = open("batch_id.txt").read().strip()
+MESSAGE_BATCH_ID = open("batch_id.txt", encoding="utf-8").read().strip()
 
 while True:
     message_batch = client.messages.batches.retrieve(MESSAGE_BATCH_ID)
@@ -141,7 +146,7 @@ import anthropic
 from datos import RESENAS
 
 client = anthropic.Anthropic()
-MESSAGE_BATCH_ID = open("batch_id.txt").read().strip()
+MESSAGE_BATCH_ID = open("batch_id.txt", encoding="utf-8").read().strip()
 
 orden = []
 reintentar, arreglar = [], []
@@ -210,3 +215,7 @@ print(nuevo.id)
 - **El batch no termina:** lo normal es menos de 1 hora, pero puede tardar hasta 24 h; si no termina en 24 h, lo pendiente sale `expired` (no se cobra).
 - **No encontrás los resultados de un batch viejo:** están disponibles 29 días desde que lo creaste.
 - **Querés cambiar un batch ya enviado:** no se puede; cancelalo (`client.messages.batches.cancel(id)`) y mandá otro.
+- **PowerShell no deja ejecutar `Activate.ps1`** ("la ejecución de scripts está deshabilitada en este sistema"): corré una sola vez `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`, contestá que sí y volvé a correr `.\.venv\Scripts\Activate.ps1`.
+- **`py` no se reconoce como comando**: instalá Python para Windows desde python.org (trae el launcher `py`) y abrí una ventana nueva de PowerShell.
+- **Abriste otra ventana de PowerShell y nada anda**: `$env:ANTHROPIC_API_KEY` y el venv duran solo esa sesión. En la ventana nueva, entrá a la carpeta del lab, activá el venv y volvé a cargar la key.
+- **`UnicodeDecodeError` o tildes rotas al leer/escribir el `.json`/`.txt`:** en Windows Python no usa UTF-8 por defecto para archivos. Por eso cada `open(...)` del lab lleva `encoding="utf-8"`; si lo sacaste, volvé a ponerlo.

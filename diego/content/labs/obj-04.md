@@ -19,11 +19,19 @@ Ver con tus ojos que un prompt de delegación **por pasos** no se adapta cuando 
 
 ### 0. Proyecto de juguete con una vulnerabilidad "escondida" (5 min)
 
-```bash
-mkdir lab-obj04 && cd lab-obj04
+En PowerShell:
+
+```powershell
+New-Item -ItemType Directory -Force lab-obj04
+Set-Location lab-obj04
 git init
-mkdir -p src templates tests .claude/agents
-cat > src/server.js <<'EOF'
+New-Item -ItemType Directory -Force src, templates, tests, .claude\agents
+code src\server.js
+```
+
+(Si no usás VS Code, cambiá `code` por `notepad` en todos los pasos.) Pegá esto en `src\server.js` y guardá:
+
+```javascript
 const { render } = require("../templates/render");
 function handle(req) {
   // input del usuario
@@ -31,25 +39,32 @@ function handle(req) {
   return render(expr);
 }
 module.exports = { handle };
-EOF
-cat > templates/render.js <<'EOF'
+```
+
+Después `code templates\render.js` y pegá:
+
+```javascript
 function render(expr) {
   // ejecuta lo que llega del request
   const fn = new Function("return " + expr);
   return "<p>" + fn() + "</p>";
 }
 module.exports = { render };
-EOF
-echo 'test("ok", () => {});' > tests/server.test.js
+```
+
+Y por último `code tests\server.test.js` con una sola línea:
+
+```javascript
+test("ok", () => {});
 ```
 
 Fijate: en `src/` no hay ningún `eval(`. La ejecución dinámica está en `templates/` y usa `new Function`.
 
-Creamos `.claude/agents/` ANTES de abrir Claude Code: si la carpeta de agentes no existía al empezar la sesión, hay que reiniciar para que cargue.
+Creamos `.claude\agents\` ANTES de abrir Claude Code: si la carpeta de agentes no existía al empezar la sesión, hay que reiniciar para que cargue.
 
 ### 1. Definí el subagente auditor (5 min)
 
-Creá `.claude/agents/auditor.md`:
+Creá el archivo con `code .claude\agents\auditor.md` y pegá:
 
 ```markdown
 ---
@@ -70,7 +85,7 @@ Al terminar, siempre devolvés:
 
 ### 2. Delegación por pasos (10 min)
 
-Abrí `claude` en la carpeta y pegá:
+En la misma ventana de PowerShell (parado en `lab-obj04`) corré `claude` y pegá:
 
 ```text
 Usá el subagente auditor con EXACTAMENTE estas instrucciones, sin agregar nada:
@@ -117,6 +132,6 @@ En cada corrida, mirá la sección **NO CUBIERTO**. Con eso el coordinador (vos 
 
 ## Si algo falla
 
-- **El subagente no aparece:** revisá que el archivo esté en `.claude/agents/` y tenga `name` y `description` en el frontmatter. Si creaste la carpeta con la sesión abierta, reiniciá Claude Code.
+- **El subagente no aparece:** revisá que el archivo esté en `.claude\agents\auditor.md` (con `Get-ChildItem .claude\agents`) y tenga `name` y `description` en el frontmatter. Si creaste la carpeta con la sesión abierta, reiniciá Claude Code.
 - **Claude no delega y lo hace él mismo:** nombrá al subagente explícitamente ("Usá el subagente auditor…") o usá @-mention.
 - **En el paso 2 igual lo encontró:** el modelo a veces se sale del guion. Hacé el guion todavía más cerrado y compará cuántas veces lo encuentra en 2–3 corridas.

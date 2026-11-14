@@ -2,7 +2,7 @@
 objective: 37
 title: "Lab: encadenar tools con dependencias (y ver por qué forzar no alcanza)"
 minutes: 55
-needs: ["API key de Anthropic", "Python 3.10+"]
+needs: ["API key de Anthropic", "Python 3.10+ para Windows (con el launcher py)", "PowerShell"]
 sources:
   - url: https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works
     title: "How tool use works (The agentic loop)"
@@ -30,12 +30,16 @@ Modelo: `claude-haiku-5-5` (acepta `tool_choice` `any`/`tool`).
 
 1. Entorno:
 
-```bash
-mkdir lab37 && cd lab37
-python -m venv .venv && source .venv/bin/activate
+```powershell
+New-Item -ItemType Directory -Force lab37
+Set-Location lab37
+py -m venv .venv
+.\.venv\Scripts\Activate.ps1
 pip install anthropic
-export ANTHROPIC_API_KEY="sk-ant-..."
+$env:ANTHROPIC_API_KEY = "sk-ant-..."   # tu key; dura solo esta ventana de PowerShell
 ```
+
+Cada `.py` de este lab lo creás con `code nombre.py` (o `notepad nombre.py`), pegás el contenido y guardás. Corré todo desde esta misma ventana de PowerShell, con el venv activado (el prompt empieza con `(.venv)`).
 
 2. Creá `base.py` con las tools y un "backend" falso:
 
@@ -157,3 +161,6 @@ La doc dice que los `tool_result` tienen que ir **primero** en el `content` y qu
 - Error "tool_use ids were found without tool_result blocks immediately after" → te faltó devolver un `tool_result` para algún `tool_use`, o metiste un mensaje en el medio.
 - `tool_choice` `tool` da 400 → ¿estás en `claude-sonnet-5-5` o `claude-opus-5-5`? Esos no aceptan forzar. Usá `claude-haiku-5-5` para este lab.
 - `stop_reason: max_tokens` con un `tool_use` cortado → subí `max_tokens` y reintentá.
+- **PowerShell no deja ejecutar `Activate.ps1`** ("la ejecución de scripts está deshabilitada en este sistema"): corré una sola vez `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`, contestá que sí y volvé a correr `.\.venv\Scripts\Activate.ps1`.
+- **`py` no se reconoce como comando**: instalá Python para Windows desde python.org (trae el launcher `py`) y abrí una ventana nueva de PowerShell.
+- **Abriste otra ventana de PowerShell y nada anda**: `$env:ANTHROPIC_API_KEY` y el venv duran solo esa sesión. En la ventana nueva, entrá a la carpeta del lab, activá el venv y volvé a cargar la key.

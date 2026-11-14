@@ -18,15 +18,15 @@ Integrar un server MCP tiene tres decisiones: **dónde vive la config (scope)**,
 
 | Scope | Carga en | ¿Compartido? | Dónde se guarda | Para qué |
 |---|---|---|---|---|
-| `local` (default) | Solo este proyecto | No | `~/.claude.json`, bajo la ruta del proyecto | Experimentos, servers personales, credenciales que no querés en git |
+| `local` (default) | Solo este proyecto | No | `$HOME\.claude.json`, bajo la ruta del proyecto | Experimentos, servers personales, credenciales que no querés en git |
 | `project` | Solo este proyecto | Sí, por git | `.mcp.json` en la raíz | Lo que usa todo el equipo |
-| `user` | Todos tus proyectos | No | `~/.claude.json` | Tus herramientas de siempre |
+| `user` | Todos tus proyectos | No | `$HOME\.claude.json` | Tus herramientas de siempre |
 
-```bash
+```powershell
 claude mcp add --transport http shared-server --scope project https://example.com/mcp
 ```
 
-Ojo con dos trampas: el scope `local` de MCP **no** es `.claude/settings.local.json`; vive en `~/.claude.json`. Y si el mismo nombre está en varios scopes, gana uno solo (local > project > user), **entero**, sin mezclar campos.
+Ojo con dos trampas: el scope `local` de MCP **no** es `.claude\settings.local.json`; vive en `$HOME\.claude.json`. Y si el mismo nombre está en varios scopes, gana uno solo (local > project > user), **entero**, sin mezclar campos.
 
 ### 2. Credenciales con variables de entorno
 
@@ -86,11 +86,11 @@ Equipo con un server interno de tickets. En la raíz del repo, `.mcp.json` (comm
 }
 ```
 
-Cada dev hace `export TICKETS_TOKEN=...`, abre `claude`, aprueba el server del proyecto y corre `/mcp`: `tickets` con ✔ y "N tools". Si alguien ve ✘ con 401, su variable está vacía o mal.
+Cada dev, en su ventana de PowerShell, hace `$env:TICKETS_TOKEN = "..."` (dura solo esa ventana), abre `claude` desde ahí, aprueba el server del proyecto y corre `/mcp`: `tickets` con ✔ y "N tools". Si alguien ve ✘ con 401, su variable está vacía o mal.
 
 ## Para recordar
 
-- Default = `local`. Equipo = `project` (`.mcp.json`). Todos mis proyectos = `user`. Local y user viven en `~/.claude.json`.
+- Default = `local`. Equipo = `project` (`.mcp.json`). Todos mis proyectos = `user`. Local y user viven en `$HOME\.claude.json`.
 - Precedencia: local > project > user; gana una entrada entera.
 - Secretos: `${VAR}` / `${VAR:-default}` en `command`, `args`, `env`, `url`, `headers`.
 - Verificar: `claude mcp list`, `claude mcp get <name>`, `/mcp`. En el SDK: `init` → `mcp_servers[].status` y `tools`.
