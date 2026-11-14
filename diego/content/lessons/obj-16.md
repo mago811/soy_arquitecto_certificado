@@ -67,7 +67,7 @@ Equipo con Next.js. Quieren:
 4. "Prettier después de cada edición" → hook `PostToolUse` con `"matcher": "Edit|Write"`.
 5. "`/release` con el checklist" → `.claude/skills/release/SKILL.md`.
 
-Ojo con el punto 3: un deny de `Read` cubre las herramientas de archivo de Claude y los comandos de archivo que Claude Code reconoce en Bash, como `cat`, pero no un script de Python que abra el archivo por su cuenta. Para eso la doc recomienda el sandbox. En Windows, la tool `PowerShell` tiene sus propias reglas: sumá `PowerShell(Get-Content *.env*)` al `deny`. Y un deny de `Bash` (aun `Bash(git push *)`) apaga la tool PowerShell, salvo que escribas también `PowerShell(git push *)`.
+Ojo con el punto 3: un deny de `Read` cubre las herramientas de archivo de Claude y los comandos de archivo que Claude Code reconoce en Bash, como `cat`, pero no un script de Python que abra el archivo por su cuenta. Para eso la doc recomienda el sandbox. En Windows, la tool `PowerShell` tiene sus propias reglas: sumá `PowerShell(Get-Content *.env*)` al `deny`. Y en Windows con Git Bash, un deny de `Bash` (aun uno acotado como `Bash(git push *)`) apaga la tool PowerShell para toda la sesión, salvo que agregues una regla `PowerShell(...)`, por ejemplo `PowerShell(git push *)`, o fijes `CLAUDE_CODE_USE_POWERSHELL_TOOL=1`.
 
 ## Para recordar
 

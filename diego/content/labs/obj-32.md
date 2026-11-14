@@ -45,7 +45,7 @@ Ahora los dos commits (uno en `main` y uno en la rama `feature`):
 git add -A
 git commit -qm init
 git checkout -qb feature
-Add-Content -Encoding utf8 -Path src\checkout.ts -Value '// cambio'
+Add-Content -Encoding ascii -Path src\checkout.ts -Value '// cambio'
 git commit -qam cambio
 git log --oneline
 ```

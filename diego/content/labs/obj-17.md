@@ -24,7 +24,7 @@ Hacer a mano (y después pedirle a Claude) una exploración incremental: encontr
 En PowerShell, parado en tu carpeta de trabajo (por ejemplo `$HOME`). Pegá los bloques de a uno:
 
 ```powershell
-New-Item -ItemType Directory lab-obj17 | Out-Null
+New-Item -ItemType Directory -Force lab-obj17 | Out-Null
 Set-Location lab-obj17
 git init
 New-Item -ItemType Directory -Force src\api, src\services\refund, src\lib\notify, build\generated | Out-Null

@@ -106,7 +106,7 @@ Lo mismo desde la terminal: `claude --resume pagos-audit --fork-session`.
 
 ### 7. Cuándo NO retomar (3 min)
 
-Imaginá que cambiaron 30 archivos. Escribí con `code RESUMEN.md` un `RESUMEN.md` lo que inyectarías en una sesión nueva: decisiones, archivos clave, pendientes. Abrí `claude` (sin resume) y empezá con `Leé RESUMEN.md y git log -5 antes de nada.`
+Imaginá que cambiaron 30 archivos. Abrí `code RESUMEN.md` y escribí ahí lo que inyectarías en una sesión nueva: decisiones, archivos clave, pendientes. Abrí `claude` (sin resume) y empezá con `Leé RESUMEN.md y git log -5 antes de nada.`
 
 ## Cómo sabés que salió bien
 

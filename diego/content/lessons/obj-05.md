@@ -23,7 +23,7 @@ Configurar un subagente es decidir tres cosas:
 ## Cuándo se usa
 
 - **Reviewer de solo lectura:** `tools: Read, Grep, Glob`. Sin Edit, Write, Bash ni PowerShell. Una frase "no edites" en el prompt es guidance; la allowlist es enforcement.
-- **Test runner que no debe pushear:** necesita una tool de shell. En Windows con Git for Windows hay dos: `Bash` (Git Bash) y `PowerShell`. Ojo: `disallowedTools: Bash(git push *)` saca **todo** Bash (y el subagente sigue teniendo `PowerShell`). Para bloquear solo el push, usá reglas en `permissions.deny` de settings para las dos tools: `Bash(git push *)` y `PowerShell(git push *)`. Una regla `Bash(...)` no restringe la tool `PowerShell`.
+- **Test runner que no debe pushear:** necesita una tool de shell. En Windows con Git for Windows hay dos: `Bash` (Git Bash) y `PowerShell`. Ojo: `disallowedTools: Bash(git push *)` saca **todo** Bash del subagente, y no nombra a `PowerShell` (si querés sacarle toda la shell, listá las dos). Para bloquear solo el push, usá reglas en `permissions.deny` de settings para las dos tools: `Bash(git push *)` y `PowerShell(git push *)`. Una regla `Bash(...)` no restringe la tool `PowerShell` ("a `Bash` rule doesn't restrict the PowerShell tool"); por eso, en Windows con Git Bash, un deny de `Bash` sin ninguna regla `PowerShell(...)` apaga la tool `PowerShell` en toda la sesión. Con la regla `PowerShell(git push *)` al lado, las dos shells siguen andando y el push queda bloqueado en ambas.
 - **Subagente con un MCP pesado:** definí el server **inline** en `mcpServers` del subagente. El subagente tiene las tools; la conversación principal no paga sus descripciones.
 - **Subagente que vive del prompt:** `omitClaudeMd: true` para que arranque sin los CLAUDE.md de user/project/local.
 

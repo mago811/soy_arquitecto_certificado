@@ -2,7 +2,7 @@
 objective: 31
 title: "Lab (repaso): de 'reportá lo importante' a límites explícitos"
 minutes: 30
-needs: ["Claude Code", "git", "una carpeta de prueba"]
+needs: ["Claude Code en Windows", "PowerShell", "Git for Windows", "una carpeta de prueba"]
 sources:
   - url: https://code.claude.com/docs/en/best-practices
     title: "Best practices for Claude Code (Review against your spec)"

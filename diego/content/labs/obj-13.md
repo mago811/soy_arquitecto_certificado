@@ -87,10 +87,12 @@ Armar un reviewer que:
    Después cargalo en una variable lista para pasarle a `claude`:
 
    ```powershell
-   $schema = (Get-Content .\schema.json -Raw | ConvertFrom-Json | ConvertTo-Json -Depth 20 -Compress) -replace '"', '\"'
+   $schema = Get-Content .\schema.json -Raw | ConvertFrom-Json | ConvertTo-Json -Depth 20 -Compress
+   if ($PSVersionTable.PSVersion -lt [version]"7.3") { $schema = $schema -replace '"', '\"' }
+   $schema
    ```
 
-   ¿Por qué el `-replace`? Windows PowerShell 5.1 se come las comillas dobles de adentro de un argumento cuando llama a un programa como `claude`. Escaparlas como `\"` hace que el JSON llegue entero.
+   `--json-schema` recibe el schema como texto (la CLI reference lo documenta como texto inline, no como ruta a un archivo), así que lo leés del archivo y lo compactás en una línea. ¿Por qué el `-replace`? Windows PowerShell 5.1 (el que viene con Windows) se come las comillas dobles de adentro de un argumento cuando llama a un programa como `claude`. Escaparlas como `\"` hace que el JSON llegue entero. PowerShell 7.3 o más nuevo ya las pasa bien, y ahí el `\"` las rompería: por eso el `if`. La última línea te muestra cómo quedó: en 5.1 tiene que verse `{\"type\":\"object\",...` en una sola línea y sin espacios.
 
 4. Primera versión, **la ingenua**: le pedís JSON en el prompt, sin schema.
 
@@ -140,7 +142,8 @@ Armar un reviewer que:
    ```powershell
    # review.ps1
    $OutputEncoding = [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding
-   $schema = (Get-Content .\schema.json -Raw | ConvertFrom-Json | ConvertTo-Json -Depth 20 -Compress) -replace '"', '\"'
+   $schema = Get-Content .\schema.json -Raw | ConvertFrom-Json | ConvertTo-Json -Depth 20 -Compress
+   if ($PSVersionTable.PSVersion -lt [version]"7.3") { $schema = $schema -replace '"', '\"' }
 
    $r = git diff | claude -p "Revisa este diff contra los estandares del CLAUDE.md. Reporta solo violaciones." --tools "Read,Grep,Glob" --max-turns 8 --output-format json --json-schema $schema | ConvertFrom-Json
 
@@ -183,7 +186,7 @@ Armar un reviewer que:
 
 ## Si algo falla
 
-- **`Error: --json-schema is not a valid JSON Schema`:** puede ser el archivo o las comillas. Primero validá el archivo: `Get-Content .\schema.json -Raw | ConvertFrom-Json`. Si eso anda, revisá que hayas armado `$schema` con el `-replace` del paso 3. (Si usás PowerShell 7.3 o más nuevo en vez del 5.1 que viene con Windows, las comillas ya viajan bien: sacá el `-replace`.)
+- **`Error: --json-schema is not a valid JSON Schema`:** puede ser el archivo o las comillas. Primero validá el archivo: `Get-Content .\schema.json -Raw | ConvertFrom-Json`. Si eso anda, revisá que hayas armado `$schema` con las dos líneas del paso 3 en esta misma ventana (escribí `$PSVersionTable.PSVersion` para ver qué PowerShell tenés: en 5.1, `$schema` tiene que mostrar `\"` antes de cada comilla).
 - **No aparece `structured_output`:** mirá `$review.subtype`. Si es `error_max_turns`, subí `--max-turns`. Si es `error_max_structured_output_retries`, simplificá el schema.
 - **`ConvertFrom-Json` tira "Invalid JSON primitive":** `claude` no imprimió JSON. Corré el mismo comando sin `| ConvertFrom-Json` y leé el error.
 - **Reporta estilo igual:** reforzá el prompt ("skip style"). La doc avisa que un reviewer al que le piden problemas "will always find something".

@@ -183,6 +183,6 @@ Probá sacar `allowed_tools`: Claude ve las tools pero no puede llamarlas sin pe
 ## Si algo falla
 
 - **`✘ Failed to connect`**: `claude mcp get files` muestra el detalle en la línea `Issue:`.
-- **El server stdio no arranca con `claude mcp add`**: revisá que pusiste `--` antes de `npx`. Probá también `npx --version` en la misma ventana: si PowerShell no lo encuentra, falta Node en el `PATH` (cerrá y abrí la terminal después de instalarlo).
+- **El server stdio no arranca con `claude mcp add`**: revisá que pusiste `--` antes de `npx`. Probá también `npx.cmd --version` en la misma ventana: si PowerShell no lo encuentra, falta Node en el `PATH` (cerrá y abrí la terminal después de instalarlo). Usá `npx.cmd` y no `npx` para esta prueba: `npx` a secas pasa por `npx.ps1`, que la política de ejecución de Windows puede bloquear aunque Node esté bien instalado.
 - **El server lista otra carpeta en el paso 3**: abriste `claude` en una ventana donde no seteaste `$env:LAB_DIR`. Revisalo con `$env:LAB_DIR` (tiene que imprimir la ruta a `data`).
 - **En el SDK el server no aparece**: si configuraste `settingSources` a mano, tiene que incluir `"project"` para que se cargue `.mcp.json`. Corré el script desde la raíz del repo.

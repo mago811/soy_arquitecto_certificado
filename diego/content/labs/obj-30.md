@@ -58,7 +58,7 @@ export function conIva(centavos: number): number {
   return centavos * 21 / 100; // bug: devuelve solo el IVA, no el total con IVA
 }
 '@
-Add-Content -Encoding utf8 -Path src\gen\cliente_api.ts -Value 'var w=4'
+Add-Content -Encoding ascii -Path src\gen\cliente_api.ts -Value 'var w=4'
 git status --short
 ```
 
@@ -104,7 +104,7 @@ $p = "Revisá el diff de git (git diff) y listá problemas"
 claude --bare -p $p --allowedTools "Read,Bash(git diff *),PowerShell(git diff *)"
 ```
 
-La regla va para las dos tools de shell porque en Windows Claude puede correr `git diff` por Bash (Git Bash) o por PowerShell, y cada una tiene sus propias reglas de permiso.
+Van las dos reglas porque cada tool de shell tiene sus propias reglas de permiso: una regla `Bash(...)` no cubre la tool `PowerShell`. La doc dice que en bare mode Claude tiene las tools de shell y de archivos; si tu versión solo carga `Bash` (Git Bash), la regla `PowerShell(...)` no hace nada y no molesta. Con las dos, el comando anda cargue la que cargue.
 
 ¿Volvió a sugerir decimales o a mirar `src/gen/`? Ahora pasale las reglas por flag:
 

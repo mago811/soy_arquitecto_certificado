@@ -24,7 +24,7 @@ Pedir tests dos veces para la misma función: una con "subí la cobertura" y otr
 1. Preparar (5 min), en PowerShell:
 
 ```powershell
-New-Item -ItemType Directory lab-obj15 | Out-Null
+New-Item -ItemType Directory -Force lab-obj15 | Out-Null
 Set-Location lab-obj15
 git init
 py -m venv .venv

@@ -89,7 +89,7 @@ En la misma ventana de PowerShell (parado en `lab-obj04`) corré `claude` y peg�
 
 ```text
 Usá el subagente auditor con EXACTAMENTE estas instrucciones, sin agregar nada:
-"1. Corré grep de 'eval(' en src/. 2. Leé cada match. 3. Reportá los que reciben input del usuario. No hagas nada más."
+"1. Buscá con Grep 'eval(' en src/. 2. Leé cada match. 3. Reportá los que reciben input del usuario. No hagas nada más."
 ```
 
 Anotá: ¿encontró `templates/render.js`? Lo más probable es que reporte "sin hallazgos": siguió el guion y el guion estaba mal.

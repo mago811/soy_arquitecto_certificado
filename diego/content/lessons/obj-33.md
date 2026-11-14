@@ -33,7 +33,7 @@ Combinaciones típicas de la doc del SDK:
 | Rol | `tools` |
 |---|---|
 | Análisis de solo lectura | `Read`, `Grep`, `Glob` |
-| Correr tests | `Bash`, `Read`, `Grep` |
+| Correr tests | `Bash`, `Read`, `Grep` (en Windows, sumá `PowerShell`) |
 | Modificar código | `Read`, `Edit`, `Write`, `Grep`, `Glob` |
 | Acceso total | omitir `tools` |
 
@@ -49,7 +49,7 @@ Combinaciones típicas de la doc del SDK:
 
 - **"Decile en el prompt del subagente que no edite archivos."** Es guía. Si `Edit` está en su set, la puede usar. Sacala del set: lo que no está en la lista "isn't in the subagent's session at all".
 - **Darle a todos los subagentes todas las tools "por las dudas".** Más tools = peor selección y más riesgo de llamadas fuera de rol.
-- **Usar `disallowedTools: Bash(git push *)` para bloquear solo el push.** Saca **todo** `Bash` del subagente (y en Windows le deja la tool `PowerShell`, así que tampoco bloquea el push por ahí). Para bloquear solo ese comando: reglas `Bash(git push *)` y `PowerShell(git push *)` en `permissions.deny`.
+- **Usar `disallowedTools: Bash(git push *)` para bloquear solo el push.** Saca **todo** `Bash` del subagente ("still removes the whole tool"), y en Windows esa entrada no nombra a la tool `PowerShell`: si querés sacarle toda la shell, listá las dos. Para bloquear solo ese comando: reglas `Bash(git push *)` y `PowerShell(git push *)` en `permissions.deny` (una regla `Bash(...)` no restringe la tool `PowerShell`).
 - **Un mega-agente con 60 tools** en vez de especialistas. Repartí por rol.
 
 ## Ejemplo

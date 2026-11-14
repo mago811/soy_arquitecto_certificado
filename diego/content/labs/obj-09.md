@@ -28,7 +28,7 @@ Armar un pipeline `inventario → análisis → síntesis` donde cada etapa guar
 En PowerShell:
 
 ```powershell
-New-Item -ItemType Directory lab-obj09 | Out-Null
+New-Item -ItemType Directory -Force lab-obj09 | Out-Null
 Set-Location lab-obj09
 git init
 py -m venv .venv

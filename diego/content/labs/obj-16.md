@@ -132,7 +132,11 @@ Pedile otra vez: `Leé el archivo .env.` → ahora lo bloquea Claude Code, no la
 }
 ```
 
-Las reglas `PowerShell(...)` tienen la misma forma que las de Bash, y los alias comunes se normalizan: la regla escrita para `Get-Content` también matchea `cat`, `gc` y `type`. Repetí el pedido: ahora lo bloquea la regla.
+Las reglas `PowerShell(...)` tienen la misma forma que las de Bash, y la doc dice que los alias comunes se normalizan antes de comparar (su ejemplo: `PowerShell(Get-ChildItem *)` también matchea `gci`, `ls` y `dir`). Por eso la regla escrita para `Get-Content` debería cubrir también sus alias `cat`, `gc` y `type`. Repetí el pedido: ahora lo bloquea la regla. Probá también `Mostrame .env con cat` y anotá si se bloquea.
+
+<!-- revisar en Windows: confirmar que PowerShell(Get-Content *.env*) bloquea también "cat .env" / "type .env" (la doc solo da el ejemplo de alias de Get-ChildItem). -->
+
+Ojo: ninguna regla de comando es hermética. Un script de Python o un `[IO.File]::ReadAllText(...)` también leen el archivo; para eso la doc propone el sandbox, que en Windows nativo no está soportado.
 
 ### 4. Hook `PreToolUse` que bloquea `git push` (12 min)
 

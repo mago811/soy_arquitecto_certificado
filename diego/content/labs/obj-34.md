@@ -31,25 +31,29 @@ Después, diseñar en papel qué expondrías como resource y qué como tool en u
 
 ### 1. Mirar el server "desde afuera" con el Inspector (10 min)
 
-En una ventana de PowerShell, en una carpeta de prueba (cada `npx` es un comando aparte, una línea por vez):
+En una ventana de PowerShell, en una carpeta de prueba (cada línea es un comando aparte: pegalas de a una):
 
 ```powershell
 New-Item -ItemType Directory -Force lab-obj34
 Set-Location lab-obj34
-npx -y @modelcontextprotocol/inspector --cli npx -y @modelcontextprotocol/server-everything -- --method tools/list
-npx -y @modelcontextprotocol/inspector --cli npx -y @modelcontextprotocol/server-everything -- --method resources/list
-npx -y @modelcontextprotocol/inspector --cli npx -y @modelcontextprotocol/server-everything -- --method resources/templates/list
-npx -y @modelcontextprotocol/inspector --cli npx -y @modelcontextprotocol/server-everything -- --method prompts/list
+npx.cmd -y @modelcontextprotocol/inspector --cli npx -y @modelcontextprotocol/server-everything -- --method tools/list
+npx.cmd -y @modelcontextprotocol/inspector --cli npx -y @modelcontextprotocol/server-everything -- --method resources/list
+npx.cmd -y @modelcontextprotocol/inspector --cli npx -y @modelcontextprotocol/server-everything -- --method resources/templates/list
+npx.cmd -y @modelcontextprotocol/inspector --cli npx -y @modelcontextprotocol/server-everything -- --method prompts/list
 ```
 
 Ojo con el `--`: en el modo `--cli`, todo lo que va **antes** de `--` es el comando del server y todo lo que va **después** son opciones del Inspector. Sin el separador, el `-y` del `npx` interno se leería como opción del Inspector.
+
+Por qué `npx.cmd` y no `npx` a secas: en PowerShell, `npx` a secas ejecuta el script `npx.ps1` que instala Node. Ese script puede estar bloqueado por la política de ejecución de Windows y, con versiones viejas de npm en PowerShell 5.1, se puede "comer" el `--`. `npx.cmd` es el mismo `npx`, pero no pasa por ningún `.ps1` y le llega el `--` intacto. El `npx` de adentro (el que arranca el server) lo lanza el Inspector, no PowerShell, así que queda como está.
+
+<!-- revisar en Windows: confirmar en PowerShell 5.1 que npx.cmd pasa el "--" y que el Inspector logra lanzar el npx interno del server (debería imprimir el JSON de tools/list) -->
 
 Anotá: ¿qué campos tiene cada resource? (buscá `uri`, `name`, `mimeType`). ¿Y cada tool? (buscá `name`, `description`, `inputSchema`).
 
 Elegí una URI de la lista de resources y leela:
 
 ```powershell
-npx -y @modelcontextprotocol/inspector --cli npx -y @modelcontextprotocol/server-everything -- --method resources/read --uri "<una-uri-de-la-lista>"
+npx.cmd -y @modelcontextprotocol/inspector --cli npx -y @modelcontextprotocol/server-everything -- --method resources/read --uri "<una-uri-de-la-lista>"
 ```
 
 ### 2. Conectarlo a Claude Code (5 min)
@@ -115,5 +119,6 @@ claude mcp remove everything
 - **`npx` se queja de la versión de Node**: el Inspector requiere Node 22.19.0 o más nuevo.
 - **`/mcp` muestra el server fallado**: corré `claude mcp get everything` y mirá la línea `Issue:`. Revisá que pusiste `--` antes de `npx`.
 - **`@everything:` no muestra nada**: esperá a que el server termine de conectar (mirá `/mcp`) y volvé a tipear `@`.
-- **PowerShell dice que no puede cargar `npx.ps1`** ("la ejecución de scripts está deshabilitada en este sistema"): corré una sola vez `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`, contestá que sí y volvé a probar en la misma ventana.
-- **`npx` o `node` no se reconocen como comando**: instalá Node.js para Windows y abrí una ventana nueva de PowerShell (la ventana vieja no ve el `PATH` nuevo). Probá con `node --version`.
+- **PowerShell dice que no puede cargar `npx.ps1`** ("la ejecución de scripts está deshabilitada en este sistema"): escribiste `npx` en vez de `npx.cmd`. Usá `npx.cmd` como en los comandos del paso 1 (o corré una sola vez `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` y contestá que sí).
+- **El Inspector se queja de que falta `--method` o trata `--method` como argumento del server**: el `--` no llegó. Revisá que usaste `npx.cmd` y que el `--` está separado por espacios.
+- **`npx` o `node` no se reconocen como comando**: instalá Node.js para Windows y abrí una ventana nueva de PowerShell (la ventana vieja no ve el `PATH` nuevo). Probá con `node --version` y `npx.cmd --version`.

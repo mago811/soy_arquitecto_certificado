@@ -83,7 +83,7 @@ if ($review.PSObject.Properties.Name -notcontains 'structured_output') { Write-H
 $review.structured_output.findings | Where-Object { $_.severity -eq 'high' }
 ```
 
-El `-replace` escapa las comillas del JSON: Windows PowerShell 5.1 se las come al pasarle un argumento a un programa.
+El `-replace` escapa las comillas del JSON: Windows PowerShell 5.1 se las come al pasarle un argumento a un programa. (En PowerShell 7.3 o más nuevo no hace falta y lo rompería: ahí sacalo.)
 
 En GitHub Actions, con el plugin `code-review`:
 
