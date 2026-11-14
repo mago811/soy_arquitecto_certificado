@@ -21,7 +21,7 @@ En un sistema multi-agente, cada subagente tiene su propio contexto, su system p
 
 La solución es repartir: cada rol, sus tools.
 
-| Campo (archivo `.claude/agents/x.md` o `AgentDefinition` del SDK) | Cómo funciona | Cuándo |
+| Campo (archivo `.claude\agents\x.md` o `AgentDefinition` del SDK) | Cómo funciona | Cuándo |
 |---|---|---|
 | `tools` | **Allowlist**: solo estas. Si lo omitís, hereda todo | Rol acotado y conocido (revisor, test runner) |
 | `disallowedTools` | **Denylist**: hereda todo menos estas | "Todo menos escribir archivos" |
@@ -49,12 +49,12 @@ Combinaciones típicas de la doc del SDK:
 
 - **"Decile en el prompt del subagente que no edite archivos."** Es guía. Si `Edit` está en su set, la puede usar. Sacala del set: lo que no está en la lista "isn't in the subagent's session at all".
 - **Darle a todos los subagentes todas las tools "por las dudas".** Más tools = peor selección y más riesgo de llamadas fuera de rol.
-- **Usar `disallowedTools: Bash(git push *)` para bloquear solo el push.** Saca **todo** `Bash` del subagente. Para bloquear solo ese comando: regla `Bash(git push *)` en `permissions.deny`.
+- **Usar `disallowedTools: Bash(git push *)` para bloquear solo el push.** Saca **todo** `Bash` del subagente (y en Windows le deja la tool `PowerShell`, así que tampoco bloquea el push por ahí). Para bloquear solo ese comando: reglas `Bash(git push *)` y `PowerShell(git push *)` en `permissions.deny`.
 - **Un mega-agente con 60 tools** en vez de especialistas. Repartí por rol.
 
 ## Ejemplo
 
-Pipeline de investigación con tres subagentes (archivos en `.claude/agents/`):
+Pipeline de investigación con tres subagentes (archivos en `.claude\agents\`):
 
 ```markdown
 ---
