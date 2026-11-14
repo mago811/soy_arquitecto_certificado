@@ -2,7 +2,7 @@
 objective: 18
 title: "Lab: un worker que devuelve datos, prosa y citas, y una síntesis que no las pierde"
 minutes: 50
-needs: ["API key de Anthropic", "Python 3.10+", "pip install claude-agent-sdk"]
+needs: ["API key de Anthropic", "Python 3.10+ para Windows (launcher py)", "PowerShell", "pip install claude-agent-sdk"]
 sources:
   - url: https://code.claude.com/docs/en/agent-sdk/structured-outputs
     title: "Get structured output from agents"
@@ -23,25 +23,38 @@ Como `AgentDefinition` no tiene campo de schema, el worker corre como su propio 
 
 ### 0. Preparar (5 min)
 
-```bash
-mkdir lab-obj18 && cd lab-obj18
-python3 -m venv .venv && source .venv/bin/activate
+En PowerShell:
+
+```powershell
+New-Item -ItemType Directory -Force lab-obj18
+Set-Location lab-obj18
+py -m venv .venv
+.\.venv\Scripts\Activate.ps1
 pip install claude-agent-sdk
-export ANTHROPIC_API_KEY=tu-api-key
-mkdir docs
-cat > docs/informe_a.txt <<'EOF'
+$env:ANTHROPIC_API_KEY = "sk-ant-..."
+New-Item -ItemType Directory -Force docs
+code docs\informe_a.txt
+```
+
+Si `Activate.ps1` da error de "ejecución de scripts deshabilitada", corré una sola vez `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` y repetí la activación. `$env:ANTHROPIC_API_KEY` dura solo esta ventana: hacé todo el lab en la misma. (Si no usás VS Code, cambiá `code` por `notepad`.)
+
+Pegá en `docs\informe_a.txt` y guardá:
+
+```text
 Fuente: https://ejemplo.org/informe-2025 · Publicado: 2025-03-10
 La capacidad instalada creció 12% interanual. Las exportaciones cayeron levemente.
-EOF
-cat > docs/reporte_b.txt <<'EOF'
+```
+
+Después `code docs\reporte_b.txt` y pegá:
+
+```text
 reporte_anual (sin fecha visible)
 Página 14: se registró un crecimiento del 9% en la capacidad instalada.
-EOF
 ```
 
 ### 1. El schema (10 min)
 
-Creá `worker.py`:
+Creá `worker.py` con `code worker.py` y pegá:
 
 ```python
 import asyncio, json
@@ -91,7 +104,7 @@ async def main():
         ):
             if isinstance(msg, ResultMessage):
                 if msg.subtype == "success" and not msg.is_error and msg.structured_output:
-                    json.dump(msg.structured_output, open("salida.json", "w"), indent=2, ensure_ascii=False)
+                    json.dump(msg.structured_output, open("salida.json", "w", encoding="utf-8"), indent=2, ensure_ascii=False)
                     print("OK → salida.json")
                 elif msg.subtype == "error_max_structured_output_retries":
                     print("No logró una salida válida para el schema")
@@ -103,7 +116,7 @@ async def main():
 asyncio.run(main())
 ```
 
-Corré `python worker.py` y abrí `salida.json`. Chequeá: ¿el hallazgo de `reporte_b` tiene `publication_date`? No debería: no figura en el documento y el campo es opcional.
+Corré `python worker.py` (con el venv activo) y abrí `salida.json` con `code salida.json`. Chequeá: ¿el hallazgo de `reporte_b` tiene `publication_date`? No debería: no figura en el documento y el campo es opcional.
 
 ### 2. Romperlo: fecha obligatoria (10 min)
 
@@ -111,11 +124,11 @@ Agregá `"publication_date"` a la lista `required` de los ítems y volvé a corr
 
 ### 3. La síntesis que respeta tipos y fuentes (15 min)
 
-Creá `informe.py` (código puro, sin modelo, para ver que el schema alcanza):
+Creá `informe.py` con `code informe.py` (código puro, sin modelo, para ver que el schema alcanza):
 
 ```python
 import json
-d = json.load(open("salida.json"))
+d = json.load(open("salida.json", encoding="utf-8"))
 print("## Resumen\n" + d["resumen"] + "\n")
 print("## Cifras\n| Afirmación | Valor | Fuente | Fecha |\n|---|---|---|---|")
 for h in d["hallazgos"]:
@@ -128,7 +141,7 @@ for h in d["hallazgos"]:
         print(f'- "{h["extracto"]}" ({h["documento"]})')
 ```
 
-```bash
+```powershell
 python informe.py
 ```
 
@@ -150,3 +163,5 @@ Con la API de Messages podrías activar `citations` en cada documento para que l
 - **El schema es rechazado al arrancar:** el SDK valida con JSON Schema draft-07. No declares `$schema` de otra versión.
 - **`error_max_structured_output_retries`:** simplificá (menos `required`, menos anidado) y probá de nuevo.
 - **`valor` viene como texto:** revisá que en el schema sea `"type": "number"`.
+- **`UnicodeEncodeError` o acentos rotos en `salida.json`:** en Windows Python abre los archivos con la codificación regional si no le decís otra. Por eso los `open(...)` del lab llevan `encoding="utf-8"`: no lo saques.
+- **`ModuleNotFoundError: claude_agent_sdk`:** el venv no está activo en esta ventana. Corré `.\.venv\Scripts\Activate.ps1` y volvé a probar.
