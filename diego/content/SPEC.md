@@ -17,6 +17,32 @@ Todo archivo en `content/` tiene que cumplirlo; `npm run validate` lo chequea.
 4. **Español rioplatense neutro, masticado:** frases cortas, un concepto por vez, un ejemplo concreto. Tuteo/voseo suave ("vos"). Los nombres técnicos (flags, parámetros, archivos, campos) quedan en inglés y entre backticks, tal cual aparecen en el producto.
 5. **Nunca inventes flags, campos ni comportamientos.** Si la doc no lo dice, no existe.
 
+## Entorno de Diego: SOLO Windows + PowerShell (obligatorio en labs y lecciones)
+
+Diego trabaja en **Windows 10/11 con PowerShell**. Todo comando, script y ruta de labs y lecciones tiene que ser para ese entorno. **No hay alternativas para macOS, Linux ni WSL**: nada de "en Mac hacé X". Fuente: https://code.claude.com/docs/en/setup (sección "Set up on Windows"), https://code.claude.com/docs/en/hooks (pestañas "Windows (PowerShell)"), https://code.claude.com/docs/en/tools-reference ("PowerShell tool").
+
+- **Compatibilidad:** los comandos tienen que andar en **Windows PowerShell 5.1**, que es el que viene con Windows. No uses `&&` ni `||` (en 5.1 no existen): usá líneas separadas o `;`. Nada de `bash`, `sh`, heredocs (`<<EOF`), `export`, `cat`, `touch`, `chmod`, `rm -rf`, `grep`, `sed`, `which`, `source`, `curl ... | sh`.
+- **Equivalencias:**
+  - variable de entorno → `$env:ANTHROPIC_API_KEY = "sk-ant-..."` (solo dura la sesión de PowerShell)
+  - leer un archivo → `Get-Content archivo`; buscar texto → `Select-String -Pattern "x" -Path .\src\*.ts`
+  - crear carpeta → `New-Item -ItemType Directory -Force .claude\hooks`; borrar → `Remove-Item -Recurse -Force carpeta`
+  - JSON → **nada de `jq`**: `$r = claude -p "..." --output-format json | ConvertFrom-Json; $r.result`
+  - ver código de salida → `$LASTEXITCODE`
+  - abrir/crear un archivo para editar → `code .claude\settings.json` (VS Code) o `notepad .claude\settings.json`. **Preferí que Diego cree los archivos con el editor y pegue el contenido**: `Set-Content`/`Out-File` en PowerShell 5.1 pueden escribir con BOM o UTF-16 y romper JSON/YAML. Si hace falta escribir desde la terminal, usá `Set-Content -Encoding utf8` solo para `.ps1`/`.py`/`.md`, nunca para JSON de settings.
+  - rutas: barra invertida (`.claude\settings.json`). La carpeta de usuario es `$HOME\.claude\` (por ejemplo `C:\Users\Diego\.claude\CLAUDE.md`). Cuando la doc dice `~/.claude/`, en Windows es `$HOME\.claude\`.
+- **Instalar Claude Code:** `irm https://claude.ai/install.ps1 | iex` y después, en una ventana nueva, `claude --version`.
+- **Git for Windows:** asumí que está instalado (los labs usan `git`). Con Git for Windows, Claude Code usa Git Bash para su tool `Bash` y además tiene la tool `PowerShell` encendida por defecto (cuentas claude.ai/Console). Por eso: **los hooks que inspeccionan comandos de shell usan matcher `Bash|PowerShell`**, y las reglas de permisos de shell se escriben para las dos tools (`Bash(git push *)` y `PowerShell(git push *)`). En Windows, **Glob y Grep vienen en el set de tools por defecto** (no hay que habilitarlos).
+- **Hooks:** scripts `.ps1` en `.claude\hooks\`, registrados en exec form como en la doc oficial:
+  ```json
+  { "type": "command", "command": "powershell.exe",
+    "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${CLAUDE_PROJECT_DIR}/.claude/hooks/mi-hook.ps1"] }
+  ```
+  El script lee la entrada con `$in = [Console]::In.ReadToEnd() | ConvertFrom-Json` y bloquea con `exit 2` (mensaje a stderr con `[Console]::Error.WriteLine("...")`) o devolviendo el JSON de `hookSpecificOutput` con `ConvertTo-Json`.
+- **Python:** `py -m venv .venv`, `.\.venv\Scripts\Activate.ps1`, `pip install anthropic`. Si PowerShell bloquea el script de activación: una sola vez `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`. Correr con `python archivo.py`. Variables: `$env:ANTHROPIC_API_KEY`.
+- **Node/TypeScript:** `npm init -y`, `npm install @anthropic-ai/sdk`, `npx tsx archivo.ts`. Funcionan igual en PowerShell.
+- **`claude -p` con prompts largos:** usá un archivo y `Get-Content prompt.txt -Raw | claude -p`, o comillas simples. Para pasar un diff: `git diff main | claude -p "..."`.
+- **Bloques de código:** los comandos van en bloques ```` ```powershell ````; el contenido de archivos en el lenguaje del archivo (```` ```json ````, ```` ```python ````, etc.).
+
 ## Preguntas: `questions/obj-XX.json` (XX con dos dígitos: obj-06, obj-16)
 
 ```json
