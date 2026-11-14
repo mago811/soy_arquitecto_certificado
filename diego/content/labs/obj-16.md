@@ -150,7 +150,7 @@ if ($command -match 'git push') {
 exit 0
 ```
 
-En Windows no hace falta `chmod`: el hook lo corre `powershell.exe` con `-ExecutionPolicy Bypass`.
+No hace falta darle permisos especiales al archivo: el hook lo corre `powershell.exe` con `-ExecutionPolicy Bypass`.
 
 Agregá el bloque `hooks` al MISMO `.claude\settings.json` (al lado de `permissions`). El matcher es `Bash|PowerShell` porque en Windows Claude puede correr el comando con cualquiera de las dos tools; un hook que matchea solo `Bash` no se entera de los comandos que van por PowerShell.
 
