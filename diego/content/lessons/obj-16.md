@@ -27,14 +27,14 @@ Claude Code tiene cinco lugares donde podés "decirle algo". La diferencia clave
 
 | Mecanismo | Qué es | Cuándo se carga / aplica | ¿Garantiza u orienta? |
 |---|---|---|---|
-| `~/.claude/CLAUDE.md` (user) | Tus preferencias personales | Cada sesión, en todos tus proyectos | Orienta |
+| `$HOME\.claude\CLAUDE.md` (user) | Tus preferencias personales | Cada sesión, en todos tus proyectos | Orienta |
 | `./CLAUDE.md` o `./.claude/CLAUDE.md` (project) | Estándares del equipo. Se commitea | Cada sesión en ese proyecto | Orienta |
 | `./CLAUDE.local.md` (local) | Tus preferencias para ESTE proyecto. Va al `.gitignore` | Cada sesión en ese proyecto, después del `CLAUDE.md` | Orienta |
 | `.claude/rules/*.md` con `paths` | Instrucciones para ciertos archivos (globs) | Solo cuando Claude lee/escribe/edita un archivo que matchea | Orienta |
 | `.claude/rules/*.md` sin `paths` | Instrucciones partidas por tema | Al arrancar, igual que `.claude/CLAUDE.md` | Orienta |
 | Skill (`.claude/skills/<nombre>/SKILL.md`) | Procedimiento o material de referencia reutilizable | La descripción siempre (salvo con `disable-model-invocation: true`: ahí no carga nada hasta que la invocás); el cuerpo solo cuando vos (`/nombre`) o Claude la invocan | Orienta |
 | Hook (`hooks` en un `settings.json`) | Comando que corre en un evento (`PreToolUse`, `PostToolUse`…) | Siempre que ocurre el evento y matchea el `matcher` | **Garantiza** (exit 2 bloquea) |
-| Permisos (`permissions.allow` / `ask` / `deny`) | Reglas sobre herramientas: `Bash(git push *)`, `Read(./.env)` | En cada llamada a herramienta. Orden: deny → ask → allow | **Garantiza** |
+| Permisos (`permissions.allow` / `ask` / `deny`) | Reglas sobre herramientas: `Bash(git push *)`, `PowerShell(git push *)`, `Read(./.env)` | En cada llamada a herramienta. Orden: deny → ask → allow | **Garantiza** |
 
 ## Cuándo se usa
 
@@ -44,13 +44,13 @@ Claude Code tiene cinco lugares donde podés "decirle algo". La diferencia clave
 - **"Checklist de release de 12 pasos que uso de vez en cuando"** → Skill. Si tiene efectos (deploy, publicar), agregale `disable-model-invocation: true` para que solo corra cuando vos tipeás `/nombre`.
 - **"Comandos de build y convenciones del equipo"** → `CLAUDE.md` de proyecto, commiteado.
 - **"Mi URL de sandbox, mis datos de prueba"** → `CLAUDE.local.md` (no se commitea).
-- **"Mis gustos en todos los proyectos"** → `~/.claude/CLAUDE.md`.
+- **"Mis gustos en todos los proyectos"** → `$HOME\.claude\CLAUDE.md`.
 
 ## El error típico que el examen quiere que cometas
 
 Te muestran a Claude leyendo un archivo prohibido y te ofrecen: "agregá **IMPORTANT: NUNCA** al CLAUDE.md". Suena fuerte, pero sigue siendo texto. El fix es `permissions.deny` (o un hook). Lo mismo al revés: no metas un procedimiento largo en CLAUDE.md "para que lo sepa siempre"; eso gasta contexto en cada request. Va a una Skill.
 
-Segundo error: creer que un `allow` en tu `~/.claude/settings.json` "le gana" a un `deny` del proyecto. No: **si algo está denegado en cualquier nivel, ningún otro nivel lo puede permitir**.
+Segundo error: creer que un `allow` en tu `$HOME\.claude\settings.json` "le gana" a un `deny` del proyecto. No: **si algo está denegado en cualquier nivel, ningún otro nivel lo puede permitir**.
 
 ## Ejemplo
 
@@ -67,12 +67,12 @@ Equipo con Next.js. Quieren:
 4. "Prettier después de cada edición" → hook `PostToolUse` con `"matcher": "Edit|Write"`.
 5. "`/release` con el checklist" → `.claude/skills/release/SKILL.md`.
 
-Ojo con el punto 3: un deny de `Read` cubre las herramientas de archivo de Claude y comandos como `cat`, pero no un script de Python que abra el archivo por su cuenta. Para eso la doc recomienda el sandbox.
+Ojo con el punto 3: un deny de `Read` cubre las herramientas de archivo de Claude y los comandos de archivo que Claude Code reconoce en Bash, como `cat`, pero no un script de Python que abra el archivo por su cuenta. Para eso la doc recomienda el sandbox (que en Windows no está soportado). En Windows, Claude también tiene la tool `PowerShell`, con sus propias reglas: para cerrar `Get-Content .env` sumá `PowerShell(Get-Content *.env*)` al `deny`. Y al revés: en Windows con Git Bash, un deny de `Bash`, aunque sea acotado como `Bash(git push *)`, apaga la tool PowerShell en esa sesión, salvo que también escribas una regla `PowerShell(...)` como `PowerShell(git push *)`.
 
 ## Para recordar
 
 - **Orienta**: CLAUDE.md (user / project / local), rules, Skills. **Garantiza**: hooks y permisos.
 - `paths` en una regla = "solo cuando toca esos archivos".
 - Skill = "a demanda". CLAUDE.md = "siempre en contexto".
-- Precedencia de settings: managed > línea de comando > `.claude/settings.local.json` > `.claude/settings.json` > `~/.claude/settings.json`. Pero **deny gana siempre**, venga de donde venga.
+- Precedencia de settings: managed > línea de comando > `.claude/settings.local.json` > `.claude/settings.json` > `$HOME\.claude\settings.json`. Pero **deny gana siempre**, venga de donde venga.
 - Se commitean: `CLAUDE.md`, `.claude/settings.json`, `.claude/rules/`, `.claude/skills/`. No se commitean: `CLAUDE.local.md`, `.claude/settings.local.json`.
