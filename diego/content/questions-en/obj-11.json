@@ -1,0 +1,269 @@
+{
+  "objective": 11,
+  "questions": [
+    {
+      "id": "o11-q21",
+      "objective": 11,
+      "pool": "practice",
+      "scenario": "An e-commerce team runs Claude Code in a disposable Docker container in GitLab CI to apply dependency patch bumps and run the test suite. The image runs as root. The job step is `claude -p \"Bump patch versions and run npm test\" --dangerously-skip-permissions --max-turns 25`. Since the image was rebuilt last week, every job fails within a second with `--dangerously-skip-permissions cannot be used with root/sudo privileges for security reasons`. Security also asked that the job be limited to exactly what it needs: reading and editing files, `npm install`, and `npm test`. The image can't be rebuilt again this sprint. What should the team change?",
+      "options": [
+        "Set `skipDangerousModePermissionPrompt: true` in the image's `~/.claude/settings.json` so the root check is skipped at startup.",
+        "Replace the flag with `permissions.defaultMode: bypassPermissions` in the repo's `.claude/settings.json`, avoiding the CLI check.",
+        "Use `--permission-mode dontAsk` with `--allowedTools \"Read,Edit,Bash(npm install *),Bash(npm test *)\"`, keeping `--max-turns 25`.",
+        "Swap the flag for `--allow-dangerously-skip-permissions`, which keeps bypass available but doesn't trigger the root refusal."
+      ],
+      "correct": 2,
+      "why_correct": "En Linux, Claude Code se niega a arrancar en `bypassPermissions` como root o con sudo (fuera de un sandbox reconocido). Pero este job no necesita bypass: `dontAsk` deniega todo lo que pediría aprobación y deja correr solo lo pre-aprobado. Es el modo que la doc recomienda para CI bloqueado, y con `--allowedTools` exacto cumple el pedido de seguridad. `--max-turns` sigue cortando corridas desbocadas.",
+      "why_wrong": {
+        "0": "Ese setting solo saltea el diálogo de advertencia de bypass en sesiones interactivas. No tiene nada que ver con el chequeo de root.",
+        "1": "`bypassPermissions` puesto en `.claude/settings.json` no toma efecto: la sesión arranca en Manual. Y aunque funcionara, seguiría sin restringir nada.",
+        "3": "Ese flag solo hace que bypass quede seleccionable más tarde en una sesión. No restringe tools ni resuelve el pedido de seguridad."
+      },
+      "rule": "CI: `dontAsk` + `--allowedTools` exacto + `--max-turns`. Bypass solo en contenedores aislados y nunca como root.",
+      "source_url": "https://code.claude.com/docs/en/permission-modes",
+      "source_quote": "Use this mode for CI pipelines or restricted environments where you pre-define what Claude may do; the session never waits for input.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o11-q22",
+      "objective": 11,
+      "pool": "practice",
+      "scenario": "A fintech's GitHub Actions job lets Claude fix failing unit tests with `claude -p \"Fix failing unit tests\" --permission-mode dontAsk --allowedTools \"Read,Edit,Bash(npm run test*)\"`. A security review of the transcript found that in one run Claude executed `npm run test-and-publish`, a package script that publishes a canary build to the internal registry. Nobody wants this job to publish anything. The team still needs Claude to run `npm run test` with arbitrary arguments, such as `npm run test -- --watch=false src/cart`, and doesn't want to rename any package scripts. Which change fixes the allowlist?",
+      "options": [
+        "Change the rule to `Bash(npm run test *)`, with a space before `*`, so it matches `npm run test` with or without arguments only.",
+        "Change the rule to `Bash(npm run test)`, which matches that exact command plus any argument list appended after it.",
+        "Keep the rule and add `don't run publish scripts` to the prompt, since `dontAsk` already denies anything risky.",
+        "Switch to `--permission-mode acceptEdits`, which auto-approves only filesystem commands and blocks package scripts."
+      ],
+      "correct": 0,
+      "why_correct": "Las reglas de `--allowedTools` usan la sintaxis de permisos. Con ` *` (espacio y asterisco) la regla matchea el comando con o sin argumentos. Sin el espacio, `test*` es un prefijo de texto y también matchea `test-and-publish`, igual que en el ejemplo de la doc donde `Bash(git diff*)` matchea `git diff-index`.",
+      "why_wrong": {
+        "1": "Sin ` *`, la regla es exacta: no cubre `npm run test -- --watch=false src/cart`, que el equipo necesita.",
+        "2": "El prompt es guidance. Y `dontAsk` deniega lo que pediría aprobación, pero lo que matchea el allowlist corre igual: el agujero está en la regla.",
+        "3": "`acceptEdits` no aprueba scripts de npm, pero tampoco aprobaría `npm run test` sin una regla de allow. Y no arregla el patrón mal escrito."
+      },
+      "rule": "En reglas de Bash, el espacio antes de `*` importa: `cmd *` es \"cmd con argumentos\"; `cmd*` es \"cualquier cosa que empiece así\".",
+      "source_url": "https://code.claude.com/docs/en/headless",
+      "source_quote": "The space before * is important: without it, Bash(git diff*) would also match git diff-index.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o11-q23",
+      "objective": 11,
+      "pool": "practice",
+      "scenario": "A data team runs a nightly migration, calling `claude -p \"Migrate $file to the new logger API and commit. Reply OK or FAIL.\" --permission-mode dontAsk --allowedTools \"Read,Edit,Bash(git add *),Bash(git commit *)\" --max-turns 4` once per file. They chose 4 because each file needs exactly four tool steps: read, edit, stage, commit. Commits land correctly, but every run exits with a non-zero code and prints no OK or FAIL, so the wrapper marks all 300 files as failed. The team wants to keep a tight limit against runaway runs. What is the root cause and the fix?",
+      "options": [
+        "The commit step is slow; raise `BASH_DEFAULT_TIMEOUT_MS` so the commit finishes inside the fourth turn and the reply gets printed.",
+        "Replace `--max-turns` with `--max-budget-usd 0.50`, since turn limits also count tool results and end runs unpredictably.",
+        "Add `--output-format json` and read `.result`, which carries the final reply even when the run stops at the turn limit.",
+        "Set `--max-turns 5`: the final text-only response counts as a turn, so with 4 the run ends at `error_max_turns` with no reply."
+      ],
+      "correct": 3,
+      "why_correct": "Hay que contar cada turno con tool calls y sumar uno para la respuesta final de solo texto. Con 4, la corrida hace los cuatro pasos (por eso los commits están) y se corta antes de responder: termina en `error_max_turns`, sin respuesta final y con exit code distinto de cero. Con 5 sigue habiendo un límite ajustado.",
+      "why_wrong": {
+        "0": "No hay ningún timeout: los commits terminan bien. Lo que falta es el turno de la respuesta final.",
+        "1": "Cambiar a presupuesto pierde la cota de turnos y no explica el síntoma. Los resultados de tools no son turnos extra.",
+        "2": "El campo `result` solo existe en la variante `success`. En `error_max_turns` no hay respuesta final para leer."
+      },
+      "rule": "`--max-turns` = turnos con tools + 1 para la respuesta final. Si no, `error_max_turns` sin respuesta.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
+      "source_quote": "Count each turn with tool calls, plus one for the final text-only response. Without that extra turn, the run ends with a ResultMessage of subtype error_max_turns and no final response.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o11-q24",
+      "objective": 11,
+      "pool": "practice",
+      "scenario": "A regulated company runs Claude Code on shared self-hosted Linux runners. To make results identical across runners, an engineer added `--bare` to the job's `claude -p` call. Compliance requires that every Bash command Claude runs in CI be appended to an audit log by a `PostToolUse` hook. After the change, the audit log stays empty. The engineer first moved the hook into a JSON file passed with `--settings ./ci/audit-settings.json`, then into a plugin loaded with `--plugin-dir ./ci/audit-plugin`; neither produced any log entries. The job must keep the audit hook working. What should they do?",
+      "options": [
+        "Keep `--bare` and register the hook in the project's `.claude/settings.json`, since bare mode still reads the settings files.",
+        "Remove `--bare` from this job: in bare mode, hooks don't run, even when passed with `--settings` or from a flag-loaded plugin.",
+        "Keep `--bare` and add `--append-system-prompt` telling Claude to append each command to the audit log after running it.",
+        "Keep `--bare` and attach the hook as an `mcp_tool` hook through `--mcp-config`, since bare mode connects command-line servers."
+      ],
+      "correct": 1,
+      "why_correct": "La doc es explícita: en bare mode los hooks no corren, ni los que pasás con `--settings` ni los de un plugin cargado con flag, y dice que no uses bare para una corrida que los necesite. Si la compliance exige el hook, este job no puede usar `--bare`; la reproducibilidad se busca por otro lado.",
+      "why_wrong": {
+        "0": "Casi: bare sí lee los settings files y sus reglas de permisos, pero un hook de settings no corre en bare mode.",
+        "2": "Es guidance para un requisito de compliance: Claude puede olvidarse. El hook existe justamente para no depender del modelo.",
+        "3": "`--mcp-config` conecta servers en bare, pero el hook sigue siendo un hook, y en bare mode los hooks no corren."
+      },
+      "rule": "`--bare` = ni hooks, ni skills, ni plugins, ni MCP, ni CLAUDE.md. Si el job necesita un hook, no uses `--bare`.",
+      "source_url": "https://code.claude.com/docs/en/headless",
+      "source_quote": "Hooks still don't run in bare mode when you pass them with --settings, or in the hooks/hooks.json or hooks manifest key of a plugin you load with a flag. Don't use bare mode for a run that needs them.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o11-q25",
+      "objective": 11,
+      "pool": "practice",
+      "scenario": "An open-source maintainer team runs the Claude Code GitHub Action on `pull_request` `synchronize` events, with `claude_args: \"--max-turns 8 --max-budget-usd 1.50\"`. A contributor pushed 26 small commits to one PR in ten minutes. 26 workflow runs started in parallel, each reviewing a slightly different head, and the API spend jumped by about $35 in one afternoon. Each individual run stayed inside its turn and budget caps, and no run hit a timeout. The team wants to keep reviewing every PR without lowering the quality of each review. What is the most effective change?",
+      "options": [
+        "Add a GitHub `concurrency` group keyed on the PR number with `cancel-in-progress`, so only the latest push's run continues.",
+        "Lower `--max-turns` to 3 so each of the parallel runs finishes sooner and spends less on every push to the pull request.",
+        "Lower `--max-budget-usd` to 0.25, because the cap is shared across all workflow runs triggered by the same pull request.",
+        "Set a workflow-level `timeout-minutes` of 5, so runs that pile up behind each other are cancelled before they spend."
+      ],
+      "correct": 0,
+      "why_correct": "Cada corrida respetó sus límites: el problema es la cantidad de corridas en paralelo, no una corrida desbocada. La doc recomienda los controles de concurrencia de GitHub para limitar corridas paralelas. Agrupando por PR, solo sigue la del último push y no se baja la calidad de cada review.",
+      "why_wrong": {
+        "1": "Baja la calidad de cada review y siguen corriendo 26 en paralelo.",
+        "2": "`--max-budget-usd` es por corrida, no un pozo compartido entre corridas del mismo PR.",
+        "3": "Los timeouts frenan corridas individuales que se cuelgan. Acá eran 26 corridas normales en paralelo, y ninguna llegaba al timeout."
+      },
+      "rule": "Límites por corrida (`--max-turns`, `--max-budget-usd`, timeout) ≠ límites de cuántas corridas: para eso, `concurrency`.",
+      "source_url": "https://code.claude.com/docs/en/github-actions",
+      "source_quote": "Use GitHub's concurrency controls to limit parallel runs",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o11-s21",
+      "objective": 11,
+      "pool": "sim",
+      "scenario": "A research team runs a three-stage pipeline with Claude Code in CI. Stage 1 starts a session with `claude -p \"...\" --output-format json --max-budget-usd 2.00` and saves its `session_id`. Stages 2 and 3 each run `claude -p --resume $SESSION_ID \"...\" --max-budget-usd 2.00 --output-format json`. Finance set a hard ceiling of $2.00 for the whole pipeline. The last stage regularly reports `total_cost_usd` around 5.40, yet no stage ever ends with `error_max_budget_usd`. Which explanation and fix are correct?",
+      "options": [
+        "The cap only counts the main conversation and excludes subagents, so add `--max-turns` to each stage to bound the subagents' spend.",
+        "Restored totals from earlier runs don't count toward a resumed run's cap; give each stage only the budget left after the last `total_cost_usd`.",
+        "`total_cost_usd` double-counts cached tokens on resume, so ignore it and reconcile spend from the usage dashboard at month end.",
+        "Each stage overshoots its cap by one response, so lower every stage to `--max-budget-usd 0.60` so three overshoots stay under $2.00."
+      ],
+      "correct": 1,
+      "why_correct": "Al volver a una conversación con `--continue` o `--resume`, los totales restaurados de corridas anteriores NO cuentan para el cap de la corrida nueva: cada etapa tiene $2 propios. En cambio, `total_cost_usd` informa el total de toda la conversación, por eso ves ~5,40. El fix es pasarle a cada etapa solo lo que queda del presupuesto, calculado con el `total_cost_usd` anterior.",
+      "why_wrong": {
+        "0": "Falso: el gasto de los subagentes sí cuenta para el cap. Y `--max-turns` no es un límite de gasto.",
+        "2": "No hay doble conteo: con `--resume`, la cifra incluye a propósito lo gastado en las corridas anteriores. Ignorarla es perder el dato que mostró el problema.",
+        "3": "El overshoot existe, pero no explica 5,40 (eso son tres caps casi completos). Repartir un cap fijo trata el síntoma y no usa el remanente real."
+      },
+      "rule": "Con `--resume`, cada corrida tiene su propio `--max-budget-usd`; el total acumulado lo ves en `total_cost_usd`.",
+      "source_url": "https://code.claude.com/docs/en/cli-reference",
+      "source_quote": "When you return to a conversation with --continue or --resume, totals restored from earlier runs don't count toward it.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o11-s22",
+      "objective": 11,
+      "pool": "sim",
+      "scenario": "A platform team switched its nightly `claude -p` dependency-upgrade job to `--permission-mode auto` so they wouldn't have to maintain an allowlist. Their runbook assumed that, as in the terminal, a few classifier blocks in a row would pause the run for a human. Last week the classifier blocked a `git push --force` and two `curl` uploads; the run kept going, finished with exit code 0, and reported success with half the upgrades missing. Security now requires that the job can only run `npm`, `git add`, and `git commit`, and that forbidden actions never depend on a model's judgment. What should the team do?",
+      "options": [
+        "Keep auto mode and add `--permission-prompts none`, so blocked actions fail the whole run instead of letting Claude carry on.",
+        "Keep auto mode and list the three allowed commands under `autoMode.allow` in the repository's `.claude/settings.json`.",
+        "Use `--permission-mode dontAsk` with `--allowedTools` for those commands, and add deny rules for `git push` and `curl`.",
+        "Keep auto mode and add `Never force-push or upload files` to CLAUDE.md, which the classifier reads as a block signal."
+      ],
+      "correct": 2,
+      "why_correct": "En una corrida no interactiva, un bloqueo del classifier deniega esa acción y Claude sigue; los bloqueos repetidos no pausan la corrida como en la terminal. Además auto mode es un modelo juzgando, y la doc dice que los \"nunca\" van en deny rules o hooks. `dontAsk` + allowlist exacto + deny rules deja todo en manos del harness.",
+      "why_wrong": {
+        "0": "`--permission-prompts none` deniega lo que caería en un prompt y le dice a Claude que no reintente, pero la corrida sigue. No la hace fallar.",
+        "1": "El classifier ignora `autoMode` en los settings del proyecto: tiene que estar en `~/.claude/settings.json`. Y aunque estuviera ahí, seguiría siendo juicio de un modelo.",
+        "3": "Es guidance leída por un modelo: no es la garantía determinística que pide seguridad."
+      },
+      "rule": "Auto mode en `-p`: un bloqueo deniega esa acción y Claude sigue. Los \"nunca\" van en deny rules, no en el classifier.",
+      "source_url": "https://code.claude.com/docs/en/best-practices",
+      "source_quote": "In a non-interactive run, a classifier block denies that one action and Claude carries on, and repeated blocks don't pause the run the way they do in a terminal.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o11-s23",
+      "objective": 11,
+      "pool": "sim",
+      "scenario": "A CI wrapper runs `claude -p \"Triage the failing integration tests and summarize root causes\" --output-format json`. When a 15-minute deadline expires, it kills the process with SIGTERM and then parses stdout for a summary. Runs that hit the deadline exit with code 143 and produce no result, so the dashboard shows nothing for exactly the most expensive runs. When engineers later resume those sessions, the interrupted turn is left as it was and they have to re-ask. The team wants a run that hits the deadline to end its turn cleanly before the process stops. What should the wrapper do?",
+      "options": [
+        "Send SIGKILL instead of SIGTERM, so Claude Code skips the `SessionEnd` hooks and flushes the result to stdout before exiting.",
+        "Set `CLAUDE_CODE_RESUME_INTERRUPTED_TURN=1`, so the run that hits the deadline writes its final result before it exits.",
+        "Replace the deadline with `--max-turns 30`, because a turn limit makes Claude Code print a full `result` field before stopping.",
+        "Send SIGINT first to end the in-progress turn, then stop the process; SIGTERM leaves the turn unfinished with no result."
+      ],
+      "correct": 3,
+      "why_correct": "Con SIGTERM, Claude Code sale con código 143, deja sin terminar el turno en curso y no registra resultado para él. La doc dice que para terminar el turno hay que mandar SIGINT (o llamar a `interrupt()` del Agent SDK) antes de parar el proceso.",
+      "why_wrong": {
+        "0": "SIGKILL mata el proceso sin darle chance de nada: es peor, no mejor.",
+        "1": "Casi: esa variable hace que, al REANUDAR, Claude continúe el turno interrumpido. No hace que la corrida cortada registre su resultado.",
+        "2": "Una corrida que llega al límite termina en `error_max_turns`, y esa variante no trae `result`."
+      },
+      "rule": "Para cortar `claude -p` con un turno cerrado: SIGINT primero, después parás el proceso. SIGTERM = turno sin resultado (exit 143).",
+      "source_url": "https://code.claude.com/docs/en/headless",
+      "source_quote": "To end the turn instead, send SIGINT, or call the Agent SDK's interrupt(), before you stop the process.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o11-s24",
+      "objective": 11,
+      "pool": "sim",
+      "scenario": "A release pipeline on a Windows build agent runs `$out = claude -p \"Draft release notes from the merged PRs\" --output-format json` in PowerShell and treats the step as failed only if anything was written to stderr. Last Tuesday the API key in the agent's environment had expired. Stderr was empty, the step passed, and the release notes published to the customer portal contained an authentication error message instead of notes. The team wants the pipeline to stop whenever the Claude run itself fails, without adding a manual check. What should they change?",
+      "options": [
+        "Branch on `$LASTEXITCODE` and check the parsed JSON's `is_error`, since failures inside the run are printed as the result on stdout.",
+        "Redirect stdout into stderr with `2>&1` so authentication failures reach the stderr check that already gates the pipeline.",
+        "Add `--verbose`, which makes Claude Code write in-run failures such as missing authentication to stderr instead of stdout.",
+        "Add a `Stop` hook that exits 2 when the response mentions authentication, so the run retries until a valid key is present."
+      ],
+      "correct": 0,
+      "why_correct": "Claude Code sale con 0 si anda bien y distinto de cero si la corrida falla, para que el script decida con el exit status. Un flag inválido se reporta en stderr antes de arrancar, pero una falla DENTRO de la corrida, como la autenticación, se imprime como resultado en stdout. Por eso el chequeo de stderr nunca la vio. En PowerShell: `$LASTEXITCODE`, más el `is_error` del JSON.",
+      "why_wrong": {
+        "1": "Mezclar los streams hace que cualquier salida normal parezca error: el gate pasaría a fallar siempre o a depender de qué texto aparezca.",
+        "2": "La doc no dice que `--verbose` mueva esas fallas a stderr. Es un comportamiento inventado.",
+        "3": "Un hook no arregla una credencial vencida y reintentar no sirve. Además depende de que la respuesta mencione la palabra justa."
+      },
+      "rule": "En scripts, decidí con el exit code (y `is_error`), no con stderr: las fallas dentro de la corrida salen por stdout.",
+      "source_url": "https://code.claude.com/docs/en/headless",
+      "source_quote": "When a failure happens inside the run, such as missing authentication, Claude Code prints the failure as the result on stdout.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o11-s25",
+      "objective": 11,
+      "pool": "sim",
+      "scenario": "A security team runs `claude -p` in CI with `--permission-mode dontAsk --allowedTools \"Read,Grep,Glob,Bash(npm test *)\" --output-format stream-json --verbose` to triage flaky tests. They need the job to fail, and to alert, whenever Claude tried anything outside the allowlist, such as `curl` or editing a file. In a test where Claude was deliberately nudged to call `curl`, the job still exited 0 and printed a normal summary of the flaky tests. Which approach meets the requirement reliably?",
+      "options": [
+        "Treat a non-zero exit code as the signal, since a denied tool call in `dontAsk` mode ends the run with an error status.",
+        "Fail the job when the final `result` message's `permission_denials` list is not empty, or when `permission_denied` events appear.",
+        "Switch to `--output-format text` and search the summary for the words `denied` or `permission` before marking the job passed.",
+        "Add `--permission-prompts none`, which turns every denied call into a fatal error so the job exits on the first denial."
+      ],
+      "correct": 1,
+      "why_correct": "Con `stream-json`, cada denegación aparece como mensaje de sistema `permission_denied`, y el mensaje final `result` las lista en `permission_denials`. Es la señal estructurada que el job puede chequear. La corrida en sí sigue después de una denegación, por eso salió con 0.",
+      "why_wrong": {
+        "0": "Una llamada denegada no termina la corrida: Claude sigue con lo que tiene permitido, y el exit code fue 0.",
+        "2": "Depende de que el modelo escriba esas palabras en su resumen: frágil, no es una señal confiable.",
+        "3": "`--permission-prompts none` deniega lo que pediría aprobación y le dice a Claude que no reintente, pero la corrida continúa."
+      },
+      "rule": "Para auditar intentos fuera del allowlist en CI: leé `permission_denials` del resultado, no el exit code.",
+      "source_url": "https://code.claude.com/docs/en/headless",
+      "source_quote": "With --output-format stream-json, denials appear as permission_denied system messages, and the final result message lists them in permission_denials.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o11-s26",
+      "objective": 11,
+      "pool": "sim",
+      "scenario": "A team upgraded its PR-review workflow from the Claude Code GitHub Action beta to v1. In beta they passed team review rules through the `custom_instructions` input and limited runs with `max_turns: \"6\"`. During the upgrade an engineer rewrote both as `claude_args: \"--max-turns 6 --custom-instructions 'Flag missing input validation; ignore formatting'\"`. Now every run fails before Claude starts, with an unknown-option error. The team wants the same behavior as before: Claude Code's default system prompt plus their rules, and the six-turn cap. Which `claude_args` value is correct?",
+      "options": [
+        "`--max-turns 6 --system-prompt 'Flag missing input validation; ignore formatting'`, carrying the rules into the prompt.",
+        "`--max-turns 6` only, keeping `custom_instructions` as a separate input, since v1 accepts it alongside `claude_args`.",
+        "`--max-turns 6 --append-system-prompt 'Flag missing input validation; ignore formatting'`, keeping the default prompt.",
+        "`--max-turns 6 --append-system-prompt-file 'Flag missing input validation; ignore formatting'`, inlining the rules."
+      ],
+      "correct": 2,
+      "why_correct": "La guía de upgrade dice que las opciones de CLI como `max_turns` pasan a `claude_args`, y que `custom_instructions` no tiene un flag con el mismo nombre: se convierte en `--append-system-prompt`. Ese flag agrega texto al final del system prompt por defecto, así que se mantiene el comportamiento de Claude Code más las reglas del equipo.",
+      "why_wrong": {
+        "0": "Casi: `--system-prompt` mete las reglas, pero REEMPLAZA todo el system prompt por defecto, y el equipo quería conservarlo.",
+        "1": "La guía de upgrade indica convertir `custom_instructions` en `--append-system-prompt`; no lo documenta como un input que siga funcionando en v1.",
+        "3": "`--append-system-prompt-file` espera la ruta de un archivo, no el texto de las reglas."
+      },
+      "rule": "Agregar reglas sin perder el prompt default → `--append-system-prompt`. `--system-prompt` reemplaza todo.",
+      "source_url": "https://code.claude.com/docs/en/github-actions",
+      "source_quote": "custom_instructions has no same-name flag and becomes --append-system-prompt",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

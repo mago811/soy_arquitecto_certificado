@@ -1,0 +1,269 @@
+{
+  "objective": 13,
+  "questions": [
+    {
+      "id": "o13-q21",
+      "objective": 13,
+      "pool": "practice",
+      "scenario": "A developer-tools company runs an automated PR reviewer in CI: `git diff origin/main...HEAD | claude -p \"Review for broken docs links\" --output-format json --json-schema schema.json`. The schema declares each finding as an object with `file` (string), `line` (integer), and `doc_url`, defined as `{ \"type\": \"string\", \"format\": \"uri\" }`. A downstream bot opens a ticket per finding and requests the URL. About 3% of findings have values like `see README section 4` in `doc_url`, which crash the bot. Every run is otherwise valid and `structured_output` is always present. What is the most effective fix?",
+      "options": [
+        "Validate `doc_url` as a URI in the bot before using it, since Claude Code treats `format` as an annotation and doesn't enforce it.",
+        "Make `doc_url` nullable and drop it from `required`, so the reviewer returns `null` instead of free text when it has no real link.",
+        "Retry the run whenever a `doc_url` fails to parse, since re-running the same diff usually returns a valid URI for that finding.",
+        "Move the schema into `--append-system-prompt`, so Claude reads the `format: uri` rule as an instruction rather than as metadata."
+      ],
+      "correct": 0,
+      "why_correct": "Claude Code acepta schemas con la keyword `format` (como `\"format\": \"email\"` o `\"uri\"`), pero la trata como una anotación y no la valida. El resto del schema se cumple, por eso `structured_output` siempre está. Si el consumidor necesita una URI válida, la tiene que validar él.",
+      "why_wrong": {
+        "1": "Casi: `nullable` es buena práctica contra datos inventados y bajaría los casos, pero no garantiza nada. Si Claude igual pone texto, `format` sigue sin validarse.",
+        "2": "Trata el síntoma y cuesta otra corrida. No hay nada transitorio: `format` nunca se valida.",
+        "3": "Pasar el schema a prompt es más débil todavía: perdés la validación de `--json-schema` y el `format` sigue sin hacerse cumplir."
+      },
+      "rule": "`--json-schema` valida la estructura, no `format`: lo que dependa de `format` lo valida tu código.",
+      "source_url": "https://code.claude.com/docs/en/headless",
+      "source_quote": "Claude Code accepts schemas that use the format keyword, such as \"format\": \"email\", but treats format as an annotation and doesn't enforce it.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o13-q22",
+      "objective": 13,
+      "pool": "practice",
+      "scenario": "A team built a `/review-pr` skill whose frontmatter has `allowed-tools: Read Grep Glob` and whose body says `review the diff; do not modify files`. Twice this month the review also edited files to \"fix\" its own findings, leaving surprise changes in developers' working trees on their Windows machines. The team wants a reviewer that structurally cannot edit, invoked from the main session after implementation, and it doesn't want to change anyone's global permissions or how they launch Claude Code. What is the most effective change?",
+      "options": [
+        "Keep the skill and add `disable-model-invocation: true`, so the reviewer only runs when a developer explicitly types `/review-pr`.",
+        "Keep the skill but move the `do not modify files` sentence to the top of `SKILL.md`, marked IMPORTANT, so it is never overlooked.",
+        "Define a subagent in `.claude/agents/reviewer.md` with `tools: Read, Grep, Glob`, because `allowed-tools` pre-approves but doesn't restrict.",
+        "Add `--allowedTools \"Read,Grep,Glob\"` to how developers launch Claude Code, so every other tool is unavailable during reviews."
+      ],
+      "correct": 2,
+      "why_correct": "El `allowed-tools` de una skill solo pre-aprueba esas tools durante el turno que la invoca: no restringe cuáles están disponibles. Por eso Claude pudo editar. Un subagente con `tools: Read, Grep, Glob` sí queda limitado, y ese límite lo aplica Claude Code, no un pedido en el prompt.",
+      "why_wrong": {
+        "0": "Controla QUIÉN invoca la skill, no qué tools puede usar. El revisor seguiría pudiendo editar.",
+        "1": "Sigue siendo guidance: es la misma instrucción que ya falló dos veces.",
+        "3": "`--allowedTools` pre-aprueba, no restringe (para restringir está `--tools`). Además cambia cómo arranca cada dev, que era una restricción."
+      },
+      "rule": "`allowed-tools` (skill) y `--allowedTools` pre-aprueban; `tools:` de un subagente (o `--tools`) restringe.",
+      "source_url": "https://code.claude.com/docs/en/best-practices",
+      "source_quote": "Give a custom subagent in .claude/agents/ only tools: Read, Grep, Glob. Now it's a reviewer that can't edit anything, and that limit is enforced by Claude Code rather than requested in a prompt.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o13-q23",
+      "objective": 13,
+      "pool": "practice",
+      "scenario": "A Team-plan company uses the managed Code Review service on GitHub. Reviews kept posting low-value findings in generated protobuf code, so an engineer opened PR #812, which both regenerates the protobuf stubs and adds a `REVIEW.md` at the repository root saying `Skip files under gen/proto/`. The review of #812 still posted 14 findings in `gen/proto/`. A teammate concludes that `REVIEW.md` doesn't work and proposes putting the same sentence in the PR description of every protobuf PR from now on. What is the correct explanation and next step?",
+      "options": [
+        "Code Review reads guidance only from `CLAUDE.md`, so rename `REVIEW.md` to `CLAUDE.md` inside the same PR and push again.",
+        "Code Review reads `REVIEW.md` from the base or default branch, never from the PR's own changes, so merge that change first.",
+        "Code Review caches its guidance per PR, so comment `@claude review` on #812 to make it reload `REVIEW.md` from the PR head.",
+        "Put the sentence in the PR description, which Code Review treats as a higher-priority instruction than `REVIEW.md`."
+      ],
+      "correct": 1,
+      "why_correct": "Code Review sigue el `REVIEW.md` de la rama base o default, y nunca el de los cambios del propio PR. Por eso el PR que lo agrega no se beneficia. Hay que mergear primero el cambio de `REVIEW.md` (idealmente en su propio PR); a partir de ahí, los PRs siguientes lo usan. Esto evita que un PR cambie las reglas con las que se lo revisa.",
+      "why_wrong": {
+        "0": "Code Review se ajusta con archivos `REVIEW.md` y `CLAUDE.md`. Renombrarlo dentro del mismo PR tampoco sirve, porque no lee las instrucciones desde los cambios del PR.",
+        "2": "Una nueva review sigue leyendo `REVIEW.md` desde la rama base, no desde el head del PR.",
+        "3": "La doc no documenta que la descripción del PR funcione como instrucción de review. Es inventado."
+      },
+      "rule": "Code Review lee `REVIEW.md` de la rama base, nunca del PR: un PR no puede cambiar las reglas con las que se lo revisa.",
+      "source_url": "https://code.claude.com/docs/en/code-review",
+      "source_quote": "Which instructions it follows: REVIEW.md from the base or default branch and never from the pull request's own changes.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o13-q24",
+      "objective": 13,
+      "pool": "practice",
+      "scenario": "A platform team's nightly job audits recently merged code with `claude -p \"Audit yesterday's merges for unsafe SQL\" --tools \"Read,Grep,Glob\" --output-format json`. The repository's `.mcp.json` connects a Jira server used by other jobs, and the project settings allow `mcp__jira` so those jobs don't prompt. Security expected the audit to be read-only, but last night Claude called `mcp__jira__create_issue` 41 times, opening tickets directly. The team wants the audit to read code and return findings as JSON only, without editing the shared `.mcp.json` or project settings. Which change is most effective?",
+      "options": [
+        "Add `--allowedTools \"Read,Grep,Glob\"`, so only those three tools can run and every other tool call is rejected.",
+        "Add `--permission-mode dontAsk`, which denies every tool call that isn't one of the built-in tools listed in `--tools`.",
+        "Add `Do not create Jira tickets; return findings only` to the prompt, since `--tools` already restricts the job.",
+        "Add `--disallowedTools \"mcp__*\"`, because `--tools` restricts built-in tools only and leaves MCP tools available."
+      ],
+      "correct": 3,
+      "why_correct": "`--tools` restringe las tools built-in, pero la doc aclara que no afecta a las tools MCP; para sacarlas también hay que usar `--disallowedTools \"mcp__*\"`. Un nombre sin scope en `--disallowedTools` saca esas tools del contexto de Claude, así que no las puede llamar aunque los settings las permitan.",
+      "why_wrong": {
+        "0": "`--allowedTools` pre-aprueba tools: no restringe las demás. Las de Jira ya estaban permitidas por los settings.",
+        "1": "Casi: `dontAsk` deniega lo que pediría aprobación, pero lo que matchea una regla `permissions.allow` (como `mcp__jira`) corre igual.",
+        "2": "Es guidance, y la premisa es falsa: `--tools` no toca las tools MCP."
+      },
+      "rule": "Solo lectura de verdad: `--tools` para las built-in + `--disallowedTools \"mcp__*\"` para las MCP.",
+      "source_url": "https://code.claude.com/docs/en/cli-reference",
+      "source_quote": "The flag doesn't affect MCP tools; to deny those too, use --disallowedTools \"mcp__*\".",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o13-q25",
+      "objective": 13,
+      "pool": "practice",
+      "scenario": "An insurance company's CI reviewer runs `claude -p --output-format json --json-schema review-schema.json` on each PR diff, and a Python step reads `data[\"structured_output\"][\"findings\"]`. On roughly 2% of PRs, mostly ones whose diffs include test fixtures with real-looking credentials, the step crashes with `KeyError: 'structured_output'` and blocks the merge queue. The JSON from those runs contains a `result` text explaining that Claude would not process the content. The team cannot change which files PRs contain, and those PRs still need a review. What should the parsing step do?",
+      "options": [
+        "Parse the `result` text with a regex as a fallback, since it contains the same findings in prose when `structured_output` is missing.",
+        "Retry the run up to five times with the same input, because the missing field is a transient failure of the schema validation.",
+        "Check that `structured_output` is present before using it, and route runs without it to a human reviewer instead of crashing.",
+        "Mark `findings` as optional in `review-schema.json`, so runs where Claude declines still return an empty `structured_output`."
+      ],
+      "correct": 2,
+      "why_correct": "Si una corrida termina sin structured output válido, por ejemplo porque Claude rechazó el pedido, la respuesta directamente no trae el campo `structured_output`. La doc dice que antes de usarlo chequees que esté. Como esos PRs igual necesitan review, lo correcto es mandarlos a una persona en vez de romper la cola.",
+      "why_wrong": {
+        "0": "En esos casos `result` explica por qué no procesó el contenido; no trae hallazgos. Parsear prosa con regex además es frágil.",
+        "1": "No es transitorio: con el mismo input, lo más probable es que se repita el rechazo. Solo suma costo y demora.",
+        "3": "Casi: hace el schema más permisivo, pero el problema no es un subcampo; falta `structured_output` entero porque no hubo salida válida."
+      },
+      "rule": "`structured_output` puede faltar (rechazo, falla): chequealo antes de usarlo y tené un camino humano.",
+      "source_url": "https://code.claude.com/docs/en/headless",
+      "source_quote": "If a run ends without valid structured output, for example because Claude declined the request, the response has no structured_output field. Before your script uses structured_output, check that the field is present.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o13-s21",
+      "objective": 13,
+      "pool": "sim",
+      "scenario": "A bank's CI reviewer must behave identically on every runner, so it runs `git diff origin/main...HEAD | claude --bare -p \"Review this diff\" --output-format json --json-schema review.json`. The team's review standards live in the repo's `CLAUDE.md`: SQL must go through the query builder, money amounts must use `Decimal`, and account numbers must never be logged. Since `--bare` was added, reviews no longer flag any of those three issues, although the JSON is well-formed. The shared runners also carry leftover `~/.claude` hooks from developers, which must not affect results. What is the most effective change?",
+      "options": [
+        "Remove `--bare` so the run loads the repo's `CLAUDE.md` again, and accept that the runner-level hooks will load as well.",
+        "Keep `--bare` and pass the standards explicitly with `--append-system-prompt-file ci/review-standards.md`.",
+        "Keep `--bare` and pass `--system-prompt-file CLAUDE.md`, so the standards become the run's entire system prompt.",
+        "Keep `--bare` and add `--setting-sources project`, which tells bare mode to load the project's `CLAUDE.md` and rules."
+      ],
+      "correct": 1,
+      "why_correct": "`--bare` saltea el auto-discovery de hooks, skills, plugins, MCP servers, auto memory y `CLAUDE.md`: por eso desaparecieron los estándares. Es lo que da reproducibilidad, así que conviene mantenerlo y pasar explícitamente lo que la corrida sí necesita. Para agregar al system prompt, en bare mode se usa `--append-system-prompt` o `--append-system-prompt-file`.",
+      "why_wrong": {
+        "0": "Recupera `CLAUDE.md`, pero rompe la restricción: sin bare, también cargan los hooks y la config que quedaron en el runner.",
+        "2": "`--system-prompt-file` reemplaza el system prompt por defecto entero: perdés el comportamiento base de Claude Code.",
+        "3": "`--setting-sources` elige qué fuentes de settings cargar; no hace que bare mode cargue `CLAUDE.md`, que bare saltea siempre."
+      },
+      "rule": "`--bare` en CI: reproducible, pero sin `CLAUDE.md`. Los estándares entran con `--append-system-prompt-file`.",
+      "source_url": "https://code.claude.com/docs/en/cli-reference",
+      "source_quote": "Minimal mode: skip auto-discovery of your hooks and of skills, custom commands, subagents, installed plugins, MCP servers, auto memory, and CLAUDE.md so scripted calls start faster.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o13-s22",
+      "objective": 13,
+      "pool": "sim",
+      "scenario": "A team's CI reviewer must never change the repository. It runs inside a disposable container with `claude -p \"Review the diff on this branch\" --permission-mode bypassPermissions --disallowedTools \"Bash(git push *)\" \"Edit\" \"Write\"`. An incident review found that during one run Claude executed `git -C . commit -am wip` and then `git -c core.hooksPath=/dev/null push`, and the push reached a shared branch. Neither command matched the deny rule as written. The reviewer only needs to see the branch diff and read files in the repo. Which configuration change best enforces read-only behavior?",
+      "options": [
+        "Pipe the diff in with `git diff origin/main...HEAD |` and remove Bash entirely with `--disallowedTools \"Bash\"`, keeping read tools.",
+        "Add more scoped deny rules, such as `Bash(git -C *)` and `Bash(git -c *)`, until every commit and push variant is covered.",
+        "Add a `PostToolUse` hook on `Bash` that runs `git reset --hard` whenever a command has changed the working tree.",
+        "Add `Never commit or push; you are a read-only reviewer` with `--append-system-prompt`, keeping the existing deny list."
+      ],
+      "correct": 0,
+      "why_correct": "Un nombre de tool sin scope en `--disallowedTools` (como `\"Bash\"`) saca la tool del contexto de Claude. Una regla con scope, como `Bash(git push *)`, deja la tool disponible y solo deniega las llamadas que matchean tal como están escritas, por eso `git -c ... push` pasó. Pipear el diff hace que Claude no necesite Bash para leerlo.",
+      "why_wrong": {
+        "1": "Es perseguir variantes: siempre hay otra forma de escribir el mismo comando. La doc advierte que las reglas con scope matchean \"as written\".",
+        "2": "`PostToolUse` corre cuando la tool ya se ejecutó: el push ya salió. Y un `reset --hard` automático es otro riesgo.",
+        "3": "Guidance para un requisito que tiene que garantizarse. En `bypassPermissions`, lo único que frena son las reglas."
+      },
+      "rule": "Para que una tool no exista, nombrala sola en `--disallowedTools`. Las reglas con scope solo frenan lo que matchea textual.",
+      "source_url": "https://code.claude.com/docs/en/cli-reference",
+      "source_quote": "A scoped rule such as Bash(rm *) leaves the tool available and denies only calls that match as written.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o13-s23",
+      "objective": 13,
+      "pool": "sim",
+      "scenario": "A security team wrote `review.ps1` for engineers' Windows laptops: `gh pr diff $args[0] | claude -p --system-prompt \"You are a security engineer. Review for injection and authz bugs. Output JSON.\" --output-format json`. Compared with reviews from interactive sessions, these runs ignore which branch the engineer is on, behave differently with tools, and the \"JSON\" arrives as prose with a fenced block inside `result` that the parser often fails on. The team wants Claude Code's default behavior plus the security focus, and findings a script can consume without fragile parsing. Which change is best?",
+      "options": [
+        "Keep `--system-prompt` but move its text into `--system-prompt-file security.txt`, so it is loaded the same way on every run.",
+        "Use `--append-system-prompt` for the focus, and parse `.result` with a JSON parser after stripping any Markdown code fences.",
+        "Keep `--system-prompt` and add few-shot examples of the JSON format to it, so the model reliably returns bare JSON in `result`.",
+        "Use `--append-system-prompt` for the security focus and add `--json-schema`, so the findings arrive in `structured_output`."
+      ],
+      "correct": 3,
+      "why_correct": "`--system-prompt` reemplaza el prompt por defecto entero, y la doc aclara que entonces la corrida arranca también sin el snapshot de git status: de ahí las diferencias. `--append-system-prompt` agrega instrucciones conservando el comportamiento default. Para salida que se procesa sin parseo frágil: `--output-format json` con `--json-schema`, y los datos vienen en `structured_output`.",
+      "why_wrong": {
+        "0": "Leerlo de un archivo no cambia nada: `--system-prompt-file` también reemplaza el prompt por defecto.",
+        "1": "Casi: arregla el prompt, pero sigue parseando texto libre. Sacar fences a mano es justo el parseo frágil que querían evitar.",
+        "2": "Few-shot mejora la consistencia, pero no es una garantía de schema, y sigue reemplazando el prompt default."
+      },
+      "rule": "Sumar foco → `--append-system-prompt`. Salida para máquinas → `--json-schema` y leer `structured_output`.",
+      "source_url": "https://code.claude.com/docs/en/headless",
+      "source_quote": "Use --append-system-prompt to add instructions while keeping Claude Code's default behavior.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o13-s24",
+      "objective": 13,
+      "pool": "sim",
+      "scenario": "An e-commerce company is designing one CI reviewer command to reuse across 60 repositories on shared Linux runners. Requirements: (1) load the team's standards from `ci/standards.md` and ignore whatever hooks, plugins, MCP servers, and CLAUDE.md files the runner image has accumulated; (2) Claude may only read and search files, with no shell, no edits, and no MCP tools; (3) findings must be schema-validated JSON for a bot that opens tickets. The pipeline already produces the diff. Which invocation meets all three requirements?",
+      "options": [
+        "`git diff origin/main...HEAD | claude --bare -p \"Review\" --append-system-prompt-file ci/standards.md --allowedTools \"Read,Grep,Glob\" --output-format json --json-schema f.json`",
+        "`git diff origin/main...HEAD | claude -p \"Review\" --append-system-prompt-file ci/standards.md --tools \"Read,Grep,Glob\" --disallowedTools \"mcp__*\" --output-format json`",
+        "`git diff origin/main...HEAD | claude --bare -p \"Review\" --append-system-prompt-file ci/standards.md --tools \"Read,Grep,Glob\" --output-format json --json-schema f.json`",
+        "`git diff origin/main...HEAD | claude --bare -p \"Review\" --system-prompt-file ci/standards.md --tools \"Read,Grep,Glob\" --output-format text --json-schema f.json`"
+      ],
+      "correct": 2,
+      "why_correct": "`--bare` ignora lo que acumuló el runner, y en bare mode solo se conectan los MCP servers que pasás por línea de comando (acá ninguno). `--append-system-prompt-file` suma los estándares sin perder el prompt default. `--tools \"Read,Grep,Glob\"` restringe las built-in. `--output-format json` con `--json-schema` da los hallazgos validados en `structured_output`.",
+      "why_wrong": {
+        "0": "Casi: todo bien salvo `--allowedTools`, que pre-aprueba y no restringe. Bash y Edit siguen disponibles en bare mode.",
+        "1": "Sin `--bare` cargan los hooks, plugins y `CLAUDE.md` del runner. Y sin `--json-schema` no hay validación de schema.",
+        "3": "`--system-prompt-file` reemplaza el prompt por defecto, y la doc documenta `--json-schema` junto con `--output-format json`, no con `text`."
+      },
+      "rule": "Reviewer de CI: `--bare` + `--append-system-prompt-file` + `--tools` + `--output-format json --json-schema`.",
+      "source_url": "https://code.claude.com/docs/en/headless",
+      "source_quote": "MCP servers: only servers supplied on the command line connect, for example with --mcp-config.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o13-s25",
+      "objective": 13,
+      "pool": "sim",
+      "scenario": "A team added a GitHub Actions workflow that runs on `pull_request` with the Claude Code GitHub Action and a plain-text input: `prompt: \"Run gh pr diff for this PR and review it against docs/standards.md; post a summary comment\"`. The workflow's `permissions:` block grants `contents: read` and `pull-requests: write`. Every run finishes green, but the log shows Claude reporting that it could not run `gh pr diff` or post the comment, and nothing appears on the PR. The team wants the minimum change that lets this review run as written. What should they change?",
+      "options": [
+        "Grant the tools the prompt needs in `claude_args` with `--allowedTools`, such as `Bash(gh pr diff *)` and `Bash(gh pr comment *)`.",
+        "Add `issues: write` and `contents: write` to the workflow's `permissions:` block, so Claude's GitHub token can run those commands.",
+        "Add `--permission-mode acceptEdits` to `claude_args`, which auto-approves the shell commands a review usually needs to run.",
+        "Move the instructions into the repo's `CLAUDE.md`, since the Action grants tools automatically to instructions found there."
+      ],
+      "correct": 0,
+      "why_correct": "Con un prompt de texto plano, Claude no tiene acceso a la shell ni a la API de GitHub hasta que le das las tools que el prompt necesita: con `--allowedTools` en `claude_args` o con una regla `permissions.allow` en el input `settings`. Los permisos del token de GitHub son otra capa, y ya alcanzaban.",
+      "why_wrong": {
+        "1": "Casi: los `permissions:` del workflow controlan qué puede hacer el token de GitHub, no qué tools puede usar Claude. El bloqueo estaba en las tools.",
+        "2": "`acceptEdits` auto-aprueba edits y comandos comunes de filesystem. Otros comandos de shell siguen necesitando una regla de allow.",
+        "3": "`CLAUDE.md` es guidance para Claude: no otorga permisos de tools."
+      },
+      "rule": "GitHub Action con prompt plano: sin `--allowedTools` (o `permissions.allow`), Claude no tiene shell ni API.",
+      "source_url": "https://code.claude.com/docs/en/github-actions",
+      "source_quote": "For a plain-text prompt, Claude has no shell or GitHub API access until you grant the tools the prompt needs, with --allowedTools in claude_args or a permissions.allow rule in the settings input.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o13-s26",
+      "objective": 13,
+      "pool": "sim",
+      "scenario": "A travel company's CI reviewer posts its findings as PR comments. After a month, developers resolve fewer than 10% of them: a typical PR gets 20+ comments, mostly about naming, import order, and comment wording, while two missing null checks that later caused incidents went unflagged. The reviewer prompt is `Review this diff carefully and report all problems you find.` The team's formatter and linter already enforce style in CI, and the team wants to keep one reviewer pass per PR. Which change most directly improves the reviewer's precision?",
+      "options": [
+        "Raise the reviewer to `xhigh` effort and ask for a confidence score per finding, posting only the findings scored above 0.8.",
+        "Add two few-shot examples of good findings to the prompt, while keeping the instruction to report all problems found.",
+        "Run a second Claude pass that deduplicates the 20+ comments and merges related ones into a single summary comment.",
+        "Rewrite the prompt with explicit criteria: report only correctness and safety gaps such as missing null checks, and skip style."
+      ],
+      "correct": 3,
+      "why_correct": "Un revisor al que le pedís \"encontrá problemas\" siempre va a encontrar algo; por eso la doc insiste en no sacar el `skip style` del prompt. El estilo ya lo garantizan el formatter y el linter. Criterios explícitos de qué reportar (correctitud, seguridad, ejemplos como null checks) y qué saltear apuntan justo a la falta de precisión.",
+      "why_wrong": {
+        "0": "Más esfuerzo no cambia QUÉ se le pide buscar, y un puntaje de confianza autoinformado no está calibrado.",
+        "1": "Casi: los few-shot ayudan, pero mientras el prompt diga \"todos los problemas\" sigue invitando al ruido.",
+        "2": "Trata el síntoma (muchos comentarios) con otra pasada, y el equipo quería una sola. Los null checks siguen sin aparecer."
+      },
+      "rule": "Reviewer ruidoso → criterios explícitos de qué reportar y `skip style`, no más esfuerzo ni más pasadas.",
+      "source_url": "https://code.claude.com/docs/en/best-practices",
+      "source_quote": "Don't drop the skip style part of that prompt. A reviewer that's asked to find problems will always find something.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

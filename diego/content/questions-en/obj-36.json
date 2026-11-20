@@ -225,15 +225,15 @@
       "options": [
         "Switch to `tool_choice: {\"type\": \"tool\", \"name\": \"extract_receipt\"}` for documents under one page, since most receipts are short and invoices are usually longer.",
         "Add a separate classification call before extraction, and force the matching extraction tool with `tool_choice` set to the tool chosen in the first call.",
-        "Rewrite both descriptions to state the document characteristics each one covers, such as a payment request with a due date versus proof of a completed payment.",
-        "Make `due_date` and `invoice_number` required in the `extract_invoice` schema, so the model can't choose that tool for a document that lacks those fields."
+        "Make `due_date` and `invoice_number` required in the `extract_invoice` schema, so the model can't choose that tool for a document that lacks those fields.",
+        "Rewrite both descriptions to state the document characteristics each one covers, such as a payment request with a due date versus proof of a completed payment."
       ],
-      "correct": 2,
+      "correct": 3,
       "why_correct": "Con `tool_choice: any` el modelo elige entre las dos tools según sus descripciones. \"Extracts invoice data.\" no le dice qué distingue una factura de un recibo. Describir las características de cada documento y cuándo NO usar cada tool corrige la selección dentro de la misma llamada, respetando el costo.",
       "why_wrong": {
         "0": "Una heurística por largo que la API no conoce: va a forzar facturas cortas al extractor de recibos.",
         "1": "Funciona, y forzar con `tool_choice` es legítimo, pero son dos llamadas por documento: viola la regla de costo.",
-        "3": "Hacerlos obligatorios no impide elegir la tool: empuja al modelo a inventar fecha y número para cumplir el schema. Es el principio de \"el modelo inventa datos\"."
+        "2": "Hacerlos obligatorios no impide elegir la tool: empuja al modelo a inventar fecha y número para cumplir el schema. Es el principio de \"el modelo inventa datos\"."
       },
       "rule": "Con `tool_choice: any`, lo que decide cuál tool es la descripción: escribí qué la distingue de la otra.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
