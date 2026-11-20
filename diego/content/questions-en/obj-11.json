@@ -22,8 +22,12 @@
       "rule": "CI: `dontAsk` + `--allowedTools` exacto + `--max-turns`. Bypass solo en contenedores aislados y nunca como root.",
       "source_url": "https://code.claude.com/docs/en/permission-modes",
       "source_quote": "Use this mode for CI pipelines or restricted environments where you pre-define what Claude may do.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "permission-modes: rechazo de bypass como root en Linux/macOS; dontAsk para CI con allowlist; bypassPermissions en .claude/settings.json no toma efecto (arranca en Manual); skipDangerousModePermissionPrompt solo saltea el diálogo. Cita textual."
+      }
     },
     {
       "id": "o11-q22",
@@ -46,8 +50,12 @@
       "rule": "En reglas de Bash, el espacio antes de `*` importa: `cmd *` es \"cmd con argumentos\"; `cmd*` es \"cualquier cosa que empiece así\".",
       "source_url": "https://code.claude.com/docs/en/headless",
       "source_quote": "The space before * is important: without it, Bash(git diff*) would also match git diff-index.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "headless + permissions: espacio antes de * (con espacio matchea comando pelado y con args; sin espacio es prefijo). Cita textual."
+      }
     },
     {
       "id": "o11-q23",
@@ -70,8 +78,12 @@
       "rule": "`--max-turns` = turnos con tools + 1 para la respuesta final. Si no, `error_max_turns` sin respuesta.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
       "source_quote": "Count each turn with tool calls, plus one for the final text-only response. Without that extra turn, the run ends with a ResultMessage of subtype error_max_turns and no final response.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "agent-loop: contar turnos con tools + 1 para la respuesta final, si no error_max_turns sin respuesta; aplica igual a --max-turns de -p (cli-reference). Cita textual."
+      }
     },
     {
       "id": "o11-q24",
@@ -94,8 +106,12 @@
       "rule": "`--bare` = ni hooks, ni skills, ni plugins, ni MCP, ni CLAUDE.md. Si el job necesita un hook, no uses `--bare`.",
       "source_url": "https://code.claude.com/docs/en/headless",
       "source_quote": "Hooks still don't run in bare mode when you pass them with --settings, or in the hooks/hooks.json or hooks manifest key of a plugin you load with a flag. Don't use bare mode for a run that needs them.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "headless: bare lee settings pero no corre hooks, ni con --settings ni de plugins por flag; 'no uses bare si los necesitás'. A es el casi-correcto bien descartado. Cita textual."
+      }
     },
     {
       "id": "o11-q25",
@@ -118,8 +134,12 @@
       "rule": "Límites por corrida (`--max-turns`, `--max-budget-usd`, timeout) ≠ límites de cuántas corridas: para eso, `concurrency`.",
       "source_url": "https://code.claude.com/docs/en/github-actions",
       "source_quote": "Use GitHub's concurrency controls to limit parallel runs",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "github-actions: usar concurrency de GitHub para limitar corridas paralelas; --max-budget-usd es por corrida. Cita textual."
+      }
     },
     {
       "id": "o11-s21",
@@ -142,8 +162,12 @@
       "rule": "Con `--resume`, cada corrida tiene su propio `--max-budget-usd`; el total acumulado lo ves en `total_cost_usd`.",
       "source_url": "https://code.claude.com/docs/en/cli-reference",
       "source_quote": "When you return to a conversation with --continue or --resume, totals restored from earlier runs don't count toward it.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "cli-reference --max-budget-usd: subagentes cuentan; totales restaurados con --resume/--continue no cuentan para el cap. Cita textual."
+      }
     },
     {
       "id": "o11-s22",
@@ -166,8 +190,12 @@
       "rule": "Auto mode en `-p`: un bloqueo deniega esa acción y Claude sigue. Los \"nunca\" van en deny rules, no en el classifier.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "In a non-interactive run, a classifier block denies that one action and Claude carries on, and repeated blocks don't pause the run the way they do in a terminal.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "best-practices: en -p un bloqueo del classifier deniega y sigue; auto-mode-config: el classifier no lee autoMode de settings de proyecto; headless: --permission-prompts none deniega y la corrida continúa. Cita textual."
+      }
     },
     {
       "id": "o11-s23",
@@ -190,8 +218,12 @@
       "rule": "Para cortar `claude -p` con un turno cerrado: SIGINT primero, después parás el proceso. SIGTERM = turno sin resultado (exit 143).",
       "source_url": "https://code.claude.com/docs/en/headless",
       "source_quote": "To end the turn instead, send SIGINT, or call the Agent SDK's interrupt(), before you stop the process.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "headless: SIGTERM -> 143, turno sin resultado; SIGINT o interrupt() antes; CLAUDE_CODE_RESUME_INTERRUPTED_TURN es para reanudar. Cita textual."
+      }
     },
     {
       "id": "o11-s24",
@@ -214,8 +246,12 @@
       "rule": "En scripts, decidí con el exit code (y `is_error`), no con stderr: las fallas dentro de la corrida salen por stdout.",
       "source_url": "https://code.claude.com/docs/en/headless",
       "source_quote": "When a failure happens inside the run, such as missing authentication, Claude Code prints the failure as the result on stdout.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "headless: exit 0/no cero; flag inválido a stderr, fallas dentro de la corrida (auth) como result en stdout; is_error existe en el result. Cita textual."
+      }
     },
     {
       "id": "o11-s25",
@@ -238,8 +274,12 @@
       "rule": "Para auditar intentos fuera del allowlist en CI: leé `permission_denials` del resultado, no el exit code.",
       "source_url": "https://code.claude.com/docs/en/headless",
       "source_quote": "With --output-format stream-json, denials appear as permission_denied system messages, and the final result message lists them in permission_denials.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "headless: con stream-json las denegaciones salen como permission_denied y en permission_denials del result; la corrida continúa. Cita textual."
+      }
     },
     {
       "id": "o11-s26",
@@ -262,8 +302,12 @@
       "rule": "Agregar reglas sin perder el prompt default → `--append-system-prompt`. `--system-prompt` reemplaza todo.",
       "source_url": "https://code.claude.com/docs/en/github-actions",
       "source_quote": "custom_instructions has no same-name flag and becomes --append-system-prompt",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "github-actions (upgrade): max_turns a claude_args, custom_instructions se convierte en --append-system-prompt. Cita textual."
+      }
     }
   ]
 }

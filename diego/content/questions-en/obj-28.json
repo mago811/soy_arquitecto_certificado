@@ -31,7 +31,7 @@
       "pool": "practice",
       "scenario": "A logistics company extracts line items from freight invoices with structured outputs (`output_config.format` with a JSON schema) and `max_tokens: 4096`. About 3% of documents fail with `JSONDecodeError` and are discarded as \"invalid model output.\" Every failing document is a long invoice with 400 to 900 line items; short invoices never fail. The pipeline reads `response.content[0].text` and parses it without looking at any other field of the response. The model and the schema were approved by the data team and cannot change this quarter. What should the team do first?",
       "options": [
-        "Check `stop_reason`; for responses that stopped at `max_tokens`, retry with a higher `max_tokens`, which still leaves ample room below the model's output ceiling.",
+        "Check `stop_reason`; when it is `max_tokens`, retry with a higher `max_tokens`, which still leaves ample room below the model's output ceiling.",
         "Split every invoice into pages, extract the line items page by page with the same schema, and merge the arrays so no single response gets large.",
         "Wrap the parse in a retry loop that resends the identical request up to three times, since the failures look intermittent across the batch.",
         "Switch from JSON outputs to strict tool use, because strict mode guarantees that the tool input always matches the schema and parses cleanly."
@@ -58,7 +58,7 @@
         "Move the synthesis call to the Message Batches API with the 300k output beta header, so the full report fits in a single response.",
         "Generate each topic section in its own synthesis call with the same section schema, then assemble the sections into the final report in code.",
         "Prefill the assistant turn with `{\"sections\": [` so Claude skips any preamble and spends its whole output budget on the report itself.",
-        "Instruct the synthesis call to compress each finding into one short sentence and drop secondary sources, so the report fits within 128K."
+        "Instruct the synthesis call to compress each finding into one short sentence and drop secondary sources, so the whole report fits within 128K."
       ],
       "correct": 1,
       "why_correct": "La síntesis ya está en el techo sincrónico de 128K y el reporte crece con la cantidad de fuentes. Una llamada por sección, con el mismo schema de sección, mantiene cada salida chica, se puede correr en paralelo para cumplir los dos minutos, y el ensamblado lo hace el código.",
@@ -79,7 +79,7 @@
       "pool": "practice",
       "scenario": "A platform team runs a nightly security audit over 300 repositories. Each repo is sent in one Messages API request that returns a JSON findings report, and a dashboard shows the number of critical findings per repo. To stop parse failures, an engineer added a \"JSON repair\" library that closes any unterminated arrays and objects before parsing; parse errors dropped to zero. Two weeks later, a pentest found a critical injection flaw in a repo the dashboard had shown with 0 critical findings. That repo's log shows `stop_reason: \"max_tokens\"` on every nightly run, with about 128,000 output tokens each time. Which change addresses the root cause?",
       "options": [
-        "Keep the repair library and validate the repaired JSON against the findings schema, so malformed reports are caught before they reach the dashboard.",
+        "Keep the repair library and validate the repaired JSON against the findings schema, so malformed or partial reports are caught before they ever reach the dashboard.",
         "Enable strict tool use for the findings report, so the output is guaranteed to match the schema and no longer needs a repair step.",
         "Instruct Claude to list critical findings first, so that if the response is cut off, only lower-severity findings are lost from the report.",
         "Treat `stop_reason: \"max_tokens\"` as an incomplete result that is never published, and audit oversized repos with one call per package, merging findings in code."
@@ -128,7 +128,7 @@
       "scenario": "A healthcare SaaS reviews pull requests in its 600-service monorepo with one synchronous Messages API call per PR that returns a findings array through a forced tool. Two problems appear on PRs touching 40+ files: responses hit `max_tokens` at 128000, and when they don't, findings contradict each other (the same sanitizer is reported as \"missing\" in one finding and \"correctly applied\" in another). The security team insists the review keep catching cross-file taint flows, such as unvalidated input entering a controller in one service and reaching a SQL query in another. Reviews must stay synchronous because they gate merges. Which architecture is most effective?",
       "options": [
         "Run focused per-file passes for local issues plus separate integration passes for cross-file data flow, and merge all of the findings in code.",
-        "Run one review call per changed file with the same findings schema, then deduplicate and merge the arrays in code into a single report.",
+        "Run one review call per changed file with the same findings schema, then deduplicate and merge the arrays in code into a single report for the PR.",
         "Keep one call per PR but raise the effort level, and add an instruction to double-check that no two findings contradict each other.",
         "Keep one call per PR but send it through the Message Batches API with the 300k output beta header, which removes the truncation."
       ],
@@ -154,7 +154,7 @@
         "Retry truncated requests with a higher `max_tokens` value, as the documentation recommends for responses that end with an incomplete tool use block.",
         "Send the large bills through the Message Batches API with the 300k output beta header, and keep the synchronous path for every other bill.",
         "Keep the continuation loop but deduplicate rows by description and amount at each seam, so dropped and repeated rows get reconciled.",
-        "Split each large bill into page ranges, extract each range with the same tool schema in parallel calls, and concatenate the line-item arrays in code."
+        "Split each large bill into page ranges, extract each range with the same tool schema in parallel calls, and concatenate the arrays in code."
       ],
       "correct": 3,
       "why_correct": "Ya están en el techo de salida sincrónico (128K) y la cantidad de filas crece con la factura. Partir por rangos de páginas con el mismo schema, en paralelo, mantiene cada respuesta chica, cumple los dos minutos y el merge es concatenar arrays: ya no hay costuras adentro de una respuesta.",
@@ -177,7 +177,7 @@
       "options": [
         "Raise `max_tokens` to 128000, the model's maximum synchronous output, so that the evidence table has twice as much room to finish.",
         "Have subagents extract evidence rows from subsets of the papers in separate calls with the same row schema, then merge the rows in code.",
-        "Retry the identical request with exponential backoff, since context window errors are usually transient capacity limits on the API side.",
+        "Retry the identical request with exponential backoff, since context window errors are usually transient capacity limits that clear on a later attempt.",
         "Move the request to the Message Batches API with the 300k output beta header, which allows a much longer response for the same input."
       ],
       "correct": 1,
@@ -201,7 +201,7 @@
       "options": [
         "Ask the merge call to shorten each finding to one line and keep only the first citation per finding, so the merged report fits in 128K.",
         "Send the merge call to the Message Batches API with the 300k output beta header, so the full merged report fits in a single response.",
-        "Merge the six JSON objects programmatically into the report schema, and use Claude only for short cross-source parts such as the executive summary.",
+        "Merge the six JSON objects into the report schema in code, and use Claude only for short cross-source parts such as the executive summary.",
         "Prefill the merge response with the report's opening JSON, so the model doesn't spend output tokens restating the schema before the findings."
       ],
       "correct": 2,
@@ -223,7 +223,7 @@
       "pool": "sim",
       "scenario": "A legal-tech company extracts clauses from 5,000 contracts every night. Contracts over 200 pages are split into 6 chunks, and every chunk becomes one request in a single Message Batches API job of about 18,000 requests. The merge step reads the results file line by line and assigns each result to a contract based on the order in which the requests were submitted. Since the switch to batches, auditors find clauses attached to the wrong contract in about 4% of records, and the error rate is higher on nights with larger batches. Every request already uses the same clause schema, and none are truncated. Which change fixes the merge?",
       "options": [
-        "Give each request a `custom_id` that encodes the contract ID and chunk index, and merge results by parsing `custom_id` instead of relying on position.",
+        "Give each request a `custom_id` that encodes the contract ID and chunk index, and merge results by `custom_id` instead of by position.",
         "Submit one batch per contract so that each results file contains only that contract's chunks and result order stays aligned with submission order.",
         "Add the contract ID as a required field in the clause schema and ask Claude to copy it from the prompt into every clause it extracts.",
         "Keep each night's batches under 1,000 requests and process them one after another, since result order is only preserved in small batches."

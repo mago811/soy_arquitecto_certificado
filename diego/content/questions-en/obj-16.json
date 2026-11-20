@@ -22,8 +22,12 @@
       "rule": "\"Siempre después de editar/crear\" → hook `PostToolUse`. CLAUDE.md orienta; el hook garantiza.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "Here's the formatter rule as a PostToolUse hook. It runs after every Edit or Write, and whether Claude remembers the rule no longer matters, because Claude isn't the one running it:",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "best-practices: formatter como hook PostToolUse; PreToolUse corre antes del Write. Cita textual."
+      }
     },
     {
       "id": "o16-q22",
@@ -46,8 +50,12 @@
       "rule": "Skill con efectos secundarios → `disable-model-invocation: true`. Solo la dispara una persona.",
       "source_url": "https://code.claude.com/docs/en/skills",
       "source_quote": "Claude can't invoke the skill on its own. Use this for workflows with side effects or that you want to control timing, like /commit, /deploy, or /send-slack-message.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "skills: disable-model-invocation impide que Claude la invoque; user-invocable:false es lo opuesto; allowed-tools pre-aprueba. Cita textual."
+      }
     },
     {
       "id": "o16-q23",
@@ -70,8 +78,12 @@
       "rule": "Procedimiento largo y ocasional → skill. `@import` organiza, pero carga igual.",
       "source_url": "https://code.claude.com/docs/en/skills",
       "source_quote": "Unlike CLAUDE.md content, a skill's body loads only when it's used, so long reference material costs almost nothing until you need it.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "skills: el cuerpo de la skill carga solo al usarse; memory: los @imports no reducen el costo de contexto (cargan con el CLAUDE.md); rules sin paths cargan al inicio. Cita textual."
+      }
     },
     {
       "id": "o16-q24",
@@ -94,8 +106,12 @@
       "rule": "Convención atada a un tipo de archivo → `.claude/rules/*.md` con `paths`.",
       "source_url": "https://code.claude.com/docs/en/memory",
       "source_quote": "Rules can be scoped to specific files using YAML frontmatter with the paths field. These conditional rules only apply when Claude is working with files matching the specified patterns.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "memory: rules con paths cargan solo con archivos que matchean; CLAUDE.md de subdirectorio carga bajo demanda pero son 60 copias. Cita textual."
+      }
     },
     {
       "id": "o16-q25",
@@ -118,8 +134,12 @@
       "rule": "Rule que carga siempre aunque tenga `paths` → frontmatter roto. `claude --debug` muestra el error.",
       "source_url": "https://code.claude.com/docs/en/memory",
       "source_quote": "If the YAML between the markers doesn't parse, Claude Code ignores the frontmatter and loads the rule as if it had no paths. Run claude --debug to see the parse error.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "memory: YAML que no parsea -> se ignora el frontmatter y la rule carga sin paths; claude --debug; paths es el único campo que se lee; path-scoped carga con Read/Write/Edit. Cita textual."
+      }
     },
     {
       "id": "o16-s21",
@@ -142,8 +162,12 @@
       "rule": "Política de seguridad para toda la org → managed settings (`permissions.deny`). El CLAUDE.md managed solo orienta.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "They come from the admin console, MDM, or a managed-settings.json file, and no personal settings file can override them, which makes them the only place for a security team's policy.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "best-practices + memory: managed settings no se pueden pisar y son el lugar para la política; el CLAUDE.md managed es guidance, enforce con permissions.deny. Cita textual."
+      }
     },
     {
       "id": "o16-s22",
@@ -166,8 +190,12 @@
       "rule": "\"No terminés hasta que X pase\" → `Stop` hook con exit 2. `/goal` es un modelo juzgando.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "This one is enforced by Claude Code (the harness), so the turn doesn't end until the typecheck passes or the block limit is reached.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "best-practices: /goal lo chequea otro modelo; Stop hook con exit 2 lo aplica el harness hasta el límite de bloqueos. Cita textual."
+      }
     },
     {
       "id": "o16-s23",
@@ -183,15 +211,19 @@
       "correct": 3,
       "why_correct": "Un hook `prompt` o `agent` le pide a OTRO modelo que decida, así que tampoco es determinístico: así pasó el primer key. Para enforcement real, la doc dice usar un hook `command`, `http` o `mcp_tool`, y agregar `onFailure: \"block\"` si la acción también tiene que frenarse cuando el hook falla o se cuelga, que fue el segundo caso.",
       "why_wrong": {
-        "0": "Casi: tapa el timeout, pero la decisión sigue siendo de un modelo (el placeholder). Además la doc documenta `onFailure: \"block\"` para hooks `command`, `http` y `mcp_tool`.",
+        "0": "Casi: apunta al timeout, pero `onFailure` no es un campo de los hooks `prompt`: la doc lo documenta solo para hooks `command`, `http` y `mcp_tool` (los `prompt`/`agent` suman solo `prompt` y `model`). Y aunque existiera, la decisión seguiría siendo de un modelo, que es como pasó el key \"placeholder\".",
         "1": "Un `agent` hook sigue siendo un modelo decidiendo, con más herramientas: no lo vuelve determinístico.",
         "2": "Guidance como respaldo de un control de seguridad: no agrega ninguna garantía."
       },
       "rule": "Enforcement real = hook `command`/`http`/`mcp_tool` + `onFailure: \"block\"`. Los hooks `prompt`/`agent` son juicio de modelo.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "For real enforcement, use a command, http, or mcp_tool hook, and add onFailure: \"block\" if the action should also be stopped when the hook itself crashes or times out.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "best-practices + hooks: correcta confirmada (command hook determinístico + onFailure:block; onFailure solo existe para command/http/mcp_tool, no está en los campos comunes ni en los de prompt/agent). Cita textual. Corregí why_wrong[0]: decía que onFailure 'tapa el timeout' en un hook prompt; la doc no documenta ese campo para hooks prompt."
+      }
     },
     {
       "id": "o16-s24",
@@ -214,8 +246,12 @@
       "rule": "Deny rules de archivos ≠ subprocesos. Para garantía real en la shell: sandbox, con el reintento fuera del sandbox apagado.",
       "source_url": "https://code.claude.com/docs/en/permissions",
       "source_quote": "They also don't apply to arbitrary subprocesses that read or write files indirectly, like a Python or Node script that opens files itself. For OS-level enforcement on sandboxed shell commands, enable the sandbox and turn off the unsandboxed retry.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "permissions: Read/Edit deny no alcanzan subprocesos (Python/Node); sandbox + apagar el reintento fuera del sandbox; best-practices: el sandbox toma las reglas Read deny. Cita textual."
+      }
     },
     {
       "id": "o16-s25",
@@ -238,8 +274,12 @@
       "rule": "Personal + este repo + sin commit → `.claude/settings.local.json`. Personal + todos los repos → `~/.claude/settings.json`.",
       "source_url": "https://code.claude.com/docs/en/settings",
       "source_quote": "To change a setting for yourself in one project without changing it for your teammates, save it in .claude/settings.local.json inside the project.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "settings: .claude/settings.local.json para un setting personal en un proyecto; permissions: PowerShell(...) usa la misma forma que Bash; ~/.claude aplica a todos los repos y está debajo del proyecto. Cita textual."
+      }
     },
     {
       "id": "o16-s26",
@@ -262,8 +302,12 @@
       "rule": "deny → ask → allow, siempre. Un hook `allow` no le gana a una regla `ask` o `deny`.",
       "source_url": "https://code.claude.com/docs/en/permissions",
       "source_quote": "PreToolUse hook decisions don't bypass permission rules. Claude Code evaluates deny and ask rules regardless of what a PreToolUse hook returns: a matching deny rule blocks the call, and a matching ask rule still prompts even when the hook returned \"allow\" or \"ask\".",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "permissions: los hooks PreToolUse no saltean ask/deny; orden deny->ask->allow sin importar archivo ni orden. Cita textual."
+      }
     }
   ]
 }

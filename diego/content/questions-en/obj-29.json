@@ -32,7 +32,7 @@
       "scenario": "A tax-tech startup extracts totals from receipts with structured outputs and four few-shot examples, all clean PDF receipts from large retailers with a \"TOTAL\" line at the bottom. After expanding to a new region, scans from street markets and handwritten receipts started arriving: the total appears as \"A pagar\" or \"Importe\", or is circled at the top of the page. On this new set, `total` comes back null in 38% of receipts where a human can see it clearly. The schema already makes `total` nullable, and the team wants to keep null for receipts that genuinely have no total. What is the most effective change?",
       "options": [
         "Remove null from `total` so the field becomes a required number, which forces the model to locate a total in every receipt it processes.",
-        "Add an instruction listing synonyms for the total line (\"A pagar\", \"Importe\", \"Amount due\") and telling the model to look anywhere on the page.",
+        "Add an instruction listing synonyms for the total line (\"A pagar\", \"Importe\", \"Amount due\") and telling the model to look for it anywhere on the page.",
         "Raise the effort level for receipts from the new region, so the model spends more reasoning on locating the total in unusual layouts.",
         "Add few-shot examples from the new formats: a correct total from a market scan, one from a handwritten receipt, and one that truly has no total."
       ],
@@ -55,8 +55,8 @@
       "pool": "practice",
       "scenario": "A food distributor extracts order lines from customer emails and PDFs into a schema with `quantity` (number) and `unit` (string). Inputs mix \"2 doz eggs\", \"24 eggs\", \"1 case (12 x 1L)\", \"half a pallet\" and \"3 bx\". Downstream, the warehouse system sums `quantity` per product and assumes it is always in single units; last month two orders shipped twelve times too little product. The team cannot change the warehouse system's schema, but it fully controls the extraction prompt and the extraction schema. What is the most effective change?",
       "options": [
-        "Add explicit instructions to convert every quantity to single units, keep the original wording in a `quantity_text` field, and add few-shot examples for dozens, cases and informal amounts.",
-        "Turn `unit` into an enum of `each`, `dozen`, `case`, `box` and `pallet`, so the warehouse always receives a unit from a known list it can recognize.",
+        "Instruct the model to convert every quantity to single units, keep the original wording in a `quantity_text` field, and add few-shot examples of tricky units.",
+        "Turn `unit` into an enum of `each`, `dozen`, `case`, `box` and `pallet`, so the warehouse always receives a unit from a known list that it can recognize and map.",
         "Change `quantity` to `integer` in the schema, so the model is forced to return whole numbers and partial or informal amounts can't appear.",
         "Add a post-processing step with regular expressions that detects words like \"doz\" or \"case\" in the source text and multiplies the quantity."
       ],
@@ -81,7 +81,7 @@
       "options": [
         "Split each agreement into 10-page chunks, extract the 14 fields from each chunk separately, and keep the first non-null value found for each field.",
         "Add few-shot examples taken from short two-page term sheets, showing the expected value of each of the 14 fields in a clean, simple layout.",
-        "Ask Claude to first extract word-for-word quotes for each field into a `quote` property, then derive each value only from its quote, or null when there is none.",
+        "Ask Claude to first extract word-for-word quotes for each field into a `quote` property, then derive each value only from its quote, or null.",
         "Add an instruction to double-check every value against the document, and to prefer the clause with the highest fee when several clauses match."
       ],
       "correct": 2,
@@ -104,8 +104,8 @@
       "scenario": "An online retailer's support agent runs on Claude Sonnet 5.5 for cost reasons and opens returns through a `create_return_ticket` tool whose `order_id` parameter is a required string. Logs show that when a customer describes a problem without giving an order number, 4% of tickets are created with plausible-looking IDs such as `ORD-58213` that match no order, so the warehouse emails return labels for orders that don't exist. Product will not move this flow to a more expensive model. When the order number is missing, the agent should ask the customer for it. What is the most effective change?",
       "options": [
         "Add a `pattern` constraint to `order_id` that matches `ORD-` followed by five digits, so malformed IDs are rejected before the tool runs.",
-        "Make `order_id` nullable, state in the tool description that null means \"not provided by the customer\", and add few-shot examples that ask for the number when it's missing.",
-        "Set `tool_choice` to force `create_return_ticket` on every turn where the customer reports a problem, so the return flow starts consistently.",
+        "Make `order_id` nullable, say in the tool description that null means \"not given by the customer\", and add few-shot examples that ask for it.",
+        "Set `tool_choice` to force `create_return_ticket` on every turn where the customer reports a problem, so that the return flow always starts consistently.",
         "Move the return flow to Claude Opus, which is much more likely to notice a missing required parameter and ask the customer for it."
       ],
       "correct": 1,
@@ -127,7 +127,7 @@
       "pool": "sim",
       "scenario": "A travel-management company classifies 40,000 expense receipts a month into an enum `category` (`client_entertainment`, `team_meal`, `travel_meal`, `other`) with structured outputs. The system prompt contains a long paragraph defining each category. Agreement with the finance team's labels is 96% on clear cases but only 61% on ambiguous ones, such as a dinner with one client and three colleagues, or a breakfast at the airport hotel the morning of a client visit. The same ambiguous receipt sometimes gets different categories on different runs. Finance wants consistent decisions in the gray zone without rewriting the category definitions, which were approved by the auditors. What is the most effective change?",
       "options": [
-        "Add 2–4 few-shot examples of the ambiguous cases, each showing the receipt, the chosen category and a short explanation of why it beats the plausible alternative.",
+        "Add 2–4 few-shot examples of the ambiguous cases, each with the chosen category and a short note on why it beats the plausible alternative.",
         "Add 25 more few-shot examples covering clear cases for every category, so the model sees many more instances of each label before classifying.",
         "Extend each category definition with detailed rules and exceptions, so the system prompt spells out every edge case finance has run into so far.",
         "Add an `uncertain` value to the enum and route those receipts to finance, so ambiguous cases are no longer forced into the four categories."
@@ -153,8 +153,8 @@
       "options": [
         "Replace `\"format\": \"date\"` with a `pattern` that only accepts `YYYY-MM-DD`, so the model is held to the ISO layout more strictly.",
         "Ask the model to return dates in each supplier's native format instead of ISO, and let the ERP parse each country's format on import.",
-        "Add a normalization instruction keyed on the supplier's `country` (day-first outside the US), an `invoice_date_text` field with the date as printed, and a few-shot example of an ambiguous date.",
-        "Add an instruction telling the model to be especially careful with dates and to double-check day and month before writing `invoice_date`."
+        "Add a rule keyed on the supplier's `country` (day-first outside the US), an `invoice_date_text` field with the printed date, and an ambiguous-date example.",
+        "Add an instruction telling the model to be especially careful with dates, and to double-check the day and the month before it writes `invoice_date` to the output."
       ],
       "correct": 2,
       "why_correct": "`format: date` garantiza la *forma* ISO, no que el día y el mes estén en su lugar. Una regla de normalización explícita según el país del proveedor resuelve la ambigüedad, el texto original queda para auditoría y el ejemplo muestra el caso '03/04'.",
@@ -178,7 +178,7 @@
         "Add a pre-processing step that keeps only the section titled \"Methods\" or \"Methodology\" and sends just that section to the extraction subagent.",
         "Remove `sample_size` from the schema for papers without an explicit \"N =\" statement, and fill it in later from a public clinical trials registry.",
         "Add an instruction stating that the sample size must describe the current study, written in capital letters at the top of the system prompt.",
-        "Add few-shot examples from varied paper structures, including one where an inline citation mentions a larger trial that must be ignored, with the correct value from the methods."
+        "Add few-shot examples from varied paper structures, including one whose inline citation mentions a larger trial that must be ignored."
       ],
       "correct": 3,
       "why_correct": "El error viene de estructuras variadas: el número citado se parece mucho al propio. Few-shot que muestran justo esa trampa (cita inline con un N más grande que no corresponde) y de dónde sale el valor correcto enseñan la distinción, y el modelo la generaliza a otros layouts.",
@@ -199,7 +199,7 @@
       "pool": "sim",
       "scenario": "A procurement platform extracts supplier details from scanned invoices, including `vat_number` and `bank_iban`, both nullable. For invoices from very large, well-known vendors, auditors found that when the scan was cropped and the VAT number was missing from the page, the output still contained the vendor's publicly known VAT number. It was usually correct, but in two cases it belonged to a different subsidiary than the one issuing the invoice. The compliance team requires every value to come from the document itself. The prompt currently says only: \"Extract the supplier's VAT number and IBAN.\" Which change best meets the compliance requirement?",
       "options": [
-        "Instruct Claude to use only information present in the provided document, not its general knowledge, and to return null with a short reason when a field isn't on the page.",
+        "Instruct Claude to use only information in the provided document, not its general knowledge, and to return null when a field isn't on the page.",
         "Remove the vendor name from the input image before extraction, so the model can't recognize famous vendors and recall their known VAT numbers.",
         "Keep the current behavior for well-known vendors, since the recalled VAT numbers are usually correct, and validate them against the national VAT registry.",
         "Add a confidence score from 0 to 1 for each field and send any value with a confidence below 0.8 to a human reviewer before it is saved."
@@ -223,8 +223,8 @@
       "pool": "sim",
       "scenario": "An HR platform extracts fields from employment contracts using 12 few-shot examples. All 12 come from the same law firm's template, every field is filled in, and the examples are pasted into the prompt as plain paragraphs mixed in with the instructions. On real traffic, two problems appear: when a contract has no probation clause, the output still says `\"probation_months\": 3`, the value used in nearly every example; and in 2% of outputs the employer name is \"Brightline Legal LLP\", the firm from the examples, even though it appears nowhere in the contract. What is the most effective change?",
       "options": [
-        "Delete the examples entirely and rely on the JSON schema with nullable fields, since the examples are what the model is copying values from.",
-        "Replace them with fewer, diverse examples from different templates, including one with no probation clause that outputs null, each wrapped in `<example>` tags.",
+        "Delete the examples entirely and rely on the JSON schema with nullable fields, since the examples are exactly what the model is copying values from.",
+        "Replace them with fewer, diverse examples from different templates, including one with no probation clause, each wrapped in `<example>` tags.",
         "Keep the 12 examples but add the instruction \"Never copy values from the examples\" right below them, so the model treats them as format only.",
         "Add 12 more examples from the same law firm's template with different employer names, so no single name appears often enough to be copied."
       ],

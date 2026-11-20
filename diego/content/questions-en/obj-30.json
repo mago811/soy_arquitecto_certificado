@@ -7,7 +7,7 @@
       "pool": "practice",
       "scenario": "A fintech's CI runs `claude --bare -p \"Review the diff in pr.diff and report problems\" --output-format json` on every pull request. The security team required `--bare` so that hooks, plugins and MCP servers from the runner or the PR branch are never loaded. Since that change, the false-positive rate of the reviews rose from 6% to 31%: Claude now flags the team's `Result<T, E>` error-handling convention, the intentional raw SQL in `legacy/`, and generated files under `src/gen/`. These conventions and exclusions are documented in the repository's root `CLAUDE.md`. `--bare` must stay. What is the most effective fix?",
       "options": [
-        "Remove `--bare` and add `--allowedTools \"Read\"`, so the review loads `CLAUDE.md` again while only allowing Claude to read files during the run.",
+        "Remove `--bare` and add `--allowedTools \"Read\"`, so the review loads `CLAUDE.md` again while Claude is only allowed to read files during the CI run.",
         "Prefix every rule in `CLAUDE.md` with \"IMPORTANT\", so the conventions carry more weight when Claude decides which findings to report.",
         "Keep `--bare` and pass the review conventions and exclusions with `--append-system-prompt-file`, pointing at a conventions file in the repository.",
         "Move the conventions into a project skill under `.claude/skills/review-conventions/`, so Claude loads them only when it performs reviews."
@@ -55,7 +55,7 @@
       "pool": "practice",
       "scenario": "A logistics company built its own PR reviewer: a GitHub Actions step calls the Messages API with a system prompt loaded from `review/system.md` in the repo. The codebase intentionally uses a few patterns that look suspicious out of context, such as catching and logging `TimeoutError` without rethrowing inside retry wrappers, and `any` in generated DTO adapters. The prompt currently says \"Be conservative and only report high-confidence findings.\" False positives on these patterns are still 40% of all comments, and last month a real null-dereference bug went unreported. What is the most effective change to `review/system.md`?",
       "options": [
-        "Replace the instruction with \"Report only findings you are more than 90% sure about\" and ask Claude to attach a confidence score to each finding.",
+        "Replace the instruction with \"Report only findings you are more than 90% sure about\" and ask Claude to attach a confidence score to every finding it reports.",
         "Add few-shot examples that contrast each accepted pattern with a genuinely buggy variant, explaining why one is fine and the other is a real issue.",
         "Add a list of every file that contains the accepted patterns and instruct Claude to skip any finding located in one of those files.",
         "Add the sentence \"These patterns are intentional\" next to the conservative instruction, without changing anything else in the prompt."
@@ -79,7 +79,7 @@
       "pool": "practice",
       "scenario": "A team uses the Claude Code GitHub Action so developers can comment `@claude review this` on pull requests. Reviewers keep correcting the same false positives by replying in the PR thread: \"We allow `console.error` in `scripts/`\" and \"Feature flags are read through `getFlag()`, never from `process.env` directly; that's intended.\" The next PR gets the same wrong comments again. The team also wants the Claude Code sessions on developers' laptops to follow the same conventions when they ask Claude to review their changes before pushing. What is the most effective fix?",
       "options": [
-        "Have reviewers start every `@claude` request with a short summary of the conventions, so each review run receives them as part of the prompt.",
+        "Have reviewers start every `@claude` request with a short summary of the conventions, so that each review run receives them as part of its prompt.",
         "Add the conventions to `--append-system-prompt` through `claude_args` in the workflow file, so every Action run starts with them loaded.",
         "Ask each developer to add the conventions to their own `~/.claude/CLAUDE.md`, so local sessions and review requests both follow them.",
         "Write the conventions in the repository's root `CLAUDE.md`, which the Action reads on every run and local Claude Code sessions load at startup."
@@ -152,7 +152,7 @@
       "scenario": "An insurance company's CI runs `claude -p \"Review the staged diff against our conventions and report violations\" --setting-sources user` on a Linux runner. The security team chose `--setting-sources user` so that a `.claude/settings.json` committed on a PR branch can never change permissions or add hooks in CI. The team's review conventions (accepted patterns such as returning `Either` from service methods, and exclusions such as `migrations/` and `*.snap` files) live in `.claude/rules/review.md`. Reviews now flag those accepted patterns and snapshot files on almost every PR. The security setting must not change. What is the most effective fix?",
       "options": [
         "Add `project` back to `--setting-sources`, so the review loads the project's rules again and the conventions apply on every run.",
-        "Pass the conventions with `--append-system-prompt-file` pointing at a conventions file, so they apply on every run without loading project settings.",
+        "Pass the conventions with `--append-system-prompt-file` pointing at a conventions file, so they apply without loading project settings.",
         "Add `paths: [\"**/*\"]` to the rule's frontmatter, so it becomes a path-scoped rule that loads on demand when Claude reads matching files.",
         "Rename the rule to `00-review.md` so it sorts first in `.claude/rules/` and gets loaded before any other project rule in the run."
       ],
@@ -177,7 +177,7 @@
       "options": [
         "Send the repo's conventions in the system prompt of every request, and mark that prefix for prompt caching to keep the repeated tokens cheap.",
         "Return a session ID from the first request and include it in each follow-up, so the API links them to the conventions sent earlier.",
-        "Review all of a PR's changed files in one request with the conventions at the top, so the model only needs to see the conventions once.",
+        "Review all of a PR's changed files in one request with the conventions at the top, so the model only needs to see the conventions once per PR.",
         "Shorten the conventions to a one-paragraph summary and send it with each follow-up, keeping the full version only for the first file."
       ],
       "correct": 0,
@@ -202,7 +202,7 @@
         "Prefix the payments rule with \"IMPORTANT: this overrides CLAUDE.md\", so Claude gives it priority whenever both instructions are in context.",
         "Move the payments rule into `services/payments/CLAUDE.md`, since nested `CLAUDE.md` files always take precedence over path-scoped rules.",
         "Resolve the contradiction: scope the root rule so it excludes `services/payments/`, or reword both so the two instructions no longer conflict.",
-        "Raise the effort level for review requests, so Claude reasons longer about which of the two error-handling instructions applies to a file."
+        "Raise the effort level for review requests, so Claude reasons longer about which of the two error-handling instructions applies to each file it reviews."
       ],
       "correct": 2,
       "why_correct": "El síntoma (mitad y mitad sobre el mismo archivo) es el que describe la doc: con dos instrucciones contradictorias, Claude puede elegir una arbitrariamente. El primer paso es eliminar la contradicción para que haya una sola convención por zona del código.",

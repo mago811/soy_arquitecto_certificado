@@ -7,7 +7,7 @@
       "pool": "practice",
       "scenario": "A platform team at a payments company uses Claude Code on Windows to onboard engineers into a 4,000-file TypeScript monorepo. A new engineer asks: \"How do failed card charges get retried?\" The transcript shows Claude ran Glob with `**/*.ts` (the result was flagged as truncated at 100 files), then read 31 files from that list one after another. By the time it answered, the session's context was 70% full, and the answer described \"a typical exponential backoff pattern\" without naming the real retry module, which lives in `packages/billing/src/retry/scheduler.ts`. The team wants answers grounded in the actual code and does not want to pre-load documentation for every module. Which change to the exploration approach is most effective?",
       "options": [
-        "Start with Grep for distinctive terms such as `retryCharge` or `RETRY_BACKOFF` to locate entry points, then Read those files and follow their imports to trace the flow.",
+        "Start with Grep for distinctive terms like `retryCharge` to find entry points, then Read those files and follow their imports through the flow.",
         "Raise `CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS` so each Read returns complete files, letting Claude cover the same 31 files in fewer, larger calls.",
         "Narrow the Glob to `packages/billing/**/*.ts` and have Claude Read every file it returns before answering, so that no billing file is skipped.",
         "Add an architecture overview of every package to the root `CLAUDE.md` so Claude has the full module map in context before it starts searching."
@@ -32,7 +32,7 @@
       "scenario": "A team is renaming the money-formatting helper in a React monorepo with Claude Code. The function is defined as `formatCurrency` in `libs/money/src/format.ts`. Claude ran Grep for `formatCurrency`, found 6 call sites, updated them, and the change was merged. The next CI build failed in 23 files. Investigation shows that `libs/money/src/index.ts` re-exports it as `export { formatCurrency as fmtMoney }`, and `libs/ui/src/index.ts` re-exports the money barrel with `export * as currency from '@acme/money'`, so many callers use `fmtMoney(...)` or `currency.fmtMoney(...)`. The team wants Claude to find every usage before the next rename attempt. Which exploration strategy addresses the root cause?",
       "options": [
         "Re-run Grep for `formatCurrency` with `multiline: true`, so that calls the formatter split across several lines are matched as well.",
-        "Use Glob for `**/*money*` and `**/*currency*` to collect every related file, then Read each one to look for places where the function is used.",
+        "Use Glob for `**/*money*` and `**/*currency*` to collect every related file in the monorepo, then Read each one to find where the function is used.",
         "Read the barrel and wrapper modules first to list every exported name and alias for the function, then Grep for each of those names across the repo.",
         "Run Grep for `formatCurrency` in `count` mode to rank files by usage, then Read the top-ranked files to confirm the remaining call sites."
       ],
@@ -57,7 +57,7 @@
       "options": [
         "Set `CLAUDE_CODE_GLOB_NO_IGNORE=false` before launching Claude Code, so that both search tools treat gitignored files the same way.",
         "Pass the file's path directly to Grep when it searches gitignored files such as `config/flags.generated.json`, instead of searching the whole repo.",
-        "Remove `config/flags.generated.json` from `.gitignore` so Grep can see it, and add a pre-commit hook that prevents the file from being committed.",
+        "Remove `config/flags.generated.json` from `.gitignore` so Grep can see it, and add a pre-commit hook that blocks the file from ever being committed by mistake.",
         "Escape the underscores in the pattern as `CHECKOUT\\_V3\\_ENABLED`, because Grep uses ripgrep regex syntax rather than plain-text matching."
       ],
       "correct": 1,
@@ -79,7 +79,7 @@
       "pool": "practice",
       "scenario": "A developer on Windows asks Claude Code where the `Invoice` type is defined in `schema/api.graphql`, a 1.4 MB generated GraphQL schema with about 38,000 lines. Claude's first Read call returns an error saying the file is too large and suggesting a partial read. Claude retries the same Read twice, then answers from memory with a guessed definition that has two wrong field names. The developer needs the exact definition plus the types it references, and wants to keep the session's context free for the refactor that follows. What is the most effective instruction to give Claude?",
       "options": [
-        "Read the whole schema in a single call with `allow_large: true`, so the full file is in context and every referenced type can be checked there.",
+        "Read the whole schema in a single call with `allow_large: true`, so the full file is in context and every referenced type can be checked without more searches.",
         "Set `CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS` to a higher value and restart, so a single Read of the schema no longer goes over the limit.",
         "Use the PowerShell tool to print the file with `Get-Content`, since shell output is not subject to the Read tool's file size limits.",
         "Grep for `type Invoice` in `content` mode to get the line number, then Read that region with `offset` and `limit`, repeating for each referenced type."
@@ -103,7 +103,7 @@
       "pool": "practice",
       "scenario": "A team uses Claude Code to plan a migration from Express handlers to tRPC in a large Node.js service. Before writing any code, the lead asks Claude to \"find every handler that reads `req.session` and summarize how each one uses it.\" In the main session, Claude runs a dozen Grep searches in `content` mode and reads 40 handler files. The `/context` view now shows most of the window taken by tool results, and the lead still needs this session for a long implementation phase that depends only on the final summary, not on the raw search output. What is the most effective way to run this kind of investigation next time?",
       "options": [
-        "Let Claude delegate the investigation to the built-in Explore subagent, which searches in its own context window and returns only a summary to the main conversation.",
+        "Let Claude delegate the search to the built-in Explore subagent, which works in its own context window and returns only a summary.",
         "Run `/compact` after every few searches, so the raw Grep output gets summarized away while Claude keeps working in the main conversation.",
         "Switch every Grep to `files_with_matches` mode, so the main session only receives file paths and then Reads the 40 files to build the summary.",
         "Run `/clear` as soon as the searches finish and paste the list of handler names back in, so the implementation phase starts from an empty context."
@@ -177,7 +177,7 @@
       "options": [
         "Keep the decorator-plus-`async def` pattern and set `multiline: true` on the Grep call, so that the pattern can match across the line break.",
         "Use the `@retry` pattern in `content` mode with a few lines of context after each match, then scan that output for `async def`.",
-        "Run Grep for `async def` with the `type` parameter set to `py`, then Read each matching file to check whether the method is decorated.",
+        "Run Grep for `async def` with the `type` parameter set to `py`, then Read each matching file to check whether the method above it is decorated with `@retry`.",
         "Escape the `@` and the parentheses differently, because ripgrep treats `@` as a special character in patterns that include `\\s`."
       ],
       "correct": 0,
@@ -202,7 +202,7 @@
         "Add `.next/` and `node_modules/` to `.gitignore` again at the top of the file, because Glob only reads the first matching ignore rules.",
         "Set `$env:CLAUDE_CODE_GLOB_NO_IGNORE = \"false\"` in PowerShell before launching `claude`, so that Glob respects `.gitignore` the way Grep does.",
         "Add a line to `CLAUDE.md` telling Claude never to read files under `.next/` or `node_modules/` when it explores the codebase.",
-        "Run `npm run clean` before each Claude session, so build output no longer has the newest modification times and drops out of Glob results."
+        "Run `npm run clean` before each Claude session, so build output no longer has the newest modification times and drops out of the first 100 Glob results."
       ],
       "correct": 1,
       "why_correct": "A diferencia de `Grep`, `Glob` no respeta `.gitignore` por defecto. La doc da el interruptor: `CLAUDE_CODE_GLOB_NO_IGNORE=false` antes de lanzar Claude Code. En PowerShell es `$env:...` en la misma ventana donde después corrés `claude`.",
@@ -250,7 +250,7 @@
         "Keep `content` mode but raise `head_limit` to 5,000, so every matching line is returned and Claude can count the call sites per file.",
         "Switch to `files_with_matches` mode, count the returned paths as call sites, and pick the 10 most recently modified files as the top 10.",
         "Switch to `count` mode, which returns per-file match counts plus a total across all matching files, and build the estimate from those numbers.",
-        "Use Glob for `**/*.{js,ts}` to list candidate files, then Read each one and count `moment(` occurrences so nothing is missed by the pattern."
+        "Use Glob for `**/*.{js,ts}` to list candidate files, then Read each one and count `moment(` occurrences, so no call site is missed because of the pattern."
       ],
       "correct": 2,
       "why_correct": "Para contar no hace falta ver las líneas. `count` devuelve cuántos matches hay por archivo y un total de todo el repo, y ese total cubre todos los matches aunque `head_limit` corte la lista. Estimación exacta y barata.",

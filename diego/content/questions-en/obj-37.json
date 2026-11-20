@@ -22,8 +22,12 @@
       "rule": "Tool dependiente llamada con un valor inventado en Sonnet → pedile que piense y pida/busque el parámetro antes; forzar no está disponible en Sonnet 5.5.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview",
       "source_quote": "Claude Opus is much more likely to recognize that a parameter is missing and ask for it. Claude Sonnet might ask, especially when prompted to think before outputting a tool request. But it might also infer a reasonable value.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en tool-use/overview. define-tools confirma que Claude Sonnet 5.5 (y Opus 5.5) devuelven 400 con tool_choice any/tool, así que la propuesta de forzar no es viable. Correcta única."
+      }
     },
     {
       "id": "o37-q22",
@@ -46,8 +50,12 @@
       "rule": "\"Esta tool tiene que ir primero\" → forzala solo en el primer request y volvé a `auto` para los siguientes.",
       "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
       "source_quote": "Using tool_choice forced selection to ensure a specific tool is called first (e.g., forcing extract_metadata before enrichment tools), then processing subsequent steps in follow-up turns",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la Exam Guide (forzar primero, follow-up turns). define-tools confirma que Haiku 5.5 acepta forced tool use (thinking adaptativo no lo bloquea). Correcta única."
+      }
     },
     {
       "id": "o37-q23",
@@ -70,8 +78,12 @@
       "rule": "Calls dependientes en el mismo batch → secuencial, cortar en la primera falla, `is_error` para lo salteado, y pedir batchear solo lo independiente.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
       "source_quote": "To reduce dependent calls appearing together, add this to your system prompt: “Only batch tool calls that are independent of each other.”",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en parallel-tool-use; el troubleshooting de la misma página confirma ejecutar en orden, cortar en la primera falla e is_error: true para lo no ejecutado. disable_parallel_tool_use descartado por la restricción de latencia."
+      }
     },
     {
       "id": "o37-q24",
@@ -94,8 +106,12 @@
       "rule": "Falla en un paso previo de la cadena → `is_error: true` con mensaje instructivo (qué pasó, qué hacer), no un \"failed\" pelado.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
       "source_quote": "Write instructive error messages. Instead of generic errors such as `\"failed\"`, include what went wrong and what Claude should try next (for example, `\"Rate limit exceeded. Retry after 60 seconds.\"`).",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en handle-tool-calls (mensajes de error instructivos, ejemplo 'Retry after 60 seconds'). Correcta única."
+      }
     },
     {
       "id": "o37-q25",
@@ -118,8 +134,12 @@
       "rule": "Forzar una tool distinta en cada paso rompe el caché de mensajes → forzá solo el primero y dejá `auto`.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
       "source_quote": "When using prompt caching, changes to the `tool_choice` parameter will invalidate cached message blocks. Tool definitions and system prompts remain cached, but message content must be reprocessed.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en define-tools (cambiar tool_choice invalida bloques de mensajes cacheados; tools y system siguen cacheados). Haiku 5.5 acepta forced. Correcta única."
+      }
     },
     {
       "id": "o37-s21",
@@ -142,8 +162,12 @@
       "rule": "Opus 5.5 / Sonnet 5.5 no aceptan `any` ni `tool` → `auto` + instrucción en el prompt + validación en el harness.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
       "source_quote": "Where it isn’t supported, `tool_choice: {\"type\": \"any\"}` and `tool_choice: {\"type\": \"tool\", \"name\": \"...\"}` fail, whereas `tool_choice: {\"type\": \"auto\"}` (the default) and `tool_choice: {\"type\": \"none\"}` still work",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en define-tools: Opus 5.5 rechaza any/tool con 400 independientemente del thinking; auto/none funcionan y el prompting influye en auto. Correcta única. Cercana a o37-q21 pero evalúa otros hechos (any también falla, no depende del thinking)."
+      }
     },
     {
       "id": "o37-s22",
@@ -166,8 +190,12 @@
       "rule": "Client tools en Batches: cada tool call es un round trip → ejecutás vos y mandás otro batch con el `tool_result`.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
       "source_quote": "Client-executed tools (both user-defined and Anthropic-schema) require your application to drive a loop. The model can’t run your code, so every tool call is a round trip: the model asks, you execute, you report back, the model continues.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en how-tool-use-works; batch-processing confirma que Batches soporta tool use (premisa de B falsa). Correcta única."
+      }
     },
     {
       "id": "o37-s23",
@@ -190,14 +218,18 @@
       "rule": "Tools con efectos y orden → el harness las corre en secuencia y corta en la falla; lo independiente sigue en paralelo.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
       "source_quote": "Choose the strategy based on what your tools do. Independent, read-only operations are usually safe to run in parallel for lower latency. Tools with side effects, shared state, or ordering requirements might be better run sequentially.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Duplicada de o37-q23 (mismo objetivo, pool practice): mismo escenario estructural (calls dependientes emitidas juntas, harness con gather/Promise.all, mantener paralelismo de lecturas) y misma decisión (correr en orden, cortar en la falla, is_error: true para lo salteado; distractor disable_parallel_tool_use). La SPEC prohíbe que una sim repita el escenario de una de práctica. Además se pisa con el obj 1 (parallel tool use)."
+      }
     },
     {
       "id": "o37-s24",
       "objective": 37,
       "pool": "sim",
-      "scenario": "A structured-data extraction service still runs on `claude-sonnet-4-6`, a model that accepts manual extended thinking. To improve how the model plans a multi-step flow (`classify_document`, then `extract_fields`, then `validate_totals`), an engineer enabled manual extended thinking with `thinking: {\"type\": \"enabled\", \"budget_tokens\": 4000}`. The first request also forces `classify_document` with `tool_choice: {\"type\": \"tool\", \"name\": \"classify_document\"}`, as it did before. Since the change, every first request returns an error. The team wants to keep thinking on that first step. What should they do?",
+      "scenario": "A structured-data extraction service still runs on the legacy model `claude-sonnet-4-6`, where manual extended thinking is deprecated but still functional; the team has postponed migrating because its regression suite is pinned to that model. To improve how the model plans a multi-step flow (`classify_document`, then `extract_fields`, then `validate_totals`), an engineer enabled manual extended thinking with `thinking: {\"type\": \"enabled\", \"budget_tokens\": 4000}` and `max_tokens: 16000`. The first request also forces `classify_document` with `tool_choice: {\"type\": \"tool\", \"name\": \"classify_document\"}`, as it did before. Since the change, every first request returns an error and no document gets classified. The team wants to keep thinking on that first step and cannot change the model this quarter. What should they do?",
       "options": [
         "Replace the forced `tool` with `tool_choice: {\"type\": \"any\"}` on the first request, which still guarantees a tool call while thinking is enabled",
         "Move the thinking configuration to the second and third requests only, and keep forcing `classify_document` with thinking disabled on the first",
@@ -208,14 +240,18 @@
       "why_correct": "Con thinking manual (`type: enabled`) solo se admiten `auto` o `none`; `any` y `tool` dan error porque fuerzan el uso de tools. La doc indica el camino: para que el modelo piense antes de llamar a la tool, `auto` y decir en el prompt cuándo usarla.",
       "why_wrong": {
         "0": "`any` también fuerza el uso de tools: con thinking manual falla igual que `tool`.",
-        "1": "Apaga el thinking justo en el paso donde el equipo lo quiere. Y ojo: todo el turno corre en un solo modo de thinking, no se puede prender y apagar en medio del loop de tools.",
-        "3": "El presupuesto de thinking no tiene que ver con la incompatibilidad; y no puede superar `max_tokens`. El error es por forzar tools con thinking manual."
+        "1": "Apaga el thinking justo en el paso donde el equipo lo quiere. Y ojo: todo el turno corre en un solo modo de thinking; si lo prendés en medio del loop de tools, la API no da error pero lo desactiva en silencio para ese request.",
+        "3": "El presupuesto de thinking no tiene nada que ver con la incompatibilidad: el error viene de forzar tools con thinking manual. Además, salvo con interleaved thinking, `budget_tokens` tiene que ser menor que `max_tokens`."
       },
       "rule": "Thinking manual + `tool_choice` `any`/`tool` = error → `auto` + instrucción en el prompt.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
       "source_quote": "tool use with manual extended thinking (`thinking: {type: \"enabled\"}`) only supports `tool_choice: {\"type\": \"auto\"}` (the default) or `tool_choice: {\"type\": \"none\"}`.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Verificado en models/overview, thinking y extended-thinking: claude-sonnet-4-6 existe (legacy) y acepta thinking manual 'enabled' + budget_tokens como deprecated pero funcional; Haiku 5.5 sí devuelve 400 con thinking manual. define-tools: con thinking manual solo auto/none, any/tool dan error. Cambios: el escenario ahora dice que el modo manual está deprecated pero funcional en ese modelo legacy y suma contexto (por qué no migran, max_tokens) — antes tenía ~72 palabras sin contar código; why_wrong B precisa que togglear thinking a mitad del turno no da error sino que la API lo desactiva en silencio; why_wrong D ya no dice que budget_tokens nunca puede superar max_tokens (la excepción es interleaved thinking en modo manual)."
+      }
     },
     {
       "id": "o37-s25",
@@ -238,14 +274,18 @@
       "rule": "Forzar una tool = sin thinking antes de la call. Si el paso necesita razonamiento → `auto` + instrucción.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
       "source_quote": "Forcing a tool also skips thinking on every model that accepts forced tool use: the response starts with the `tool_use` block and has no `thinking` block. To let the model think before it calls the tool, use `auto` with a prompt instruction in the same way.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en define-tools ('Forcing a tool also skips thinking...'); thinking.md confirma Haiku 5.5 con thinking adaptativo por defecto. Correcta única."
+      }
     },
     {
       "id": "o37-s26",
       "objective": 37,
       "pool": "sim",
-      "scenario": "A developer-productivity agent chains `find_service_owner(service)` and `open_ticket(owner_team, title)`. After running `find_service_owner`, the harness builds the next user message as `[{\"type\": \"text\", \"text\": \"Now open the ticket for this team.\"}, {\"type\": \"tool_result\", \"tool_use_id\": \"toolu_01...\", \"content\": \"team-payments\"}]` to nudge Claude toward the second step. Every such request fails with HTTP 400, so `open_ticket` is never reached and the on-call engineer has to open tickets by hand. Product insists on keeping the nudge text, because without it the model sometimes stops after the lookup and just reports the owner. What is the correct fix?",
+      "scenario": "A platform team's developer-productivity agent, called through the Messages API whenever an alert fires for a service nobody on call recognizes, chains `find_service_owner(service)` and `open_ticket(owner_team, title)`. After running `find_service_owner`, the harness builds the next user message as `[{\"type\": \"text\", \"text\": \"Now open the ticket for this team.\"}, {\"type\": \"tool_result\", \"tool_use_id\": \"toolu_01...\", \"content\": \"team-payments\"}]` to nudge Claude toward the second step. Every such request fails with HTTP 400 `invalid_request_error`, so `open_ticket` is never reached and the on-call engineer has to look up owners and open tickets by hand, about 30 times a week. Product insists on keeping the nudge text, because in an earlier version without it the model sometimes stopped after the lookup and just reported the owner. What is the correct fix?",
       "options": [
         "Send the nudge text as a separate user message right after the assistant's `tool_use` message, and send the `tool_result` in the next user message",
         "Move the nudge into the `tool_result` block's `content` as a second line, and remove the text block from the user message entirely",
@@ -257,13 +297,17 @@
       "why_wrong": {
         "0": "Peor: no puede haber mensajes entre el `tool_use` del assistant y el mensaje con el `tool_result`; el resultado tiene que seguir inmediatamente.",
         "1": "Mezcla una instrucción dentro del resultado de la tool, ensuciando el dato que el modelo usa para `owner_team`; además el equipo pidió mantener el texto como texto.",
-        "2": "Saca el texto que el equipo quiere mantener, y forzar depende del modelo; no arregla el orden de bloques, que es la causa del 400."
+        "2": "Sacar el texto sí evita el 400 (queda solo el `tool_result`), pero viola la restricción de mantener el empujón. Además forzar `tool` devuelve 400 en modelos como Opus 5.5 o Sonnet 5.5. El fix mínimo es reordenar los bloques."
       },
       "rule": "Mensaje con `tool_result`: los resultados primero, el texto después, y nada entre el `tool_use` y su resultado.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
       "source_quote": "In the user message containing tool results, the `tool_result` blocks must come FIRST in the content array. Any text must come AFTER all tool results.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Cita textual en handle-tool-calls (tool_result primero, texto después; nada entre tool_use y tool_result). Cambios: alargué el escenario (tenía ~67–75 palabras sin contar el JSON) con contexto real (equipo, volumen de tickets, tipo de error 400) y corregí why_wrong de C, que decía que sacar el texto no arregla el 400: sí lo arregla (queda solo el tool_result), pero viola la restricción de mantener el empujón."
+      }
     }
   ]
 }

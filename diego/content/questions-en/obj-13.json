@@ -22,8 +22,12 @@
       "rule": "`--json-schema` valida la estructura, no `format`: lo que dependa de `format` lo valida tu código.",
       "source_url": "https://code.claude.com/docs/en/headless",
       "source_quote": "Claude Code accepts schemas that use the format keyword, such as \"format\": \"email\", but treats format as an annotation and doesn't enforce it.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "headless: format se acepta como anotación y no se valida. Cita textual."
+      }
     },
     {
       "id": "o13-q22",
@@ -46,8 +50,12 @@
       "rule": "`allowed-tools` (skill) y `--allowedTools` pre-aprueban; `tools:` de un subagente (o `--tools`) restringe.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "Give a custom subagent in .claude/agents/ only tools: Read, Grep, Glob. Now it's a reviewer that can't edit anything, and that limit is enforced by Claude Code rather than requested in a prompt.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "best-practices + skills: allowed-tools de skill pre-aprueba durante el turno, no restringe; subagente con tools: restringe (enforced). --allowedTools pre-aprueba (cli-reference). Cita textual."
+      }
     },
     {
       "id": "o13-q23",
@@ -70,8 +78,12 @@
       "rule": "Code Review lee `REVIEW.md` de la rama base, nunca del PR: un PR no puede cambiar las reglas con las que se lo revisa.",
       "source_url": "https://code.claude.com/docs/en/code-review",
       "source_quote": "Which instructions it follows: REVIEW.md from the base or default branch and never from the pull request's own changes.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "code-review: REVIEW.md de la rama base/default, nunca de los cambios del PR. Cita textual."
+      }
     },
     {
       "id": "o13-q24",
@@ -94,8 +106,12 @@
       "rule": "Solo lectura de verdad: `--tools` para las built-in + `--disallowedTools \"mcp__*\"` para las MCP.",
       "source_url": "https://code.claude.com/docs/en/cli-reference",
       "source_quote": "The flag doesn't affect MCP tools; to deny those too, use --disallowedTools \"mcp__*\".",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "cli-reference: --tools no afecta MCP, usar --disallowedTools \"mcp__*\"; --allowedTools no restringe; dontAsk no frena lo que matchea allow. Cita textual."
+      }
     },
     {
       "id": "o13-q25",
@@ -118,8 +134,12 @@
       "rule": "`structured_output` puede faltar (rechazo, falla): chequealo antes de usarlo y tené un camino humano.",
       "source_url": "https://code.claude.com/docs/en/headless",
       "source_quote": "If a run ends without valid structured output, for example because Claude declined the request, the response has no structured_output field. Before your script uses structured_output, check that the field is present.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "headless: sin structured output válido (p.ej. rechazo) no hay campo structured_output; chequear antes de usar. Cita textual."
+      }
     },
     {
       "id": "o13-s21",
@@ -142,8 +162,12 @@
       "rule": "`--bare` en CI: reproducible, pero sin `CLAUDE.md`. Los estándares entran con `--append-system-prompt-file`.",
       "source_url": "https://code.claude.com/docs/en/cli-reference",
       "source_quote": "Minimal mode: skip auto-discovery of your hooks and of skills, custom commands, subagents, installed plugins, MCP servers, auto memory, and CLAUDE.md so scripted calls start faster.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "cli-reference --bare saltea CLAUDE.md y hooks; headless: en bare se pasan adiciones con --append-system-prompt(-file). Cita textual."
+      }
     },
     {
       "id": "o13-s22",
@@ -166,8 +190,12 @@
       "rule": "Para que una tool no exista, nombrala sola en `--disallowedTools`. Las reglas con scope solo frenan lo que matchea textual.",
       "source_url": "https://code.claude.com/docs/en/cli-reference",
       "source_quote": "A scoped rule such as Bash(rm *) leaves the tool available and denies only calls that match as written.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "cli-reference --disallowedTools: nombre pelado saca la tool; regla con scope solo deniega lo que matchea as written. Cita textual."
+      }
     },
     {
       "id": "o13-s23",
@@ -190,8 +218,12 @@
       "rule": "Sumar foco → `--append-system-prompt`. Salida para máquinas → `--json-schema` y leer `structured_output`.",
       "source_url": "https://code.claude.com/docs/en/headless",
       "source_quote": "Use --append-system-prompt to add instructions while keeping Claude Code's default behavior.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "headless: --append-system-prompt conserva el default; --system-prompt reemplaza (y pierde el git status snapshot); --json-schema -> structured_output. Cita textual."
+      }
     },
     {
       "id": "o13-s24",
@@ -214,8 +246,12 @@
       "rule": "Reviewer de CI: `--bare` + `--append-system-prompt-file` + `--tools` + `--output-format json --json-schema`.",
       "source_url": "https://code.claude.com/docs/en/headless",
       "source_quote": "MCP servers: only servers supplied on the command line connect, for example with --mcp-config.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "headless (bare: solo MCP por línea de comando) + cli-reference (--tools restringe, --allowedTools no). Diferencia A/C en --allowedTools vs --tools confirmada. Cita textual."
+      }
     },
     {
       "id": "o13-s25",
@@ -238,8 +274,12 @@
       "rule": "GitHub Action con prompt plano: sin `--allowedTools` (o `permissions.allow`), Claude no tiene shell ni API.",
       "source_url": "https://code.claude.com/docs/en/github-actions",
       "source_quote": "For a plain-text prompt, Claude has no shell or GitHub API access until you grant the tools the prompt needs, with --allowedTools in claude_args or a permissions.allow rule in the settings input.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "github-actions: con prompt plano Claude no tiene shell/API hasta --allowedTools en claude_args o permissions.allow; permisos del token son otra capa. Cita textual."
+      }
     },
     {
       "id": "o13-s26",
@@ -262,8 +302,12 @@
       "rule": "Reviewer ruidoso → criterios explícitos de qué reportar y `skip style`, no más esfuerzo ni más pasadas.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "Don't drop the skip style part of that prompt. A reviewer that's asked to find problems will always find something.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "best-practices: no sacar 'skip style'; un revisor al que le pedís problemas siempre encuentra algo. Cita textual."
+      }
     }
   ]
 }

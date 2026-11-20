@@ -22,8 +22,12 @@
       "rule": "Revisión humana: ruteá por confianza calibrada por campo + características del documento, no al azar.",
       "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
       "source_quote": "Routing extractions with low model confidence or ambiguous/contradictory source documents to human review, prioritizing limited reviewer capacity",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la Exam Guide (TS 5.5). Ruteo por confianza calibrada + características del documento; distractores no defendibles."
+      }
     },
     {
       "id": "o22-q22",
@@ -46,8 +50,12 @@
       "rule": "Antes de apagar revisión: precisión por tipo de documento y por campo, no el promedio global.",
       "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
       "source_quote": "The risk that aggregate accuracy metrics (e.g., 97% overall) may mask poor performance on specific document types or fields",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la Exam Guide (97% agregado). Correcta única."
+      }
     },
     {
       "id": "o22-q23",
@@ -70,8 +78,12 @@
       "rule": "Umbral de confianza elegido \"a ojo\" → calibralo por campo contra un set etiquetado.",
       "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
       "source_quote": "Having models output field-level confidence scores, then calibrating review thresholds using labeled validation sets",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la Exam Guide (calibrar umbrales con set etiquetado). Correcta única."
+      }
     },
     {
       "id": "o22-q24",
@@ -94,8 +106,12 @@
       "rule": "Automatizaste lo de alta confianza → igual muestreá (estratificado) esa porción para detectar errores nuevos.",
       "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
       "source_quote": "Implementing stratified random sampling of high-confidence extractions for ongoing error rate measurement and novel pattern detection",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la Exam Guide (muestreo estratificado de alta confianza). Correcta única."
+      }
     },
     {
       "id": "o22-q25",
@@ -118,8 +134,12 @@
       "rule": "Fuentes contradictorias → el schema tiene que poder decir `conflicting`, y eso va a revisión sin importar la confianza.",
       "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
       "source_quote": "Routing extractions with low model confidence or ambiguous/contradictory source documents to human review, prioritizing limited reviewer capacity",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la Exam Guide (fuentes contradictorias a revisión). Correcta única; nullable como casi-correcta bien explicado."
+      }
     },
     {
       "id": "o22-s21",
@@ -142,8 +162,12 @@
       "rule": "Más casos dudosos que revisores → niveles de riesgo (qué campo + cuánto vale) y revisar de mayor a menor.",
       "source_url": "https://platform.claude.com/docs/en/about-claude/use-case-guides/content-moderation",
       "source_quote": "Creating multiple risk levels allows you to adjust the aggressiveness of your moderation. For example, you might want to automatically block user queries that are deemed high risk, whereas users with many medium risk queries are flagged for human review.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en el use-case guide de content moderation (niveles de riesgo); la Exam Guide respalda priorizar capacidad limitada. Correcta única."
+      }
     },
     {
       "id": "o22-s22",
@@ -166,8 +190,12 @@
       "rule": "Confianza por campo → ruteo y revisión por campo, no por documento entero.",
       "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
       "source_quote": "Field-level confidence scores calibrated using labeled validation sets for routing review attention",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la Exam Guide (field-level confidence para dirigir la atención). Correcta única y compatible con la restricción de compliance."
+      }
     },
     {
       "id": "o22-s23",
@@ -190,8 +218,12 @@
       "rule": "El muestreo encuentra un segmento roto → revisión humana para ESE segmento y recalibrar con datos etiquetados antes de reautomatizar.",
       "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
       "source_quote": "The importance of validating accuracy by document type and field segment before automating high-confidence extractions",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita verificada en el PDF de la Exam Guide (TS 5.5): en el PDF el término aparece como 'high-' / 'confidence' cortado en dos líneas (pdftotext sin -layout lo pega como 'highconfidence'); la cita 'high-confidence' es fiel al texto. Correcta única."
+      }
     },
     {
       "id": "o22-s24",
@@ -214,8 +246,12 @@
       "rule": "Confianza autorreportada que no separa aciertos de errores → calibrala contra datos etiquetados; no cambies la escala.",
       "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
       "source_quote": "Field-level confidence scores calibrated using labeled validation sets for routing review attention",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la Exam Guide. Cambiar la escala sin calibrar no ayuda; correcta única."
+      }
     },
     {
       "id": "o22-s25",
@@ -238,8 +274,12 @@
       "rule": "Extracción con Citations: campo sin cita → revisión humana. La API no garantiza ni valor ni cita.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/citations",
       "source_quote": "Check that each field has a value and at least one citation. The API doesn’t guarantee either.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en citations ('The API doesn’t guarantee either'). Correcta única."
+      }
     },
     {
       "id": "o22-s26",
@@ -262,8 +302,12 @@
       "rule": "El análisis por segmento te dice QUÉ campo de QUÉ tipo de documento revisar: ruteá eso, no documentos enteros ni todo.",
       "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
       "source_quote": "Analyzing accuracy by document type and field to verify consistent performance across all segments before reducing human review",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la Exam Guide. Distinta de o22-q21 (acá el análisis por segmento ya está hecho y se rutea un campo puntual). Correcta única."
+      }
     }
   ]
 }

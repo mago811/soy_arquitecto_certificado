@@ -22,8 +22,12 @@
       "rule": "Plan mode bloquea edits, salvo en una terminal interactiva con bypass disponible: si necesitás la garantía, no habilites bypass.",
       "source_url": "https://code.claude.com/docs/en/permission-modes",
       "source_quote": "In interactive terminal sessions with bypass permissions available, Claude Code also doesn't enforce plan mode's blocks.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "permission-modes: con bypass disponible en terminal interactiva plan mode no bloquea; --allow-dangerously-skip-permissions lo deja disponible (cli-reference). Precedencia proyecto>usuario confirma B falsa. Cita textual."
+      }
     },
     {
       "id": "o08-q22",
@@ -46,8 +50,12 @@
       "rule": "`/batch` = plan aprobado + un subagente por unidad en su propio worktree. Sin git, hace falta un hook `WorktreeCreate`.",
       "source_url": "https://code.claude.com/docs/en/commands",
       "source_quote": "Requires a git repository or a WorktreeCreate hook that creates the worktrees.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "commands: /batch requiere repo git o hook WorktreeCreate (v2.1.281+ fuera de git). Distractores no cumplen aprobación/aislamiento. Cita textual."
+      }
     },
     {
       "id": "o08-q23",
@@ -70,8 +78,12 @@
       "rule": "VS Code no lee los settings del proyecto para el modo inicial: `claudeCode.initialPermissionMode` manda.",
       "source_url": "https://code.claude.com/docs/en/permission-modes",
       "source_quote": "The extension never reads a project's .claude/settings.json or .claude/settings.local.json for the starting permission mode.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "permission-modes (VS Code): orden initialPermissionMode > último modo del indicador (Manual/Edit/Auto; Plan solo esa conversación) > defaultMode de managed/~/.claude > default; nunca lee .claude/settings*.json. B es el casi-correcto bien descartado. Cita textual."
+      }
     },
     {
       "id": "o08-q24",
@@ -94,8 +106,12 @@
       "rule": "Tarea grande, código desconocido, dirección incierta → plan mode primero. Ejecución directa cuando ya sabés exactamente qué hacer.",
       "source_url": "https://code.claude.com/docs/en/costs",
       "source_quote": "Claude explores the codebase and proposes an approach for your approval, preventing expensive re-work when the initial direction is wrong.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "costs: plan mode para tareas complejas evita retrabajo caro. Distractores tratan síntoma. Cita textual."
+      }
     },
     {
       "id": "o08-q25",
@@ -118,8 +134,12 @@
       "rule": "Multi-fase: entrevista → `SPEC.md` → sesión nueva que construye → review contra el spec.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "Once SPEC.md exists, start a fresh session to build from it, so the build begins with a clean context and a written definition of done.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "best-practices: SPEC.md + sesión nueva con contexto limpio. Cita textual."
+      }
     },
     {
       "id": "o08-s21",
@@ -142,8 +162,12 @@
       "rule": "Una review automática informa; la aprobación del merge queda en una persona, con branch protection.",
       "source_url": "https://code.claude.com/docs/en/code-review",
       "source_quote": "A review never approves or blocks the pull request, so the decision to merge stays with your team.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "code-review: nunca aprueba ni bloquea; el check run no concluye como failure; REVIEW.md no cambia eso. Cita textual."
+      }
     },
     {
       "id": "o08-s22",
@@ -166,8 +190,12 @@
       "rule": "Review en multi-fase: revisor fresco + criterio explícito (el spec) + `skip style`.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "If you'd rather have the review check the work against your plan than hunt for bugs in general, write the review prompt yourself:",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "best-practices: review contra SPEC.md con subagente y skip style; /code-review usa subagente fresco pero no compara contra spec. Cita textual."
+      }
     },
     {
       "id": "o08-s23",
@@ -190,8 +218,12 @@
       "rule": "En `-p`, plan mode planifica y nunca edita: la aprobación humana va entre dos corridas.",
       "source_url": "https://code.claude.com/docs/en/permission-modes",
       "source_quote": "Plan mode keeps its blocks wherever Claude Code runs without an interactive terminal, including non-interactive runs with -p, Agent SDK sessions, and conversations in the VS Code extension's chat panel.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "permission-modes: plan mode mantiene bloqueos en -p; aprobación humana entre corridas. Distractor auto+prompt es guidance. Cita textual."
+      }
     },
     {
       "id": "o08-s24",
@@ -214,8 +246,12 @@
       "rule": "En el prompt de aprobación, `Shift+Tab` = aprobar. Para salir sin aprobar: `Esc` y después `Shift+Tab`.",
       "source_url": "https://code.claude.com/docs/en/permission-modes",
       "source_quote": "At the approval prompt, press Esc first, since pressing Shift+Tab there approves the plan.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "permission-modes: en el prompt de aprobación Shift+Tab aprueba, Esc primero; 'No, keep planning' se queda en plan; Ctrl+G edita el plan. Cita textual."
+      }
     },
     {
       "id": "o08-s25",
@@ -238,8 +274,12 @@
       "rule": "Un prompt riesgoso en medio de una sesión rápida → `/plan <tarea>`. No reinicies ni toques settings.",
       "source_url": "https://code.claude.com/docs/en/permission-modes",
       "source_quote": "Enter plan mode by pressing Shift+Tab or prefixing a single prompt with /plan.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "permission-modes: /plan como prefijo de un prompt; aprobar sale de plan mode al modo elegido. Cita textual."
+      }
     },
     {
       "id": "o08-s26",
@@ -262,8 +302,12 @@
       "rule": "Chico y verificable → directo. Complejo o incierto → plan mode. Masivo y mecánico → `/batch`.",
       "source_url": "https://code.claude.com/docs/en/commands",
       "source_quote": "Researches the codebase, decomposes the work into 5 to 30 independent units, and presents a plan. Once approved, spawns one background subagent per unit in an isolated worktree.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "commands (/batch) + permission-modes: mapeo directo/plan/batch coherente con la doc. Cita textual."
+      }
     }
   ]
 }

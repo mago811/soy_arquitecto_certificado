@@ -22,8 +22,12 @@
       "rule": "Si la prosa se interpreta distinto cada vez y vos sabés la salida correcta: 2–3 ejemplos concretos de entrada/salida.",
       "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
       "source_quote": "Concrete input/output examples as the most effective way to communicate expected transformations when prose descriptions are interpreted inconsistently",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la Exam Guide (TS 3.5). Correcta = ejemplos input/output; interview, IMPORTANT y effort no aportan la info faltante."
+      }
     },
     {
       "id": "o12-q22",
@@ -46,8 +50,12 @@
       "rule": "Edge case que no sale con feedback vago → test con input de ejemplo y output esperado, y que Claude lo corra.",
       "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
       "source_quote": "Providing specific test cases with example input and expected output to fix edge case handling (e.g., null values in migration scripts)",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la Exam Guide (TS 3.5, nulls en migraciones). Distractores (try/except, CLAUDE.md vago, think step by step) coherentes con best-practices."
+      }
     },
     {
       "id": "o12-q23",
@@ -70,8 +78,12 @@
       "rule": "Problemas que interactúan → todos juntos en un mensaje detallado; independientes → de a uno.",
       "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
       "source_quote": "Addressing multiple interacting issues in a single detailed message when fixes interact, versus sequential iteration for independent issues",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la Exam Guide. Problemas que interactúan → un mensaje; distractores secuencial/subagentes/CLAUDE.md no defendibles."
+      }
     },
     {
       "id": "o12-q24",
@@ -94,8 +106,12 @@
       "rule": "Dominio que no conocés y decisiones que no anticipaste → interview pattern antes de implementar.",
       "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
       "source_quote": "Using the interview pattern to surface design considerations (e.g., cache invalidation strategies, failure modes) before implementing solutions in unfamiliar domains",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la Exam Guide; best-practices confirma el patrón 'interview me until you could write the spec ... SPEC.md'. Plan mode como casi-correcta bien justificado."
+      }
     },
     {
       "id": "o12-q25",
@@ -118,8 +134,12 @@
       "rule": "Dos correcciones fallidas → `/clear` + un prompt nuevo con lo aprendido, no una tercera corrección.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "If you've corrected the same thing twice and it's still wrong, a third correction mostly adds to a conversation that already contains two failed attempts for Claude to keep re-reading.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en best-practices (sección /clear). /compact, rewind con el mismo prompt y tercera corrección quedan descartados por la doc."
+      }
     },
     {
       "id": "o12-s21",
@@ -142,8 +162,12 @@
       "rule": "Schema válido pero transformación inconsistente → el fix son ejemplos de entrada/salida, no más schema ni más prosa.",
       "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
       "source_quote": "Providing 2-3 concrete input/output examples to clarify transformation requirements when natural language descriptions produce inconsistent results",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la Exam Guide. Schema 100% válido aísla el problema de transformación; strict/pattern resuelve forma, no semántica."
+      }
     },
     {
       "id": "o12-s22",
@@ -166,8 +190,12 @@
       "rule": "Tests escritos después del código heredan sus errores → escribí primero la suite (comportamiento, bordes, performance) e iterá con las fallas.",
       "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
       "source_quote": "Writing test suites covering expected behavior, edge cases, and performance requirements before implementation, then iterating by sharing test failures",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la Exam Guide (test-driven iteration). Verificado en best-practices que /code-review revisa el diff en un subagente fresco: distractor plausible pero sin definición ejecutable de requisitos."
+      }
     },
     {
       "id": "o12-s23",
@@ -190,8 +218,12 @@
       "rule": "Mezcla de problemas: los que interactúan juntos y explicados; los independientes, secuenciales.",
       "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
       "source_quote": "When to provide all issues in a single message (interacting problems) versus fixing them sequentially (independent problems)",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la Exam Guide. Mezcla de acoplados/independientes; ningún distractor es defendible."
+      }
     },
     {
       "id": "o12-s24",
@@ -214,8 +246,12 @@
       "rule": "Si sos vos el que encuentra cada error, falta un check pass/fail que Claude pueda correr (ej. diff contra fixture).",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "If you give it something that comes back pass or fail, Claude can close that loop itself. It makes the change, runs the check, and if something broke it reads the output and fixes it before running the check again.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en best-practices; la misma página lista 'A script that diffs output against a fixture' como check. Stop hook con linter correctamente descartado."
+      }
     },
     {
       "id": "o12-s25",
@@ -238,8 +274,12 @@
       "rule": "Refinamiento observable por API → cadena draft → review contra criterios → refine, una llamada por paso.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "The most common chaining pattern is self-correction: generate a draft → have Claude review it against criteria → have Claude refine based on the review. Each step is a separate API call so you can log, evaluate, or branch at any point.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en claude-prompting-best-practices (self-correction chaining). Distractores no defendibles."
+      }
     },
     {
       "id": "o12-s26",
@@ -262,8 +302,12 @@
       "rule": "Claude copia de más un ejemplo → no lo saques: agregá 3–5 ejemplos diversos que cubran los bordes.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Diverse: Cover edge cases and vary enough that Claude doesn’t pick up unintended patterns.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en claude-prompting-best-practices; la página recomienda 3–5 ejemplos diversos. Correcta única."
+      }
     }
   ]
 }

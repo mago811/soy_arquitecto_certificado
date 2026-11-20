@@ -22,8 +22,12 @@
       "rule": "Skill con salida verbosa que ensucia la sesión → `context: fork`.",
       "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
       "source_quote": "Using context: fork to isolate skills that produce verbose output (e.g., codebase analysis) or exploratory context (e.g., brainstorming alternatives) from the main session",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la Exam Guide. skills.md confirma: allowed-tools pre-aprueba, disable-model-invocation controla quién invoca, context: fork aísla."
+      }
     },
     {
       "id": "o14-q22",
@@ -46,8 +50,12 @@
       "rule": "La tarea necesita el historial → fork de conversación (`/subtask`), no `context: fork`.",
       "source_url": "https://code.claude.com/docs/en/skills",
       "source_quote": "Despite the name, a skill with `context: fork` doesn't run in a fork of the current conversation, which would hand the subagent everything you've discussed so far. When the task depends on that history, fork the conversation instead of using `context: fork`.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en skills.md (nota 'Despite the name'); sub-agents.md confirma /subtask para forkear la conversación y que general-purpose carga CLAUDE.md."
+      }
     },
     {
       "id": "o14-q23",
@@ -70,8 +78,12 @@
       "rule": "Forked skill con `agent: Explore` no ve CLAUDE.md → todo lo que necesita va en el SKILL.md.",
       "source_url": "https://code.claude.com/docs/en/skills",
       "source_quote": "The built-in Explore and Plan agents start without CLAUDE.md and git status to keep their context small. Put everything the task needs in your SKILL.md.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en skills.md; sub-agents.md confirma que Explore/Plan arrancan sin CLAUDE.md y que allowed-tools no restringe."
+      }
     },
     {
       "id": "o14-q24",
@@ -94,8 +106,12 @@
       "rule": "Necesitás el resultado del forked skill en el mismo turno → `background: false`.",
       "source_url": "https://code.claude.com/docs/en/skills",
       "source_quote": "Only applies with `context: fork`. Set to `false` to wait for the forked subagent's result in the turn that invoked the skill, instead of running it in the background. Default: `true`.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en skills.md (campo background, default true); la doc confirma que CLAUDE_CODE_DISABLE_BACKGROUND_TASKS también apaga otras features de background."
+      }
     },
     {
       "id": "o14-q25",
@@ -118,8 +134,12 @@
       "rule": "Forked skill sin `agent` = `general-purpose`. Para usar tu subagente custom: `agent: <nombre>`.",
       "source_url": "https://code.claude.com/docs/en/skills",
       "source_quote": "The `agent` field specifies which subagent configuration to use. Options include built-in agents (`Explore`, `Plan`, `general-purpose`) or any custom subagent from `.claude/agents/`. If omitted, uses `general-purpose`.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en skills.md (campo agent, default general-purpose). Distractores (skills preload, allowed-tools, nombre de carpeta) no defendibles."
+      }
     },
     {
       "id": "o14-s21",
@@ -142,8 +162,12 @@
       "rule": "Un forked skill no puede preguntarle al usuario → pedí el dato como argumento (`argument-hint` + `$ARGUMENTS`).",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "The first filter removes these tools, even when listed in the `tools` field:",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en sub-agents.md (primer filtro quita AskUserQuestion aun con background: false). skills.md confirma argument-hint y $ARGUMENTS; background subagents surfacing de prompts de permisos verificado."
+      }
     },
     {
       "id": "o14-s22",
@@ -166,8 +190,12 @@
       "rule": "`allowed-tools` pre-aprueba, no restringe. Forked skill de solo lectura → `agent: Explore` (o un subagente con tools restringidas).",
       "source_url": "https://code.claude.com/docs/en/skills",
       "source_quote": "It does not restrict which tools are available: every tool remains callable, and your permission settings still govern tools that are not listed.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en skills.md (allowed-tools no restringe); sub-agents.md: Explore es read-only con Write/Edit denegados; skills.md: campos no reconocidos se ignoran sin error (tools)."
+      }
     },
     {
       "id": "o14-s23",
@@ -185,13 +213,17 @@
       "why_wrong": {
         "0": "Ir a un checkpoint más viejo no ayuda: esas 37 ediciones nunca entraron en ningún checkpoint.",
         "1": "Pedirle a Claude que \"deshaga\" es reescribir archivos a mano según su memoria del cambio: lento y riesgoso cuando git tiene la versión exacta.",
-        "3": "Volver a correr una skill que rompe imports agrega más ediciones, y no hay garantía documentada de que el foreground las meta en checkpoints. No deshace lo que ya pasó."
+        "3": "Volver a correr una skill que rompe imports agrega más ediciones. Es cierto que un forked skill en foreground edita durante tu turno y `/rewind` sí restaura esas ediciones, pero volver a antes de esa segunda corrida te deja en el estado posterior a la primera: con las 37 ediciones rotas que nunca entraron en un checkpoint."
       },
       "rule": "Forked skill en background editó archivos → `/rewind` no los cubre; revertí con git.",
       "source_url": "https://code.claude.com/docs/en/skills",
       "source_quote": "A forked skill that runs in the background applies its edits outside your session's checkpoints. After one, `/rewind` restores only the files Claude had already edited in your conversation. The skill's edits to other files stay, so use git to revert them.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Cita textual en skills.md y checkpointing.md. Corregí why_wrong de D: decía que no había garantía documentada de que el foreground entre en checkpoints, pero checkpointing.md dice que un forked skill en foreground SÍ se restaura con rewind; el motivo real es que rewind a antes de la segunda corrida deja el estado posterior a la primera."
+      }
     },
     {
       "id": "o14-s24",
@@ -208,14 +240,18 @@
       "why_correct": "En skills, `model` normalmente aplica al turno actual, pero con `context: fork` define el modelo del subagente forkeado. Es un cambio en el SKILL.md existente: no crea archivos, no toca la sesión ni los demás subagentes.",
       "why_wrong": {
         "0": "Cambiar con `/model` afecta a la conversación principal y es manual y fácil de olvidar. Viola la restricción de no cambiar el modelo de la sesión.",
-        "2": "Esa variable fuerza un modelo en TODOS los subagentes, incluido Plan. Rompe el requisito de que los demás sigan en el modelo de la sesión.",
+        "2": "Esa variable pasa a ser el modelo por omisión de todo subagente sin `model` propio (general-purpose y los custom), no solo de esta skill: rompe el requisito de que los demás subagentes sigan en el modelo de la sesión. Ojo con el detalle: por sí sola no cambia Explore ni Plan; para eso hace falta además `CLAUDE_CODE_SUBAGENT_MODEL_FORCE`.",
         "3": "`effort` baja cuánto piensa, pero sigue en Opus. El costo principal de leer cientos de MB de logs son tokens de entrada al precio de Opus."
       },
       "rule": "Forked skill en otro modelo sin tocar la sesión → `model:` en el frontmatter de la skill.",
       "source_url": "https://code.claude.com/docs/en/skills",
       "source_quote": "With `context: fork`, the value sets the [forked subagent's model](#run-skills-in-a-subagent) instead",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Cita textual en skills.md (model con context: fork). Corregí why_wrong de C: decía que CLAUDE_CODE_SUBAGENT_MODEL fuerza el modelo 'incluido Plan', pero sub-agents.md dice que por sí sola NO cambia Explore ni Plan (hace falta CLAUDE_CODE_SUBAGENT_MODEL_FORCE). La opción sigue siendo incorrecta porque afecta a general-purpose y a los custom sin model."
+      }
     },
     {
       "id": "o14-s25",
@@ -238,8 +274,12 @@
       "rule": "`context: fork` es para skills de tarea. Guías de referencia → inline, o precargadas en el subagente con `skills`.",
       "source_url": "https://code.claude.com/docs/en/skills",
       "source_quote": "`context: fork` only makes sense for skills with explicit instructions. If your skill contains guidelines like \"use these API conventions\" without a task, the subagent receives the guidelines but no actionable prompt, and returns without meaningful output.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en skills.md (warning de context: fork sin tarea) y tabla skills/subagents con el campo skills."
+      }
     },
     {
       "id": "o14-s26",
@@ -262,8 +302,12 @@
       "rule": "Brainstorming/exploración que deja alternativas descartadas en la sesión → `context: fork`.",
       "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
       "source_quote": "The context: fork frontmatter option for running skills in an isolated sub-agent context, preventing skill outputs from polluting the main conversation",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la Exam Guide (contexto exploratorio/brainstorming). Distractores no defendibles."
+      }
     }
   ]
 }

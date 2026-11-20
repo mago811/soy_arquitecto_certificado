@@ -22,8 +22,12 @@
       "rule": "Tests generados que duplican la suite → poné los tests existentes en el contexto.",
       "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
       "source_quote": "Providing existing test files in context so test generation avoids suggesting duplicate scenarios already covered by the test suite",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la Exam Guide (TS 3.6). common-workflows confirma que Claude examina los tests existentes para copiar estilo."
+      }
     },
     {
       "id": "o15-q22",
@@ -46,8 +50,12 @@
       "rule": "Convenciones de testing para todo el equipo y CI → CLAUDE.md del proyecto, versionado.",
       "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
       "source_quote": "Documenting testing standards, valuable test criteria, and available fixtures in CLAUDE.md to improve test generation quality and reduce low-value test output",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la Exam Guide. memory.md confirma CLAUDE.local.md personal/gitignored y ~/.claude/CLAUDE.md de usuario."
+      }
     },
     {
       "id": "o15-q23",
@@ -70,8 +78,12 @@
       "rule": "Tests triviales con cobertura alta → criterios de test valioso en CLAUDE.md + comportamientos concretos a verificar, no más cobertura.",
       "source_url": "https://code.claude.com/docs/en/common-workflows",
       "source_quote": "Claude can generate tests that follow your project's existing patterns and conventions. When asking for tests, be specific about what behavior you want to verify.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en common-workflows. Stop hook de cobertura y umbral más alto premian la métrica equivocada; correcta única."
+      }
     },
     {
       "id": "o15-q24",
@@ -94,8 +106,12 @@
       "rule": "Convenciones que solo aplican a ciertos archivos → `.claude/rules/` con `paths`.",
       "source_url": "https://code.claude.com/docs/en/memory",
       "source_quote": "Rules can be scoped to specific files using YAML frontmatter with the `paths` field. These conditional rules only apply when Claude is working with files matching the specified patterns.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en memory.md (rules con paths); la misma página dice que los imports @ no reducen el costo de contexto."
+      }
     },
     {
       "id": "o15-q25",
@@ -118,8 +134,12 @@
       "rule": "Tests generados que nadie corrió → CLAUDE.md con el comando para un archivo + \"corré los tests nuevos y arreglá las fallas\", con evidencia.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "How to confirm work in this repo: the exact test, typecheck, and lint commands, and how to run a single test file",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en best-practices (qué poner en CLAUDE.md). Correcta única; CI gate descartado por la restricción de 'dentro de la sesión'."
+      }
     },
     {
       "id": "o15-s21",
@@ -142,8 +162,12 @@
       "rule": "Contexto de proyecto para CI y para devs → CLAUDE.md del repo, no prompts copiados en cada workflow.",
       "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
       "source_quote": "CLAUDE.md as the mechanism for providing project context (testing standards, fixture conventions, review criteria) to CI-invoked Claude Code",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la Exam Guide. cli-reference confirma que --append-system-prompt-file existe (distractor casi-correcto bien explicado)."
+      }
     },
     {
       "id": "o15-s22",
@@ -166,8 +190,12 @@
       "rule": "Tests solo del camino feliz → nombrá los comportamientos a verificar y pedí edge cases explícitamente.",
       "source_url": "https://code.claude.com/docs/en/common-workflows",
       "source_quote": "To improve coverage, ask Claude to identify edge cases you might have missed. Claude can analyze your code paths and suggest tests for error conditions, boundary values, and unexpected inputs that are often overlooked.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en common-workflows (edge cases, comportamiento específico). Correcta única."
+      }
     },
     {
       "id": "o15-s23",
@@ -190,8 +218,12 @@
       "rule": "\"Hacé que pasen los tests\" invita a hardcodear → pedí solución general, tests como verificación y que reporte tests mal escritos.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Implement a solution that works correctly for all valid inputs, not just the test cases. Do not hard-code values or create solutions that only work for specific test inputs.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en claude-prompting-best-practices (bloque contra hard-coding de tests). Correcta única."
+      }
     },
     {
       "id": "o15-s24",
@@ -214,8 +246,12 @@
       "rule": "Review de tests contra el spec: requisitos + edge cases listados, solo gaps de correctitud, saltear estilo.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "A reviewer that's asked to find problems will always find *something*. If you fix every finding, you end up with extra abstraction layers and tests for cases that can't happen.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en best-practices (nota 'skip style'); el prompt recomendado contra SPEC.md coincide con la opción correcta."
+      }
     },
     {
       "id": "o15-s25",
@@ -238,8 +274,12 @@
       "rule": "Gotcha que Claude no puede deducir del código (env var de integración) → una línea concreta en el CLAUDE.md del proyecto.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "Integration tests need DATABASE_URL set, see .env.example",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en best-practices (ejemplo de gotcha DATABASE_URL). Correcta única."
+      }
     },
     {
       "id": "o15-s26",
@@ -262,8 +302,12 @@
       "rule": "Claude copia el estilo mayoritario de los tests → dale el archivo-patrón bueno y marcá en CLAUDE.md qué no copiar.",
       "source_url": "https://code.claude.com/docs/en/common-workflows",
       "source_quote": "Claude examines your existing test files to match the style, frameworks, and assertion patterns already in use.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en common-workflows; best-practices confirma el gotcha 'src/legacy/ is still live but don't copy its patterns' y 'hand it over'."
+      }
     }
   ]
 }
