@@ -22,11 +22,11 @@
       "rule": "Rol garantizado = `tools` allowlist, no frases en el prompt.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "A tool you leave out isn't in the subagent's session at all: Claude works without it, with no permission prompt or error.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "agent-sdk/subagents 'Tool restrictions': cita textual; omitir tools hereda todo; allowedTools auto-aprueba."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "agent-sdk/subagents 'Tool restrictions': cita textual; omitir tools hereda todo; allowedTools auto-aprueba. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "`disallowedTools: Bash(x)` saca TODO Bash. Bloqueo fino → `permissions.deny`.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "A `disallowedTools` entry with a specifier, such as `Bash(git push *)`, still removes the whole tool from the subagent, not only the matching commands.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "sub-agents: cita textual (especificador en disallowedTools saca toda la tool; usar permissions.deny). Reemplazada la opción A (tools: Bash(npm test *)): la doc no dice cómo trata especificadores en tools, así que era ambigua. Nueva A: mismo disallowedTools sin asterisco, que la doc descarta."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "sub-agents: cita textual (especificador en disallowedTools saca toda la tool; usar permissions.deny). Reemplazada la opción A (tools: Bash(npm test *)): la doc no dice cómo trata especificadores en tools, así que era ambigua. Nueva A: mismo disallowedTools sin asterisco, que la doc descarta. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "El subagente sabe SOLO lo que va en el prompt de delegación.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "The only content you pass from parent to subagent is the Agent tool's prompt string, so include any file paths, error messages, or decisions the subagent needs directly in that prompt.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "agent-sdk/subagents 'What subagents inherit': cita textual; omitClaudeMd solo afecta CLAUDE.md. Acortada la opción correcta (era mucho más larga que los distractores)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "agent-sdk/subagents 'What subagents inherit': cita textual; omitClaudeMd solo afecta CLAUDE.md. Acortada la opción correcta (era mucho más larga que los distractores). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,11 @@
       "rule": "MCP que usa un solo subagente → inline en su `mcpServers`.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "To keep an MCP server out of the main conversation entirely and avoid its tool descriptions consuming context there, define it inline here rather than in `.mcp.json`. The subagent gets the tools; the parent conversation doesn't.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "sub-agents 'Scope MCP servers to a subagent': cita textual sobre definir inline en mcpServers."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "sub-agents 'Scope MCP servers to a subagent': cita textual sobre definir inline en mcpServers. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -134,11 +134,11 @@
       "rule": "Subagente que vive del prompt → `omitClaudeMd: true`.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "Set to `true` to start this subagent without the user, project, and local CLAUDE.md files in its initial context",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "sub-agents tabla de frontmatter: omitClaudeMd (cita casi textual, con link); agent no es campo de subagente."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "sub-agents tabla de frontmatter: omitClaudeMd (cita casi textual, con link); agent no es campo de subagente. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -162,11 +162,151 @@
       "rule": "`description` = cuándo delegar. Rol = cuerpo/`prompt`.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "The frontmatter defines the subagent's metadata and configuration. The body becomes the system prompt that guides the subagent's behavior.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "sub-agents 'Write subagent files': cuerpo = system prompt (cita textual); descripciones cortas y detalle en el system prompt; prompt es el equivalente en --agents JSON. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o05-q21",
+      "objective": 5,
+      "pool": "practice",
+      "scenario": "You run a multi-agent research system on the Claude Agent SDK (Python). The coordinator delegates to `web-searcher` and `synthesizer`. The `synthesizer` AgentDefinition has a detailed `prompt` that says \"Only combine the findings you receive. Do not search.\" and no `tools` field. Production traces from 200 reports show the synthesizer calling `WebSearch` an average of 14 times per report, adding about 90 seconds of latency and introducing claims that no `web-searcher` result supports, so the citation step cannot attribute them. The coordinator must remain the only component that decides what gets searched, and `web-searcher` must keep full search access. What is the most effective fix?",
+      "options": [
+        "Rewrite the synthesizer's `prompt` to state in capital letters that calling `WebSearch` is forbidden and that violations will be rejected.",
+        "Add `\"WebSearch\"` to `disallowed_tools` in the top-level `ClaudeAgentOptions` so that no agent in the query can run unplanned searches.",
+        "Set `tools=[\"Read\"]` (or only the tools it really needs) in the synthesizer's `AgentDefinition`, so `WebSearch` is not in its session at all.",
+        "Move the no-search rule into the synthesizer's `description` so the coordinator only delegates synthesis once no further search is needed for the report."
+      ],
+      "correct": 2,
+      "why_correct": "Sin campo `tools`, el subagente hereda todas las tools disponibles para subagentes, `WebSearch` incluida. El prompt que dice \"no busques\" es guidance: no saca la tool. `tools` es una allowlist: lo que no está ahí no existe en la sesión del sintetizador, así que no puede buscar, y `web-searcher` sigue igual.",
+      "why_wrong": {
+        "0": "Es la misma guidance de antes, más fuerte. Mientras `WebSearch` esté en su pool, el modelo puede usarla igual. Hace falta enforcement, no más mayúsculas.",
+        "1": "`disallowed_tools` a nivel `query()` saca la definición de `WebSearch` de toda la sesión, y los subagentes heredan lo que tiene la conversación principal. Rompés a `web-searcher`, que es justo el que tiene que buscar.",
+        "3": "`description` le dice al coordinador CUÁNDO delegar. No limita qué puede hacer el subagente una vez que corre."
+      },
+      "rule": "Restringir a un subagente = `tools` en SU `AgentDefinition`. El prompt orienta; la allowlist garantiza.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "source_quote": "Array of allowed tool names; listing one doesn't pre-approve it. If omitted, inherits every tool available to subagents",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
         "verdict": "ok",
-        "notes": "sub-agents 'Write subagent files': cuerpo = system prompt (cita textual); descripciones cortas y detalle en el system prompt; prompt es el equivalente en --agents JSON."
+        "notes": "Cita textual verificada en code.claude.com/docs/en/agent-sdk/subagents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
+    },
+    {
+      "id": "o05-q22",
+      "objective": 5,
+      "pool": "practice",
+      "scenario": "Your platform team built an internal debugging assistant on the Claude Agent SDK (TypeScript). After a long session in which the main agent and an engineer narrowed a failing payout job down to `src/payouts/batch.ts`, agreed to keep the retry count at 3, and captured the stack trace `TypeError: amount is undefined at batch.ts:212`, the main agent delegates to a `fixer` subagent with the prompt \"Fix the bug we found.\" The `fixer` re-explores the whole repository for 9 minutes, then edits `src/billing/invoice.ts` and changes the retry count to 5. Its `AgentDefinition` has a solid system prompt and the right tools. Which change addresses the root cause?",
+      "options": [
+        "Enable `memory: 'project'` on the `fixer` definition so that it retains what was discussed during the session in its memory directory.",
+        "Make the delegation carry the file path, the stack trace and the retry-count decision inside the Agent tool's prompt string itself.",
+        "Preload a `debugging-conventions` skill through the `skills` field so that the `fixer` starts with the team's debugging procedure.",
+        "Raise `maxTurns` on the `fixer` so that it has enough turns to rediscover the context of the session before it starts editing code."
+      ],
+      "correct": 1,
+      "why_correct": "Un subagente que no es fork arranca con contexto nuevo: no ve el historial del padre. Lo único que viaja del padre al hijo es el string del prompt del Agent tool. \"Fix the bug we found\" no le dice nada; la ruta, el error y la decisión de los 3 reintentos tienen que ir escritos ahí adentro.",
+      "why_wrong": {
+        "0": "`memory` es un directorio persistente que el subagente cura con el tiempo (preferencias, aprendizajes). No copia la conversación actual del padre.",
+        "2": "Una skill precargada le da un procedimiento genérico, no los datos de ESTA sesión: no sabe qué archivo ni qué decidieron.",
+        "3": "Más turnos = más exploración a ciegas. Trata el síntoma y puede terminar igual de mal; la decisión de negocio (3 reintentos) no está en el repo."
+      },
+      "rule": "Subagente = contexto en blanco. Rutas, errores y decisiones van DENTRO del prompt de delegación.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "source_quote": "The only content you pass from parent to subagent is the Agent tool's prompt string, so include any file paths, error messages, or decisions the subagent needs directly in that prompt.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en code.claude.com/docs/en/agent-sdk/subagents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
+    },
+    {
+      "id": "o05-q23",
+      "objective": 5,
+      "pool": "practice",
+      "scenario": "A 35-developer team configures an internal ticketing MCP server with 68 tools in the repository's `.mcp.json`. Only the `ticket-triage` subagent in `.claude/agents/` ever uses it. Session telemetry shows the server's tool definitions taking about 11,000 tokens of context in every developer's main conversation, and developers report Claude occasionally calling ticketing tools when asked unrelated questions. The team wants `ticket-triage` to keep full access to the server while the main conversation stops carrying its tools. The agent file is committed and the workspace is trusted on every machine. What should they do?",
+      "options": [
+        "Keep the server in `.mcp.json` and add `mcpServers: [ticketing]` as a name reference in the subagent so the connection is scoped to it.",
+        "Add `mcp__ticketing` to `permissions.deny` in `.claude/settings.json` and list `mcp__ticketing__*` in the subagent's `tools` field.",
+        "Keep the server in `.mcp.json` and give the subagent `tools: mcp__ticketing__*` so that only the subagent is allowed to call those tools.",
+        "Remove the server from `.mcp.json` and define it inline under the subagent's `mcpServers` field with the same server configuration."
+      ],
+      "correct": 3,
+      "why_correct": "Un server definido inline en `mcpServers` del subagente se conecta cuando el subagente arranca y se desconecta al terminar: el subagente tiene las tools y la conversación principal no. Por eso hay que sacarlo de `.mcp.json`. Como el workspace está trusted, el server inline de un agente de proyecto carga.",
+      "why_wrong": {
+        "0": "Una referencia por nombre reutiliza la conexión que ya tiene la sesión padre. El server sigue en `.mcp.json` y sus tools siguen en la conversación principal.",
+        "1": "Una regla en `permissions.deny` aplica a la conversación principal Y a los subagentes: `ticket-triage` también pierde las tools.",
+        "2": "`tools` restringe lo que puede usar el subagente, pero no saca el server de la conversación principal: el costo de contexto y las llamadas fuera de lugar siguen."
+      },
+      "rule": "MCP que solo usa un subagente → inline en su `mcpServers`, no en `.mcp.json`.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "To keep an MCP server out of the main conversation entirely and avoid its tool descriptions consuming context there, define it inline here rather than in `.mcp.json`. The subagent gets the tools; the parent conversation doesn't.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en code.claude.com/docs/en/sub-agents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
+    },
+    {
+      "id": "o05-q24",
+      "objective": 5,
+      "pool": "practice",
+      "scenario": "Your team shares `.claude/agents/pr-reviewer.md` with this frontmatter: `tools: Read, Grep, Glob`, `memory: project`, and a system prompt saying the reviewer only reports findings and never changes code. The `memory` field was added last sprint so the reviewer accumulates the team's review preferences in `.claude/agent-memory/pr-reviewer/`. Since then, two pull requests contained edits to `src/` files that the transcripts attribute to the reviewer, although nobody changed its `tools` line and the main session runs in `default` mode. The team wants a strictly read-only reviewer. What most likely explains the edits?",
+      "options": [
+        "Enabling `memory` automatically gives the subagent Read, Write and Edit to manage its memory files, which also lets it edit source files.",
+        "The `tools` value must be a YAML list; written as a comma-separated string it is ignored, so the reviewer inherits every available tool.",
+        "Project-scoped memory loads the main conversation's auto memory into the subagent, including earlier instructions to apply fixes directly.",
+        "In `default` mode the subagent inherits the main session's permission grants, so a session-wide Edit approval also applies to it."
+      ],
+      "correct": 0,
+      "why_correct": "Cuando activás `memory`, Claude Code habilita automáticamente Read, Write y Edit para que el subagente pueda mantener sus archivos de memoria. Esas tools no quedan limitadas a la carpeta de memoria: con Edit en el pool, el reviewer puede tocar `src/`. Si lo querés estrictamente read-only, `memory` no es compatible tal cual.",
+      "why_wrong": {
+        "1": "La doc acepta `tools` como string separado por comas (`Read, Grep, Bash`) o como lista YAML. El formato está bien.",
+        "2": "La auto memory de la conversación principal NO se carga en subagentes. `memory: project` es el directorio propio del subagente.",
+        "3": "Un permiso aprobado no agrega tools al pool del subagente. Si Edit no estuviera en su lista, no habría nada que aprobar."
+      },
+      "rule": "`memory` en un subagente suma Read, Write y Edit. Read-only + memory no van juntos.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "Read, Write, and Edit tools are automatically enabled so the subagent can manage its memory files.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en code.claude.com/docs/en/sub-agents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
+    },
+    {
+      "id": "o05-q25",
+      "objective": 5,
+      "pool": "practice",
+      "scenario": "In a large monorepo, the project `CLAUDE.md` says: \"Ignore `vendor/` and `third_party/`; they are generated copies.\" When developers ask broad questions such as \"where is rate limiting implemented?\", Claude delegates to the built-in Explore subagent. Explore's reports keep citing matches inside `vendor/` (in one sample, 31 of 44 cited files), and the main conversation then spends turns filtering them out. Questions answered directly in the main conversation never cite `vendor/`. The team does not want to build or maintain a custom exploration subagent. What should they do?",
+      "options": [
+        "Restate the exclusion when asking Claude to delegate the exploration, because Explore starts without the project's CLAUDE.md files.",
+        "Move the exclusion into a `.claude/rules/` file with `paths: vendor/**` so it loads automatically when Explore touches those files.",
+        "Move the exclusion from `CLAUDE.md` into `CLAUDE.local.md`, which every subagent, Explore included, loads at startup.",
+        "Copy the exclusion into `~/.claude/CLAUDE.md`, because built-in subagents always read user-level instructions before project files."
+      ],
+      "correct": 0,
+      "why_correct": "Los subagentes cargan la jerarquía de CLAUDE.md, pero los built-in Explore y Plan se la saltean. Por eso Explore no ve la regla de `vendor/`. La doc lo dice directo: si una regla tiene que llegar al subagente, repetila en el prompt de delegación.",
+      "why_wrong": {
+        "1": "Una regla con `paths` carga recién cuando el subagente trabaja con archivos que matchean. Para entonces Grep ya devolvió los matches de `vendor/`: llega tarde y no evita la búsqueda.",
+        "2": "`CLAUDE.local.md` es parte de la misma jerarquía que Explore se saltea. Cambiar de archivo no cambia nada.",
+        "3": "`~/.claude/CLAUDE.md` también es parte de la jerarquía que Explore no carga. No hay prioridad especial para built-ins."
+      },
+      "rule": "Explore y Plan no cargan CLAUDE.md: lo que tienen que respetar va en el prompt de delegación.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "If a rule must, such as \"ignore the `vendor/` directory,\" restate it in the prompt you give Claude when delegating.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en code.claude.com/docs/en/sub-agents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
       }
     }
   ]

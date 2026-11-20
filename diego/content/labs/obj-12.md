@@ -63,7 +63,13 @@ Arrancá `claude` **en la misma ventana donde activaste el venv** (así Claude e
 Hacé una función parsear_monto(texto) en montos.py para montos de extractos bancarios.
 ```
 
-Probá vos a mano con un caso de la tabla. Cuando falle, respondé SOLO: `No anda bien con algunos montos, mejoralo.`
+Probá vos a mano con un caso de la tabla, en otra ventana de PowerShell parada en `lab-obj12` con el venv activo:
+
+```powershell
+python -c "from montos import parsear_monto; print(parsear_monto('1.234,50'))"
+```
+
+Cuando falle, respondé SOLO: `No anda bien con algunos montos, mejoralo.`
 Repetí hasta 3 vueltas. Anotá cuántas vueltas y cuántos casos de la tabla quedan bien (probalos vos).
 
 Después hacé `/clear` y, en otra ventana de PowerShell parada en `lab-obj12` (o saliendo de Claude), volvé a la base:

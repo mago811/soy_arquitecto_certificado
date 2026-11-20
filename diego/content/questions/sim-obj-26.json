@@ -22,11 +22,11 @@
       "rule": "Nullable cuesta: hasta 16 union types en total por request; si te pasás, dividí la extracción.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "Total parameters that use `anyOf` or type arrays (for example, `\"type\": [\"string\", \"null\"]`) across all strict schemas.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "Cita textual de la tabla de límites (16 union types, anyOf y type arrays cuentan igual). El tip \"Split into multiple requests\" de la doc está pensado para muchas tools estrictas: se aclaró en why_correct que acá es una aplicación de ese tip."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual de la tabla de límites (16 union types, anyOf y type arrays cuentan igual). El tip \"Split into multiple requests\" de la doc está pensado para muchas tools estrictas: se aclaró en why_correct que acá es una aplicación de ese tip. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "PHI nunca en el schema (enum, const, pattern, nombres de propiedades): va en el mensaje y se valida en código.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/strict-tool-use",
       "source_quote": "Do not include PHI in `input_schema` property names, `enum` values, `const` values, or `pattern` regular expressions.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "Cita textual en strict-tool-use (PHI fuera de property names, enum, const y pattern). why_wrong[3] afirmaba sin respaldo que la regla aplica igual sin strict (la doc habla de schemas compilados de strict); se agregó al escenario la restricción de mantener strict para que D quede claramente descartada y se reescribió la explicación."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en strict-tool-use (PHI fuera de property names, enum, const y pattern). why_wrong[3] afirmaba sin respaldo que la regla aplica igual sin strict (la doc habla de schemas compilados de strict); se agregó al escenario la restricción de mantener strict para que D quede claramente descartada y se reescribió la explicación. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "Few-shot para extracción: incluí ejemplos con datos faltantes y su `null`, no solo casos completos.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Cover edge cases and vary enough that Claude doesn’t pick up unintended patterns.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en best practices (ejemplos diversos con casos borde). Opción C: `date` está entre los string formats soportados y format es \"API-enforced\" en structured-outputs, así que garantiza forma, no veracidad: la explicación es correcta."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en best practices (ejemplos diversos con casos borde). Opción C: `date` está entre los string formats soportados y format es \"API-enforced\" en structured-outputs, así que garantiza forma, no veracidad: la explicación es correcta. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,151 @@
       "rule": "En un schema, pedí explicación o evidencia corta, no razonamiento paso a paso.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "A property that asks for the model’s thinking or step-by-step reasoning might lead to a `reasoning_extraction` refusal. Ask for a short explanation instead.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en \"Invalid outputs\": pedir razonamiento paso a paso puede dar reasoning_extraction; required van primero en el orden. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o26-s21",
+      "objective": 26,
+      "pool": "sim",
+      "scenario": "An auto insurer extracts claim data from first-notice-of-loss emails with Claude Sonnet 5.5 and a tool, `register_claim`, with `strict: true`. `policy_number` is a required string whose description explains the format. About 4% of emails don't mention a policy number. For those, the tool input still contains a well-formed policy number, and 60% of them match a real policy belonging to a different customer; payouts were started on the wrong policy twice. The architect argues that, because the tool is strict, the values must be right and the problem must be the email parser. What is the most effective fix?",
+      "options": [
+        "Add a regex pattern to policy_number that matches the insurer's numbering format, so invalid numbers are rejected while decoding.",
+        "Keep the schema and add few-shot examples of emails that contain policy numbers, so the model recognizes them more reliably.",
+        "Move to Claude Opus 5.5 and force register_claim with tool_choice, so the model is more careful with every required field.",
+        "Make policy_number nullable, tell Claude to return null when it is not in the email, and route nulls to a lookup or a human."
+      ],
+      "correct": 3,
+      "why_correct": "`strict: true` garantiza la forma, no la verdad. Si el dato no está y el campo es requerido, Sonnet puede inferir un valor razonable, y un número bien formado pasa cualquier validación de schema. Hacerlo nullable con permiso explícito para `null`, y mandar los `null` a búsqueda o revisión humana, corta la fabricación en el origen.",
+      "why_wrong": {
+        "0": "Los números inventados YA tienen el formato correcto: un `pattern` los deja pasar igual.",
+        "1": "Mejora el caso en que el número está, pero el problema es el 4% en que no está y el campo obliga a poner uno.",
+        "2": "En Opus 5.5 el forced tool use devuelve 400, y forzar la llamada no tiene nada que ver con que el valor sea verdadero."
+      },
+      "rule": "Strict = forma válida, no dato real. Lo que puede faltar va nullable, con permiso para `null` y ruteo a revisión.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview",
+      "source_quote": "Claude Sonnet might ask, especially when prompted to think before outputting a tool request. But it might also infer a reasonable value.",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
         "verdict": "ok",
-        "notes": "Cita textual en \"Invalid outputs\": pedir razonamiento paso a paso puede dar reasoning_extraction; required van primero en el orden."
+        "notes": "Cita textual en tool-use/overview (Sonnet might infer a reasonable value). Opus 5.5 sin forced tool use confirmado en define-tools/api/errors. Misma familia de fix que q21 (nullable) pero con otro giro: 'strict garantiza forma, no verdad' + pattern como distractor; no lo considero duplicado."
+      }
+    },
+    {
+      "id": "o26-s22",
+      "objective": 26,
+      "pool": "sim",
+      "scenario": "A mortgage processor extracts 40 fields from appraisal reports with a single `output_config.format` schema. After a review found fabricated values, the team changed every field to a type array such as `[\"string\", \"null\"]` or `[\"number\", \"null\"]`, and kept all 40 in `required`. Now every request fails with a 400 error. Of the 40 fields, 28 appear in every appraisal by regulation (property address, appraised value, appraiser license…), and only 12 can genuinely be missing. The team must not reintroduce fabrication. What change resolves the error?",
+      "options": [
+        "Keep the 28 always-present fields as plain required types, and make only the 12 fields that can be missing nullable.",
+        "Replace each type array with an anyOf of the base type and null, which the API compiles more efficiently than type arrays.",
+        "Keep all 40 fields nullable but take them out of required, so they count as optional parameters instead of union types.",
+        "Split the schema into two requests with 20 nullable fields each, and merge the two JSON results by document id in code."
+      ],
+      "correct": 0,
+      "why_correct": "Hay un límite de 16 parámetros con union types (`anyOf` o type arrays como `[\"string\", \"null\"]`) en todas las schemas strict del request, porque son caros de compilar. 40 lo pasa de largo. Nullable solo donde el dato puede faltar (12) entra en el límite y sigue sin forzar a inventar.",
+      "why_wrong": {
+        "1": "`anyOf` cuenta igual que los type arrays para ese límite.",
+        "2": "40 opcionales pasan el límite de 24, siguen siendo union types y además vuelve la ambigüedad entre clave omitida y `null`.",
+        "3": "Casi: partir en requests separa los límites, pero 20 nullable por request sigue pasando los 16."
+      },
+      "rule": "Nullable no es gratis: máximo 16 union types por request. Nullable solo en lo que de verdad puede faltar.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "source_quote": "Total parameters that use anyOf or type arrays (for example, \"type\": [\"string\", \"null\"]) across all strict schemas. These are especially expensive because they create exponential compilation cost.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en structured-outputs (tabla de límites: 16 union types; anyOf y type arrays cuentan igual). Matemática consistente: 12 nullable ≤ 16; 20 por request > 16; 40 opcionales > 24."
+      }
+    },
+    {
+      "id": "o26-s23",
+      "objective": 26,
+      "pool": "sim",
+      "scenario": "A CI pipeline asks Claude to summarize each failed build into JSON using `output_config.format`. The schema declares its properties in this order: `job`, `failed_step`, `error_excerpt`, `suspected_cause`, `owner_team`. Only `job`, `error_excerpt` and `owner_team` are required. A legacy log shipper that cannot be changed this quarter reads the values by position and expects them in the declared order. Dashboards show `suspected_cause` text in the owner column for about 40% of builds, although the JSON itself is always valid. What is the most reliable fix?",
+      "options": [
+        "Add an instruction to the system prompt telling Claude to always emit the properties in exactly the order they are declared.",
+        "Move failed_step and suspected_cause to the end of the properties list, since optional properties are emitted after the rest.",
+        "Mark all five properties as required, using nullable types for failed_step and suspected_cause when they are unknown.",
+        "Move the schema from output_config.format to a strict tool, because tool inputs keep the declared order of optional fields."
+      ],
+      "correct": 2,
+      "why_correct": "Structured outputs respeta el orden del schema con una salvedad: primero salen las propiedades requeridas y después las opcionales. Por eso `owner_team` (requerida) se adelanta. Si el orden importa, la doc dice que marques todo como requerido; con nullable para lo que puede no saberse, mantenés el orden y no forzás a inventar.",
+      "why_wrong": {
+        "0": "Una instrucción no le gana a cómo se arma la salida: required primero, optional después.",
+        "1": "Casi: cambia el orden declarado, pero el log shipper espera el orden ORIGINAL y no se puede tocar. Romperías las posiciones de otra forma.",
+        "3": "No hay nada documentado que diga eso; la salvedad de orden es del mecanismo de structured outputs y la doc no hace esa excepción."
+      },
+      "rule": "En structured outputs salen primero las requeridas. ¿El orden importa? Todo `required` (nullable donde haga falta).",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "source_quote": "If property order in the output is important to your application, mark all properties as required, or account for this reordering in your parsing logic.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en structured-outputs (Property ordering: required primero, luego opcionales; 'mark all properties as required'). El síntoma (suspected_cause en la columna owner) coincide con el reordenamiento."
+      }
+    },
+    {
+      "id": "o26-s24",
+      "objective": 26,
+      "pool": "sim",
+      "scenario": "A research platform's coordinator merges findings from five search subagents and weights them by source type: peer-reviewed studies count fully, preprints count half, and vendor blogs are excluded. Each subagent returns `source_type` as a free-text string in its output tool. Over one month the synthesis code met 37 distinct values for the same few kinds of source ('peer reviewed', 'journal article', 'academic paper', 'preprint (arXiv)', 'company blog'…), and a growing mapping table still misses about 6% of sources, which then get the default full weight. What is the most effective fix?",
+      "options": [
+        "Normalize the strings in the coordinator with an embedding-similarity lookup that maps each new value to the closest known type.",
+        "Define source_type in the subagents' output tool as an enum of the valid labels, including an explicit value for sources that fit none.",
+        "Add a sentence to every subagent's system prompt that lists the preferred labels and asks the subagent to use them consistently.",
+        "Have the coordinator ask Claude to reclassify each unknown source_type in a follow-up call whenever the mapping table misses."
+      ],
+      "correct": 1,
+      "why_correct": "Para clasificar, la doc recomienda una tool con un campo `enum` de etiquetas válidas (o structured outputs). Con el enum en el schema de la tool, los subagentes solo pueden devolver labels conocidas; la etiqueta explícita para \"no encaja\" evita que una fuente rara se meta en otra categoría. La tabla de mapeo desaparece.",
+      "why_wrong": {
+        "0": "Trata el síntoma en el consumidor con un mapeo probabilístico que también puede errar. La causa es el campo libre.",
+        "2": "Ayuda, pero sigue siendo guía: sin enum en el schema, las variantes siguen apareciendo.",
+        "3": "Suma una llamada por fuente desconocida para arreglar a posteriori lo que el schema podría impedir de entrada."
+      },
+      "rule": "Categorías que se dispersan en texto libre → `enum` en el schema de la tool, con una salida explícita para lo que no encaja.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "For classification tasks, use either tools with an enum field containing your valid labels or structured outputs.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en claude-prompting-best-practices ('For classification tasks, use either tools with an enum field...'). Normalización a posteriori/instrucciones tratan síntoma."
+      }
+    },
+    {
+      "id": "o26-s25",
+      "objective": 26,
+      "pool": "sim",
+      "scenario": "A procurement team extracts purchase orders with structured outputs. In its schema, `delivery_date`, `incoterm` and `buyer_reference` are optional and not nullable. Downstream, the ERP treats a missing key as 'not extracted yet, retry later' and an explicit null as 'confirmed absent on the document'. Because the model can only omit these keys, 22% of orders loop through the retry queue three times and then go to manual review, even when a PO clearly has no incoterm. The schema is far below every complexity limit. What change best fixes this?",
+      "options": [
+        "Keep the fields optional and add to each description: 'Omit this field only if it is genuinely absent from the document.'",
+        "Keep the fields optional and treat a missing key as confirmed absent after the first retry, so the orders stop looping.",
+        "Replace each of the three fields with an enum of expected values plus \"unknown\", removing free-text values entirely.",
+        "Make the three fields required with nullable types, so Claude always emits each key and uses null when a value is absent."
+      ],
+      "correct": 3,
+      "why_correct": "Con campos opcionales no-nullable el modelo no tiene forma de decir \"ausente\": solo puede omitir, y el ERP lee la omisión como \"falta extraer\". La doc recomienda marcar como requerido todo lo que se pueda; requerido + nullable hace que la clave siempre esté y que `null` signifique \"no está en el documento\".",
+      "why_wrong": {
+        "0": "La descripción no cambia lo que el schema permite: ausente y no extraído siguen viéndose iguales.",
+        "1": "Cambia la semántica del ERP para tapar la ambigüedad: un PO que sí tenía el dato pero no se extrajo quedaría como \"ausente\".",
+        "2": "Una fecha de entrega o una referencia de comprador no entran en un enum: perdés los datos reales."
+      },
+      "rule": "Necesitás distinguir \"ausente\" de \"no extraído\" → `required` + nullable. Opcional = solo omitir.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "source_quote": "Reduce optional parameters. Make parameters required where possible. Each optional parameter roughly doubles a portion of the grammar’s state space.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en structured-outputs (Reduce optional parameters / make required where possible). Nota: la doc da esa recomendación por complejidad de gramática, no por semántica; acá la correcta se sostiene por diseño (opcional no-nullable solo permite omitir). Ningún distractor queda respaldado por la doc."
       }
     }
   ]

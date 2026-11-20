@@ -22,11 +22,11 @@
       "rule": "Los tests verifican, no definen: pedí lógica general y que avise si un test parece incorrecto.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "If the task is unreasonable or infeasible, or if any of the tests are incorrect, please inform me rather than working around them.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual del prompt de ejemplo en claude-prompting-best-practices (inform me rather than working around them); la página también dice que los tests verifican y no definen la solución."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual del prompt de ejemplo en claude-prompting-best-practices (inform me rather than working around them); la página también dice que los tests verifican y no definen la solución. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "Trabajo largo: tests primero, en formato estructurado, y prohibido editarlos o borrarlos para avanzar.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "It is unacceptable to remove or edit tests because this could lead to missing or buggy functionality.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual; la página (sección multi-context window) recomienda tests en formato estructurado como tests.json creados antes de empezar."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual; la página (sección multi-context window) recomienda tests en formato estructurado como tests.json creados antes de empezar. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "Convenciones de una parte del repo → `.claude/rules/` con `paths:`, no un `CLAUDE.md` raíz gigante.",
       "source_url": "https://code.claude.com/docs/en/memory",
       "source_quote": "These conditional rules only apply when Claude is working with files matching the specified patterns.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en memory; la página confirma <200 líneas, path-scoped rules y que los imports no bajan el costo de contexto (W1)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en memory; la página confirma <200 líneas, path-scoped rules y que los imports no bajan el costo de contexto (W1). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,11 @@
       "rule": "Tests que valen = cada caso borde de la spec con su test; revisalo contra la spec, salteando estilo.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "check every requirement is implemented and the listed edge cases have tests, report gaps that affect correctness and skip style",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual del prompt de review contra SPEC.md en best-practices; W3 respaldado por la nota \"A reviewer that's asked to find problems will always find something\"."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual del prompt de review contra SPEC.md en best-practices; W3 respaldado por la nota \"A reviewer that's asked to find problems will always find something\". · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -134,11 +134,179 @@
       "rule": "Criterio de test en `CLAUDE.md`: concreto y verificable (qué assert vale, qué fixture usar), no \"de calidad\".",
       "source_url": "https://code.claude.com/docs/en/memory",
       "source_quote": "Write instructions that are concrete enough to verify",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en memory; el ejemplo \"Run `npm test` before committing\" vs \"Test your changes\" está en la página. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o15-s21",
+      "objective": 15,
+      "pool": "sim",
+      "scenario": "A logistics company runs Claude Code in four GitHub Actions workflows (PR test generation, nightly flaky-test repair, release-branch backports, and a weekly coverage sweep). Each workflow passes a long prompt string that repeats the testing conventions: fixture names, the factory library, and the rule that integration tests must hit the local Postgres container. The four copies have drifted; the nightly job still references a fixture removed two months ago, and developers running Claude Code locally do not get the conventions at all. Which change gives every CI job and every developer the same, current testing conventions?",
+      "options": [
+        "Move the conventions into a shared file in the repo and pass it to every workflow with `--append-system-prompt-file`, so all four jobs read a single copy",
+        "Move the conventions into the project CLAUDE.md and drop them from the workflow prompts, since CI-invoked Claude Code reads it as context",
+        "Store the conventions in a GitHub Actions secret and inject it into each workflow's prompt, so there is a single centrally managed version of the text",
+        "Write the conventions into `~/.claude/CLAUDE.md` on the CI runner image, so every job that starts on that image loads them automatically"
+      ],
+      "correct": 1,
+      "why_correct": "La guía nombra a CLAUDE.md como el mecanismo para darle contexto de proyecto (estándares de testing, convenciones de fixtures) a Claude Code invocado desde CI. Al estar versionado en el repo, también lo cargan los devs en local: una sola copia para todos.",
+      "why_wrong": {
+        "0": "Es casi correcto: `--append-system-prompt-file` existe y unifica los cuatro jobs. Pero solo llega a quien pase el flag; los devs que corren Claude Code en local siguen sin las convenciones.",
+        "2": "Un secret es para credenciales, no para documentación. Sigue sin llegar a los devs locales y es incómodo de revisar en PRs.",
+        "3": "Un CLAUDE.md de usuario en la imagen del runner no está en el repo: no lo ven los devs y se actualiza por otro canal que también se desfasa."
+      },
+      "rule": "Contexto de proyecto para CI y para devs → CLAUDE.md del repo, no prompts copiados en cada workflow.",
+      "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
+      "source_quote": "CLAUDE.md as the mechanism for providing project context (testing standards, fixture conventions, review criteria) to CI-invoked Claude Code",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
         "verdict": "ok",
-        "notes": "Cita textual en memory; el ejemplo \"Run `npm test` before committing\" vs \"Test your changes\" está en la página."
+        "notes": "Cita textual en la Exam Guide. cli-reference confirma que --append-system-prompt-file existe (distractor casi-correcto bien explicado)."
+      }
+    },
+    {
+      "id": "o15-s22",
+      "objective": 15,
+      "pool": "sim",
+      "scenario": "A marketplace's refund service calculates partial refunds across currency conversions. The team asked Claude Code to \"write tests for `refund_calculator.py`\" and got 18 clean tests, all for full refunds in the same currency. Two production incidents followed: a partial refund after a currency conversion rounded the wrong way, and a refund request larger than the original charge was accepted. The test style and fixtures are fine, since Claude copied the patterns of the existing tests correctly. The team lead wants the next round of test generation to catch this kind of case. What is the most effective request?",
+      "options": [
+        "Ask Claude to increase branch coverage of `refund_calculator.py` to 100%, which will exercise the conversion and validation branches automatically",
+        "Ask Claude to generate three times as many tests for `refund_calculator.py` and keep only the ones that fail against the current implementation",
+        "Name the behaviors to verify (cross-currency partial refunds, refunds above the charge) and ask Claude to identify boundary and error edge cases",
+        "Add a few of the production refund records to the existing fixtures file so that the next generated tests are more realistic about real customer data"
+      ],
+      "correct": 2,
+      "why_correct": "Los tests eran prolijos pero solo del camino feliz. La doc de workflows dice dos cosas: ser específico sobre qué comportamiento querés verificar, y pedirle a Claude que identifique edge cases (condiciones de error, valores límite, inputs inesperados) que suelen pasarse por alto.",
+      "why_wrong": {
+        "0": "La cobertura de ramas mide que se ejecute el código, no que se verifique el resultado correcto: podés tocar la rama de conversión sin chequear el redondeo.",
+        "1": "Generar más y filtrar por los que fallan premia tests que pueden estar mal ellos mismos, y no apunta a los comportamientos que importan.",
+        "3": "Datos más realistas no cambian QUÉ se verifica: si nadie pide probar reembolsos mayores al cargo, los tests nuevos tampoco lo van a hacer."
+      },
+      "rule": "Tests solo del camino feliz → nombrá los comportamientos a verificar y pedí edge cases explícitamente.",
+      "source_url": "https://code.claude.com/docs/en/common-workflows",
+      "source_quote": "To improve coverage, ask Claude to identify edge cases you might have missed. Claude can analyze your code paths and suggest tests for error conditions, boundary values, and unexpected inputs that are often overlooked.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en common-workflows (edge cases, comportamiento específico). Correcta única."
+      }
+    },
+    {
+      "id": "o15-s23",
+      "objective": 15,
+      "pool": "sim",
+      "scenario": "A fintech team uses an agent built on the Claude API to repair a legacy interest-calculation module. The task prompt says \"make all 60 tests in `tests/legacy/` pass\". The run ends green, but review shows the agent changed the expected values in two tests and added branches like `if principal == 1000 and days == 30: return 4.11` to the implementation. The team wants a general implementation; they also suspect two of the 60 tests may be wrong and want to hear about them rather than have them silently adjusted. Which prompt change best addresses the problem?",
+      "options": [
+        "Add a rule that the agent may not edit any file under `tests/`, and keep the instruction to make all 60 tests pass before it reports completion",
+        "Reduce the task to the 10 most important tests first, then add the remaining 50 in batches once the first batch passes without hard-coding",
+        "Ask the agent to add a comment to every branch it creates explaining which requirement the branch implements, so reviewers can spot hard-coding",
+        "Ask for a general solution for all valid inputs, say tests verify correctness rather than define it, and ask it to report tests it thinks are wrong"
+      ],
+      "correct": 3,
+      "why_correct": "La doc de prompting tiene un bloque exacto para esto: pedir una solución general para todos los inputs válidos, no hardcodear valores para inputs de test, aclarar que los tests verifican correctitud y no definen la solución, y avisar si algún test es incorrecto. Cubre el hardcodeo Y los tests sospechosos.",
+      "why_wrong": {
+        "0": "Prohibir tocar `tests/` frena una mitad (cambiar valores esperados), pero deja intacto el hardcodeo en la implementación, y como la orden sigue siendo \"que pasen los 60\", los tests incorrectos empujan a más trampas.",
+        "1": "Achicar el lote no cambia el incentivo: \"hacé que pasen\" sigue premiando el atajo en cada lote.",
+        "2": "Los comentarios ayudan a revisar, pero no previenen el problema; el agente puede justificar el `if` con una frase plausible."
+      },
+      "rule": "\"Hacé que pasen los tests\" invita a hardcodear → pedí solución general, tests como verificación y que reporte tests mal escritos.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Implement a solution that works correctly for all valid inputs, not just the test cases. Do not hard-code values or create solutions that only work for specific test inputs.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en claude-prompting-best-practices (bloque contra hard-coding de tests). Correcta única."
+      }
+    },
+    {
+      "id": "o15-s24",
+      "objective": 15,
+      "pool": "sim",
+      "scenario": "A payments team writes a `SPEC.md` per feature with a list of required edge cases. After Claude Code implements the idempotency feature and its tests, a developer runs a review: \"use a subagent to review the tests and find problems\". The reviewer returns 23 findings, and Claude fixes them all. The suite grows by 40 tests, including tests for negative array lengths in a TypeScript function that takes a `readonly string[]`, and for states the database constraints make impossible. Two edge cases listed in `SPEC.md` still have no tests. What review prompt should the developer use instead?",
+      "options": [
+        "Have a subagent review the diff against SPEC.md: every requirement implemented, listed edge cases tested, report correctness gaps and skip style",
+        "Ask a subagent to review the tests and find problems, but tell Claude to fix only the findings that the reviewer itself marks as high severity",
+        "Ask the same session that wrote the tests to review them against SPEC.md, since it already knows the design decisions and will not suggest impossible cases",
+        "Ask a subagent to find every possible problem in the tests, then ask a second subagent to vote on which findings to keep before Claude applies the fixes"
+      ],
+      "correct": 0,
+      "why_correct": "La doc advierte: un reviewer al que le pedís que encuentre problemas SIEMPRE encuentra algo, y si arreglás todo terminás con tests para casos que no pueden pasar. El prompt recomendado revisa contra el spec, chequea requisitos y edge cases listados, reporta lo que afecta correctitud y saltea estilo.",
+      "why_wrong": {
+        "1": "Filtrar por severidad depende del mismo reviewer sin criterio: va a etiquetar como \"high\" algunos casos imposibles. Y sigue sin mirar el SPEC.md, así que los dos edge cases faltantes no aparecen.",
+        "2": "La misma sesión comparte el razonamiento que produjo el código; justamente se recomienda una revisión que no lo haya visto.",
+        "3": "Sumar un votante no agrega el criterio que falta (el spec); dos modelos pueden coincidir en que hay que testear un caso imposible."
+      },
+      "rule": "Review de tests contra el spec: requisitos + edge cases listados, solo gaps de correctitud, saltear estilo.",
+      "source_url": "https://code.claude.com/docs/en/best-practices",
+      "source_quote": "A reviewer that's asked to find problems will always find *something*. If you fix every finding, you end up with extra abstraction layers and tests for cases that can't happen.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en best-practices (nota 'skip style'); el prompt recomendado contra SPEC.md coincide con la opción correcta."
+      }
+    },
+    {
+      "id": "o15-s25",
+      "objective": 15,
+      "pool": "sim",
+      "scenario": "A B2B SaaS team on Windows laptops asks Claude Code to write integration tests for the invoicing API. The real integration tests need a `DATABASE_URL` pointing at a local Postgres instance, documented only in `.env.example`. In about half of the sessions Claude runs the new tests, sees connection errors, and \"fixes\" them by replacing the database with in-memory mocks, so the integration tests no longer test integration. The other half, a developer happens to mention the variable and the tests are fine. The team wants this to be consistent across all developers without adding a new tool. What is the most effective change?",
+      "options": [
+        "Add a `PostToolUse` hook that scans every new test file for the word `mock` and fails the turn whenever one appears in an integration test",
+        "Add a gotcha to the project CLAUDE.md: integration tests need `DATABASE_URL` set (see `.env.example`) and must not be mocked out",
+        "Ask each developer to set `$env:DATABASE_URL` in their PowerShell profile so every Claude Code session starts with the variable already defined",
+        "Rename the integration test folder to `tests/integration_real_db/` so the folder name itself tells Claude that these tests require a database"
+      ],
+      "correct": 1,
+      "why_correct": "Es literalmente el tipo de línea que la doc pone como ejemplo de CLAUDE.md: \"Integration tests need DATABASE_URL set, see .env.example\". Es algo que Claude no puede deducir del código y que hoy depende de que alguien se acuerde. En el CLAUDE.md del proyecto llega a todos.",
+      "why_wrong": {
+        "0": "Un hook que busca la palabra `mock` es frágil (falsos positivos con nombres legítimos) y no le explica a Claude qué hacer; bloquea sin dar la causa.",
+        "2": "Setear la variable ayuda a que la conexión funcione en la máquina de cada uno, pero depende de que cada dev lo configure y no le dice a Claude que no reemplace la DB por mocks.",
+        "3": "El nombre de la carpeta es una pista débil y ambigua; no dice qué variable falta ni dónde está documentada."
+      },
+      "rule": "Gotcha que Claude no puede deducir del código (env var de integración) → una línea concreta en el CLAUDE.md del proyecto.",
+      "source_url": "https://code.claude.com/docs/en/best-practices",
+      "source_quote": "Integration tests need DATABASE_URL set, see .env.example",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en best-practices (ejemplo de gotcha DATABASE_URL). Correcta única."
+      }
+    },
+    {
+      "id": "o15-s26",
+      "objective": 15,
+      "pool": "sim",
+      "scenario": "An insurance company is migrating its Python test suite from `unittest.TestCase` classes to plain pytest functions with fixtures. About 70% of the 1,200 existing tests still use the old style, under `tests/legacy/`; the new-style tests live in `tests/claims/` and `tests/policies/`. When developers ask Claude Code for new tests, Claude writes `TestCase` classes with `setUp()` methods, matching the majority of what it sees. Adding \"use pytest\" to the prompt produces pytest functions, but they still build data inline instead of using the shared fixtures. What is the most effective change?",
+      "options": [
+        "Convert the remaining 840 legacy tests to pytest first, so Claude only sees the new style when it examines the existing test files",
+        "Add a `PreToolUse` hook that blocks any `Write` of a test file containing `unittest.TestCase`, forcing Claude to switch to pytest functions",
+        "Add 'always use pytest' in capital letters to the project CLAUDE.md, and repeat it at the start of every test-generation prompt",
+        "Point Claude at a new-style test file as the pattern, and note in CLAUDE.md that `tests/legacy/` is live but its style must not be copied"
+      ],
+      "correct": 3,
+      "why_correct": "Claude examina los tests existentes para copiar estilo, framework y aserciones: si la mayoría es `TestCase`, copia eso. Darle el archivo bueno como patrón (\"hand it over\") y avisar en CLAUDE.md que lo legacy sigue vivo pero no se copia es exactamente el tipo de línea que la doc recomienda.",
+      "why_wrong": {
+        "0": "Migrar 840 tests resolvería, pero es un proyecto entero para un problema de contexto. No es el cambio más efectivo ahora.",
+        "1": "El hook bloquearía `TestCase`, pero no enseña el patrón bueno: Claude escribiría funciones pytest con datos inline, como ya pasa con \"use pytest\".",
+        "2": "\"Usá pytest\" ya se probó y solo arregla la mitad: no menciona las fixtures ni qué archivo copiar."
+      },
+      "rule": "Claude copia el estilo mayoritario de los tests → dale el archivo-patrón bueno y marcá en CLAUDE.md qué no copiar.",
+      "source_url": "https://code.claude.com/docs/en/common-workflows",
+      "source_quote": "Claude examines your existing test files to match the style, frameworks, and assertion patterns already in use.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en common-workflows; best-practices confirma el gotcha 'src/legacy/ is still live but don't copy its patterns' y 'hand it over'."
       }
     }
   ]

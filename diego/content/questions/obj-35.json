@@ -22,11 +22,11 @@
       "rule": "Server para todo el equipo → scope project (.mcp.json commiteado) + secretos en ${VAR}.",
       "source_url": "https://code.claude.com/docs/en/mcp",
       "source_quote": "Check `.mcp.json` into version control so everyone on your team gets the same MCP tools and services.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "code.claude.com/mcp: project scope = .mcp.json commiteado; local en ~/.claude.json, no settings.local.json."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "code.claude.com/mcp: project scope = .mcp.json commiteado; local en ~/.claude.json, no settings.local.json. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "Nunca secretos literales en .mcp.json: usá ${VAR}.",
       "source_url": "https://code.claude.com/docs/en/mcp",
       "source_quote": "Claude Code supports environment variable expansion in `.mcp.json` files, allowing teams to share configurations while maintaining flexibility for machine-specific paths and sensitive values like API keys.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "code.claude.com/mcp: expansión ${VAR} en headers para mantener API keys fuera."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "code.claude.com/mcp: expansión ${VAR} en headers para mantener API keys fuera. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "Personal/experimental en un solo repo → local (el default).",
       "source_url": "https://code.claude.com/docs/en/mcp",
       "source_quote": "Use local scope for personal development servers, experimental configurations, or servers with credentials you don't want in version control.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual (Local scope)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual (Local scope). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,11 @@
       "rule": "${VAR:-default}: vacío ≠ sin setear. Para el default, unset.",
       "source_url": "https://code.claude.com/docs/en/mcp",
       "source_quote": "If you set a variable to an empty string, it counts as set, so a `${VAR:-default}` reference expands to the empty string rather than to `default`.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual (Variables set to an empty string); reset-project-choices resetea aprobaciones."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual (Variables set to an empty string); reset-project-choices resetea aprobaciones. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -134,11 +134,11 @@
       "rule": "Mismo nombre en varios scopes → gana local > project > user, entrada entera.",
       "source_url": "https://code.claude.com/docs/en/mcp",
       "source_quote": "When the same server is defined in more than one place, Claude Code connects to it once, using the definition from the highest-precedence source. The entire server entry from that source is used; fields are not merged across scopes.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual (Scope hierarchy): local > project > user, entrada entera sin merge."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual (Scope hierarchy): local > project > user, entrada entera sin merge. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -162,11 +162,11 @@
       "rule": "`claude mcp add` no valida: verificá con /mcp o claude mcp list.",
       "source_url": "https://code.claude.com/docs/en/mcp",
       "source_quote": "The `claude mcp add` command saves the configuration without validating credentials, so a placeholder value is accepted here but the server fails to connect later.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual (ejemplo GitHub): add no valida credenciales; verificar con /mcp, ✘ y status 401."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual (ejemplo GitHub): add no valida credenciales; verificar con /mcp, ✘ y status 401. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -190,11 +190,11 @@
       "rule": "Credenciales de Claude Code (ANTHROPIC_*) no se expanden hacia servers remotos: usá una variable propia.",
       "source_url": "https://code.claude.com/docs/en/mcp",
       "source_quote": "If you write `Bearer ${ANTHROPIC_AUTH_TOKEN}`, the server receives `Bearer ` with no credential and rejects the request, usually with a `401`.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Credential variables that read as empty: ANTHROPIC_API_KEY cubierta, :-default ignorado, copiar a nombre propio."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Credential variables that read as empty: ANTHROPIC_API_KEY cubierta, :-default ignorado, copiar a nombre propio. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -218,11 +218,11 @@
       "rule": "Agent SDK: tools MCP → allowedTools con mcp__server__*.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/mcp",
       "source_quote": "MCP tools require explicit permission before Claude can use them. Without permission, Claude will see that tools are available but won't be able to call them.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "agent-sdk/mcp: permiso explícito; acceptEdits no aprueba tools MCP; bypassPermissions más amplio de lo necesario."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "agent-sdk/mcp: permiso explícito; acceptEdits no aprueba tools MCP; bypassPermissions más amplio de lo necesario. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -246,11 +246,11 @@
       "rule": "SDK: verificá servers en el init → mcp_servers[].status.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/mcp",
       "source_quote": "The `status` field can be `\"pending\"`, `\"connected\"`, `\"failed\"`, `\"needs-auth\"`, or `\"disabled\"`.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "agent-sdk/mcp Error handling: init con status por server; chequear failed/needs-auth."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "agent-sdk/mcp Error handling: init con status por server; chequear failed/needs-auth. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -274,11 +274,151 @@
       "rule": "Server de .mcp.json en Pending approval → abrir claude y aprobarlo.",
       "source_url": "https://code.claude.com/docs/en/mcp",
       "source_quote": "For security reasons, Claude Code prompts for approval in interactive sessions before using project-scoped servers from `.mcp.json` files.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual (Project scope) + Server status: Pending approval es estado de configuración. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o35-q21",
+      "objective": 35,
+      "pool": "practice",
+      "scenario": "A 25-developer team shares a Jira MCP server through the repository's `.mcp.json`: `\"headers\": { \"Authorization\": \"Bearer ${JIRA_TOKEN}\" }`. A new developer on Windows sets the token with `$env:JIRA_TOKEN = \"...\"` in one PowerShell window, then opens a second terminal in VS Code and runs `claude`. Every Jira call fails with `401`, and `claude mcp list` in that second terminal prints a warning for the `jira` server naming `JIRA_TOKEN`. The token itself is valid: it works with `curl` from the first window. The team does not want tokens in version control or per-developer edits to `.mcp.json`. What should the developer do?",
+      "options": [
+        "Add a fallback in `.mcp.json`, `${JIRA_TOKEN:-none}`, so the header always expands to a value and the missing-variable warning disappears for every developer.",
+        "Set `JIRA_TOKEN` in the environment of the shell that launches `claude`, such as a persistent user environment variable, and start a new terminal before running it.",
+        "Add a user-scoped `jira` server with `claude mcp add --scope user` and the token in the header, so it overrides the project definition on this machine only.",
+        "Run `claude mcp reset-project-choices` and approve the `jira` server again, so Claude Code re-reads the environment and expands the token on the next start."
+      ],
+      "correct": 1,
+      "why_correct": "Claude Code expande `${VAR}` desde SU entorno. El `$env:` de PowerShell dura solo en esa ventana, así que en la otra terminal la variable no existe: la config carga igual, `claude mcp list` avisa que falta la variable y se manda el texto `${JIRA_TOKEN}` sin expandir, de ahí el 401. Definir la variable donde arranca `claude` (por ejemplo como variable de usuario persistente) lo arregla sin tocar el repo.",
+      "why_wrong": {
+        "0": "Saca el warning, pero el server recibe `Bearer none` y sigue fallando. Tapa el síntoma.",
+        "2": "Además de hardcodear el token, no funciona: el scope project tiene más precedencia que user, así que en este repo sigue ganando la entrada de `.mcp.json`.",
+        "3": "Eso resetea las aprobaciones de servers de proyecto; no tiene nada que ver con una variable que no está en el entorno."
+      },
+      "rule": "`${VAR}` en `.mcp.json` se expande del entorno del proceso `claude`; si no está, va el texto literal y `claude mcp list` avisa.",
+      "source_url": "https://code.claude.com/docs/en/mcp",
+      "source_quote": "If a referenced environment variable isn't set and has no default value, the config still loads: Claude Code reports a missing-variable warning for that server in `claude mcp list` output and uses the unexpanded `${VAR}` text as-is.",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
         "verdict": "ok",
-        "notes": "Cita textual (Project scope) + Server status: Pending approval es estado de configuración."
+        "notes": "Doc mcp: variable faltante → warning en claude mcp list y texto ${VAR} literal; precedencia local > project > user. Cita textual."
+      }
+    },
+    {
+      "id": "o35-q22",
+      "objective": 35,
+      "pool": "practice",
+      "scenario": "A data team's repository commits an `analytics` server in `.mcp.json` with only `type` and `url`, relying on OAuth. One engineer, tired of OAuth prompts, added a user-scoped `analytics` entry with the same URL plus an `X-Api-Key` header, expecting the header to be added to the project's definition. In this repository the server still shows `! Needs authentication`, while in another repository without a `.mcp.json` entry the user-scoped definition works with the key. The engineer must not change the shared `.mcp.json`, and teammates must keep using OAuth. What should the engineer do?",
+      "options": [
+        "Move the `X-Api-Key` header into the project's `.mcp.json` using `${ANALYTICS_KEY}` expansion, so every developer can choose OAuth or a key on their own machine.",
+        "Run `claude mcp reset-project-choices` and decline the project's `analytics` server, so Claude Code falls back to the user-scoped definition in this repository.",
+        "Add a local-scoped `analytics` entry with the header in this repository, since local has the highest precedence and its whole entry replaces the project's.",
+        "Keep both entries and add the header under the same name to the project entry through `claude mcp add-json`, so the two definitions are merged on the next start."
+      ],
+      "correct": 2,
+      "why_correct": "Cuando el mismo server está definido en varios scopes, Claude Code usa la definición de mayor precedencia COMPLETA; los campos no se mezclan. El orden es local > project > user, por eso en este repo gana `.mcp.json` sin header. Una entrada local con el header, en este proyecto, gana sobre la del equipo sin tocar `.mcp.json` y sin afectar a nadie.",
+      "why_wrong": {
+        "0": "Modifica el `.mcp.json` compartido, que la restricción prohíbe, y le cambia la config a todo el equipo.",
+        "1": "Rechazar el server de proyecto no está documentado como \"caer\" al de user. Además resetea aprobaciones en general.",
+        "3": "Parte de la misma idea equivocada: no hay merge de campos entre scopes, y también tocaría la entrada compartida."
+      },
+      "rule": "Scopes MCP: local > project > user, y gana la entrada entera (no se mezclan campos).",
+      "source_url": "https://code.claude.com/docs/en/mcp",
+      "source_quote": "When the same server is defined in more than one place, Claude Code connects to it once, using the definition from the highest-precedence source. The entire server entry from that source is used; fields are not merged across scopes.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc mcp: gana la entrada entera de mayor precedencia, sin merge; local > project > user. Cita textual."
+      }
+    },
+    {
+      "id": "o35-q23",
+      "objective": 35,
+      "pool": "practice",
+      "scenario": "An open-source company runs `claude -p` on Linux CI runners to review pull requests, including PRs from forks. The job needs exactly one MCP server, an internal `style-guide` server. During a security review, the team discovers that a fork PR modified `.mcp.json` to add a server pointing at an external host, and the CI logs show Claude Code connected to it without any prompt. The team wants CI to load only the vetted server regardless of what `.mcp.json` contains in any PR, including server names nobody has seen yet. What should they do?",
+      "options": [
+        "Start the job with `--strict-mcp-config --mcp-config ci-mcp.json`, where the file defines only `style-guide`, so servers configured in `.mcp.json` are skipped.",
+        "Add the unexpected server's name to `disabledMcpjsonServers` in the runner's user settings, which blocks that server in every permission mode, including `-p`.",
+        "Rely on the project-server approval prompt by removing `enableAllProjectMcpServers` from settings, so Claude Code asks before using any server from `.mcp.json`.",
+        "Move `style-guide` to user scope on the runners, so it outranks anything a PR adds to `.mcp.json` and becomes the only server that loads in CI."
+      ],
+      "correct": 0,
+      "why_correct": "En corridas `claude -p` Claude Code no puede mostrar el prompt de aprobación y carga los servers de proyecto sin preguntar. Con `--strict-mcp-config`, carga solo los que pasás con `--mcp-config` y saltea los configurados en lugares como `.mcp.json`. Cubre cualquier nombre que agregue un PR.",
+      "why_wrong": {
+        "1": "`disabledMcpjsonServers` bloquea los nombres que listás, así que sirve para ese server conocido, pero no para los nombres nuevos que traiga el próximo PR. La restricción pide cubrir esos también.",
+        "2": "En `-p` no hay prompt que mostrar: los servers de proyecto se cargan sin preguntar.",
+        "3": "La precedencia solo decide entre entradas con el MISMO nombre; un server con otro nombre en `.mcp.json` se carga igual. Y user está por debajo de project."
+      },
+      "rule": "CI con PRs no confiables: `--strict-mcp-config` + `--mcp-config` con la lista cerrada de servers.",
+      "source_url": "https://code.claude.com/docs/en/mcp",
+      "source_quote": "Start the session with `--strict-mcp-config`. Claude Code then loads the servers you pass with `--mcp-config` and skips the ones configured in places such as `.mcp.json`.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc mcp: en -p se cargan servers de proyecto sin preguntar; --strict-mcp-config + --mcp-config; disabledMcpjsonServers solo por nombre. Cita textual."
+      }
+    },
+    {
+      "id": "o35-q24",
+      "objective": 35,
+      "pool": "practice",
+      "scenario": "A developer on Windows wants to add a local stdio MCP server for Postgres that reads its connection string from `DB_URL`. In PowerShell they run: `claude mcp add --env DB_URL=$env:STAGING_DB_URL pgtools -- npx -y @acme/pg-mcp --readonly`. The CLI rejects the command, complaining about an invalid `KEY=value` pair, and nothing is saved. A teammate suggests the `--` separator is misplaced. The server must stay private to this developer and only load in the current repository, so local scope (the default) is fine. The developer wants the server to start with `--readonly` and with `DB_URL` in its environment. Which command works?",
+      "options": [
+        "`claude mcp add --env DB_URL=$env:STAGING_DB_URL pgtools npx -y @acme/pg-mcp --readonly`, removing the `--` so the CLI parses the server name and command in order.",
+        "`claude mcp add-json pgtools '{\"command\":\"npx\",\"args\":[\"-y\",\"@acme/pg-mcp\"],\"readonly\":true}'`, since JSON avoids CLI parsing of flags and env values.",
+        "`claude mcp add pgtools --env DB_URL=$env:STAGING_DB_URL -- npx -y @acme/pg-mcp -- --readonly`, adding a second `--` so `--readonly` reaches the server.",
+        "`claude mcp add --env DB_URL=$env:STAGING_DB_URL --transport stdio pgtools -- npx -y @acme/pg-mcp --readonly`, with another option between `--env` and the name."
+      ],
+      "correct": 3,
+      "why_correct": "`--env` acepta varios pares `KEY=value`; si el nombre del server viene justo después, la CLI lo lee como otro par y lo rechaza. La doc dice que pongas otra opción, como `--transport stdio`, entre `--env` y el nombre. El `--` estaba bien: separa las opciones de Claude del comando del server, que recibe `--readonly` intacto.",
+      "why_wrong": {
+        "0": "Sin `--`, Claude Code intentaría parsear `-y` y `--readonly` como opciones propias. Y el nombre sigue pegado a `--env`.",
+        "1": "`readonly` como campo suelto del JSON no es un argumento del proceso, y la entrada no pasa `DB_URL` en `env`: el server arrancaría sin modo read-only y sin conexión.",
+        "2": "Todo lo que va después del primer `--` pasa intacto al server: el segundo `--` le llegaría como argumento literal."
+      },
+      "rule": "`claude mcp add`: nunca el nombre justo después de `--env`; el comando del server va después de `--`.",
+      "source_url": "https://code.claude.com/docs/en/mcp",
+      "source_quote": "If the server name comes directly after `--env`, the CLI reads the name as another pair and rejects it, so place at least one other option, such as `--transport stdio`, between `--env` and the server name.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc mcp: nombre justo después de --env se lee como otro par; poner otra opción como --transport stdio. Cita textual."
+      }
+    },
+    {
+      "id": "o35-q25",
+      "objective": 35,
+      "pool": "practice",
+      "scenario": "A developer at a payments company follows the vendor's setup guide and runs `claude mcp add --transport http ledger https://mcp.ledger.example.com --header \"Authorization: Bearer YOUR_API_KEY\"`, forgetting to replace the placeholder. The CLI prints `Added HTTP MCP server ledger`. They start Claude Code and ask it to reconcile yesterday's transactions; Claude answers by reading CSV exports with Read and never mentions the ledger. The developer assumes the server works because the add command succeeded. Two teammates who set up the same server last week say it works for them. What should they do first?",
+      "options": [
+        "Remove and re-add the server with `--scope project`, because servers added at the default local scope don't load until the project approves them.",
+        "Increase `MCP_TIMEOUT`, because remote HTTP servers often take longer than the default startup timeout and Claude starts working before the tools arrive.",
+        "Ask Claude in the prompt to always use the ledger tools for reconciliation, since without explicit instructions it prefers built-in tools over MCP ones.",
+        "Open `/mcp` and check the `ledger` row for a connected status and a tool count, because `claude mcp add` saves the entry without validating the credentials."
+      ],
+      "correct": 3,
+      "why_correct": "`claude mcp add` guarda la configuración sin validar credenciales: un placeholder se acepta y el server falla al conectar después. La doc indica verificar con `/mcp` que la fila del server tenga el check (y el conteo de tools). Primero se verifica el descubrimiento; recién después se ajusta otra cosa.",
+      "why_wrong": {
+        "0": "El scope local es el default y carga directo en ese proyecto; la aprobación es para servers de `.mcp.json`. Y no arregla el token.",
+        "1": "Ataca un problema que no está probado. Con un placeholder como token el server va a fallar por autenticación, no por tiempo.",
+        "2": "Si el server no conectó, no hay tools que usar: el prompt no las crea. Es guidance sobre un problema de configuración."
+      },
+      "rule": "`Added ...` solo significa \"guardado\". Verificá en `/mcp` (estado + cantidad de tools) antes de culpar al modelo.",
+      "source_url": "https://code.claude.com/docs/en/mcp",
+      "source_quote": "The `claude mcp add` command saves the configuration without validating credentials, so a placeholder value is accepted here but the server fails to connect later.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc mcp: claude mcp add guarda sin validar credenciales; verificar en /mcp. Cita textual."
       }
     }
   ]

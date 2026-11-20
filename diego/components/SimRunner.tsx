@@ -1,13 +1,17 @@
 "use client";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { finishSim, saveSimAnswer } from "@/app/actions";
+import { finishSim, saveSimAnswer, finishDiag, saveDiagAnswer } from "@/app/actions";
+import { Md } from "@/components/Md";
 
 const L = ["A", "B", "C", "D"];
 type Q = { id: string; scenario: string; options: string[] };
 
-export function SimRunner({ simId, attemptId, questions, initialAnswers, deadline }: {
-  simId: number; attemptId: number; questions: Q[]; initialAnswers: Record<string, number>; deadline: string;
+export function SimRunner({ simId, attemptId, questions, initialAnswers, deadline, kind = "sim" }: {
+  simId: number; attemptId: number; questions: Q[]; initialAnswers: Record<string, number>; deadline: string; kind?: "sim" | "diag";
 }) {
+  const isDiag = kind === "diag";
+  const save = isDiag ? saveDiagAnswer : saveSimAnswer;
+  const done = isDiag ? finishDiag : finishSim;
   const [answers, setAnswers] = useState<Record<string, number>>(initialAnswers);
   const [marked, setMarked] = useState<Set<string>>(new Set());
   const [i, setI] = useState(0);
@@ -18,7 +22,7 @@ export function SimRunner({ simId, attemptId, questions, initialAnswers, deadlin
   const finish = () => {
     if (finishing.current) return;
     finishing.current = true;
-    start(async () => { await finishSim(attemptId); });
+    start(async () => { await done(attemptId); });
   };
 
   useEffect(() => {
@@ -38,13 +42,13 @@ export function SimRunner({ simId, attemptId, questions, initialAnswers, deadlin
 
   function choose(k: number) {
     setAnswers((a) => ({ ...a, [q.id]: k }));
-    void saveSimAnswer(attemptId, q.id, k);
+    void save(attemptId, q.id, k);
   }
 
   return (
     <div>
       <div className="sticky top-[86px] z-10 -mx-4 mb-4 flex items-center justify-between border-b border-line bg-bg/95 px-4 py-2 backdrop-blur">
-        <span className="text-sm font-semibold">Simulacro {simId} · {answered}/{questions.length} respondidas</span>
+        <span className="text-sm font-semibold">{isDiag ? "Test de nivel" : `Simulacro ${simId}`} · {answered}/{questions.length} respondidas</span>
         <span className={`font-mono text-lg font-bold ${left < 10 * 60000 ? "text-bad" : ""}`}>
           {String(mm).padStart(2, "0")}:{String(ss).padStart(2, "0")}
         </span>
@@ -60,13 +64,13 @@ export function SimRunner({ simId, attemptId, questions, initialAnswers, deadlin
             {marked.has(q.id) ? "★ Marcada para revisar" : "☆ Marcar para revisar"}
           </button>
         </div>
-        <p className="whitespace-pre-line leading-relaxed">{q.scenario}</p>
+        <p className="whitespace-pre-line leading-relaxed"><Md text={q.scenario} /></p>
         <ol className="mt-4 flex flex-col gap-2">
           {q.options.map((opt, k) => (
             <li key={k}>
               <button onClick={() => choose(k)}
                 className={`flex w-full gap-3 rounded-xl border p-3 text-left ${answers[q.id] === k ? "border-accent bg-accent-soft" : "border-line hover:border-accent"}`}>
-                <span className="font-bold">{L[k]}</span><span>{opt}</span>
+                <span className="font-bold">{L[k]}</span><span><Md text={opt} /></span>
               </button>
             </li>
           ))}
@@ -95,7 +99,7 @@ export function SimRunner({ simId, attemptId, questions, initialAnswers, deadlin
             const missing = questions.length - answered;
             if (confirm(missing ? `Te faltan ${missing} preguntas. ¿Terminar igual?` : "¿Terminar y ver el informe?")) finish();
           }}>
-          {pending ? "Corrigiendo…" : "Terminar simulacro"}
+          {pending ? "Corrigiendo…" : isDiag ? "Terminar test" : "Terminar simulacro"}
         </button>
       </div>
     </div>

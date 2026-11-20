@@ -3,6 +3,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { answerQuestion } from "@/app/actions";
 import type { Question } from "@/lib/content";
+import { Md } from "@/components/Md";
 
 const L = ["A", "B", "C", "D"];
 
@@ -55,7 +56,7 @@ export function QuestionRunner({ questions: initial, mode, doneHref }: { questio
         <span>Objetivo {q.objective}</span>
       </div>
       <div className="card p-5">
-        <p className="whitespace-pre-line leading-relaxed">{q.scenario}</p>
+        <p className="whitespace-pre-line leading-relaxed"><Md text={q.scenario} /></p>
         <ol className="mt-4 flex flex-col gap-2">
           {q.options.map((opt, k) => {
             let cls = "border-line hover:border-accent";
@@ -68,7 +69,7 @@ export function QuestionRunner({ questions: initial, mode, doneHref }: { questio
               <li key={k}>
                 <button onClick={() => choose(k)} disabled={answered}
                   className={`flex w-full gap-3 rounded-xl border p-3 text-left ${cls}`}>
-                  <span className="font-bold">{L[k]}</span><span>{opt}</span>
+                  <span className="font-bold">{L[k]}</span><span><Md text={opt} /></span>
                 </button>
               </li>
             );
@@ -83,17 +84,17 @@ export function QuestionRunner({ questions: initial, mode, doneHref }: { questio
             <p className={`font-bold ${chosen === q.correct ? "text-ok" : "text-bad"}`}>
               {chosen === q.correct ? "¡Bien!" : `No. La correcta es la ${L[q.correct]}.`}
             </p>
-            <p className="mt-2"><b>Por qué {L[q.correct]}:</b> {q.why_correct}</p>
+            <p className="mt-2"><b>Por qué {L[q.correct]}:</b> <Md text={q.why_correct} /></p>
             <ul className="mt-3 flex flex-col gap-2 text-sm">
               {Object.entries(q.why_wrong).map(([k, why]) => (
                 <li key={k} className={Number(k) === chosen ? "font-medium" : "text-muted"}>
-                  <b>{L[Number(k)]} no:</b> {why}
+                  <b>{L[Number(k)]} no:</b> <Md text={why} />
                 </li>
               ))}
             </ul>
           </div>
           <div className="card bg-accent-soft p-4 text-sm">
-            <p><b>Regla:</b> {q.rule}</p>
+            <p><b>Regla:</b> <Md text={q.rule} /></p>
             <p className="mt-2 text-muted">Fuente: <a className="underline" href={q.source_url} target="_blank" rel="noreferrer">{q.source_url.replace(/^https:\/\//, "")}</a></p>
             <blockquote className="mt-1 italic text-muted">“{q.source_quote}”</blockquote>
           </div>

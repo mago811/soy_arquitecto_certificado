@@ -22,11 +22,11 @@
       "rule": "Plan mode es para lo complejo o lo que querés revisar antes de tocar disco; un cambio trivial y reversible va directo.",
       "source_url": "https://code.claude.com/docs/en/costs",
       "source_quote": "Use plan mode for complex tasks: Press Shift+Tab to cycle to plan mode before implementation. Claude explores the codebase and proposes an approach for your approval, preventing expensive re-work when the initial direction is wrong.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "La doc no dice literalmente 'tarea chica → ejecución directa'; sí dice 'Use plan mode for complex tasks' (costs, cita textual) y 'For changes you want to review before they touch disk, switch to plan mode' (common-workflows). Ningún distractor es defendible (multi-fase y /batch son para lo grande). Se reformuló why_correct/rule para apoyarse solo en eso, no en una regla inventada."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "La doc no dice literalmente 'tarea chica → ejecución directa'; sí dice 'Use plan mode for complex tasks' (costs, cita textual) y 'For changes you want to review before they touch disk, switch to plan mode' (common-workflows). Ningún distractor es defendible (multi-fase y /batch son para lo grande). Se reformuló why_correct/rule para apoyarse solo en eso, no en una regla inventada. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "Grande + desconocido + riesgo de rumbo equivocado → plan mode antes de tocar disco.",
       "source_url": "https://code.claude.com/docs/en/costs",
       "source_quote": "Claude explores the codebase and proposes an approach for your approval, preventing expensive re-work when the initial direction is wrong.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "costs: plan mode para tareas complejas, 'preventing expensive re-work when the initial direction is wrong' (textual). permission-modes: bypassPermissions 'Isolated containers and VMs only'."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "costs: plan mode para tareas complejas, 'preventing expensive re-work when the initial direction is wrong' (textual). permission-modes: bypassPermissions 'Isolated containers and VMs only'. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "\"Aprobar antes de editar\" se garantiza con plan mode (bloquea ediciones), no con texto en CLAUDE.md.",
       "source_url": "https://code.claude.com/docs/en/permission-modes",
       "source_quote": "Claude reads files, runs shell commands to explore, and writes a plan, but does not edit your source. Except in interactive terminal sessions with bypass permissions available, edits stay blocked until you approve the plan.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "permission-modes: plan mode bloquea ediciones hasta aprobar (textual, con la excepción de bypass disponible) y defaultMode plan en .claude/settings.json. Se cambió 'garantiza' por una pregunta precisa: la doc no dice que un dev no pueda salir del modo con Shift+Tab, así que 'garantizar' era más de lo respaldado."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "permission-modes: plan mode bloquea ediciones hasta aprobar (textual, con la excepción de bypass disponible) y defaultMode plan en .claude/settings.json. Se cambió 'garantiza' por una pregunta precisa: la doc no dice que un dev no pueda salir del modo con Shift+Tab, así que 'garantizar' era más de lo respaldado. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,11 @@
       "rule": "Plan + aprobación humana en CI = dos corridas separadas por una aprobación; en `-p`, plan mode no edita.",
       "source_url": "https://code.claude.com/docs/en/permission-modes",
       "source_quote": "Plan mode keeps its blocks wherever Claude Code runs without an interactive terminal, including non-interactive runs with -p",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "permission-modes: 'Plan mode keeps its blocks wherever Claude Code runs without an interactive terminal, including non-interactive runs with -p' (textual). Multi-fase con aprobación humana entre corridas es la única opción que cumple."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "permission-modes: 'Plan mode keeps its blocks wherever Claude Code runs without an interactive terminal, including non-interactive runs with -p' (textual). Multi-fase con aprobación humana entre corridas es la única opción que cumple. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -134,11 +134,11 @@
       "rule": "Cambio masivo y mecánico con aprobación del plan → `/batch` (plan → aprobación → unidades en worktrees).",
       "source_url": "https://code.claude.com/docs/en/commands",
       "source_quote": "Researches the codebase, decomposes the work into 5 to 30 independent units, and presents a plan. Once approved, spawns one background subagent per unit in an isolated worktree.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "commands: /batch investiga, descompone en 5 a 30 unidades, presenta plan; aprobado, un subagente por unidad en worktree que corre tests y abre PR (textual)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "commands: /batch investiga, descompone en 5 a 30 unidades, presenta plan; aprobado, un subagente por unidad en worktree que corre tests y abre PR (textual). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -162,11 +162,11 @@
       "rule": "Requisitos difusos → multi-fase: spec primero, implementación en sesión nueva, review contra la spec.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "Once SPEC.md exists, start a fresh session to build from it, so the build begins with a clean context and a written definition of done.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "best-practices: entrevista → SPEC.md → 'start a fresh session to build from it' (textual); el ejemplo de la doc es justamente rate limiting en la API pública."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "best-practices: entrevista → SPEC.md → 'start a fresh session to build from it' (textual); el ejemplo de la doc es justamente rate limiting en la API pública. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -190,11 +190,11 @@
       "rule": "La review confiable la hace alguien que no escribió el código: subagente o sesión nueva.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "/code-review reviews the diff in a fresh subagent that never saw your conversation. It isn't swayed by the reasoning that produced the code.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "best-practices: '/code-review reviews the diff in a fresh subagent that never saw your conversation. It isn't swayed by the reasoning...' (textual)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "best-practices: '/code-review reviews the diff in a fresh subagent that never saw your conversation. It isn't swayed by the reasoning...' (textual). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -218,11 +218,11 @@
       "rule": "Plan aprobado + riesgo alto → \"Yes, manually approve edits\".",
       "source_url": "https://code.claude.com/docs/en/permission-modes",
       "source_quote": "Yes, manually approve edits: approve and review each edit individually.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "permission-modes 'Review and approve a plan': 'Yes, manually approve edits: approve and review each edit individually' (textual); las otras opciones descritas igual que en la doc."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "permission-modes 'Review and approve a plan': 'Yes, manually approve edits: approve and review each edit individually' (textual); las otras opciones descritas igual que en la doc. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -246,11 +246,11 @@
       "rule": "Aprobación humana = control determinístico (protección de rama + persona), nunca el veredicto del modelo.",
       "source_url": "https://code.claude.com/docs/en/code-review",
       "source_quote": "A review never approves or blocks the pull request, so the decision to merge stays with your team.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "code-review: 'A review never approves or blocks the pull request...' (textual); niveles Quick/Standard/Deep existen. 'Who has the last word: Branch protection, a person who approves the merge' está en best-practices, no en code-review: se aclaró la fuente en why_correct."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "code-review: 'A review never approves or blocks the pull request...' (textual); niveles Quick/Standard/Deep existen. 'Who has the last word: Branch protection, a person who approves the merge' está en best-practices, no en code-review: se aclaró la fuente en why_correct. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -274,11 +274,151 @@
       "rule": "Default de equipo para un repo → `.claude/settings.json` (`defaultMode: \"plan\"`), no CLAUDE.md.",
       "source_url": "https://code.claude.com/docs/en/permission-modes",
       "source_quote": "To make plan mode the default for a project's terminal sessions, set defaultMode to plan in .claude/settings.json",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "permission-modes 'Set plan mode as the default': defaultMode plan en .claude/settings.json (textual). ~/.claude/settings.json también funciona pero es por dev; CLAUDE.md/CLAUDE.local.md no cambian el modo. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o08-q21",
+      "objective": 8,
+      "pool": "practice",
+      "scenario": "Ledgerline, a 25-developer fintech, uses Claude Code on its payments monorepo. Policy says a human must approve the approach before any file under `billing/` changes, so the team committed `\"permissions\": { \"defaultMode\": \"plan\" }` in `.claude/settings.json`. Most developers see `⏸ plan mode on` and edits stay blocked until they approve a plan. One senior developer, who launches every session on his Windows laptop with `claude --allow-dangerously-skip-permissions` so he can switch to bypass later, reports that during planning Claude edited `billing/rates.ts` and ran a migration script without any prompt. The transcript confirms the session stayed in plan mode the whole time. The team wants to keep plan mode as the default and cannot add CI checks before next week's audit. Which change addresses the root cause?",
+      "options": [
+        "Add a line to the project CLAUDE.md, marked IMPORTANT, stating that Claude must never edit files while it is still in plan mode.",
+        "Stop launching with `--allow-dangerously-skip-permissions`: in interactive sessions with bypass available, plan mode's blocks aren't enforced.",
+        "Move `defaultMode: plan` into his `~/.claude/settings.json`, because user settings are read after the project file and win on his machine.",
+        "Have him prefix risky prompts with `/plan`, which enforces the planning block per prompt even when bypass permissions are available."
+      ],
+      "correct": 1,
+      "why_correct": "La doc es explícita: en una sesión interactiva de terminal con bypass disponible, Claude Code NO aplica los bloqueos de plan mode. A Claude se le sigue diciendo que planifique sin editar, pero si intenta un edit o un comando, corre sin prompt. El flag `--allow-dangerously-skip-permissions` es justamente lo que deja el bypass disponible. Sacándolo, plan mode vuelve a bloquear los edits hasta que alguien aprueba el plan.",
+      "why_wrong": {
+        "0": "`CLAUDE.md` es guidance: Claude ya estaba instruido a planificar sin editar y aun así editó. El problema es que el harness no está bloqueando, y eso no se arregla con texto.",
+        "2": "Invierte la precedencia (los settings de proyecto están por encima de los de usuario) y además no ataca la causa: el modo ya era `plan`; lo que rompe el bloqueo es tener bypass disponible.",
+        "3": "`/plan` entra al mismo plan mode. Con bypass disponible en una terminal interactiva, sus bloqueos tampoco se aplican."
+      },
+      "rule": "Plan mode bloquea edits, salvo en una terminal interactiva con bypass disponible: si necesitás la garantía, no habilites bypass.",
+      "source_url": "https://code.claude.com/docs/en/permission-modes",
+      "source_quote": "In interactive terminal sessions with bypass permissions available, Claude Code also doesn't enforce plan mode's blocks.",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
         "verdict": "ok",
-        "notes": "permission-modes 'Set plan mode as the default': defaultMode plan en .claude/settings.json (textual). ~/.claude/settings.json también funciona pero es por dev; CLAUDE.md/CLAUDE.local.md no cambian el modo."
+        "notes": "permission-modes: con bypass disponible en terminal interactiva plan mode no bloquea; --allow-dangerously-skip-permissions lo deja disponible (cli-reference). Precedencia proyecto>usuario confirma B falsa. Cita textual."
+      }
+    },
+    {
+      "id": "o08-q22",
+      "objective": 8,
+      "pool": "practice",
+      "scenario": "A game studio keeps its 1.2-million-line engine in Perforce, not git. A tools engineer wants Claude Code to migrate 240 independent shader-loader files to a new API. Requirements: a lead must approve how the work is split before anything changes, each unit must be implemented and tested in isolation, and every unit's outcome must be reported separately. On her Windows workstation she runs `/batch migrate every shader loader to the v3 API` from the workspace root, and the command fails because the folder is not a git repository. Converting the depot to git is not an option this quarter. What is the most effective way to keep the `/batch` workflow?",
+      "options": [
+        "Run plan mode once over the whole depot, approve the plan, then switch to `acceptEdits` and let the same session apply all 240 changes.",
+        "Write a PowerShell loop that calls `claude -p` once per file with `--permission-mode dontAsk` and a per-file prompt, then review the logs.",
+        "Start the session with `claude -w shaders` so Claude Code creates a worktree first, then run `/batch` again from inside that worktree.",
+        "Configure a `WorktreeCreate` hook that creates the isolated workspaces from Perforce, which `/batch` accepts in place of a git repository."
+      ],
+      "correct": 3,
+      "why_correct": "`/batch` investiga el código, descompone el trabajo en 5 a 30 unidades independientes y presenta un plan. Cuando lo aprobás, lanza un subagente en background por unidad, cada uno en su worktree aislado, y cada uno reporta o abre su PR. Cumple las tres exigencias. La doc dice que requiere un repo git **o un hook `WorktreeCreate`** que cree los worktrees: para un VCS que no es git, ese hook es la vía documentada.",
+      "why_wrong": {
+        "0": "Cumple la aprobación previa, pero no la aislación por unidad ni el reporte separado: termina siendo un diff gigante en una sola sesión.",
+        "1": "Aísla por archivo, pero nadie aprueba la descomposición antes de empezar. Son 240 corridas sueltas sin un plan revisado.",
+        "2": "`claude -w` arranca la sesión en un worktree nuevo de git. En un workspace Perforce no resuelve nada: sin el hook `WorktreeCreate` sigue sin haber de dónde crear worktrees."
+      },
+      "rule": "`/batch` = plan aprobado + un subagente por unidad en su propio worktree. Sin git, hace falta un hook `WorktreeCreate`.",
+      "source_url": "https://code.claude.com/docs/en/commands",
+      "source_quote": "Requires a git repository or a WorktreeCreate hook that creates the worktrees.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "commands: /batch requiere repo git o hook WorktreeCreate (v2.1.281+ fuera de git). Distractores no cumplen aprobación/aislamiento. Cita textual."
+      }
+    },
+    {
+      "id": "o08-q23",
+      "objective": 8,
+      "pool": "practice",
+      "scenario": "At an insurance company, the claims-engine repo must start every Claude Code session in plan mode, so the team committed `\"defaultMode\": \"plan\"` under `permissions` in `.claude/settings.json`. Developers who use Claude Code in Windows Terminal start in plan mode as expected. The 14 developers who work in the VS Code extension still see new conversations start in Auto; most of them picked Auto from the mode indicator weeks ago. A platform engineer proposes copying the same `defaultMode` into each developer's `~/.claude/settings.json` as the fix. Which change makes new VS Code conversations start in plan mode for those developers?",
+      "options": [
+        "Set `claudeCode.initialPermissionMode` to `plan` in each developer's VS Code user settings, since the extension checks it first.",
+        "Copy `defaultMode: plan` into each `~/.claude/settings.json`; the extension falls back to user settings when it ignores the project file.",
+        "Move `defaultMode: plan` into `.claude/settings.local.json`, which has higher precedence than the shared project settings file.",
+        "Ask developers to pick Plan once from the mode indicator, so the extension remembers it for every new conversation in that folder."
+      ],
+      "correct": 0,
+      "why_correct": "La extensión de VS Code nunca lee `.claude/settings.json` ni `.claude/settings.local.json` del proyecto para el modo inicial. Su orden es: 1) `claudeCode.initialPermissionMode`; 2) el último modo elegido en el indicador, si fue Manual, Edit automatically o Auto; 3) `defaultMode` de managed settings o de `~/.claude/settings.json`; 4) el default built-in. Como ya eligieron Auto en el indicador, solo el ítem 1 le gana.",
+      "why_wrong": {
+        "1": "Casi: la extensión sí lee `~/.claude/settings.json` (ítem 3), pero el Auto que eligieron en el indicador (ítem 2) está antes en la lista. Siguen arrancando en Auto.",
+        "2": "La extensión tampoco lee `.claude/settings.local.json` para el modo inicial: el problema no es de precedencia entre archivos del proyecto.",
+        "3": "Elegir Plan en el indicador aplica solo a esa conversación. La extensión recuerda Manual, Edit automatically o Auto, pero no Plan."
+      },
+      "rule": "VS Code no lee los settings del proyecto para el modo inicial: `claudeCode.initialPermissionMode` manda.",
+      "source_url": "https://code.claude.com/docs/en/permission-modes",
+      "source_quote": "The extension never reads a project's .claude/settings.json or .claude/settings.local.json for the starting permission mode.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "permission-modes (VS Code): orden initialPermissionMode > último modo del indicador (Manual/Edit/Auto; Plan solo esa conversación) > defaultMode de managed/~/.claude > default; nunca lee .claude/settings*.json. B es el casi-correcto bien descartado. Cita textual."
+      }
+    },
+    {
+      "id": "o08-q24",
+      "objective": 8,
+      "pool": "practice",
+      "scenario": "A logistics company asked Claude Code to replace the retry logic in a legacy dispatch module that nobody on the current team wrote: about 35 files, three message queues, and implicit ordering assumptions. Over two days a developer tried three times in auto mode with the prompt `replace the custom retry loop with the shared backoff library`. Each attempt ran about 40 minutes, touched 20+ files, broke ordering guarantees in the integration tests, and was reverted. Token spend for the three attempts was roughly four times a normal feature. The team lead wants the next attempt to fail cheaply if the direction is wrong, and to sign off on the approach before any code changes. What should the developer do first?",
+      "options": [
+        "Raise the session to `/effort max` so Claude verifies more edge cases before editing, then run the same prompt one more time.",
+        "Switch to `acceptEdits` and add `run the integration tests after every file` to the prompt, so failures show up much earlier.",
+        "Start in plan mode so Claude explores the module and proposes an approach, then approve or redirect it before any edit happens.",
+        "Split the task across three parallel subagents, one per queue, so each attempt carries less context and finishes sooner."
+      ],
+      "correct": 2,
+      "why_correct": "Es una tarea compleja, en código desconocido y con la dirección en duda: el caso de plan mode. Claude explora y propone un enfoque para que lo apruebes, y eso evita el retrabajo caro cuando la dirección inicial está mal. Cumple las dos restricciones: si el enfoque está mal, se ve en el plan (barato), y el lead firma antes de que se toque el código.",
+      "why_wrong": {
+        "0": "Más esfuerzo no te da la aprobación humana previa, y la dirección se sigue descubriendo editando. La doc además avisa que `max` en tareas comunes tiende a sobrepensar.",
+        "1": "Detecta antes las roturas, pero sigue editando sin que nadie haya aprobado el enfoque: trata el síntoma, no la causa.",
+        "3": "Paralelizar no arregla una dirección mal elegida. Además las tres colas comparten supuestos de orden, y nadie aprueba nada antes de los edits."
+      },
+      "rule": "Tarea grande, código desconocido, dirección incierta → plan mode primero. Ejecución directa cuando ya sabés exactamente qué hacer.",
+      "source_url": "https://code.claude.com/docs/en/costs",
+      "source_quote": "Claude explores the codebase and proposes an approach for your approval, preventing expensive re-work when the initial direction is wrong.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "costs: plan mode para tareas complejas evita retrabajo caro. Distractores tratan síntoma. Cita textual."
+      }
+    },
+    {
+      "id": "o08-q25",
+      "objective": 8,
+      "pool": "practice",
+      "scenario": "A health-tech team needs per-tenant rate limiting on its public API, but the requirements were never written down. A developer spent a three-hour Claude Code session brainstorming: per-user versus per-key limits, burst handling, and what to return over the limit. Several ideas were proposed and rejected along the way, including a Redis token bucket the team vetoed. In the same session she then asked Claude to implement the design. The resulting PR reintroduced the vetoed Redis bucket and missed two edge cases agreed on early in the conversation. The agreed decisions exist only in her notes, not in the repo. What is the most effective next step?",
+      "options": [
+        "Run `/compact keep the agreed rate-limit decisions`, then ask the same session to fix the open PR according to those decisions.",
+        "Have Claude write the agreed decisions to `SPEC.md`, then start a fresh session that builds from that spec as its definition of done.",
+        "Add the vetoed approaches to the project CLAUDE.md under a `Never use` heading so every future session avoids them.",
+        "Switch the same session to plan mode, ask for a new plan that respects every agreed decision, and approve it before any editing."
+      ],
+      "correct": 1,
+      "why_correct": "El problema es el contexto: la conversación tiene mezcladas las ideas aceptadas con las vetadas. El flujo multi-fase de la doc lo resuelve: lo acordado queda escrito en `SPEC.md` y se construye en una sesión nueva, con contexto limpio y una definición de \"hecho\" por escrito. Ese mismo archivo después le sirve al reviewer.",
+      "why_wrong": {
+        "0": "`/compact` resume la misma conversación, así que puede seguir arrastrando parte del ruido. Y lo acordado no queda en un archivo que se pueda revisar o pasarle al reviewer.",
+        "2": "`CLAUDE.md` carga en todas las sesiones y es para hechos generales del repo, no para el spec de una feature. Además no resuelve la mezcla de contexto de esta sesión.",
+        "3": "Mejora la aprobación, pero la sesión sigue teniendo en contexto las tres horas de ideas vetadas, que fueron la causa del error."
+      },
+      "rule": "Multi-fase: entrevista → `SPEC.md` → sesión nueva que construye → review contra el spec.",
+      "source_url": "https://code.claude.com/docs/en/best-practices",
+      "source_quote": "Once SPEC.md exists, start a fresh session to build from it, so the build begins with a clean context and a written definition of done.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "best-practices: SPEC.md + sesión nueva con contexto limpio. Cita textual."
       }
     }
   ]

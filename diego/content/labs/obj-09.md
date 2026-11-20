@@ -40,7 +40,7 @@ Set-Content -Encoding utf8 -Path repo\auth.py -Value 'def login(u, p): return u 
 Set-Content -Encoding utf8 -Path repo\pagos.py -Value 'def cobrar(monto): return monto * 1.21'
 ```
 
-Si PowerShell bloquea `Activate.ps1`, corré `Set-ExecutionPolicy -Scope Process RemoteSigned` y repetí. Hacé todo el lab en esta misma ventana (ahí viven el venv activo y `$env:ANTHROPIC_API_KEY`).
+Si PowerShell bloquea `Activate.ps1`, corré una sola vez `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` y repetí. Hacé todo el lab en esta misma ventana (ahí viven el venv activo y `$env:ANTHROPIC_API_KEY`).
 
 ### 1. El pipeline con manifiesto (20 min)
 

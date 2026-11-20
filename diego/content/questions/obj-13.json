@@ -22,11 +22,11 @@
       "rule": "Estándares de review compartidos → `CLAUDE.md` del repo, versionado en git.",
       "source_url": "https://code.claude.com/docs/en/github-actions",
       "source_quote": "Create a CLAUDE.md file in your repository root to define code style guidelines, review criteria, project-specific rules, and preferred patterns.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "github-actions 'Define project standards in CLAUDE.md' (cita textual). Corregido: la opción D ('CLAUDE.local.md dentro del repo') era defendible si se commiteaba; ahora dice que está ignorado por git (memory: 'add to .gitignore'). Suavizado el rationale de B (no afirmar acceso a Confluence)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "github-actions 'Define project standards in CLAUDE.md' (cita textual). Corregido: la opción D ('CLAUDE.local.md dentro del repo') era defendible si se commiteaba; ahora dice que está ignorado por git (memory: 'add to .gitignore'). Suavizado el rationale de B (no afirmar acceso a Confluence). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "`--bare` no carga CLAUDE.md: los estándares se pasan con `--append-system-prompt(-file)`.",
       "source_url": "https://code.claude.com/docs/en/cli-reference",
       "source_quote": "Minimal mode: skip auto-discovery of hooks, skills, custom commands, subagents, installed plugins, MCP servers, auto memory, and CLAUDE.md so scripted calls start faster.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "cli-reference --bare (cita textual) y headless: con bare se pasa contexto con --append-system-prompt(-file). best-practices: bare saltea CLAUDE.md 'the repo's as well as the machine's'."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "cli-reference --bare (cita textual) y headless: con bare se pasa contexto con --append-system-prompt(-file). best-practices: bare saltea CLAUDE.md 'the repo's as well as the machine's'. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "`--allowedTools` pre-aprueba; `--tools` / `--disallowedTools` restringen.",
       "source_url": "https://code.claude.com/docs/en/cli-reference",
       "source_quote": "To restrict which tools are available, use --tools instead.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "cli-reference --allowedTools: 'To restrict which tools are available, use --tools instead'. tools-reference: nombrar Glob/Grep en --tools los habilita. --disallowedTools también los saca (mencionado en why_correct, no está entre opciones)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "cli-reference --allowedTools: 'To restrict which tools are available, use --tools instead'. tools-reference: nombrar Glob/Grep en --tools los habilita. --disallowedTools también los saca (mencionado en why_correct, no está entre opciones). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,11 @@
       "rule": "Salida para un bot = `--output-format json --json-schema` → leer `structured_output`.",
       "source_url": "https://code.claude.com/docs/en/headless",
       "source_quote": "To get output conforming to a specific schema, use --output-format json with --json-schema and a JSON Schema definition.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "headless 'Get structured output': --output-format json + --json-schema → campo structured_output; cli-reference --json-schema existe (print mode only)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "headless 'Get structured output': --output-format json + --json-schema → campo structured_output; cli-reference --json-schema existe (print mode only). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -134,11 +134,11 @@
       "rule": "`structured_output` puede faltar: chequeá que exista antes de procesarlo.",
       "source_url": "https://code.claude.com/docs/en/headless",
       "source_quote": "If a run ends without valid structured output, for example because Claude declined the request, the response has no structured_output field. Before your script uses structured_output, check that the field is present.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "headless: 'If a run ends without valid structured output... the response has no structured_output field... check that the field is present' (textual)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "headless: 'If a run ends without valid structured output... the response has no structured_output field... check that the field is present' (textual). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -162,11 +162,11 @@
       "rule": "En la Action, la herramienta de comentarios inline se habilita con `--allowedTools` en `claude_args`, aunque el skill ya la declare.",
       "source_url": "https://code.claude.com/docs/en/github-actions",
       "source_quote": "the Claude Code GitHub Action starts the MCP server that posts inline comments only when --allowedTools in claude_args names it.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "github-actions 'Run a skill': mantener claude_args aunque el frontmatter nombre la herramienta; la Action levanta el MCP de inline comments solo si --allowedTools lo nombra. El ejemplo usa pull-requests: read."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "github-actions 'Run a skill': mantener claude_args aunque el frontmatter nombre la herramienta; la Action levanta el MCP de inline comments solo si --allowedTools lo nombra. El ejemplo usa pull-requests: read. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -190,11 +190,11 @@
       "rule": "Sumar un rol sin perder lo default = `--append-system-prompt`; `--system-prompt` reemplaza todo.",
       "source_url": "https://code.claude.com/docs/en/headless",
       "source_quote": "Use --append-system-prompt to add instructions while keeping Claude Code's default behavior.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "headless 'Customize the system prompt' (textual) + cli-reference: --system-prompt y --system-prompt-file reemplazan, --append-system-prompt agrega; reemplazar quita el git status snapshot."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "headless 'Customize the system prompt' (textual) + cli-reference: --system-prompt y --system-prompt-file reemplazan, --append-system-prompt agrega; reemplazar quita el git status snapshot. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -218,11 +218,11 @@
       "rule": "Si el reviewer solo necesita el diff, dáselo por stdin y no le des Bash.",
       "source_url": "https://code.claude.com/docs/en/headless",
       "source_quote": "Piping the diff means Claude doesn't need Bash permission to read it",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "headless 'Add Claude to a build script': 'Piping the diff means Claude doesn't need Bash permission to read it' (textual). Bash(git*) sigue siendo amplio."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "headless 'Add Claude to a build script': 'Piping the diff means Claude doesn't need Bash permission to read it' (textual). Bash(git*) sigue siendo amplio. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -246,11 +246,11 @@
       "rule": "Prefijo seguro en reglas Bash: `Bash(comando *)`, con espacio antes del `*`.",
       "source_url": "https://code.claude.com/docs/en/headless",
       "source_quote": "The space before * is important: without it, Bash(git diff*) would also match git diff-index.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "headless 'Create a commit': trailing ' *' = prefijo; 'The space before * is important... git diff-index' (textual)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "headless 'Create a commit': trailing ' *' = prefijo; 'The space before * is important... git diff-index' (textual). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -274,11 +274,151 @@
       "rule": "Las reglas de review se toman de la rama base: el PR no puede reescribir con qué se lo revisa.",
       "source_url": "https://code.claude.com/docs/en/code-review",
       "source_quote": "Which instructions it follows: REVIEW.md from the base or default branch and never from the pull request's own changes.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "code-review: 'Which instructions it follows: REVIEW.md from the base or default branch and never from the pull request's own changes' y 'A review never approves or blocks the pull request'. Code Review es Team/Enterprise. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o13-q21",
+      "objective": 13,
+      "pool": "practice",
+      "scenario": "A developer-tools company runs an automated PR reviewer in CI: `git diff origin/main...HEAD | claude -p \"Review for broken docs links\" --output-format json --json-schema schema.json`. The schema declares each finding as an object with `file` (string), `line` (integer), and `doc_url`, defined as `{ \"type\": \"string\", \"format\": \"uri\" }`. A downstream bot opens a ticket per finding and requests the URL. About 3% of findings have values like `see README section 4` in `doc_url`, which crash the bot. Every run is otherwise valid and `structured_output` is always present. What is the most effective fix?",
+      "options": [
+        "Validate `doc_url` as a URI in the bot before using it, since Claude Code treats `format` as an annotation and doesn't enforce it.",
+        "Make `doc_url` nullable and drop it from `required`, so the reviewer returns `null` instead of free text when it has no real link.",
+        "Retry the run whenever a `doc_url` fails to parse, since re-running the same diff usually returns a valid URI for that finding.",
+        "Move the schema into `--append-system-prompt`, so Claude reads the `format: uri` rule as an instruction rather than as metadata."
+      ],
+      "correct": 0,
+      "why_correct": "Claude Code acepta schemas con la keyword `format` (como `\"format\": \"email\"` o `\"uri\"`), pero la trata como una anotación y no la valida. El resto del schema se cumple, por eso `structured_output` siempre está. Si el consumidor necesita una URI válida, la tiene que validar él.",
+      "why_wrong": {
+        "1": "Casi: `nullable` es buena práctica contra datos inventados y bajaría los casos, pero no garantiza nada. Si Claude igual pone texto, `format` sigue sin validarse.",
+        "2": "Trata el síntoma y cuesta otra corrida. No hay nada transitorio: `format` nunca se valida.",
+        "3": "Pasar el schema a prompt es más débil todavía: perdés la validación de `--json-schema` y el `format` sigue sin hacerse cumplir."
+      },
+      "rule": "`--json-schema` valida la estructura, no `format`: lo que dependa de `format` lo valida tu código.",
+      "source_url": "https://code.claude.com/docs/en/headless",
+      "source_quote": "Claude Code accepts schemas that use the format keyword, such as \"format\": \"email\", but treats format as an annotation and doesn't enforce it.",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
         "verdict": "ok",
-        "notes": "code-review: 'Which instructions it follows: REVIEW.md from the base or default branch and never from the pull request's own changes' y 'A review never approves or blocks the pull request'. Code Review es Team/Enterprise."
+        "notes": "headless: format se acepta como anotación y no se valida. Cita textual."
+      }
+    },
+    {
+      "id": "o13-q22",
+      "objective": 13,
+      "pool": "practice",
+      "scenario": "A team built a `/review-pr` skill whose frontmatter has `allowed-tools: Read Grep Glob` and whose body says `review the diff; do not modify files`. Twice this month the review also edited files to \"fix\" its own findings, leaving surprise changes in developers' working trees on their Windows machines. The team wants a reviewer that structurally cannot edit, invoked from the main session after implementation, and it doesn't want to change anyone's global permissions or how they launch Claude Code. What is the most effective change?",
+      "options": [
+        "Keep the skill and add `disable-model-invocation: true`, so the reviewer only runs when a developer explicitly types `/review-pr`.",
+        "Keep the skill but move the `do not modify files` sentence to the very top of `SKILL.md`, marked IMPORTANT, so Claude can never overlook it.",
+        "Define a subagent in `.claude/agents/reviewer.md` with `tools: Read, Grep, Glob`, because `allowed-tools` pre-approves but doesn't restrict.",
+        "Add `--allowedTools \"Read,Grep,Glob\"` to how developers launch Claude Code, so every other tool is unavailable during reviews."
+      ],
+      "correct": 2,
+      "why_correct": "El `allowed-tools` de una skill solo pre-aprueba esas tools durante el turno que la invoca: no restringe cuáles están disponibles. Por eso Claude pudo editar. Un subagente con `tools: Read, Grep, Glob` sí queda limitado, y ese límite lo aplica Claude Code, no un pedido en el prompt.",
+      "why_wrong": {
+        "0": "Controla QUIÉN invoca la skill, no qué tools puede usar. El revisor seguiría pudiendo editar.",
+        "1": "Sigue siendo guidance: es la misma instrucción que ya falló dos veces.",
+        "3": "`--allowedTools` pre-aprueba, no restringe (para restringir está `--tools`). Además cambia cómo arranca cada dev, que era una restricción."
+      },
+      "rule": "`allowed-tools` (skill) y `--allowedTools` pre-aprueban; `tools:` de un subagente (o `--tools`) restringe.",
+      "source_url": "https://code.claude.com/docs/en/best-practices",
+      "source_quote": "Give a custom subagent in .claude/agents/ only tools: Read, Grep, Glob. Now it's a reviewer that can't edit anything, and that limit is enforced by Claude Code rather than requested in a prompt.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "best-practices + skills: allowed-tools de skill pre-aprueba durante el turno, no restringe; subagente con tools: restringe (enforced). --allowedTools pre-aprueba (cli-reference). Cita textual."
+      }
+    },
+    {
+      "id": "o13-q23",
+      "objective": 13,
+      "pool": "practice",
+      "scenario": "A Team-plan company uses the managed Code Review service on GitHub. Reviews kept posting low-value findings in generated protobuf code, so an engineer opened PR #812, which both regenerates the protobuf stubs and adds a `REVIEW.md` at the repository root saying `Skip files under gen/proto/`. The review of #812 still posted 14 findings in `gen/proto/`. A teammate concludes that `REVIEW.md` doesn't work and proposes putting the same sentence in the PR description of every protobuf PR from now on. What is the correct explanation and next step?",
+      "options": [
+        "Code Review reads guidance only from `CLAUDE.md`, so rename `REVIEW.md` to `CLAUDE.md` inside the same PR and push again.",
+        "Code Review reads `REVIEW.md` from the base or default branch, never from the PR's own changes, so merge that change first.",
+        "Code Review caches its guidance per PR, so comment `@claude review` on #812 to make it reload `REVIEW.md` from the PR head.",
+        "Put the sentence in the PR description, which Code Review treats as a higher-priority instruction than `REVIEW.md`."
+      ],
+      "correct": 1,
+      "why_correct": "Code Review sigue el `REVIEW.md` de la rama base o default, y nunca el de los cambios del propio PR. Por eso el PR que lo agrega no se beneficia. Hay que mergear primero el cambio de `REVIEW.md` (idealmente en su propio PR); a partir de ahí, los PRs siguientes lo usan. Esto evita que un PR cambie las reglas con las que se lo revisa.",
+      "why_wrong": {
+        "0": "Code Review se ajusta con archivos `REVIEW.md` y `CLAUDE.md`. Renombrarlo dentro del mismo PR tampoco sirve, porque no lee las instrucciones desde los cambios del PR.",
+        "2": "Una nueva review sigue leyendo `REVIEW.md` desde la rama base, no desde el head del PR.",
+        "3": "La doc no documenta que la descripción del PR funcione como instrucción de review. Es inventado."
+      },
+      "rule": "Code Review lee `REVIEW.md` de la rama base, nunca del PR: un PR no puede cambiar las reglas con las que se lo revisa.",
+      "source_url": "https://code.claude.com/docs/en/code-review",
+      "source_quote": "Which instructions it follows: REVIEW.md from the base or default branch and never from the pull request's own changes.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "code-review: REVIEW.md de la rama base/default, nunca de los cambios del PR. Cita textual."
+      }
+    },
+    {
+      "id": "o13-q24",
+      "objective": 13,
+      "pool": "practice",
+      "scenario": "A platform team's nightly job audits recently merged code with `claude -p \"Audit yesterday's merges for unsafe SQL\" --tools \"Read,Grep,Glob\" --output-format json`. The repository's `.mcp.json` connects a Jira server used by other jobs, and the project settings allow `mcp__jira` so those jobs don't prompt. Security expected the audit to be read-only, but last night Claude called `mcp__jira__create_issue` 41 times, opening tickets directly. The team wants the audit to read code and return findings as JSON only, without editing the shared `.mcp.json` or project settings. Which change is most effective?",
+      "options": [
+        "Add `--allowedTools \"Read,Grep,Glob\"`, so only those three tools can run and every other tool call is rejected.",
+        "Add `--permission-mode dontAsk`, which denies every tool call that isn't one of the built-in tools listed in `--tools`.",
+        "Add `Do not create Jira tickets; return findings only` to the prompt, since `--tools` already restricts the job.",
+        "Add `--disallowedTools \"mcp__*\"`, because `--tools` restricts built-in tools only and leaves MCP tools available."
+      ],
+      "correct": 3,
+      "why_correct": "`--tools` restringe las tools built-in, pero la doc aclara que no afecta a las tools MCP; para sacarlas también hay que usar `--disallowedTools \"mcp__*\"`. Un nombre sin scope en `--disallowedTools` saca esas tools del contexto de Claude, así que no las puede llamar aunque los settings las permitan.",
+      "why_wrong": {
+        "0": "`--allowedTools` pre-aprueba tools: no restringe las demás. Las de Jira ya estaban permitidas por los settings.",
+        "1": "Casi: `dontAsk` deniega lo que pediría aprobación, pero lo que matchea una regla `permissions.allow` (como `mcp__jira`) corre igual.",
+        "2": "Es guidance, y la premisa es falsa: `--tools` no toca las tools MCP."
+      },
+      "rule": "Solo lectura de verdad: `--tools` para las built-in + `--disallowedTools \"mcp__*\"` para las MCP.",
+      "source_url": "https://code.claude.com/docs/en/cli-reference",
+      "source_quote": "The flag doesn't affect MCP tools; to deny those too, use --disallowedTools \"mcp__*\".",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "cli-reference: --tools no afecta MCP, usar --disallowedTools \"mcp__*\"; --allowedTools no restringe; dontAsk no frena lo que matchea allow. Cita textual."
+      }
+    },
+    {
+      "id": "o13-q25",
+      "objective": 13,
+      "pool": "practice",
+      "scenario": "An insurance company's CI reviewer runs `claude -p --output-format json --json-schema review-schema.json` on each PR diff, and a Python step reads `data[\"structured_output\"][\"findings\"]`. On roughly 2% of PRs, mostly ones whose diffs include test fixtures with real-looking credentials, the step crashes with `KeyError: 'structured_output'` and blocks the merge queue. The JSON from those runs contains a `result` text explaining that Claude would not process the content. The team cannot change which files PRs contain, and those PRs still need a review. What should the parsing step do?",
+      "options": [
+        "Parse the `result` text with a regex as a fallback, since it contains the same findings in prose when `structured_output` is missing.",
+        "Retry the run up to five times with the same input, because the missing field is a transient failure of the schema validation.",
+        "Check that `structured_output` is present before using it, and route runs without it to a human reviewer instead of crashing.",
+        "Mark `findings` as optional in `review-schema.json`, so runs where Claude declines still return an empty `structured_output`."
+      ],
+      "correct": 2,
+      "why_correct": "Si una corrida termina sin structured output válido, por ejemplo porque Claude rechazó el pedido, la respuesta directamente no trae el campo `structured_output`. La doc dice que antes de usarlo chequees que esté. Como esos PRs igual necesitan review, lo correcto es mandarlos a una persona en vez de romper la cola.",
+      "why_wrong": {
+        "0": "En esos casos `result` explica por qué no procesó el contenido; no trae hallazgos. Parsear prosa con regex además es frágil.",
+        "1": "No es transitorio: con el mismo input, lo más probable es que se repita el rechazo. Solo suma costo y demora.",
+        "3": "Casi: hace el schema más permisivo, pero el problema no es un subcampo; falta `structured_output` entero porque no hubo salida válida."
+      },
+      "rule": "`structured_output` puede faltar (rechazo, falla): chequealo antes de usarlo y tené un camino humano.",
+      "source_url": "https://code.claude.com/docs/en/headless",
+      "source_quote": "If a run ends without valid structured output, for example because Claude declined the request, the response has no structured_output field. Before your script uses structured_output, check that the field is present.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "headless: sin structured output válido (p.ej. rechazo) no hay campo structured_output; chequear antes de usar. Cita textual."
       }
     }
   ]

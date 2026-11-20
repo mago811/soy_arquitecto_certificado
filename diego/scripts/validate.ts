@@ -2,6 +2,8 @@
 // Uso: npm run validate            (estructura + reglas)
 //      npm run validate -- --links (además chequea que cada URL responda 200)
 import { z } from "zod";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { allQuestions, objectives, domains, doc, sims, isOfficial, questionFiles } from "./lib";
 
 const errors: string[] = [];
@@ -30,6 +32,26 @@ if (objs.length !== 37) err(`objectives.json tiene ${objs.length} objetivos (esp
 const doms = domains();
 const w = doms.reduce((s, d) => s + d.weight, 0);
 if (w !== 100) err(`Los pesos de domains.json suman ${w}`);
+
+// Plan: ningún objetivo se da completo (lección + lab + práctica) en dos días distintos.
+{
+  const plan = JSON.parse(readFileSync(path.join(process.cwd(), "content", "plan.json"), "utf8")) as
+    { days: { day: number; objectives: number[]; tasks: { id: string; type: string; objective?: number }[] }[] };
+  const taskIds = new Set<string>();
+  const fullDays = new Map<number, number[]>();
+  const seen = new Set<number>();
+  for (const d of plan.days) {
+    for (const t of d.tasks) {
+      if (taskIds.has(t.id)) err(`plan: id de tarea repetido ${t.id}`);
+      taskIds.add(t.id);
+      if (t.objective != null) seen.add(t.objective);
+      if (t.objective != null && t.id.endsWith("-leccion")) fullDays.set(t.objective, [...(fullDays.get(t.objective) ?? []), d.day]);
+    }
+    for (const o of d.objectives) if (!d.tasks.some((t) => t.objective === o)) err(`plan: día ${d.day} lista el objetivo ${o} pero no tiene tareas de él`);
+  }
+  for (const [o, ds] of fullDays) if (ds.length > 1) err(`plan: el objetivo ${o} tiene la lección completa en los días ${ds.join(", ")} (usá una tarea "-repaso" en el segundo)`);
+  for (const o of objs) if (!seen.has(o.id)) err(`plan: el objetivo ${o.id} no aparece en ningún día`);
+}
 
 // Preguntas
 const ids = new Set<string>();

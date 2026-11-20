@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getSim, questionById, objectiveTitle } from "@/lib/content";
 import { simAttempt, scoreSim } from "@/lib/progress";
+import { Md } from "@/components/Md";
 
 const L = ["A", "B", "C", "D"];
 
@@ -62,12 +63,12 @@ export default async function Informe({ params }: { params: Promise<{ sim: strin
           return (
             <li key={id} className="card p-4 text-sm">
               <p className="text-xs text-muted">Objetivo {q.objective}</p>
-              <p className="mt-1 whitespace-pre-line">{q.scenario}</p>
-              <p className="mt-2 text-bad">Elegiste: {ch === undefined ? "sin responder" : `${L[ch]}. ${q.options[ch]}`}</p>
-              <p className="text-ok">Correcta: {L[q.correct]}. {q.options[q.correct]}</p>
-              <p className="mt-2">{q.why_correct}</p>
-              {ch !== undefined && q.why_wrong[String(ch)] && <p className="mt-1 text-muted">Por qué la tuya no: {q.why_wrong[String(ch)]}</p>}
-              <p className="mt-2 font-semibold">Regla: {q.rule}</p>
+              <p className="mt-1 whitespace-pre-line"><Md text={q.scenario} /></p>
+              <p className="mt-2 text-bad">Elegiste: {ch === undefined ? "sin responder" : <>{L[ch]}. <Md text={q.options[ch]} /></>}</p>
+              <p className="text-ok">Correcta: {L[q.correct]}. <Md text={q.options[q.correct]} /></p>
+              <p className="mt-2"><Md text={q.why_correct} /></p>
+              {ch !== undefined && q.why_wrong[String(ch)] && <p className="mt-1 text-muted">Por qué la tuya no: <Md text={q.why_wrong[String(ch)]} /></p>}
+              <p className="mt-2 font-semibold">Regla: <Md text={q.rule} /></p>
               <a href={q.source_url} target="_blank" rel="noreferrer" className="mt-1 inline-block text-accent underline">Fuente</a>
             </li>
           );

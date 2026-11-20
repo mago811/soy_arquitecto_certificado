@@ -48,6 +48,8 @@ export function writeJson(file: string, data: unknown) {
 export const OFFICIAL_HOSTS = [
   "code.claude.com", "docs.claude.com", "docs.anthropic.com", "platform.claude.com", "modelcontextprotocol.io",
   "anthropic.skilljar.com", "anthropic-partners.skilljar.com", "www.anthropic.com", "anthropic.com", "claude.com",
+  // PDF oficial de la Exam Guide (link de Skilljar, el mismo de domains.json)
+  "everpath-course-content.s3-accelerate.amazonaws.com",
 ];
 export const isOfficial = (url: string) => {
   try { return OFFICIAL_HOSTS.includes(new URL(url).host); } catch { return false; }

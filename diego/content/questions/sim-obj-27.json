@@ -22,11 +22,11 @@
       "rule": "En modelos que no aceptan forzar tools y con salida de forma fija: structured outputs con un discriminador enum.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
       "source_quote": "`auto` with strict tool use to guarantee schema-valid tool inputs, or structured outputs when you need a response in a fixed JSON shape",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita casi textual (la página tiene links markdown en medio de la frase) de la tabla de Forcing tool use: Opus 5.5 da 400 con any/tool; auto+strict o structured outputs."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita casi textual (la página tiene links markdown en medio de la frase) de la tabla de Forcing tool use: Opus 5.5 da 400 con any/tool; auto+strict o structured outputs. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "Un fallback de modelo tiene que mandar una request válida para ese modelo: los 5.5 grandes no aceptan forzar tools.",
       "source_url": "https://platform.claude.com/docs/en/api/errors",
       "source_quote": "tool_choice: type \"tool\" and \"any\" are not supported for this model.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual del mensaje de error en api/errors. Similar a o27-q04 en el fondo, pero el escenario (fallback bajo carga, distractor de reintento) es distinto."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual del mensaje de error en api/errors. Similar a o27-q04 en el fondo, pero el escenario (fallback bajo carga, distractor de reintento) es distinto. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "Forzar una tool apaga el thinking; si la calidad depende de pensar, usá `auto` con instrucción y verificá en código.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
       "source_quote": "Forcing a tool also skips thinking on every model that accepts forced tool use: the response starts with the `tool_use` block and has no `thinking` block.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual: forzar una tool saltea el thinking; para pensar antes, auto con instrucción; manual thinking + any/tool da error."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual: forzar una tool saltea el thinking; para pensar antes, auto con instrucción; manual thinking + any/tool da error. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,151 @@
       "rule": "Si un formato tiene que cumplirse siempre, ponelo en el schema (formato soportado + strict), no en la descripción.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "String formats: `date-time`, `time`, `date`, `duration`, `email`, `hostname`, `uri`, `ipv4`, `ipv6`, `uuid`",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Confirmado en structured-outputs: `date` está entre los string formats soportados y `format` figura como \"API-enforced constraint (sent in the schema)\"; strict garantiza inputs que cumplen el schema. Lookahead no soportado en pattern. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o27-s21",
+      "objective": 27,
+      "pool": "sim",
+      "scenario": "A company gates merges with a CI job that calls Claude Sonnet 5.5 through the API and expects a verdict object, `{\"decision\": \"approve\" | \"block\", \"reasons\": [...]}`. Today the job defines a tool, `submit_verdict`, with `strict: true`, uses `tool_choice: auto`, and has the system prompt 'Always call submit_verdict.' On about 2% of PRs the model answers in prose and the gate fails open, letting unreviewed code merge. Sonnet 5.5 is mandated by the security team. Nothing in this job calls an external function: the verdict is the whole output. What is the most reliable fix?",
+      "options": [
+        "Set tool_choice to {\"type\": \"tool\", \"name\": \"submit_verdict\"}, so every response is guaranteed to be a submit_verdict call.",
+        "Keep auto with the strict tool, and make the gate fail closed by blocking the merge whenever a response has no tool_use block.",
+        "Drop the tool and put the verdict schema in output_config.format, so the response itself is constrained to that JSON shape.",
+        "Keep auto with the strict tool and reinforce the system prompt with an example conversation that ends in a submit_verdict call."
+      ],
+      "correct": 2,
+      "why_correct": "En Sonnet 5.5 no hay forced tool use, y con `auto` la llamada no está garantizada. Pero acá no hace falta ninguna función: lo que se necesita es que la respuesta tenga una forma JSON fija. Para eso la doc indica structured outputs (`output_config.format`): cada respuesta sale con el veredicto válido.",
+      "why_wrong": {
+        "0": "En Sonnet 5.5, `tool_choice` `tool` o `any` devuelve 400.",
+        "1": "Casi: fallar cerrado es buena higiene de seguridad, pero no arregla nada: el 2% de PRs queda bloqueado sin veredicto y hay que re-correrlos.",
+        "3": "Un ejemplo más es guía: baja el 2% pero no da garantía."
+      },
+      "rule": "¿La salida ES el dato y no hay función que llamar? → structured outputs, no una tool que esperás que se llame.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "source_quote": "auto with strict tool use to guarantee schema-valid tool inputs, or structured outputs when you need a response in a fixed JSON shape.",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
         "verdict": "ok",
-        "notes": "Confirmado en structured-outputs: `date` está entre los string formats soportados y `format` figura como \"API-enforced constraint (sent in the schema)\"; strict garantiza inputs que cumplen el schema. Lookahead no soportado en pattern."
+        "notes": "Cita textual en define-tools (tabla Forcing tool use, columna 'What to use instead', links quitados). Sonnet 5.5 da 400 con tool/any; la salida es el dato → structured outputs."
+      }
+    },
+    {
+      "id": "o27-s22",
+      "objective": 27,
+      "pool": "sim",
+      "scenario": "A contract-analysis service runs on Claude Haiku 5.5 with `tool_choice: {\"type\": \"any\"}` and three strict extraction tools. Analysts asked for deeper reasoning on indemnity clauses, so a developer added `thinking: {\"type\": \"enabled\", \"budget_tokens\": 6000}` to the requests. Every request now fails with an error. For the downstream system, a guaranteed call to one of the three tools is non-negotiable; extra reasoning would be nice to have but is optional. The developer believes thinking and forced tool use simply cannot be combined on any model. Which change should the team make?",
+      "options": [
+        "Remove the manual thinking parameter and keep tool_choice any, since adaptive thinking does not block forced tool use.",
+        "Keep manual thinking and switch to tool_choice {\"type\": \"tool\"} for the most common tool, which manual thinking does accept.",
+        "Keep manual thinking and lower budget_tokens below max_tokens, because the error comes from the budget exceeding the response limit.",
+        "Keep manual thinking and tool_choice any, but move these requests to Claude Sonnet 5.5, which supports both features together."
+      ],
+      "correct": 0,
+      "why_correct": "El error lo causa el thinking manual (`thinking: {type: \"enabled\"}`): la doc dice que con él `any` y `tool` no están soportados, y además Haiku 5.5 rechaza `enabled` con 400 en cualquier caso (solo admite thinking adaptativo). El thinking adaptativo, que Haiku 5.5 trae por defecto, no bloquea el forced tool use; la llamada forzada simplemente saltea el thinking. Sacando el parámetro manual recuperás la garantía, que es lo innegociable.",
+      "why_wrong": {
+        "1": "Con thinking manual tampoco se acepta `tool`: el error es para `any` y `tool` por igual.",
+        "2": "No es un problema de presupuesto: Haiku 5.5 no acepta thinking manual con ningún `budget_tokens`, y la doc además documenta la incompatibilidad entre thinking manual y forced tool use.",
+        "3": "Sonnet 5.5 no soporta forced tool use con ninguna configuración de thinking: empeora."
+      },
+      "rule": "Thinking manual + `any`/`tool` = error. Thinking adaptativo sí convive con forced tool use (pero la llamada forzada no piensa).",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "source_quote": "Adaptive thinking itself doesn’t block forced tool use (models with thinking on by default, such as Claude Opus 5 and Claude Haiku 5.5, accept it, but a forced call skips thinking: the response starts with the tool call and has no thinking block)",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Cita textual en define-tools (tabla Forcing tool use). La opción A era la más larga y la única con matiz: la acorté. Además corregí las explicaciones: en Haiku 5.5 `thinking: {type: \"enabled\"}` da 400 aunque no haya tool_choice (api/errors: 4.7+ no soportan extended thinking; Sonnet 5.5 y Haiku 5.5 rechazan 'enabled'); la respuesta correcta no cambia."
+      }
+    },
+    {
+      "id": "o27-s23",
+      "objective": 27,
+      "pool": "sim",
+      "scenario": "A telecom's support agent on Claude Haiku 5.5 handles long conversations, often 40 or more turns, with prompt caching on the system prompt, tool definitions and conversation history. A new orchestration layer sets `tool_choice` to `{\"type\": \"tool\", \"name\": \"verify_identity\"}` on the first turn of each sensitive request, switches back to `auto` on the next turn, and forces `escalate_to_human` whenever a frustration score crosses a threshold. Since that change, cache-read tokens on long conversations dropped 55% and cost per conversation rose 30%, although the system prompt and tools never change. What explains this, and what should the team do?",
+      "options": [
+        "Tool definitions are re-tokenized whenever tool_choice changes; move the tools into the system prompt as text so they stay cached.",
+        "Forced tool use turns off prompt caching for the whole request; replace forcing with stronger prompt instructions on those turns.",
+        "Cache entries expire faster on forced turns; switch the cache to a longer TTL so the entries survive between conversation turns.",
+        "Changing tool_choice invalidates cached message blocks (tools and system stay cached); keep tool_choice stable across turns."
+      ],
+      "correct": 3,
+      "why_correct": "La doc lo dice: cambiar `tool_choice` invalida los bloques de mensajes cacheados. Las definiciones de tools y el system prompt siguen en cache, pero el historial se reprocesa. En conversaciones de 40 turnos el historial es casi todo el input, así que cada cambio de `tool_choice` es caro. Hay que minimizar esos cambios.",
+      "why_wrong": {
+        "0": "Al revés: tools y system prompt siguen cacheados. Pasar las tools a texto rompe el tool use sin resolver nada.",
+        "1": "Forzar no apaga el caching: lo que se invalida son los bloques de mensajes por el CAMBIO de `tool_choice`. Y pasar a instrucciones pierde la garantía.",
+        "2": "No es un tema de TTL: la invalidación pasa por el cambio del parámetro, no por el paso del tiempo."
+      },
+      "rule": "Cambiar `tool_choice` entre turnos invalida el cache del historial (no el de tools/system). Mantenelo estable.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "source_quote": "When using prompt caching, changes to the tool_choice parameter will invalidate cached message blocks. Tool definitions and system prompts remain cached, but message content must be reprocessed.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en define-tools (nota de prompt caching: cambiar tool_choice invalida bloques de mensajes; tools y system siguen cacheados). Haiku 5.5 acepta forced tool use."
+      }
+    },
+    {
+      "id": "o27-s24",
+      "objective": 27,
+      "pool": "sim",
+      "scenario": "A research assistant on Claude Haiku 5.5 runs an agentic loop with the tools `web_search` and `fetch_page`. After the loop, the orchestrator sends one last request asking for a final prose briefing for the user, keeping the same tool definitions and history so the conversation stays valid. In 14% of runs that final request returns another `web_search` call instead of the briefing, and the orchestrator, which has no budget left for more searches, returns an empty briefing. Prompt wording such as 'Do not search anymore, write the briefing now' helped but did not stop it. What is the most reliable change for the final request?",
+      "options": [
+        "Set tool_choice to {\"type\": \"auto\"} explicitly on the final request, since auto lets the model choose to answer directly.",
+        "Set tool_choice to {\"type\": \"none\"} on the final request, which prevents Claude from using any of the provided tools.",
+        "Lower max_tokens on the final request, so the model has no room to plan another search and has to write the briefing.",
+        "Set tool_choice to {\"type\": \"any\"} and add a write_briefing tool whose input is the final prose, then render that input."
+      ],
+      "correct": 1,
+      "why_correct": "`tool_choice` también sirve para el caso inverso: `none` impide que Claude use cualquiera de las tools. Mantenés las definiciones y el historial, y la respuesta final es texto sí o sí. Es enforcement, no una sugerencia en el prompt.",
+      "why_wrong": {
+        "0": "`auto` es lo que ya tienen (es el default con tools): deja que el modelo elija buscar otra vez.",
+        "2": "Bajar `max_tokens` no impide una tool call (son pocos tokens) y puede cortar el briefing a la mitad.",
+        "3": "Casi: `any` obliga a usar alguna tool, pero no cuál. `web_search` sigue siendo una opción válida."
+      },
+      "rule": "¿Necesitás que NO llame tools en un paso? → `tool_choice: none`. Garantiza texto, sin sacar las tools del request.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "source_quote": "none prevents Claude from using any tools. This is the default value when no tools are provided.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en define-tools (`none` prevents Claude from using any tools). auto es el default con tools; any obliga a usar alguna."
+      }
+    },
+    {
+      "id": "o27-s25",
+      "objective": 27,
+      "pool": "sim",
+      "scenario": "A mortgage lender's intake pipeline on Claude Haiku 5.5 forces a strict tool, `extract_application`, with `tool_choice: {\"type\": \"tool\", \"name\": \"extract_application\"}` for every uploaded file. About 7% of uploads are not loan applications at all: pay stubs, marketing flyers, blank scans. For those, the model still calls `extract_application` with schema-valid but meaningless data, and underwriters waste hours on phantom applications. Compliance requires that every rejected file be logged with a reason, and the pipeline must keep a guaranteed structured result for every file. What is the most effective change?",
+      "options": [
+        "Keep forcing extract_application and add a required boolean is_loan_application field, so non-applications get flagged in the same call.",
+        "Switch to tool_choice auto and let the model answer in plain text when the file is not a loan application, then skip those files.",
+        "Add a strict reject_document tool with a reason enum, and use tool_choice {\"type\": \"any\"} so Claude must call one of the two tools.",
+        "Add a pre-filter call that classifies each upload with a text answer, and only send the files labeled 'application' to the extractor."
+      ],
+      "correct": 2,
+      "why_correct": "Forzar una sola tool obliga a tratar todo como solicitud. Con `any`, Claude tiene que usar una de las tools disponibles pero elige cuál: `extract_application` para las solicitudes, `reject_document` para el resto. Sigue habiendo un resultado estructurado garantizado por archivo, y sin datos fantasma.",
+      "why_wrong": {
+        "0": "Casi: marca el caso, pero el schema forzado sigue obligando a llenar todos los campos requeridos de la solicitud con datos inventados.",
+        "1": "Pierde la garantía de resultado estructurado que pide la restricción: con `auto` el texto puede aparecer también en solicitudes reales.",
+        "3": "Suma una llamada y depende de parsear texto libre, cuando una segunda tool + `any` resuelve las dos cosas en una."
+      },
+      "rule": "Si \"ninguna de las anteriores\" es una respuesta válida, dale una tool para eso y usá `any`, no fuerces una sola tool.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "source_quote": "any tells Claude that it must use one of the provided tools, but doesn’t force a particular tool.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en define-tools (`any` ... doesn't force a particular tool). Haiku 5.5 acepta any. Similar a q22 en el mecanismo, pero la decisión es otra (agregar una tool de rechazo como salida válida)."
       }
     }
   ]

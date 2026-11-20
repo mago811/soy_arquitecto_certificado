@@ -22,11 +22,11 @@
       "rule": "Subtareas que dependen del input → orquestador que las decide en cada caso, no una lista fija de workers.",
       "source_url": "https://www.anthropic.com/engineering/building-effective-agents",
       "source_quote": "the key difference from parallelization is its flexibility—subtasks aren't pre-defined, but determined by the orchestrator based on the specific input.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en building-effective-agents (orchestrator-workers vs parallelization). Única opción con subtareas decididas según el input."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en building-effective-agents (orchestrator-workers vs parallelization). Única opción con subtareas decididas según el input. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "Trabajo de muchas ventanas: primera ventana = marco + lista de pendientes en archivos; las demás iteran sobre esa lista.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Use the first context window to set up a framework (write tests, create setup scripts), then use future context windows to iterate on a todo-list.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en prompting best practices (\"Workflows across multiple context windows\"). Escenario distinto de o07-q06 (ahí el TODO ya existe y falta reordenar)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en prompting best practices (\"Workflows across multiple context windows\"). Escenario distinto de o07-q06 (ahí el TODO ya existe y falta reordenar). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "Cada resultado puede cambiar la próxima búsqueda: objetivo + evaluación después de cada tool, no lista cerrada.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "Subagents also plan, then use interleaved thinking after tool results to evaluate quality, identify gaps, and refine their next query.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en multi-agent-research-system. Mismo principio que o07-q05 pero escenario distinto (subagente de research, hallazgo intermedio que cambia las búsquedas)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en multi-agent-research-system. Mismo principio que o07-q05 pero escenario distinto (subagente de research, hallazgo intermedio que cambia las búsquedas). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,11 @@
       "rule": "Investigación abierta: hipótesis en competencia + notas + autocrítica del plan; el plan cambia con cada hallazgo.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "As you gather data, develop several competing hypotheses. Track your confidence levels in your progress notes to improve calibration. Regularly self-critique your approach and plan.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en prompting best practices (sample prompt for complex research). Distractores coherentes."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en prompting best practices (sample prompt for complex research). Distractores coherentes. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -134,11 +134,11 @@
       "rule": "Partes predecibles → cadena fija; parte abierta → descomposición dinámica. Se combinan.",
       "source_url": "https://www.anthropic.com/engineering/building-effective-agents",
       "source_quote": "These building blocks aren't prescriptive. They're common patterns that developers can shape and combine to fit different use cases.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en building-effective-agents (\"Combining and customizing these patterns\"). La combinación cadena fija + paso dinámico es la única que respeta ambas partes."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en building-effective-agents (\"Combining and customizing these patterns\"). La combinación cadena fija + paso dinámico es la única que respeta ambas partes. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -162,11 +162,207 @@
       "rule": "Feedback del entorno en cada paso (build, tests) y el próximo paso se decide con ese resultado.",
       "source_url": "https://www.anthropic.com/engineering/building-effective-agents",
       "source_quote": "During execution, it's crucial for the agents to gain “ground truth” from the environment at each step (such as tool call results or code execution) to assess its progress.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en building-effective-agents (ground truth en cada paso). La restricción de autonomía descarta la aprobación humana. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o07-s21",
+      "objective": 7,
+      "pool": "sim",
+      "scenario": "Your internal debugging agent (Claude Agent SDK) investigates flaky tests. Its system prompt prescribes six steps in order: reinstall dependencies, run the linter, run the full unit suite, run the integration tests, diff lockfiles against main, and write a report. In a typical trace, step 3 already surfaces a stack trace showing the failure occurs only when `TZ` is not UTC, yet the agent spends 38 more minutes on steps 4 and 5 before reporting. Median investigation time is 52 minutes and engineers are blocked while they wait. The team wants the agent to stay thorough on genuinely unknown failures. What should they change?",
+      "options": [
+        "Replace the fixed sequence with the goal and the quality bar, letting each tool result, such as the stack trace, decide the next step.",
+        "Move the unit-suite step to the front of the checklist, because most root causes in past traces were found at that step.",
+        "Add a classification step that picks one of three predefined checklists based on the name of the failing test file.",
+        "Run all six steps in parallel subagents so that the full checklist finishes in the time of the slowest step instead of the sum of all six."
+      ],
+      "correct": 0,
+      "why_correct": "Un agente tiene que tomar \"ground truth\" del entorno en cada paso (resultados de tools, ejecución de código) para evaluar cómo viene. Con una checklist fija, el hallazgo del paso 3 no cambia nada. Dándole el objetivo y el criterio de calidad, el stack trace decide el próximo paso, y en fallas desconocidas sigue investigando todo lo que haga falta.",
+      "why_wrong": {
+        "1": "Sigue siendo una secuencia fija: igual ejecuta los pasos restantes aunque ya tenga la causa.",
+        "2": "Elegir entre checklists predefinidas por nombre de archivo es routing con poca señal; adentro de cada checklist el problema es el mismo.",
+        "3": "Baja la latencia corriendo trabajo que no hacía falta; además algunos pasos dependen de otros (reinstalar antes de correr tests)."
+      },
+      "rule": "Si un resultado intermedio ya responde, el plan tiene que poder cambiar. Objetivo + criterio, no pasos fijos.",
+      "source_url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "source_quote": "During execution, it's crucial for the agents to gain “ground truth” from the environment at each step (such as tool call results or code execution) to assess its progress.",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
         "verdict": "ok",
-        "notes": "Cita textual en building-effective-agents (ground truth en cada paso). La restricción de autonomía descarta la aprobación humana."
+        "notes": "Cita textual verificada en www.anthropic.com/engineering/building-effective-agents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
+    },
+    {
+      "id": "o07-s22",
+      "objective": 7,
+      "pool": "sim",
+      "scenario": "A market-intelligence firm built its research pipeline in two stages: a planning call produces a JSON list of 8 subtasks, then application code dispatches one subagent per item and passes all results to a synthesis agent. The plan cannot change after it is produced. Analysts flag 31% of reports for missing major developments; in those traces, subagent outputs contain notes such as \"found evidence of a pending acquisition by X, outside my assigned scope\". The firm accepts extra latency when such leads appear, but reports must follow them. What is the most effective change?",
+      "options": [
+        "Ask the planning call to produce 20 subtasks instead of 8, so that the initial plan anticipates more of the possible leads.",
+        "Raise `maxTurns` on every subagent so that each one has enough turns to chase down the leads it finds inside its own assigned research scope.",
+        "Have the synthesis agent list the out-of-scope leads at the end of each report as suggested topics for a later research run.",
+        "Turn the dispatcher into a coordinator loop that reviews each round's findings and generates new subtasks for the leads that matter."
+      ],
+      "correct": 3,
+      "why_correct": "Un pipeline lineal de una sola pasada no puede seguir pistas que aparecen en el camino. El modelo tiene que decidir qué direcciones seguir según los hallazgos intermedios. Un coordinador que mira cada ronda y crea subtareas nuevas para las pistas relevantes convierte el plan fijo en uno adaptativo.",
+      "why_wrong": {
+        "0": "Un plan más grande sigue siendo fijo: no puede anticipar una adquisición que nadie conocía al planificar, y gasta más en subtareas inútiles.",
+        "1": "Las pistas están FUERA del alcance asignado. Más turnos dentro del mismo alcance no las cubren.",
+        "2": "Deja la pista documentada pero sin investigar: el reporte sigue sin el desarrollo importante."
+      },
+      "rule": "Descomposición dinámica: los subtasks de la ronda 2 salen de lo que encontró la ronda 1.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "The model must operate autonomously for many turns, making decisions about which directions to pursue based on intermediate findings. A linear, one-shot pipeline cannot handle these tasks.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en www.anthropic.com/engineering/multi-agent-research-system; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
+    },
+    {
+      "id": "o07-s23",
+      "objective": 7,
+      "pool": "sim",
+      "scenario": "A legal-tech company extracts obligations from supplier contracts. A fixed chain (extract clauses, validate against the schema, load into the obligations database) handles 92% of contracts well and cheaply. The other 8% contain amendments that reference annexes (\"see Annex C, as amended\"): sometimes one, sometimes seven, and each annex can reference further annexes. For those contracts, the chain loads incomplete obligations. The batch runs nightly over about 3,000 contracts, and standard contracts must keep their current consistency and cost. What is the most effective architecture?",
+      "options": [
+        "Replace the whole chain with an orchestrator agent that decides dynamically which documents to fetch for every contract it processes.",
+        "Add a fixed step that always fetches the first three referenced annexes before extraction, for every contract in the batch.",
+        "Keep the chain for standard contracts, and route those with annex references to an orchestrator that spawns a subtask per annex.",
+        "Concatenate every annex in the supplier's folder into the extraction prompt so that any referenced material is always present."
+      ],
+      "correct": 2,
+      "why_correct": "Para el 92% predecible, la cadena fija da consistencia. Para el 8% no se puede predecir cuántas subtareas hacen falta (1, 7, anexos de anexos): ese es el caso del patrón orchestrator-workers, donde los subtasks los decide el orquestador según el input. El routing separa los dos casos.",
+      "why_wrong": {
+        "0": "Casi: el orquestador resuelve los anexos, pero aplicarlo a todo le quita consistencia y costo previsible al 92% que ya funcionaba.",
+        "1": "Un número fijo no sirve cuando puede haber siete anexos o anexos anidados; y paga el fetch en contratos que no lo necesitan.",
+        "3": "Mete ruido y costo en todos los contratos, y no resuelve referencias a anexos de otras fuentes."
+      },
+      "rule": "Fijo para lo predecible, dinámico para lo impredecible. Si conviven, ruteá.",
+      "source_url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "source_quote": "This workflow is well-suited for complex tasks where you can’t predict the subtasks needed",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en www.anthropic.com/engineering/building-effective-agents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
+    },
+    {
+      "id": "o07-s24",
+      "objective": 7,
+      "pool": "sim",
+      "scenario": "Your CI pipeline used a three-step prompt chain for every pull request: style review, then security review, then test-gap review, each a separate `claude -p` call whose output was checked before the next call ran. To \"let the model be smarter\", the team replaced it with one autonomous agent instructed to decide which reviews each PR needs. Since the switch, 18% of PRs, including several touching authentication code, received no security review. Compliance requires a security review on every PR, and the three review aspects have not changed. What should the team do?",
+      "options": [
+        "Keep the autonomous agent and add a line to its prompt listing the authentication paths that always require a security review.",
+        "Restore the fixed chain of three calls, since a predictable multi-aspect review is exactly the case prompt chaining is for.",
+        "Keep the autonomous agent and run it twice per PR, merging both runs' findings so a skipped security review is likely caught.",
+        "Keep the autonomous agent and lower its sampling temperature so that its choice of reviews becomes consistent across PRs."
+      ],
+      "correct": 1,
+      "why_correct": "La guía del examen es explícita: prompt chaining para reviews predecibles con varios aspectos; descomposición dinámica para investigaciones abiertas. Acá los tres aspectos son fijos y uno es obligatorio. La cadena garantiza que la review de seguridad corra en cada PR; el agente autónomo la deja librada a su criterio.",
+      "why_wrong": {
+        "0": "Guidance más específica: puede bajar el 18%, pero no garantiza la review en PRs que no tocan esas rutas y que igual la requieren.",
+        "2": "Dos corridas que pueden saltear lo mismo bajan la probabilidad, no la eliminan; y duplican el costo.",
+        "3": "La temperatura no convierte una decisión del modelo en una garantía; compliance pide \"siempre\"."
+      },
+      "rule": "Review predecible y multi-aspecto → prompt chaining. Lo dinámico es para lo abierto.",
+      "source_url": "https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification",
+      "source_quote": "Selecting task decomposition patterns appropriate to the workflow: prompt chaining for predictable multi-aspect reviews, dynamic decomposition for open-ended investigation tasks",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en el PDF de la guía del examen (linkeado desde Skilljar); la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
+    },
+    {
+      "id": "o07-s25",
+      "objective": 7,
+      "pool": "sim",
+      "scenario": "A platform team uses a long-running Claude agent to investigate a memory leak in a Java service. The investigation spans several context windows. After each context reset, the agent re-tests hypotheses it had already ruled out: transcripts show it re-checked the connection pool three times, and two engineers lost a day reproducing work the agent had already done. The team wants the agent to keep adapting its plan as evidence arrives, without starting from scratch after each reset, and without capping how far it can investigate. What is the most effective change to the agent's instructions?",
+      "options": [
+        "Have it keep a hypothesis tree in a notes file, recording confidence and ruled-out causes, and review that file before each next step.",
+        "Give it a fixed ordered list of the ten most common causes of memory leaks to work through, checking each one exactly once.",
+        "Ask it to write a complete summary of the investigation only at the end, so engineers can review its reasoning afterwards.",
+        "Switch to a model with a larger context window so the full investigation history fits in one window without any resets."
+      ],
+      "correct": 0,
+      "why_correct": "Un plan dinámico necesita memoria fuera del contexto. La guía de prompting de Anthropic sugiere para research complejo autocriticar el plan con regularidad y mantener un árbol de hipótesis o un archivo de notas. Así, después de un reset, el agente sabe qué ya descartó y sigue adaptándose.",
+      "why_wrong": {
+        "1": "Una lista fija evita repetir, pero mata la adaptación: si la evidencia apunta a una causa número 11, no la sigue.",
+        "2": "Un resumen al final no le sirve al agente durante la investigación: los resets ocurren en el medio.",
+        "3": "Posterga el problema: una investigación larga puede pasar cualquier ventana, y no deja estado recuperable."
+      },
+      "rule": "Plan adaptativo en tareas largas = hipótesis y descartes persistidos en un archivo, revisados en cada paso.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Regularly self-critique your approach and plan. Update a hypothesis tree or research notes file to persist information and provide transparency.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
+    },
+    {
+      "id": "o07-s26",
+      "objective": 7,
+      "pool": "sim",
+      "scenario": "Your support resolution agent handles billing disputes with a prompt that hardcodes four steps: `get_customer`, `lookup_order`, decide on a refund, then `process_refund` or `escalate_to_human`. For 11% of tickets, `get_customer` returns `account_type: \"business\"`; those disputes also require checking whether a tax invoice was issued and whether the purchase-order contact approved the purchase. The agent applies the consumer steps anyway, and finance reversed 63 business refunds last month. Account type never appears in the ticket text. The team targets 80%+ first-contact resolution. What is the most effective change?",
+      "options": [
+        "Append the business checks as fixed steps 5 to 7 of the prompt, which the agent then executes on every ticket, consumer or business alike.",
+        "Add an upfront classifier that reads the ticket text and routes business disputes to a separate business-only agent.",
+        "Escalate every dispute from a business account to a human as soon as `get_customer` reveals the account type.",
+        "Let the agent plan its next steps from tool results, adding the invoice and approval checks when `get_customer` shows a business account."
+      ],
+      "correct": 3,
+      "why_correct": "Lo que define el camino aparece recién en un resultado intermedio (`account_type`). Un plan adaptativo genera subtareas según lo que descubre en cada paso: cuando `get_customer` devuelve business, agrega los chequeos de factura y aprobación. Consumer sigue igual de rápido y business se resuelve bien en el primer contacto.",
+      "why_wrong": {
+        "0": "Hace los chequeos de business en tickets de consumer, donde no aplican: más costo, más latencia y más fallas.",
+        "1": "Casi: el routing sirve cuando la clasificación se puede hacer con precisión, pero el tipo de cuenta no está en el texto del ticket.",
+        "2": "Evita los reembolsos mal hechos, pero manda el 11% a humanos y castiga la resolución en primer contacto."
+      },
+      "rule": "Si la rama correcta depende de un resultado de tool, el plan se arma con ese resultado, no antes.",
+      "source_url": "https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification",
+      "source_quote": "The value of adaptive investigation plans that generate subtasks based on what is discovered at each step",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en el PDF de la guía del examen (linkeado desde Skilljar); la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
+    },
+    {
+      "id": "o07-s27",
+      "objective": 7,
+      "pool": "sim",
+      "scenario": "A procurement team runs a single Claude call that reviews each 180-page master services agreement and outputs a risk summary for the legal team. Reviewers find the summaries thorough for the first sections and thin for the rest, and the call misses interactions such as a liability cap in section 4 that an indemnity carve-out in section 27 voids. Missed interactions have already cost the company one disputed claim. The team can afford several calls per contract, but it cannot move to a larger model. What is the most effective redesign?",
+      "options": [
+        "Run parallel per-section analyses and merge their outputs with code that deduplicates and concatenates findings by section.",
+        "Analyze each section in its own pass, then run a separate integration pass over those results to catch cross-section interactions.",
+        "Keep the single call but add an instruction asking Claude to give equal attention to every section and to check for interactions.",
+        "Keep the single call but place the contract after the instructions, so the model reads the questions before the long document."
+      ],
+      "correct": 1,
+      "why_correct": "Es el patrón de la guía: partir una review en pasos secuenciales, analizar cada unidad por separado y después correr una pasada de integración. Cada pasada por sección tiene foco; la de integración es la que cruza la sección 4 con la 27.",
+      "why_wrong": {
+        "0": "Casi: el paralelo por sección arregla la atención, pero un merge en código no razona interacciones entre cláusulas. El bug principal sigue.",
+        "2": "Pedir \"atención pareja\" en el prompt no cambia que una sola llamada diluya la atención en 180 páginas.",
+        "3": "El orden documento/instrucciones no resuelve la dilución en un documento enorme (y la doc recomienda el documento largo arriba)."
+      },
+      "rule": "Documento grande: pasadas por parte + una pasada de integración entre partes.",
+      "source_url": "https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification",
+      "source_quote": "Prompt chaining patterns that break reviews into sequential steps (e.g., analyze each file individually, then run a cross-file integration pass)",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en el PDF de la guía del examen (linkeado desde Skilljar); la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
       }
     }
   ]

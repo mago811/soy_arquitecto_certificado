@@ -52,7 +52,7 @@ Entonces el trabajo no es "meter todo", es **curar** qué entra. Las técnicas:
 1. **"Subí `max_tokens`"**: `max_tokens` es el techo de la SALIDA. No saca nada de la entrada.
 2. **"Pasá a un modelo de 1M y listo"**: no arregla el context rot y encarece cada request.
 3. **"Activá prompt caching y deja de contar"**: el caching cambia lo que pagás, no si los tokens ocupan la ventana.
-4. **"La API guarda la conversación"**: cualquier opción con memoria server-side en la Messages API es falsa.
+4. **"La API guarda la conversación sola"**: falso. La Messages API es stateless y vos mandás el historial. Matiz actual: existe *message threads* (beta, campo `thread`), que guarda la conversación un rato ("A thread expires 5 minutes after its last request"), pero hay que crearlo a propósito, es best-effort y tu app sigue guardando su copia. Una opción que dice que la API "recuerda" sin que hagas nada es falsa.
 5. **"Resumí más seguido"**: más resúmenes = más pérdida de detalle.
 
 ## Ejemplo

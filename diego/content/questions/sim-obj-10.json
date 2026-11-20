@@ -22,11 +22,11 @@
       "rule": "Máxima confiabilidad en una misma tarea → votación: varias pasadas en paralelo y se marca si cualquiera encuentra algo.",
       "source_url": "https://www.anthropic.com/engineering/building-effective-agents",
       "source_quote": "Reviewing a piece of code for vulnerabilities, where several different prompts review and flag the code if they find a problem.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en building-effective-agents (Voting: revisión de vulnerabilidades con varios prompts). Sin equivalente en práctica."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en building-effective-agents (Voting: revisión de vulnerabilidades con varios prompts). Sin equivalente en práctica. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "Subagentes que se pisan o dejan huecos → el coordinador parte el alcance con límites claros para cada uno.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "Without detailed task descriptions, agents duplicate work, leave gaps, or fail to find necessary information.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en multi-agent-research-system (\"Teach the orchestrator how to delegate\": objetivo, formato, fuentes, límites). Distinta de o10-q02 (alcance demasiado angosto)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en multi-agent-research-system (\"Teach the orchestrator how to delegate\": objetivo, formato, fuentes, límites). Distinta de o10-q02 (alcance demasiado angosto). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "Inputs de tipos distintos → routing: clasificar y derivar al especialista que corresponde, no pasar por todos.",
       "source_url": "https://www.anthropic.com/engineering/building-effective-agents",
       "source_quote": "Routing classifies an input and directs it to a specialized followup task. This workflow allows for separation of concerns, and building more specialized prompts.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en building-effective-agents (Routing). why_wrong 1 parafrasea \"optimizing for one kind of input can hurt performance on other inputs\"."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en building-effective-agents (Routing). why_wrong 1 parafrasea \"optimizing for one kind of input can hurt performance on other inputs\". · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,11 @@
       "rule": "Latencia con subagentes ya en paralelo → que cada subagente también haga en paralelo sus tool calls independientes.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "(1) the lead agent spins up 3-5 subagents in parallel rather than serially; (2) the subagents use 3+ tools in parallel.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "Cita textual en multi-agent-research-system (\"cut research time by up to 90%\"). La afirmación sobre tool calls paralelas de los modelos no está en esa página: la reescribí atribuyéndola a prompting best practices (\"Optimize parallel tool calling\"), donde sí figura."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en multi-agent-research-system (\"cut research time by up to 90%\"). La afirmación sobre tool calls paralelas de los modelos no está en esa página: la reescribí atribuyéndola a prompting best practices (\"Optimize parallel tool calling\"), donde sí figura. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -134,11 +134,11 @@
       "rule": "Guardrail + respuesta → dos llamadas en paralelo, no una que haga las dos cosas.",
       "source_url": "https://www.anthropic.com/engineering/building-effective-agents",
       "source_quote": "This tends to perform better than having the same LLM call handle both guardrails and the core response.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "Cita textual en building-effective-agents (Sectioning: guardrails). La página no habla de latencia de llamadas paralelas: saqué \"la latencia es la de la más lenta, no la suma\" como dato y lo dejé como razonamiento de diseño (corren a la vez; la respuesta se entrega cuando el chequeo da OK). Ajusté why_wrong 1 en el mismo sentido."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en building-effective-agents (Sectioning: guardrails). La página no habla de latencia de llamadas paralelas: saqué \"la latencia es la de la más lenta, no la suma\" como dato y lo dejé como razonamiento de diseño (corren a la vez; la respuesta se entrega cuando el chequeo da OK). Ajusté why_wrong 1 en el mismo sentido. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -162,11 +162,207 @@
       "rule": "Errores en multi-agente → reintentos + checkpoints + avisarle al agente para que se adapte; nunca reiniciar todo.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "We combine the adaptability of AI agents built on Claude with deterministic safeguards like retry logic and regular checkpoints.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en multi-agent-research-system; \"Agents are stateful and errors compound\" y \"letting the agent know when a tool is failing\" también están en la página. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o10-s21",
+      "objective": 10,
+      "pool": "sim",
+      "scenario": "A team uses Claude Code to add multi-currency support to a billing module. A teammate set up three custom subagents, `planner`, `implementer` and `tester`, and asks the main conversation to chain them for every feature. Each subagent re-reads about 60 files to rebuild context, token usage per feature tripled, and the implementer twice ignored design decisions that the planner's report mentioned only in passing. The work also involves frequent back-and-forth with the developer about edge cases. Which approach fits this work best?",
+      "options": [
+        "Keep the chain, but have the main conversation forward the planner's full report verbatim to both the implementer and the tester.",
+        "Do the planning, implementation and testing in the main conversation, since the phases share significant context.",
+        "Run the planner, implementer and tester in parallel, so that the three phases overlap and the total time per feature drops.",
+        "Give each subagent `memory: project` so that their learnings accumulate in a shared directory across features over time."
+      ],
+      "correct": 1,
+      "why_correct": "La doc de Claude Code dice cuándo NO usar subagentes: cuando la tarea necesita ida y vuelta frecuente, o cuando varias fases (planificación, implementación, testing) comparten mucho contexto. Cada subagente arranca de cero y re-lee todo; en la conversación principal el contexto se arma una vez y las decisiones no se pierden en el traspaso.",
+      "why_wrong": {
+        "0": "Casi: reduce las decisiones perdidas, pero cada subagente sigue re-leyendo 60 archivos y el costo triplicado queda. Tampoco ayuda con el ida y vuelta.",
+        "2": "Las fases dependen una de otra: implementar sin plan o testear sin implementación no tiene sentido.",
+        "3": "La memoria guarda aprendizajes entre sesiones; no pasa el contexto de ESTA feature de una fase a otra."
+      },
+      "rule": "Fases que comparten mucho contexto, o mucho ida y vuelta → conversación principal, no cadena de subagentes.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "Multiple phases share significant context, such as planning, implementation, and testing",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
         "verdict": "ok",
-        "notes": "Cita textual en multi-agent-research-system; \"Agents are stateful and errors compound\" y \"letting the agent know when a tool is failing\" también están en la página."
+        "notes": "Cita textual verificada en code.claude.com/docs/en/sub-agents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
+    },
+    {
+      "id": "o10-s22",
+      "objective": 10,
+      "pool": "sim",
+      "scenario": "Your coordinator launches four research subagents in parallel for \"semiconductor supply risk for automakers\", each with the one-line instruction \"research semiconductor supply risk\". Traces show that three of the four issued nearly identical queries about current supply chains, nobody covered the 2021 shortage or export controls, and token spend per report is 2.4 times the budget. The client cares about both coverage and cost, and the four-subagent parallel structure meets the latency target. What is the most effective change to the coordinator?",
+      "options": [
+        "Reduce to two subagents so fewer of them overlap, and have the synthesis agent remove duplicate findings before it writes.",
+        "Keep the instructions, but add a deduplication step after the subagents return so repeated findings are dropped before synthesis.",
+        "Run the four subagents one after another, passing each the previous subagent's queries so that it can avoid repeating them.",
+        "Give each subagent a distinct scope (a subtopic or source type), an objective, an output format and guidance on sources to use."
+      ],
+      "correct": 3,
+      "why_correct": "Sin descripciones detalladas, los subagentes duplican trabajo y dejan huecos. Cada uno necesita un objetivo, un formato de salida, guía sobre tools y fuentes, y límites claros. Partir el alcance por subtema o por tipo de fuente reduce la duplicación y cubre lo que faltaba, sin perder el paralelismo.",
+      "why_wrong": {
+        "0": "Baja el costo pero no la causa: dos subagentes con la misma instrucción vaga igual se pisan, y la cobertura empeora.",
+        "1": "Tira el trabajo duplicado DESPUÉS de pagarlo, y no cubre los huecos (2021, controles de exportación).",
+        "2": "Casi: evita repetir, pero serializa todo y rompe el objetivo de latencia. Y sin alcances definidos los huecos siguen."
+      },
+      "rule": "Cada subagente: objetivo, formato, fuentes y límites claros. Partí el alcance para no duplicar.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "Each subagent needs an objective, an output format, guidance on the tools and sources to use, and clear task boundaries.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en www.anthropic.com/engineering/multi-agent-research-system; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
+    },
+    {
+      "id": "o10-s23",
+      "objective": 10,
+      "pool": "sim",
+      "scenario": "Your CI pipeline runs a coordinator through the Claude Agent SDK that invokes `style-checker`, `security-scanner` and `test-coverage` subagents one after another on every pull request. None of them uses another's output; each takes about 3 minutes, so reviews take 9 minutes or more and developers wait on them before merging. A teammate proposes merging the three into one subagent with a combined prompt to avoid coordination overhead. You must cut review latency without lowering the quality of the findings. What do you do?",
+      "options": [
+        "Merge them into one subagent with a combined prompt, which removes two round trips through the coordinator for every review.",
+        "Keep them sequential but move `security-scanner` first, so the most important findings reach developers as early as possible.",
+        "Have the coordinator run the three independent subagents simultaneously, so the review takes about as long as the slowest one.",
+        "Keep them sequential and switch all three subagents to a smaller model, so that each one of the steps finishes faster."
+      ],
+      "correct": 2,
+      "why_correct": "Las tres revisiones son independientes: corridas a la vez, la review tarda lo que la más lenta (unos 3 minutos) en vez de 9. Es el ejemplo literal de la doc del SDK. Y cada subagente mantiene su prompt especializado, así que la calidad no baja.",
+      "why_wrong": {
+        "0": "Una sola llamada con varias consideraciones rinde peor que una por consideración: ahorra coordinación a costa de foco, y la restricción era no bajar calidad.",
+        "1": "Reordenar no cambia la suma: la review completa sigue tardando 9 minutos.",
+        "3": "Baja algo la latencia pero arriesga la calidad, y sigue sumando tiempos que podrían solaparse."
+      },
+      "rule": "Revisiones independientes → en paralelo. El tiempo total es el de la más lenta.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "source_quote": "During a code review, you can run `style-checker`, `security-scanner`, and `test-coverage` subagents simultaneously instead of sequentially.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en code.claude.com/docs/en/agent-sdk/subagents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
+    },
+    {
+      "id": "o10-s24",
+      "objective": 10,
+      "pool": "sim",
+      "scenario": "Your research system answers \"compare data-center water use across five regions\". The synthesis subagent's draft has detailed findings for three regions and states \"no data found\" for Southeast Asia and the Middle East, yet a quick manual search finds relevant utility reports for both. The current flow ends after one synthesis pass and delivers the draft as is. The client requires coverage of all five regions, and the coordinator must stay in control of which searches run. What is the most effective change?",
+      "options": [
+        "Have the coordinator check the synthesis output for gaps, re-delegate targeted searches for the missing regions, then re-run synthesis.",
+        "Give the synthesis subagent full web search tools, so that it can fill any gaps itself without returning to the coordinator.",
+        "Automatically re-run the entire pipeline from the start with the same plan whenever the synthesis output reports that some data is missing.",
+        "Instruct the synthesis subagent to add a limitations section explaining which regions lacked data and why that matters."
+      ],
+      "correct": 0,
+      "why_correct": "Es el loop de refinamiento iterativo de la guía: el coordinador evalúa la síntesis buscando huecos, re-delega a los buscadores con consultas dirigidas y vuelve a invocar la síntesis hasta que la cobertura alcance. El coordinador sigue decidiendo qué se busca.",
+      "why_wrong": {
+        "1": "Sobre-aprovisiona al sintetizador y le saca al coordinador el control de las búsquedas, que era una restricción.",
+        "2": "Repetir el mismo plan suele dar los mismos huecos, y paga todo de nuevo en vez de buscar solo lo que falta.",
+        "3": "Es transparente, pero no cubre las dos regiones que el cliente exige."
+      },
+      "rule": "Huecos en la síntesis → el coordinador re-delega búsquedas dirigidas y re-sintetiza.",
+      "source_url": "https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification",
+      "source_quote": "Implementing iterative refinement loops where the coordinator evaluates synthesis output for gaps, re-delegates to search and analysis subagents with targeted queries, and re-invokes synthesis until coverage is sufficient",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en el PDF de la guía del examen (linkeado desde Skilljar); la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
+    },
+    {
+      "id": "o10-s25",
+      "objective": 10,
+      "pool": "sim",
+      "scenario": "Your developer-productivity agent generates architecture documents for internal services. A `doc-generator` subagent produces a 30-page Markdown document with diagrams and tables and returns it as its final message; the coordinator then includes it in its own answer. Engineers report that tables come back reformatted or summarized, and the coordinator's context grows by about 60,000 tokens per document, which triggers compaction in long sessions. You need full fidelity in the delivered document and lower token overhead in the coordinator. What is the most effective change?",
+      "options": [
+        "Instruct the coordinator to reproduce the subagent's report verbatim in its own response instead of summarizing it.",
+        "Have the subagent store the document with a tool and return only a short reference and summary to the coordinator.",
+        "Switch the coordinator to a model with a larger context window, so the full document fits without any compaction.",
+        "Split the document across five subagents that each return six pages, so each message returned to the coordinator is smaller."
+      ],
+      "correct": 1,
+      "why_correct": "Para salidas estructuradas grandes, el post de Anthropic recomienda un sistema de artefactos: el subagente guarda su trabajo en un sistema externo y le pasa al coordinador una referencia liviana. No se pierde información en el pasamanos y no se copian 60.000 tokens por el historial del coordinador.",
+      "why_wrong": {
+        "0": "Casi: la doc del SDK dice que podés pedir que se preserve el output textual, y eso arregla la fidelidad. Pero el documento sigue pasando entero por el contexto del coordinador: el costo de tokens queda.",
+        "2": "Posterga la compactación pero sigue copiando todo el documento por el coordinador, y no garantiza que no lo resuma.",
+        "3": "La suma de las cinco partes vuelve igual al coordinador: mismo volumen, más coordinación y más riesgo de inconsistencias."
+      },
+      "rule": "Salida grande de un subagente → que la guarde afuera y devuelva una referencia. Nada de \"teléfono descompuesto\".",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "Subagents call tools to store their work in external systems, then pass lightweight references back to the coordinator.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en www.anthropic.com/engineering/multi-agent-research-system; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
+    },
+    {
+      "id": "o10-s26",
+      "objective": 10,
+      "pool": "sim",
+      "scenario": "A health insurer extracts diagnosis codes from handwritten claim forms with Claude. A single extraction pass has a 3.1% code error rate. The team tried adding a second pass that receives the first pass's output and \"double-checks\" it, but on the forms where the first pass was wrong, the second pass agreed with it 97% of the time. Accuracy matters far more than latency or cost for this workflow, and a human coding team can take forms where the model's answers disagree. What orchestration change is most effective?",
+      "options": [
+        "Add a third sequential pass that reviews both earlier passes' outputs and selects whichever code it judges to be the more plausible one.",
+        "Have a coordinator spawn one subagent per form field, so that each field is extracted inside its own focused context window.",
+        "Keep one pass but raise `max_tokens` and ask the model for step-by-step reasoning before each code is emitted in the output.",
+        "Run several independent extractions in parallel without sharing outputs, and route the forms where they disagree to human coders."
+      ],
+      "correct": 3,
+      "why_correct": "Es paralelización por votación: varias corridas independientes del mismo trabajo dan intentos distintos, y la discrepancia es una señal útil para mandar a revisión humana. La clave es que no se vean entre sí: el segundo paso que veía al primero se anclaba en su respuesta (97% de acuerdo con errores).",
+      "why_wrong": {
+        "0": "Otra pasada que ve las salidas anteriores tiene el mismo problema de anclaje que la segunda.",
+        "1": "Divide el trabajo por campo, pero cada código se extrae una sola vez: no hay segundo intento ni señal de desacuerdo.",
+        "2": "`max_tokens` no mejora la precisión y razonar paso a paso en una sola pasada no da la señal de desacuerdo para enrutar a humanos."
+      },
+      "rule": "Más confianza = intentos independientes en paralelo; el desacuerdo decide qué va a revisión humana.",
+      "source_url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "source_quote": "Parallelization is effective when the divided subtasks can be parallelized for speed, or when multiple perspectives or attempts are needed for higher confidence results.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en www.anthropic.com/engineering/building-effective-agents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
+    },
+    {
+      "id": "o10-s27",
+      "objective": 10,
+      "pool": "sim",
+      "scenario": "Your customer support resolution agent runs on Claude Opus 5 through the Agent SDK with a custom `systemPrompt`. After the model upgrade, simple requests like \"where is order 4417?\" trigger up to 9 subagents, and average cost per ticket rose fourfold. The team added the prompting guide's delegation-damping instruction to its system prompt, which helped, but a weekly audit still finds runs that spawn nested subagent trees and blow past the expected cost. Finance now needs a hard ceiling on spend per ticket. What should the team add?",
+      "options": [
+        "Switch to the `claude_code` system prompt preset, which tells Claude not to call the Agent tool unless it is asked to.",
+        "Set `CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS` to `2`, which caps the total number of subagents that a ticket can spawn.",
+        "Add limits the runtime enforces: `maxBudgetUsd` per query, plus depth and concurrency caps passed through the `env` option.",
+        "Strengthen the damping instruction with capitalized warnings and examples of requests that must never be delegated."
+      ],
+      "correct": 2,
+      "why_correct": "La doc del SDK lo dice para Opus 5: cualquier instrucción de delegación solo ORIENTA a Claude, así que hay que setear también los límites, que Claude Code hace cumplir decida lo que decida el modelo. `maxBudgetUsd` es el techo de gasto (corta nuevos spawns y termina la query); profundidad y concurrencia acotan el árbol.",
+      "why_wrong": {
+        "0": "Casi: el preset agrega una línea anti-delegación para Opus 5, pero sigue siendo una instrucción que orienta, no un techo de gasto.",
+        "1": "La concurrencia limita cuántos corren A LA VEZ, no el total: no hay límite al total de subagentes en una sesión.",
+        "3": "Más guidance sobre algo que ya probaste con guidance. Finanzas pidió un techo duro."
+      },
+      "rule": "Prompt que modera la delegación orienta; `maxBudgetUsd` + límites de profundidad y concurrencia garantizan.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "source_quote": "Either instruction only steers Claude, so set the limits as well. Claude Code enforces them however Claude decides to delegate.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en code.claude.com/docs/en/agent-sdk/subagents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
       }
     }
   ]

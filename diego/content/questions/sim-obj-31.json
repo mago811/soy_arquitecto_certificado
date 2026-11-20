@@ -22,11 +22,11 @@
       "rule": "Límites explícitos por categoría: definí qué es Important en tu repo y qué es Nit como mucho.",
       "source_url": "https://code.claude.com/docs/en/code-review-customize",
       "source_quote": "The default calibration targets production code, and a docs repository, a config repository, or a prototype might want a much narrower definition.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en code-review-customize (redefinir Important para repos de docs). W0 respaldado por prompting-claude-opus-5."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en code-review-customize (redefinir Important para repos de docs). W0 respaldado por prompting-claude-opus-5. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "Categoría poco confiable → límite explícito: \"si no estás seguro, `null`, no deduzcas\" + revisión humana.",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
       "source_quote": "Explicitly give Claude permission to admit uncertainty. This technique can drastically reduce false information.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "Respuesta correcta y única. Cambiada la source_quote por la viñeta \"Allow Claude to say I don't know\" de reduce-hallucinations, que respalda la regla más directo que la frase del ejemplo de M&A. Nullable + ruta a humano es diseño, no se atribuye a la doc. Parecida a o31-q04 pero el límite es legibilidad, no dato ausente."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Respuesta correcta y única. Cambiada la source_quote por la viñeta \"Allow Claude to say I don't know\" de reduce-hallucinations, que respalda la regla más directo que la frase del ejemplo de M&A. Nullable + ruta a humano es diseño, no se atribuye a la doc. Parecida a o31-q04 pero el límite es legibilidad, no dato ausente. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "Límite de inclusión: cada afirmación necesita una cita del documento; sin cita, se retracta.",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
       "source_quote": "If it can’t find a quote, it must retract the claim.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual (Verify with citations) en reduce-hallucinations; el ejemplo pide sacar la afirmación y marcar dónde estaba. External knowledge restriction respalda W2."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual (Verify with citations) en reduce-hallucinations; el ejemplo pide sacar la afirmación y marcar dónde estaba. External knowledge restriction respalda W2. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,151 @@
       "rule": "Criterio de review = lista \"Always check\" + lista \"Do not report\", concretas y por categoría.",
       "source_url": "https://code.claude.com/docs/en/code-review-customize",
       "source_quote": "Database queries are scoped to the caller's tenant",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual del REVIEW.md de ejemplo (Always check / Do not report: Test-only code that intentionally violates production rules). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o31-s21",
+      "objective": 31,
+      "pool": "sim",
+      "scenario": "An e-commerce company's automated reviewer reports four categories: security, correctness, performance and accessibility. Over the last month, accessibility findings had a 68% false-positive rate (flagging decorative images and ARIA patterns that the design system already handles), while security and correctness stayed above 90% precision. Developer surveys show people now dismiss the reviewer's comments wholesale, and a real authorization bug was merged after its finding was ignored. The team believes accessibility checks are valuable in the long term, but it needs developer trust back this sprint. What should the team do first?",
+      "options": [
+        "Add \"Only report accessibility issues when you are highly confident\" to the prompt, and keep all four categories active while monitoring results.",
+        "Raise the bar for every category so the reviewer posts fewer comments overall, and developers see less noise on each pull request.",
+        "Temporarily stop posting accessibility findings, and improve that category's criteria offline against labeled examples before turning it back on.",
+        "Move accessibility findings into a collapsed \"Other\" section at the bottom of each review, so they stay visible without competing with security."
+      ],
+      "correct": 2,
+      "why_correct": "Una categoría con muchos falsos positivos arrastra la confianza en las categorías buenas (se ignoró un bug real de autorización). La guía indica desactivarla temporalmente para recuperar la confianza mientras se mejoran sus criterios, y recién después volver a activarla.",
+      "why_wrong": {
+        "0": "'Solo con alta confianza' es el tipo de instrucción general que la guía dice que no mejora la precisión.",
+        "1": "Recorta también security y correctness, que andaban bien: bajás el ruido perdiendo justo lo valioso.",
+        "3": "Sigue publicando un 68% de ruido; colapsado o no, el reviewer sigue diciendo cosas falsas y la confianza no vuelve."
+      },
+      "rule": "Categoría con muchos falsos positivos que mata la confianza → apagala temporalmente y mejorá sus criterios aparte.",
+      "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
+      "source_quote": "Temporarily disabling high false-positive categories to restore developer trust while improving prompts for those categories",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
         "verdict": "ok",
-        "notes": "Cita textual del REVIEW.md de ejemplo (Always check / Do not report: Test-only code that intentionally violates production rules)."
+        "notes": "Cita textual en la guía oficial del examen (PDF everpath) (desactivar temporalmente categorías con muchos falsos positivos)."
+      }
+    },
+    {
+      "id": "o31-s22",
+      "objective": 31,
+      "pool": "sim",
+      "scenario": "A payments company runs a secrets scan in CI with `claude -p` plus `--output-format json --json-schema`, prompting: \"Find any hardcoded secrets in this diff.\" Each week the job reports about 300 findings, and 94% of them are test fixtures that use documented test-key prefixes such as `sk_test_`, placeholder values in `.env.example`, and sample tokens in `docs/`. Developers now routinely bypass the check. Last quarter, however, the same scan caught two real live keys in application code, so the category has to stay. Which change most effectively restores precision?",
+      "options": [
+        "Rewrite the prompt to report hardcoded credentials in application code, and to skip known test-key prefixes, `*.example` files and doc samples.",
+        "Add \"ignore anything that is obviously test data\" to the prompt, so the model uses its own judgment to tell the real secrets from the fake ones.",
+        "Add few-shot examples of the real keys leaked in past incidents, so the model learns what a genuine secret looks like in this codebase.",
+        "Report only the findings whose self-assessed confidence is above 0.9, and drop every lower-confidence finding from the JSON output."
+      ],
+      "correct": 0,
+      "why_correct": "El criterio actual ('cualquier secreto') no tiene frontera. Definir qué entra (credenciales en código de aplicación) y qué se saltea (prefijos de test documentados, `*.example`, docs) elimina el ruido sin apagar una categoría que ya atrapó claves reales.",
+      "why_wrong": {
+        "1": "'Obviamente de test' es vago: el modelo ya creía que esos fixtures eran secretos.",
+        "2": "Ayuda a reconocer secretos reales, pero no dice qué excluir: un `sk_test_` se sigue pareciendo a una clave.",
+        "3": "La guía marca que 'solo alta confianza' no mejora la precisión frente a criterios categóricos; y un `sk_test_` puede salir con confianza alta."
+      },
+      "rule": "Precisión baja en una categoría necesaria → criterios explícitos de qué entra y qué se saltea, no 'confianza'.",
+      "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
+      "source_quote": "How general instructions like \"be conservative\" or \"only report high-confidence findings\" fail to improve precision compared to specific categorical criteria",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la guía oficial del examen (PDF everpath) (\"be conservative\"/\"high-confidence\" no mejoran la precisión). Criterios explícitos de qué entra/qué se saltea."
+      }
+    },
+    {
+      "id": "o31-s23",
+      "objective": 31,
+      "pool": "sim",
+      "scenario": "An electronics retailer's support agent can auto-approve refunds in the \"damaged on arrival\" category; every other category goes to a human. The $500 ceiling for auto-approval is already enforced by a programmatic check before the refund tool runs. The system prompt says: \"Auto-approve refunds for damaged items.\" A weekly audit shows that 14% of auto-approvals were not damage at all: late deliveries, wrong sizes, or buyer's remorse described as \"it's useless to me.\" Meanwhile, some clear damage cases with photos were sent to humans. What is the most effective change?",
+      "options": [
+        "Ask the agent to rate its confidence that the item was damaged from 1 to 10, and auto-approve only when that score is 8 or higher.",
+        "Deploy a separate image classifier that checks the customer's photos for visible damage before the agent is allowed to approve any refund automatically.",
+        "Change the instruction to \"Auto-approve only clear damage cases and be conservative,\" so that the borderline cases get routed to a human agent for review.",
+        "Define damage explicitly (a physical defect shown or specifically described), list exclusions such as late delivery and wrong size, and add borderline examples."
+      ],
+      "correct": 3,
+      "why_correct": "El problema es una frontera de categoría vaga: 'dañado' se estira a todo lo que el cliente describe como malo. Definir qué es daño, listar lo que no lo es (demora, talle, arrepentimiento) y mostrar casos borde con ejemplos ataca la causa: límites de decisión poco claros.",
+      "why_wrong": {
+        "0": "La confianza autoinformada está mal calibrada: el agente ya está seguro en los casos que clasifica mal.",
+        "1": "Sobreingeniería como primer paso, y no cubre los casos sin foto ni la demora descrita como daño.",
+        "2": "'Sé conservador' es vago: puede mandar más casos claros a humanos sin dejar de aprobar los ambiguos."
+      },
+      "rule": "Categoría que se estira → definición explícita + exclusiones + few-shot de casos borde.",
+      "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
+      "source_quote": "Adding explicit escalation criteria with few-shot examples directly addresses the root cause: unclear decision boundaries.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la guía oficial del examen (PDF everpath) (respuesta de la pregunta de ejemplo: criterios explícitos + few-shot atacan \"unclear decision boundaries\"). Distractores calcados de los que la guía descarta."
+      }
+    },
+    {
+      "id": "o31-s24",
+      "objective": 31,
+      "pool": "sim",
+      "scenario": "A platform team built an internal dependency-audit agent with the Agent SDK. For each service it lists outdated packages, known vulnerabilities from an advisory-database tool, and a license compatibility verdict (`compatible` / `incompatible`) that the legal team began relying on. A legal review of 200 verdicts found 35% were wrong, mostly on dual-licensed packages and license exceptions, while the vulnerability and version findings were accurate. Legal wants to keep receiving license information but will make compatibility decisions itself from now on. What is the most effective change to the agent's instructions?",
+      "options": [
+        "Add few-shot examples of dual-licensed packages and license exceptions with the correct verdicts, so the model learns to handle the harder cases.",
+        "Explicitly exclude compatibility verdicts: report each package's license identifiers as declared in its metadata, marked for legal review.",
+        "Keep the verdicts but add a disclaimer field reading \"AI-generated, verify before use\" to every license entry in the agent's report.",
+        "Instruct the agent to give a license verdict only when it is highly confident, and to output `unknown` for packages with dual licenses."
+      ],
+      "correct": 1,
+      "why_correct": "Es una categoría donde el agente no es confiable (35% de error) y legal igual quiere decidir. Excluirla explícitamente y reemplazarla por un dato verificable (el identificador de licencia tal como figura en la metadata) evita hallazgos poco confiables y conserva la información útil.",
+      "why_wrong": {
+        "0": "Mejora algo, pero sigue entregando veredictos en una categoría poco confiable que legal ya no necesita que el agente decida.",
+        "2": "El disclaimer no vuelve correctos los veredictos: la gente los usa igual.",
+        "3": "'Solo si estás muy seguro' no mejora la precisión, y la confianza del modelo no coincide con dónde se equivoca (las excepciones no siempre son duales)."
+      },
+      "rule": "Si el modelo no es confiable en una categoría, no le pidas el veredicto: pedile el dato verificable y que decida el humano.",
+      "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
+      "source_quote": "Writing specific review criteria that define which issues to report (bugs, security) versus skip (minor style, local patterns) rather than relying on confidence-based filtering",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Respuesta correcta. La cita (impacto de falsos positivos en la confianza) no respaldaba la correcta; la cambié por la textual de la guía sobre definir qué reportar vs. saltear en vez de filtrar por confianza."
+      }
+    },
+    {
+      "id": "o31-s25",
+      "objective": 31,
+      "pool": "sim",
+      "scenario": "A health-tech company extracts a `diagnoses` array from hospital discharge summaries to populate a clinical registry. The prompt says \"List the patient's diagnoses.\" Clinicians auditing 400 records found that 27% of items should not be there: \"rule out pneumonia\", \"no evidence of DVT\", \"family history of diabetes\", \"possible early sepsis, to be confirmed\", and resolved conditions from the past medical history. The registry must contain only confirmed, current diagnoses for this admission. Summaries vary widely in structure across 12 hospitals, and some confirmed diagnoses appear only in the free-text narrative. What is the most effective change?",
+      "options": [
+        "Pre-process each summary to keep only the section titled \"Discharge diagnoses\", and extract the diagnoses list from that section alone.",
+        "Add a `confidence` field to each diagnosis and keep only items above 0.85, so uncertain mentions like \"possible sepsis\" get dropped.",
+        "Change the instruction to \"List only the clinically significant diagnoses\", so the minor and uncertain mentions are left out of the extracted array entirely.",
+        "Define inclusion (confirmed, current for this admission) and exclusion (negated, ruled out, suspected, family history, resolved), with examples of each exclusion."
+      ],
+      "correct": 3,
+      "why_correct": "'Los diagnósticos' es una frontera vaga: el modelo mete todo lo que nombra una enfermedad. Definir qué entra (confirmado y actual) y qué queda afuera (negado, descartado, sospechado, antecedente familiar, resuelto), con un ejemplo de cada exclusión, fija el límite y funciona aunque el diagnóstico esté en el texto libre.",
+      "why_wrong": {
+        "0": "Con 12 hospitales y estructuras distintas, muchas notas no tienen esa sección, y algunos diagnósticos confirmados están solo en el texto libre: perdés recall.",
+        "1": "Un 'rule out pneumonia' puede salir con confianza alta: la confianza no dice si el diagnóstico está confirmado.",
+        "2": "'Clínicamente significativos' es otro criterio vago: una sospecha de sepsis es muy significativa y seguiría entrando."
+      },
+      "rule": "Extracción que mezcla lo confirmado con lo negado o hipotético → criterios explícitos de inclusión y exclusión + ejemplos de cada exclusión.",
+      "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
+      "source_quote": "The importance of explicit criteria over vague instructions",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la guía oficial del examen (PDF everpath) (Task 4.1). Escenario distinto de o31-q25 (dominio clínico, negaciones/sospechas). Sección \"Discharge diagnoses\" pierde recall."
       }
     }
   ]

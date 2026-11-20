@@ -22,11 +22,11 @@
       "rule": "Si el riesgo es colapsar o atribuir mal, el rubric tiene que medir afirmación vs. fuente y cita vs. afirmación.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "factual accuracy (do claims match sources?), citation accuracy (do the cited sources match the claims?)",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Blog multi-agent research system: rubric con factual accuracy y citation accuracy, cita textual. Distinto de o19-q01."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Blog multi-agent research system: rubric con factual accuracy y citation accuracy, cita textual. Distinto de o19-q01. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "Citations + `output_config.format` = 400. Para estructura con citas: una línea por campo y parseo propio.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/citations",
       "source_quote": "If you enable citations on any user-provided document (`document` blocks or `search_result` blocks) and also include the `output_config.format` parameter (or the deprecated `output_format` parameter), the API returns a 400 error.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "citations: incompatibilidad con output_config.format => 400 (incluye search_result); workaround 'one line per field' y parseo en código. Distinto de o19-q04."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "citations: incompatibilidad con output_config.format => 400 (incluye search_result); workaround 'one line per field' y parseo en código. Distinto de o19-q04. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "RAG con atribución confiable → fragmentos como `search_result` con `source`/`title` y citas activas.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/search-results",
       "source_quote": "Search result content blocks let Claude cite your own content the same way it cites web search results: each citation carries the source and title you provided.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "search-results: cita textual; cada cita lleva source y title. Distractores sin respaldo."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "search-results: cita textual; cada cita lleva source y title. Distractores sin respaldo. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,11 @@
       "rule": "Para no aplanar la certeza: criterios de éxito + verificación cruzada + marcar lo de fuente única.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Ask Claude to verify information across multiple sources.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "claude-prompting-best-practices, sección research: success criteria + 'Ask Claude to verify information across multiple sources'. Distinto de o19-q09 (calidad de fuente)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "claude-prompting-best-practices, sección research: success criteria + 'Ask Claude to verify information across multiple sources'. Distinto de o19-q09 (calidad de fuente). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -134,11 +134,179 @@
       "rule": "Ninguna técnica anti-alucinación elimina el riesgo: lo crítico y de alto impacto se valida con humanos.",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
       "source_quote": "Remember, although these techniques significantly reduce hallucinations, they don’t eliminate them entirely. Always validate critical information, especially for high-stakes decisions.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "reduce-hallucinations: cita textual; best-of-N es para detectar inconsistencias. Distinto de o19-q07/q08. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o19-s21",
+      "objective": 19,
+      "pool": "sim",
+      "scenario": "A manufacturing group's research agent investigates why a key supplier's deliveries slipped by three weeks. It has web search, a news archive, and the supplier's shipping data. In 7 of the last 10 investigations, the agent latched onto the first plausible cause it found (for example, a port strike) and the final report stated it as the single cause, even when later evidence pointed to capacity problems as well. Executives want reports that show which explanations are well supported, which are plausible but unconfirmed, and which were ruled out. What change to the research agent's instructions best achieves this?",
+      "options": [
+        "Have it develop several competing hypotheses, track its confidence in each in progress notes, and self-critique as evidence arrives.",
+        "Require it to collect at least 20 sources before writing anything, so the first plausible cause is less likely to dominate the report.",
+        "Ask it to state the most likely cause first and list alternative causes in a short appendix at the end of the final report.",
+        "Have it search only primary sources such as the shipping data, discarding news coverage that might introduce speculative causes."
+      ],
+      "correct": 0,
+      "why_correct": "Para investigaciones complejas, la doc sugiere armar varias hipótesis en competencia, registrar el nivel de confianza en las notas de progreso para calibrarse y autocriticarse. Eso produce justo lo que piden: qué está bien respaldado, qué es plausible y qué se descartó.",
+      "why_wrong": {
+        "1": "Más fuentes no evitan el anclaje en la primera hipótesis si el agente no las contrasta.",
+        "2": "Sigue colapsando en una causa principal; un apéndice no expresa grados de confianza ni lo descartado.",
+        "3": "Descarta evidencia útil (la huelga sí existió) en vez de ponderarla; reduce cobertura, no mejora la calibración."
+      },
+      "rule": "Investigación con evidencia mixta → hipótesis en competencia + confianza registrada en notas.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "As you gather data, develop several competing hypotheses. Track your confidence levels in your progress notes to improve calibration. Regularly self-critique your approach and plan.",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
         "verdict": "ok",
-        "notes": "reduce-hallucinations: cita textual; best-of-N es para detectar inconsistencias. Distinto de o19-q07/q08."
+        "notes": "Revisada contra https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices. Prompting best practices: hipótesis en competencia + confianza en notas + autocrítica. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
+    },
+    {
+      "id": "o19-s22",
+      "objective": 19,
+      "pool": "sim",
+      "scenario": "A pharmaceutical company runs a literature-review system: subagents retrieve and summarize 14 papers, and a synthesis agent writes a review for the medical affairs team. A reviewer found the sentence 'Phase III data show 71% efficacy', but no retrieved paper contains that figure; it matches an older trial that was not in the corpus. The reviewer re-ran the synthesis three times and the figure appeared every time. Regulatory rules require every number in the review to be traceable to the retrieved corpus, and the review must state clearly when the corpus does not answer a question. Which change best addresses this?",
+      "options": [
+        "Run the synthesis five times and only keep numbers that appear in at least four of the five outputs before publishing.",
+        "Expand the retrieval step to 40 papers so the older trial is also in the corpus and the figure becomes traceable.",
+        "Lower the temperature of the synthesis call and ask it to double-check every figure before writing the final review.",
+        "Instruct the synthesis agent to use only the provided papers, not its general knowledge, and to say when they lack an answer."
+      ],
+      "correct": 3,
+      "why_correct": "El número viene del conocimiento general del modelo, no de los documentos. La doc recomienda decirle explícitamente que use solo la información de los documentos y no su conocimiento general. Sumado al permiso de decir 'no hay información', cumple con la trazabilidad que pide regulatorio.",
+      "why_wrong": {
+        "0": "Casi: best-of-N detecta inconsistencias, pero acá la cifra aparece en TODAS las corridas; el error es estable y pasaría el filtro.",
+        "1": "Cambia el corpus para justificar el número en vez de corregir el comportamiento; el modelo seguiría mezclando conocimiento externo.",
+        "2": "Revisarse a sí mismo sin la restricción no sirve: el modelo 'confirma' la cifra con lo que ya sabe."
+      },
+      "rule": "Dato que no está en el corpus pero el modelo 'sabe' → restricción explícita a los documentos provistos.",
+      "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
+      "source_quote": "External knowledge restriction: Explicitly instruct Claude to only use information from provided documents and not its general knowledge.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations. Reduce hallucinations: restricción a conocimiento externo, textual; best-of-N no detecta un error estable. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
+    },
+    {
+      "id": "o19-s23",
+      "objective": 19,
+      "pool": "sim",
+      "scenario": "An investment firm's research system writes memos for its investment committee. The team has already enabled citations on all source documents, added claim-by-claim quote verification with retraction, and restricted synthesis to the provided documents. Over the last month, unsupported claims dropped from 8% to 0.7%. Leadership now proposes publishing memos straight to the committee with no human review, because 'hallucinations are solved'. Memos drive allocations of $5–50M, and some contain contested valuation figures from conflicting sources. As the architect, what should you recommend?",
+      "options": [
+        "Publish automatically when every claim has at least one citation, since cited claims are guaranteed to be supported by the sources.",
+        "Keep human validation of critical figures and contested claims before memos reach the committee, since the techniques don't eliminate hallucinations.",
+        "Publish automatically after a second model instance reviews each memo and agrees with all its figures and conclusions.",
+        "Publish automatically, but add a disclaimer stating that the memo was generated by AI and may contain occasional errors."
+      ],
+      "correct": 1,
+      "why_correct": "La doc es clara: estas técnicas reducen mucho las alucinaciones pero no las eliminan, y la información crítica hay que validarla, sobre todo en decisiones de alto impacto. Con montos de millones y cifras en disputa, la revisión humana de lo crítico sigue siendo obligatoria.",
+      "why_wrong": {
+        "0": "Una cita válida prueba que el pasaje existe, no que respalde exactamente la conclusión, ni resuelve un conflicto entre fuentes.",
+        "2": "Otro modelo baja el error pero tampoco lo elimina; para alto impacto la doc pide validar, no sumar otra capa probabilística.",
+        "3": "Un disclaimer traslada el riesgo al comité en vez de controlarlo."
+      },
+      "rule": "Las técnicas anti-alucinación reducen, no eliminan. Alto impacto → humano valida lo crítico.",
+      "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
+      "source_quote": "Remember, although these techniques significantly reduce hallucinations, they don’t eliminate them entirely. Always validate critical information, especially for high-stakes decisions.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations. Reduce hallucinations: las técnicas reducen pero no eliminan, validar lo crítico. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
+    },
+    {
+      "id": "o19-s24",
+      "objective": 19,
+      "pool": "sim",
+      "scenario": "A climate-research nonprofit's coordinator collects outputs from 12 subagents (peer-reviewed studies, government reports, NGO briefs) and passes them to a synthesis agent as one concatenated text blob, followed by the instruction to 'separate well-established findings from contested ones'. Reviewers found that 11% of claims in the final report are attributed to the wrong source, and in several cases an NGO estimate was presented as a peer-reviewed finding. The synthesis agent cannot easily tell where one source ends and another begins. What change most directly addresses the attribution errors?",
+      "options": [
+        "Number every paragraph in the blob and ask the agent to reference paragraph numbers whenever it attributes a finding.",
+        "Put the instruction before the blob and repeat it at the end so the agent keeps the established-versus-contested task in mind.",
+        "Wrap each subagent output in its own `<document>` tag with `<document_content>` and `<source>` subtags for its metadata and type.",
+        "Ask each subagent to return a shorter output so the concatenated blob is small enough for the agent to track every source."
+      ],
+      "correct": 2,
+      "why_correct": "Con varios documentos, la doc recomienda envolver cada uno en `<document>` con subtags `<document_content>` y `<source>` (más metadata). Así el sintetizador sabe qué viene de dónde y de qué tipo es la fuente, que es lo que necesita para no confundir una ONG con un paper revisado.",
+      "why_wrong": {
+        "0": "Ayuda a referenciar, pero no le dice al modelo dónde termina cada fuente ni qué tipo de fuente es.",
+        "1": "No toca el problema de estructura; además la doc pone los datos largos arriba y la consulta al final.",
+        "3": "Achica el contexto pero sigue siendo un bloque sin límites ni metadata por fuente."
+      },
+      "rule": "Varias fuentes en un prompt → un `<document>` por fuente con `<source>` y metadata.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "When using multiple documents, wrap each document in `<document>` tags with `<document_content>` and `<source>` (and other metadata) subtags for clarity.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices. Prompting best practices: <document> con <document_content> y <source>. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
+    },
+    {
+      "id": "o19-s25",
+      "objective": 19,
+      "pool": "sim",
+      "scenario": "A public-health agency's synthesis agent (Messages API) must label each finding as 'established' (backed by peer-reviewed studies) or 'contested' (only preprints or conflicting reports). To make the distinction visible, an engineer enabled `citations.enabled=true` only on the peer-reviewed `document` blocks, so that only established findings would carry citations, and left the preprints without citations. Since that change, every synthesis request fails before Claude produces anything. Reviewers still need every finding, established or contested, traced to its passage and labeled by source type. What should the team do?",
+      "options": [
+        "Send the peer-reviewed documents and the preprints in two separate requests, and merge the two partial syntheses in code afterwards.",
+        "Keep citations on the peer-reviewed documents only, and convert the preprints into plain text inside the user message instead.",
+        "Disable citations on all documents and instruct the agent to quote peer-reviewed sources and paraphrase the preprints instead.",
+        "Enable citations on all documents, carry each one's source type in its `context` field, and have the agent label findings by type."
+      ],
+      "correct": 3,
+      "why_correct": "Una request no puede mezclar documentos con citas activadas y documentos sin citas: por eso falla. Lo correcto es activar citas en todos y llevar el tipo de fuente como metadata en `context`, para que el agente etiquete 'established' o 'contested' sin perder la trazabilidad.",
+      "why_wrong": {
+        "0": "Funciona a medias: cada síntesis ve solo una parte, así que nadie contrasta preprints contra estudios en la misma pasada, que es donde aparece lo 'contested'.",
+        "1": "Los preprints quedan sin cita, y los hallazgos 'contested' tienen que poder rastrearse tanto como los otros.",
+        "2": "Pierde las citas de la API para todo y vuelve a citas por prompt, menos confiables."
+      },
+      "rule": "Citations: todos los documentos o ninguno. El tipo de fuente va como metadata, no como 'con o sin citas'.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/citations",
+      "source_quote": "Set `citations.enabled=true` on each of your documents. A request can’t mix documents that have citations enabled with documents that don’t.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://platform.claude.com/docs/en/build-with-claude/citations. Citations: no se pueden mezclar docs con y sin citas; context para metadata. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
+    },
+    {
+      "id": "o19-s26",
+      "objective": 19,
+      "pool": "sim",
+      "scenario": "A think tank's synthesis agent produces a draft report with two sections: 'Well-established findings' and 'Contested or emerging findings'. Reviewers found that 15% of items in the 'well-established' section rest on a single source, and several items in that section came from sources the subagents had flagged as disputed. The team does not want to restructure the pipeline or add a human step before the first draft; they can add model calls. Which approach best improves the labeling in the existing pipeline?",
+      "options": [
+        "Raise the number of search subagents from four to eight so more sources are collected for each finding before synthesis.",
+        "Feed the draft back to Claude in a follow-up prompt asking it to verify each 'well-established' label against the source excerpts and fix it.",
+        "Merge both sections into one ranked list ordered by the model's confidence, so readers can judge strength for themselves.",
+        "Add 'only list findings as well-established when you are confident' to the end of the existing synthesis prompt for the next run."
+      ],
+      "correct": 1,
+      "why_correct": "Refinamiento iterativo: usar la salida de Claude como entrada de un prompt de seguimiento que le pide verificar o ampliar lo que afirmó. Acá, revisar cada etiqueta 'established' contra los excerpts y bajarla a 'contested' si hay una sola fuente o una fuente en disputa. Agrega llamadas sin cambiar el pipeline.",
+      "why_wrong": {
+        "0": "Más fuentes no corrigen etiquetas mal puestas; el sintetizador puede seguir ignorando las disputas.",
+        "2": "Elimina justo la distinción que el informe necesita conservar.",
+        "3": "Es una instrucción vaga en la misma pasada; no hay verificación contra los excerpts."
+      },
+      "rule": "¿Etiquetas de certeza mal puestas? Segunda pasada que verifica la salida contra las fuentes.",
+      "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
+      "source_quote": "Iterative refinement: Use Claude’s outputs as inputs for follow-up prompts, asking it to verify or expand on previous statements. This can catch and correct inconsistencies.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations. Reduce hallucinations: iterative refinement, textual. Explicaciones en español, distractores no defendibles, largos parejos."
       }
     }
   ]

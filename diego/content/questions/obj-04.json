@@ -22,11 +22,11 @@
       "rule": "Investigación abierta → delegá objetivo + criterios + formato + límites, no un guion de pasos.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "Each subagent needs an objective, an output format, guidance on the tools and sources to use, and clear task boundaries.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en el post de ingeniería (sección 'Teach the orchestrator how to delegate'); la marcada coincide."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en el post de ingeniería (sección 'Teach the orchestrator how to delegate'); la marcada coincide. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "Duplicación entre subagentes = objetivos vagos o sin límites. Repartí subtemas desde el coordinador.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "found these instructions often were vague enough that subagents misinterpreted the task or performed the exact same searches as other agents.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual; el post cuenta el caso 'research the semiconductor shortage' con búsquedas duplicadas."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual; el post cuenta el caso 'research the semiconductor shortage' con búsquedas duplicadas. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "Control y visibilidad = formato de reporte obligatorio (fuentes, cobertura, huecos), no guion de pasos.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "Each subagent needs an objective, an output format, guidance on the tools and sources to use, and clear task boundaries.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual (objective, output format, tool guidance, boundaries); `background` como distractor coincide con la doc del SDK."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual (objective, output format, tool guidance, boundaries); `background` como distractor coincide con la doc del SDK. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,11 @@
       "rule": "Esfuerzo mal calibrado → presupuestos explícitos en el prompt del coordinador según complejidad.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "Simple fact-finding requires just 1 agent with 3-10 tool calls, direct comparisons might need 2-4 subagents with 10-15 calls each, and complex research might use more than 10 subagents with clearly divided responsibilities.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual de 'Scale effort to query complexity'; cifras correctas."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual de 'Scale effort to query complexity'; cifras correctas. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -134,11 +134,11 @@
       "rule": "Orden fijo + inspeccionar cada salida → prompt chaining por pasos. Lo abierto → por objetivo.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Explicit prompt chaining (breaking a task into sequential API calls) is still useful when you need to inspect intermediate outputs or enforce a specific pipeline structure.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en prompting best practices (prompt chaining para inspeccionar salidas intermedias / estructura fija)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en prompting best practices (prompt chaining para inspeccionar salidas intermedias / estructura fija). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -162,11 +162,11 @@
       "rule": "Agentes adaptativos se evalúan por el resultado final, no por si siguieron 'tu' camino.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "Instead of judging whether the agent followed a specific process, evaluate whether it achieved the correct final state.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual (end-state evaluation)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual (end-state evaluation). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -190,11 +190,11 @@
       "rule": "Si el subagente 'no encontró lo obvio' siguiendo tu receta, el problema es la receta: delegá el objetivo.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "Our prompting strategy focuses on instilling good heuristics rather than rigid rules.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual ('good heuristics rather than rigid rules'); el razonamiento coincide con TS 1.3 de la guía."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual ('good heuristics rather than rigid rules'); el razonamiento coincide con TS 1.3 de la guía. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -218,11 +218,11 @@
       "rule": "Adaptativo + control = delegar por objetivo y poner límites que el SDK aplica (gasto, profundidad, turnos).",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "Either instruction only steers Claude, so set the limits as well. Claude Code enforces them however Claude decides to delegate.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en agent-sdk/subagents; `max_budget_usd`, `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` y `maxTurns` existen en esa página."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en agent-sdk/subagents; `max_budget_usd`, `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` y `maxTurns` existen en esa página. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -246,11 +246,11 @@
       "rule": "El coordinador recibe cada resultado (o una referencia liviana con su estado): ahí está la visibilidad y el control del flujo.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "Each subagent completes its task and returns results to Claude, which then passes relevant context to the next subagent.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "Cita textual en sub-agents. Matizado why_wrong[1] y la regla: el post de ingeniería admite que salidas grandes vayan a un filesystem y que el coordinador reciba solo una referencia liviana; la marcada sigue siendo la única que devuelve visibilidad al coordinador."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en sub-agents. Matizado why_wrong[1] y la regla: el post de ingeniería admite que salidas grandes vayan a un filesystem y que el coordinador reciba solo una referencia liviana; la marcada sigue siendo la única que devuelve visibilidad al coordinador. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -274,11 +274,151 @@
       "rule": "Agente adaptativo que falla raro → primero observabilidad (tracing), después el fix.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "Adding full production tracing let us diagnose why agents failed and fix issues systematically.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual (production tracing) y el escenario 'not finding obvious information' sale del post. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o04-q21",
+      "objective": 4,
+      "pool": "practice",
+      "scenario": "A commodities analytics firm runs a Multi-Agent Research System. The coordinator delegates price research with a fixed script: \"1) Search 'lithium carbonate spot price'. 2) Open the top 3 results. 3) Extract the price and date from each. 4) Return the median.\" Since several data providers moved behind paywalls, 38% of runs return \"no data\": the subagent opens three paywalled pages and stops, although free government and exchange sources exist. Analysts want the subagent to adapt when sources fail, while the coordinator still gets comparable results it can aggregate. What is the most effective change to the delegation?",
+      "options": [
+        "State the goal, source-quality criteria, output format and boundaries, and let the subagent choose its own searches.",
+        "Extend the script with fallback steps: if a result is paywalled, open results 4 to 6, then 7 to 9, before returning no data.",
+        "Change step 2 to open the top 10 results instead of the top 3, so enough free pages are likely to be included.",
+        "Have the subagent return \"no data\" immediately, so the coordinator can issue a new step-by-step script with different queries."
+      ],
+      "correct": 0,
+      "why_correct": "Un guion rígido no se adapta cuando el entorno cambia. Anthropic cuenta que su estrategia es enseñar buenas heurísticas en vez de reglas rígidas. Delegar por objetivo, con criterios de calidad, formato de salida y límites, deja que el subagente cambie de fuente y mantiene resultados comparables para el coordinador.",
+      "why_wrong": {
+        "1": "Sigue siendo procedural: agrega más pasos fijos que fallan igual si las primeras 9 son pagas.",
+        "2": "Trata el síntoma con más volumen; no le da criterio para elegir fuentes válidas.",
+        "3": "Suma round-trips y mantiene la rigidez; el coordinador termina micro-gestionando cada búsqueda."
+      },
+      "rule": "Entorno cambiante → delegá objetivo + criterios de calidad + formato + límites. Los pasos fijos se rompen.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "Our prompting strategy focuses on instilling good heuristics rather than rigid rules.",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Cita confirmada en el post de ingeniería de Anthropic (sin equivalente directo en docs; 'Prefer general instructions over prescriptive steps' de platform habla de prompts de thinking). Cambio: acorté la correcta, era la más larga."
+      }
+    },
+    {
+      "id": "o04-q22",
+      "objective": 4,
+      "pool": "practice",
+      "scenario": "An automotive supplier's Multi-Agent Research System launches three subagents in parallel for each strategic question. For \"How exposed are we to EV battery supply risk?\", the coordinator sent all three the same instruction: \"Research the EV battery supply chain.\" The source-overlap metric shows 60% of the sources were read by two or more subagents, while recycling and refining capacity, an area the analysts care about, was never covered. The team wants to keep goal-based delegation and parallelism. What should change in the coordinator's delegation?",
+      "options": [
+        "Give each subagent a numbered list of the exact queries to run and pages to open, so that no two subagents can overlap in coverage.",
+        "Keep the instructions and deduplicate repeated sources in the synthesis step before writing the report.",
+        "Give each subagent its own objective, output format, source guidance and clear boundaries on what the others cover.",
+        "Reduce to a single subagent, since parallel agents tend to duplicate work when they get the same question."
+      ],
+      "correct": 2,
+      "why_correct": "El problema es la vaguedad, no la delegación por objetivo. Anthropic encontró que sin descripciones detalladas los agentes duplican trabajo, dejan huecos o no encuentran lo necesario. Cada subagente necesita su objetivo, formato, guía de tools/fuentes y límites claros de tarea. Así se reparte el trabajo sin perder adaptabilidad.",
+      "why_wrong": {
+        "0": "Casi: elimina el solapamiento pero vuelve a lo procedural y pierde la adaptabilidad que el equipo quiere mantener.",
+        "1": "Trata el síntoma: el costo de búsquedas duplicadas ya se pagó y el hueco de cobertura sigue.",
+        "3": "Pierde el paralelismo; el problema era cómo se dividió el trabajo, no cuántos agentes hay."
+      },
+      "rule": "Por objetivo no es vago: cada subagente con objetivo propio, formato, fuentes y límites.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "Without detailed task descriptions, agents duplicate work, leave gaps, or fail to find necessary information.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Cita confirmada en el post de ingeniería de Anthropic. Cambios: acorté la correcta (era la más larga) y saqué el 'always' de la opción D."
+      }
+    },
+    {
+      "id": "o04-q23",
+      "objective": 4,
+      "pool": "practice",
+      "scenario": "A law firm builds a Structured Data Extraction workflow for supplier contracts with four stages: extract clauses, classify each clause against a taxonomy, compare against the firm's template, and draft redline comments. Each stage depends on the previous stage's output, and the quality team must inspect and log the intermediate outputs of stages 1 and 2 for every contract. An architect proposes replacing the pipeline with a single goal-oriented agent prompted to \"review this contract and produce redline comments\" so it can adapt its approach. Which design should the team choose?",
+      "options": [
+        "The single goal-oriented agent with quality criteria, asking it to include its intermediate reasoning in the final answer.",
+        "Explicit prompt chaining: one call per stage in sequence, passing each validated output to the next call.",
+        "A coordinator that launches four subagents in parallel, one per stage, and merges their outputs at the end.",
+        "The single goal-oriented agent, plus a separate audit agent that later reconstructs the stage 1 and 2 outputs from the final comments."
+      ],
+      "correct": 1,
+      "why_correct": "Delegar por objetivo no siempre gana. Si el orden importa y hay que inspeccionar salidas intermedias, la doc dice que el encadenamiento explícito de prompts sigue siendo útil: llamadas secuenciales que fuerzan la estructura del pipeline. Ahí lo procedural es la elección correcta.",
+      "why_wrong": {
+        "0": "Casi: el razonamiento incluido en la respuesta final no es una salida intermedia inspeccionable y validable por etapa.",
+        "2": "Las etapas dependen entre sí: no se pueden correr en paralelo.",
+        "3": "Reconstruir intermedios después es poco confiable y no sirve como control de calidad."
+      },
+      "rule": "Orden fijo + inspeccionar intermedios → prompt chaining. Delegar por objetivo es para tareas que necesitan adaptarse.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Explicit prompt chaining (breaking a task into sequential API calls) is still useful when you need to inspect intermediate outputs or enforce a specific pipeline structure.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
         "verdict": "ok",
-        "notes": "Cita textual (production tracing) y el escenario 'not finding obvious information' sale del post."
+        "notes": "Cita textual confirmada en claude-prompting-best-practices (Explicit prompt chaining ... inspect intermediate outputs)."
+      }
+    },
+    {
+      "id": "o04-q24",
+      "objective": 4,
+      "pool": "practice",
+      "scenario": "A consulting firm's Multi-Agent Research System delegates by goal and works well on complex market studies, which legitimately need 10 or more subagents. But traces show simple questions, such as \"What year was Company X founded?\", also trigger 6 to 8 subagents that search for minutes, raising average cost per question by 4x and making simple answers take over two minutes. The team wants simple questions to stay cheap without limiting the complex studies. What is the most effective change?",
+      "options": [
+        "Set CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS to 2 so no question can spawn more than two subagents running at once.",
+        "Set CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH to 1 so subagents cannot spawn subagents of their own on any question.",
+        "Replace goal-based delegation with a fixed plan that spawns three subagents for every question, simple or complex.",
+        "Add scaling rules to the coordinator prompt: a single agent for simple facts, several subagents for complex research."
+      ],
+      "correct": 3,
+      "why_correct": "El problema es de criterio, no de capacidad: el coordinador no distingue cuándo vale la pena delegar. La doc de prompting dice que si ves uso excesivo de subagentes agregues guía explícita sobre cuándo se justifican y cuándo no (y el post de ingeniería de Anthropic cuenta lo mismo como \"scaling rules\": 1 agente con pocas tool calls para un dato simple, más subagentes para investigación compleja). Así lo simple queda barato sin cortar los estudios grandes.",
+      "why_wrong": {
+        "0": "Casi: es un tope real, pero castiga los estudios complejos que necesitan 10+ subagentes, y no hace que una pregunta simple use uno solo.",
+        "1": "La profundidad es otro problema: acá el exceso está en el primer nivel de subagentes.",
+        "2": "Vuelve a una regla rígida: sobra para lo simple y queda corto para lo complejo."
+      },
+      "rule": "El esfuerzo se escala con reglas explícitas en el prompt del coordinador; los topes técnicos son una red de seguridad, no el criterio.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "If you’re seeing excessive subagent use, add explicit guidance about when subagents are and aren’t warranted",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Cambié la fuente al post de ingeniería por la doc oficial de platform (Subagent orchestration), que da la misma idea; cita confirmada. Acorté la correcta (era la más larga) y saqué 'always'/'exactly' de la opción C; ajusté why_correct."
+      }
+    },
+    {
+      "id": "o04-q25",
+      "objective": 4,
+      "pool": "practice",
+      "scenario": "An internal tools team evaluates its Developer Productivity agent, which delegates codebase questions to goal-oriented subagents. Their evaluation harness compares each subagent's tool-call trace with a \"golden\" sequence (for example `Glob` → `Grep` → `Read` on specific files) and fails any deviation. 40% of runs fail the eval, yet manual review shows most of those runs produced correct, well-supported answers through different but valid paths. Leadership wants an eval that tracks answer quality and still catches real regressions. What should the team change?",
+      "options": [
+        "Score whether each run reached the correct final state, with checkpoints for key state changes, not the exact tool sequence.",
+        "Keep sequence matching but allow a tolerance of two extra or reordered tool calls before marking a run as failed.",
+        "Make the subagent prompts procedural so every run follows the golden sequence and the eval becomes stable.",
+        "Replace the automated eval with a weekly manual review of 50 random traces scored by senior engineers."
+      ],
+      "correct": 0,
+      "why_correct": "Los agentes por objetivo pueden tomar caminos distintos y válidos hacia la misma meta. Anthropic recomienda evaluar el estado final en vez de juzgar si el agente siguió un proceso específico, y partir los flujos complejos en checkpoints discretos. Así medís calidad y detectás regresiones reales.",
+      "why_wrong": {
+        "1": "Sigue midiendo el proceso, no el resultado: un camino válido pero distinto sigue fallando.",
+        "2": "Sacrifica la adaptabilidad para que el eval quede lindo; optimiza la métrica, no el sistema.",
+        "3": "Una revisión manual semanal no escala ni sirve como regresión automática."
+      },
+      "rule": "Agentes adaptativos se evalúan por el estado final, no por la secuencia de tools.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "Instead of judging whether the agent followed a specific process, evaluate whether it achieved the correct final state.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Cita confirmada en el post de ingeniería de Anthropic (sin equivalente en docs). Cambio: acorté la correcta, era la más larga."
       }
     }
   ]

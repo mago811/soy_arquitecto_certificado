@@ -22,11 +22,11 @@
       "rule": "Archivos por nombre o extensión → Glob. Texto dentro de archivos → Grep.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "The Glob tool finds files by name pattern.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual; subagente con Read, Grep, Glob. Read no lee directorios (tools-reference)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual; subagente con Read, Grep, Glob. Read no lee directorios (tools-reference). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "\"¿Quién llama a X?\" / \"¿dónde aparece este error?\" → Grep.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "The Grep tool searches file contents for patterns.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual; agente con Read, Grep y Glob. Tope de 100 de Glob confirmado."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual; agente con Read, Grep y Glob. Tope de 100 de Glob confirmado. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "Listar una carpeta → `ls` vía Bash (o Glob), nunca Read.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "Read only reads files, not directories. Claude lists directory contents with a shell command such as `ls`.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual: Read solo lee archivos, se lista con ls vía Bash."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual: Read solo lee archivos, se lista con ls vía Bash. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,11 @@
       "rule": "git, tests, builds, cualquier cosa que sea \"ejecutar\" → Bash.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "Executes shell commands in your environment.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Bash 'Executes shell commands in your environment' textual en la tabla de tools; git diff --name-only main...HEAD es comando git estándar."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Bash 'Executes shell commands in your environment' textual en la tabla de tools; git diff --name-only main...HEAD es comando git estándar. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -134,11 +134,11 @@
       "rule": "Edit falla por no-único → `old_string` con más contexto. `replace_all` solo si querés cambiar todas.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "When it appears more than once, Claude either supplies a longer string with enough surrounding context to pin down one occurrence, or sets `replace_all: true` to replace them all.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "Cita textual (Uniqueness) en tools-reference; Edit no usa regex y Write crea o sobrescribe (confirmado). Se sacó de why_correct y de rule el fallback Read+Write, que es de la guía del examen y no de la doc."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual (Uniqueness) en tools-reference; Edit no usa regex y Write crea o sobrescribe (confirmado). Se sacó de why_correct y de rule el fallback Read+Write, que es de la guía del examen y no de la doc. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -162,11 +162,11 @@
       "rule": "Grep = regex de ripgrep: escapá metacaracteres (`{`, `(`, `.`…).",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "Patterns that include regex metacharacters need escaping.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita y ejemplo interface\\{\\} textual en tools-reference; el escenario dice que usa la tool Grep."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita y ejemplo interface\\{\\} textual en tools-reference; el escenario dice que usa la tool Grep. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -190,11 +190,11 @@
       "rule": "Explorador que no puede ejecutar ni editar → `tools: Read, Grep, Glob`. El límite lo pone la config, no el prompt.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "Now it's a reviewer that can't edit anything, and that limit is enforced by Claude Code rather than requested in a prompt.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en best-practices; tools-reference confirma que Glob/Grep vuelven para un subagente que los lista y deja afuera Bash. permissionMode plan no quita Bash."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en best-practices; tools-reference confirma que Glob/Grep vuelven para un subagente que los lista y deja afuera Bash. permissionMode plan no quita Bash. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -218,11 +218,151 @@
       "rule": "Glob ve archivos gitignored por defecto; Grep no.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "Glob doesn't respect `.gitignore` by default, so it finds gitignored files alongside tracked ones.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual: Glob no respeta .gitignore por defecto; Grep saltea gitignored. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o32-q21",
+      "objective": 32,
+      "pool": "practice",
+      "scenario": "A platform team on Windows laptops uses Claude Code to plan the removal of a deprecated `LegacyAuth` class from a 4,000-file TypeScript monorepo. Only controller files under `services/` matter for this phase. In the first attempt, Claude ran Glob with `services/**/*.controller.ts`, got 100 paths back with a truncation flag, and then started calling Read on each controller to check its imports. After 38 reads the session was at 70% context and Claude had found only 9 files that import `LegacyAuth`. No code intelligence plugin is installed, and the team wants the exploration to stay cheap enough to repeat for every service. Which approach is the most effective way to produce the complete list of affected controllers?",
+      "options": [
+        "Keep the Glob-first approach but split the pattern per service folder so no call hits the 100-file cap, then Read every returned controller and note which ones import the class.",
+        "Run Grep for `LegacyAuth` with the `glob` parameter set to `services/**/*.controller.ts` in the default `files_with_matches` mode, then Read only the files it returns.",
+        "Call Read on the `services/` folder to get the full list of controllers in one call, then run Grep for `LegacyAuth` on each controller path that Read lists.",
+        "Ask Claude to use the LSP tool's find-references on `LegacyAuth`, since references from the language server are more precise than any text search over the controllers."
+      ],
+      "correct": 1,
+      "why_correct": "La pregunta es por CONTENIDO (quién importa `LegacyAuth`), así que la tool es `Grep`, no `Glob`. Con el parámetro `glob` acotás la búsqueda a los controllers y el modo por defecto `files_with_matches` te devuelve solo rutas, sin llenar el contexto. Después leés con `Read` únicamente los archivos que matchearon: exploración incremental, no leer todo de entrada.",
+      "why_wrong": {
+        "0": "Partir el patrón evita el tope de 100 de `Glob`, pero seguís leyendo cientos de archivos para buscar un texto. Es el mismo error de fondo: usar `Glob` + `Read` para una búsqueda de contenido.",
+        "2": "`Read` solo lee archivos, no directorios. Para listar una carpeta Claude usa un comando de shell; esa primera llamada falla.",
+        "3": "La tool `LSP` queda inactiva hasta que instalás un plugin de code intelligence para el lenguaje, y el escenario dice que no hay ninguno."
+      },
+      "rule": "¿Buscás texto adentro de archivos? `Grep` (con `glob`/`type` para acotar). ¿Buscás archivos por nombre? `Glob`. Después, `Read` solo de lo que encontraste.",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "Claude can scope results by file with the `glob` parameter, such as `**/*.tsx`, or by language with the `type` parameter, such as `py` or `rust`.",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
         "verdict": "ok",
-        "notes": "Cita textual: Glob no respeta .gitignore por defecto; Grep saltea gitignored."
+        "notes": "Doc tools-reference: Grep con `glob`, Read no lee directorios, LSP inactivo sin plugin; en Windows Glob/Grep están por defecto. Cita textual."
+      }
+    },
+    {
+      "id": "o32-q22",
+      "objective": 32,
+      "pool": "practice",
+      "scenario": "A manufacturing company keeps the configuration of its legacy Delphi ERP in `.ini` files saved as Windows-1252, with accented plant names such as `Línea Córdoba`. The ERP only reads that encoding. A developer on Windows asks Claude Code to change `MaxBatch=40` to `MaxBatch=60` in `plants\\cordoba.ini`. Claude reads the file (accents show as replacement characters) and calls Edit, which refuses the change and leaves the file untouched. The developer must not convert the file to UTF-8, because the ERP vendor does not support it, and the change has to reach production today. What should Claude do to make the change safely?",
+      "options": [
+        "Rebuild the whole file with Write using the corrected value, because Write is allowed to replace files that Edit refuses and saves the new content exactly as provided.",
+        "Retry Edit with `replace_all: true` and a shorter `old_string` such as `MaxBatch=40`, so the match no longer depends on the lines that contain the accented names.",
+        "Make the change with a PowerShell command that reads and writes the file in its original Windows-1252 encoding, as the tool error suggests, and then verify the bytes.",
+        "Read the file again with a larger `limit` so the accented characters decode correctly, and then call Edit again using the freshly read text as the `old_string`."
+      ],
+      "correct": 2,
+      "why_correct": "`Edit` rechaza archivos que no son UTF-8 válido porque guardaría todo como UTF-8 y reemplazaría los bytes que no puede decodificar. El propio error le indica a Claude que haga el cambio con un comando de shell que conserve el encoding, o que te pregunte si convertir. Como convertir está prohibido, el camino es un comando de PowerShell que lea y escriba en Windows-1252.",
+      "why_wrong": {
+        "0": "`Write` sí puede reemplazar el archivo (salvo que el contenido traiga `U+FFFD`), pero lo guarda como UTF-8: se pierde el encoding original y el ERP deja de leerlo. Resuelve la herramienta, no el requisito.",
+        "1": "El rechazo no tiene que ver con la unicidad del `old_string`: es el encoding del archivo. `replace_all` no cambia eso.",
+        "3": "El `limit` controla cuántas líneas se leen, no cómo se decodifican. El archivo sigue siendo Windows-1252 y `Edit` lo sigue rechazando."
+      },
+      "rule": "Archivo no UTF-8 que tiene que quedar en su encoding: ni `Edit` ni `Write`; comando de shell que preserve el encoding (o preguntar antes de convertir).",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "tells it to make the change with a shell command that keeps the file's encoding, or to ask you about converting it to UTF-8 first.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc: Edit rechaza no-UTF-8 (Windows-1252), el error sugiere shell que preserve encoding; Write guarda como UTF-8. Cita textual."
+      }
+    },
+    {
+      "id": "o32-q23",
+      "objective": 32,
+      "pool": "practice",
+      "scenario": "A fintech runs a nightly secrets audit on a Linux CI runner with `claude -p --tools \"Read,Glob,Grep\"`. Shell access is intentionally excluded by the security team. The build step generates `.env.generated` files inside `build/` and `dist/`, which are listed in `.gitignore`. Last week a leaked key was found by hand in `build/api/.env.generated`, yet that night's audit report said: \"Grep for `AWS_SECRET_ACCESS_KEY` returned no matches.\" The team confirmed the file existed on the runner when the job ran. They want the job to keep using only the three tools it has today. Which change makes the audit find secrets in those generated files?",
+      "options": [
+        "Have Claude first run Glob with `**/.env*` to enumerate the files, including gitignored ones, and then run Grep on each returned path by passing the path directly.",
+        "Set `CLAUDE_CODE_GLOB_NO_IGNORE=false` on the runner so that Glob and Grep apply the same ignore rules, and rerun the same repository-wide Grep search.",
+        "Re-run Grep with `multiline: true` and `output_mode: \"content\"`, since secrets in `.env` files are often split across lines and the default mode hides them.",
+        "Add `Bash` to `--tools` so Claude can run `grep -r` over the workspace, which searches every file on disk regardless of what the repository ignores."
+      ],
+      "correct": 0,
+      "why_correct": "`Grep` respeta `.gitignore` y se saltea los archivos ignorados; para buscar en uno, hay que pasarle la ruta directa. `Glob`, en cambio, NO respeta `.gitignore` por defecto, así que encuentra los `.env.generated` junto con los trackeados. Combinarlos (Glob para listar, Grep por ruta) resuelve el hueco sin sumar tools.",
+      "why_wrong": {
+        "1": "Es al revés: `CLAUDE_CODE_GLOB_NO_IGNORE=false` hace que `Glob` también respete `.gitignore`. Empeora el problema y `Grep` sigue sin ver esos archivos.",
+        "2": "El problema no es de formato ni de líneas: `Grep` directamente no recorrió los archivos ignorados. `multiline` no cambia qué archivos se buscan.",
+        "3": "Funcionaría, pero viola la restricción explícita: seguridad sacó el shell a propósito. No hace falta abrir `Bash` cuando las tools que ya tenés alcanzan."
+      },
+      "rule": "`Grep` saltea lo que está en `.gitignore` (pasale la ruta directa); `Glob` no lo saltea por defecto.",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "Grep respects `.gitignore`, so gitignored files are skipped. To search a gitignored file, Claude passes its path directly.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc: Grep respeta .gitignore (ruta directa), Glob no por defecto; CLAUDE_CODE_GLOB_NO_IGNORE=false hace que Glob lo respete. Cita textual."
+      }
+    },
+    {
+      "id": "o32-q24",
+      "objective": 32,
+      "pool": "practice",
+      "scenario": "A logistics company's on-call engineer uses Claude Code on Windows to diagnose a crash in a .NET worker. The relevant evidence is `logs\\worker-2026-11-19.log`, a 900 KB text file with about 11,000 lines; the crash left a single `System.NullReferenceException` stack trace somewhere in it. Claude's first Read of the whole file returned an error saying the file was too large and suggesting another approach. The session is already at 60% of its context window because of an earlier investigation the engineer wants to keep. Claude Code is v2.1.300. What is the most effective next step for Claude?",
+      "options": [
+        "Call Read again with `allow_large: true`, so the whole log arrives in a single call sized against the remaining context window, and then look for the trace.",
+        "Read the log in consecutive pages with `offset` and `limit`, starting at line 1, and stop as soon as one of the pages contains the exception's stack trace.",
+        "Use the PowerShell tool to run `Get-Content` with `-Tail 200` on the log, since crash traces are written at the end of the file right before the process exits.",
+        "Grep the log for `NullReferenceException` in `content` mode to get the line number, then Read only a window around that line using `offset` and `limit`."
+      ],
+      "correct": 3,
+      "why_correct": "Para un archivo de más de 256 KB, el error de `Read` le dice a Claude que lea una porción con `offset`/`limit` o que busque el contenido con `Grep`. Buscar primero la firma del error te da el número de línea y después leés solo esa ventana: gastás muy poco contexto y vas directo a la evidencia.",
+      "why_wrong": {
+        "0": "`allow_large` existe (v2.1.296+) y funciona, pero mete los 900 KB enteros en una sesión que ya está al 60%. Es el contrario de lo que pide la restricción: la doc lo plantea para cuando necesitás el archivo completo.",
+        "1": "Paginar desde el principio funciona a medias: podés consumir decenas de páginas antes de llegar al trace. Es leer todo de entrada, en cuotas.",
+        "2": "Apuesta a que el trace está al final. Un worker que sigue logueando después del error (reintentos, shutdown) lo deja más arriba, y `-Tail 200` no lo ve."
+      },
+      "rule": "Archivo enorme: `Grep` para ubicar, `Read` con `offset`/`limit` para leer solo esa zona.",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "an error telling it to read a portion with `offset` and `limit`, or to search for specific content with Grep instead",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc: archivo >256 KB → error que sugiere offset/limit o Grep; allow_large existe desde v2.1.296 pero consume contexto. Cita textual."
+      }
+    },
+    {
+      "id": "o32-q25",
+      "objective": 32,
+      "pool": "practice",
+      "scenario": "A retail engineering team wants to prioritize removing debug logging before a release. A developer on Windows asks Claude Code: \"For every file under `src/`, tell me how many `console.log(` calls it has, plus the overall total.\" Claude first calls Grep with the pattern `console.log(` and gets back an error that includes ripgrep's diagnostic about an unclosed group. On its second attempt it switches to `output_mode: \"content\"` with `head_limit: 50` and reports \"50 occurrences in total\", but a teammate's manual check finds more than 700. The developer wants one reliable call they can rerun before each release. Which Grep call should Claude make?",
+      "options": [
+        "Pattern `console\\.log\\(` with `output_mode: \"count\"`, which lists the matches per file and a total that covers every match even if the listed entries are truncated.",
+        "Pattern `console\\.log\\(` in `files_with_matches` mode, then Read each matching file and count the occurrences, since the default mode is the only one that is complete.",
+        "Pattern `console.log(` unchanged but in `files_with_matches` mode, because that mode returns only paths and therefore does not need to parse the regex groups.",
+        "Pattern `console\\.log\\(` in `content` mode with `multiline: true` and no `head_limit`, then sum the returned lines per file to compute the totals for the report."
+      ],
+      "correct": 0,
+      "why_correct": "Dos errores en uno. Primero, `Grep` usa la sintaxis regex de ripgrep: `.` y `(` son metacaracteres y hay que escaparlos (`console\\.log\\(`). Segundo, para contar existe `output_mode: \"count\"`: da el conteo por archivo y un total que cubre TODOS los matches aunque `head_limit` u `offset` recorten la lista.",
+      "why_wrong": {
+        "1": "Escapa bien, pero después lee cientos de archivos para contar algo que `Grep` ya cuenta. Funciona a medias y quema contexto.",
+        "2": "Todos los modos usan el mismo patrón regex: si ripgrep rechaza `console.log(`, lo rechaza en cualquier modo.",
+        "3": "`multiline` sirve para matches que cruzan líneas, no para contar. Sin `head_limit` te trae cientos de líneas al contexto y la suma la tenés que hacer vos; `count` ya la hace."
+      },
+      "rule": "En `Grep`, escapá metacaracteres de regex y, si necesitás números, usá `output_mode: \"count\"`.",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "`count`: match count per file, followed by a total across all matching files. The total covers every match even when the tool's `head_limit` or `offset` parameters truncate the listed per-file entries.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc: Grep usa regex de ripgrep (escapar), error con diagnóstico; modo count con total completo aunque head_limit trunque. Cita textual."
       }
     }
   ]

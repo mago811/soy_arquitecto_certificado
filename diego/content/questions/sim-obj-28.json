@@ -22,11 +22,11 @@
       "rule": "Techo sincrónico = 128K. Si la salida crece con la entrada y ya tocaste el techo → partir y mergear en código.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
       "source_quote": "Extended output is available on the Message Batches API only, not the synchronous Messages API.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Confirmado en batch-processing: output-300k-2026-03-24 sube el cap a 300K solo en Message Batches (Opus 5.5 incluido), no en la API sincrónica; techo estándar 128K; una generación de 300K puede tardar más de una hora (ventana 24 h). thinking.md: Opus 5.5 rechaza thinking disabled."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Confirmado en batch-processing: output-300k-2026-03-24 sube el cap a 300K solo en Message Batches (Opus 5.5 incluido), no en la API sincrónica; techo estándar 128K; una generación de 300K puede tardar más de una hora (ventana 24 h). thinking.md: Opus 5.5 rechaza thinking disabled. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "Salida acotada y lejos del techo → subí `max_tokens`. Partir es para cuando crece con la entrada o toca el techo.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
       "source_quote": "you’ll need to retry the request with a higher `max_tokens` value to get the full tool use.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en handling-stop-reasons (tool use incompleto → reintentar con max_tokens más alto). Salida acotada y lejos del techo: subir primero es lo que dice la doc. Combina o28-q03 y o28-q05 pero agrega el caso tool_use parcial ejecutado."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en handling-stop-reasons (tool use incompleto → reintentar con max_tokens más alto). Salida acotada y lejos del techo: subir primero es lo que dice la doc. Combina o28-q03 y o28-q05 pero agrega el caso tool_use parcial ejecutado. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "Thinking + JSON comparten `max_tokens`; si juntos tocan el techo y crecen con la entrada → partir.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
       "source_quote": "and they count toward `max_tokens` alongside the response text.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en thinking (thinking cuenta para max_tokens). Confirmado: Opus 5.5 128K sincrónico y rechaza thinking disabled (400). Partir es correcto porque la salida crece con la entrada y toca el techo."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en thinking (thinking cuenta para max_tokens). Confirmado: Opus 5.5 128K sincrónico y rechaza thinking disabled (400). Partir es correcto porque la salida crece con la entrada y toca el techo. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,151 @@
       "rule": "Batch con salida que crece → un request por unidad, `custom_id` significativo y merge en código.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
       "source_quote": "Use meaningful `custom_id` values to easily match results with requests, because order is not guaranteed.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en batch-processing (custom_id significativos, orden no garantizado). Techo 300K solo con el header en Batches; 128K sincrónico confirma W0. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o28-s21",
+      "objective": 28,
+      "pool": "sim",
+      "scenario": "A healthcare SaaS reviews pull requests in its 600-service monorepo with one synchronous Messages API call per PR that returns a findings array through a forced tool. Two problems appear on PRs touching 40+ files: responses hit `max_tokens` at 128000, and when they don't, findings contradict each other (the same sanitizer is reported as \"missing\" in one finding and \"correctly applied\" in another). The security team insists the review keep catching cross-file taint flows, such as unvalidated input entering a controller in one service and reaching a SQL query in another. Reviews must stay synchronous because they gate merges. Which architecture is most effective?",
+      "options": [
+        "Run focused per-file passes for local issues plus separate integration passes for cross-file data flow, and merge all of the findings in code.",
+        "Run one review call per changed file with the same findings schema, then deduplicate and merge the arrays in code into a single report for the PR.",
+        "Keep one call per PR but raise the effort level, and add an instruction to double-check that no two findings contradict each other.",
+        "Keep one call per PR but send it through the Message Batches API with the 300k output beta header, which removes the truncation."
+      ],
+      "correct": 0,
+      "why_correct": "Una sola llamada gigante trunca y diluye la atención (de ahí las contradicciones). Pasadas por archivo para lo local, más pasadas de integración para los flujos entre archivos, cada una con salida chica, y el merge en código. Cubre truncamiento, contradicciones y el requisito de taint entre servicios.",
+      "why_wrong": {
+        "1": "Casi: resuelve truncamiento y dilución, pero una pasada por archivo nunca ve el flujo controller → SQL entre servicios. Pierde justo lo que seguridad exige.",
+        "2": "Más effort no achica la salida ni arregla la dilución de atención de una revisión gigante; siguen en el techo de 128K.",
+        "3": "Batches es asincrónico y no puede bloquear un merge; y tampoco arregla las contradicciones."
+      },
+      "rule": "Review grande: pasadas locales por archivo + pasadas de integración entre archivos, merge en código.",
+      "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
+      "source_quote": "Splitting large multi-file reviews into focused per-file passes for local issues plus separate integration passes for cross-file data flow analysis",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
         "verdict": "ok",
-        "notes": "Cita textual en batch-processing (custom_id significativos, orden no garantizado). Techo 300K solo con el header en Batches; 128K sincrónico confirma W0."
+        "notes": "Cita textual en la guía oficial del examen (PDF everpath) (pasadas por archivo + integración). B es casi-correcta legítima (no ve flujos entre archivos). Batches asincrónico."
+      }
+    },
+    {
+      "id": "o28-s22",
+      "objective": 28,
+      "pool": "sim",
+      "scenario": "A health insurer adjudicates hospital bills in near real time: each claim must be extracted and priced within two minutes of upload. Extraction uses Claude Opus 5.5 on the synchronous Messages API with a forced `record_line_items` tool whose input is an array of line items, and `max_tokens` is already 128000. Bills with more than about 2,500 lines (1% of volume, but 30% of claim value) end with `stop_reason: \"max_tokens\"`. An engineer implemented continuation: append the partial assistant content and send \"Please continue from where you left off.\" The merged results regularly drop or duplicate rows at the seam between responses. Which change addresses the root cause?",
+      "options": [
+        "Retry truncated requests with a higher `max_tokens` value, as the documentation recommends for responses that end with an incomplete tool use block.",
+        "Send the large bills through the Message Batches API with the 300k output beta header, and keep the synchronous path for every other bill.",
+        "Keep the continuation loop but deduplicate rows by description and amount at each seam, so dropped and repeated rows get reconciled.",
+        "Split each large bill into page ranges, extract each range with the same tool schema in parallel calls, and concatenate the arrays in code."
+      ],
+      "correct": 3,
+      "why_correct": "Ya están en el techo de salida sincrónico (128K) y la cantidad de filas crece con la factura. Partir por rangos de páginas con el mismo schema, en paralelo, mantiene cada respuesta chica, cumple los dos minutos y el merge es concatenar arrays: ya no hay costuras adentro de una respuesta.",
+      "why_wrong": {
+        "0": "La doc lo recomienda, y lejos del techo es lo correcto; pero acá ya están en 128K, el máximo de la API sincrónica. No queda nada para subir.",
+        "1": "Batches es asincrónico y no garantiza los dos minutos; justo las facturas de más valor quedarían fuera del SLA.",
+        "2": "Parche sobre un mecanismo frágil: dos filas legítimas iguales (mismo ítem, mismo monto) se borrarían, y las filas perdidas no aparecen deduplicando."
+      },
+      "rule": "En el techo no estires: partí la entrada y concatená salidas con el mismo schema.",
+      "source_url": "https://platform.claude.com/docs/en/about-claude/models/overview",
+      "source_quote": "Max output: Synchronous Messages API limit.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en models overview. Batch 300k confirmado en batch-processing pero asincrónico. Retry con más max_tokens imposible en el techo 128K. Sin dos correctas."
+      }
+    },
+    {
+      "id": "o28-s23",
+      "objective": 28,
+      "pool": "sim",
+      "scenario": "A pharmaceutical research team built a literature-review agent. Its final step sends about 950k tokens of full-text papers to Claude Opus 5.5 (1M-token context window) in a single synchronous request with `max_tokens: 64000`, asking for a structured evidence table. On the largest reviews, the response stops after roughly 40k output tokens, thinking included, with an incomplete table. The log shows `stop_reason: \"model_context_window_exceeded\"`. A senior engineer proposes raising `max_tokens` to 128000 and retrying. The team must keep every paper in scope and cannot drop sources. What is the most effective fix?",
+      "options": [
+        "Raise `max_tokens` to 128000, the model's maximum synchronous output, so that the evidence table has twice as much room to finish.",
+        "Have subagents extract evidence rows from subsets of the papers in separate calls with the same row schema, then merge the rows in code.",
+        "Retry the identical request with exponential backoff, since context window errors are usually transient capacity limits that clear on a later attempt.",
+        "Move the request to the Message Batches API with the 300k output beta header, which allows a much longer response for the same input."
+      ],
+      "correct": 1,
+      "why_correct": "El `stop_reason` no es `max_tokens`: es `model_context_window_exceeded`. Input más output (el thinking también cuenta) chocaron con la ventana de 1M. Subir `max_tokens` no crea espacio; repartir los papers entre llamadas (cada una con mucho menos input) y mergear las filas sí, sin descartar fuentes.",
+      "why_wrong": {
+        "0": "Lee mal el síntoma: el límite alcanzado es la ventana de contexto, no `max_tokens`. Con 950k de input no queda lugar para más salida.",
+        "2": "No es un error transitorio sino una respuesta exitosa que se detuvo por el límite de la ventana; el mismo request se corta igual.",
+        "3": "Los 300k de salida en Batches no agrandan la ventana de contexto: el input de 950k sigue sin dejar lugar."
+      },
+      "rule": "Mirá cuál `stop_reason` es: `model_context_window_exceeded` se arregla achicando el input por llamada, no con `max_tokens`.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
+      "source_quote": "Claude stopped because it reached the model’s context window limit.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Cita textual en handling-stop-reasons (model_context_window_exceeded; en Sonnet 4.5+ sin beta header). Corregí números: 900k + 40k no llegaba a 1M; ahora 950k de input y se aclara que el thinking cuenta como salida. Rationales ajustados."
+      }
+    },
+    {
+      "id": "o28-s24",
+      "objective": 28,
+      "pool": "sim",
+      "scenario": "An investment research platform runs a coordinator with six subagents (filings, earnings calls, news, patents, hiring, pricing). Each subagent returns a valid JSON object with its findings and citations, about 150k tokens in total. The coordinator then makes one more synchronous call to Claude Opus 5.5, asking it to \"merge these six JSON objects into the final report schema, preserving every finding and citation,\" with `max_tokens: 128000`. That merge call now truncates for most large companies. Analysts watch the report build live and expect it within 90 seconds, and the final report must preserve every citation. Which redesign is most effective?",
+      "options": [
+        "Ask the merge call to shorten each finding to one line and keep only the first citation per finding, so the merged report fits in 128K.",
+        "Send the merge call to the Message Batches API with the 300k output beta header, so the full merged report fits in a single response.",
+        "Merge the six JSON objects into the report schema in code, and use Claude only for short cross-source parts such as the executive summary.",
+        "Prefill the merge response with the report's opening JSON, so the model doesn't spend output tokens restating the schema before the findings."
+      ],
+      "correct": 2,
+      "why_correct": "Los subagentes ya devuelven JSON válido: mergear estructuras es trabajo de código, no del modelo. Pedirle al modelo que reescriba 150k tokens de datos es lo que choca con el techo de salida. Claude queda solo para las partes chicas que de verdad requieren síntesis.",
+      "why_wrong": {
+        "0": "Rompe la restricción de preservar todas las citas.",
+        "1": "Batches es asincrónico (la mayoría termina en menos de una hora): no cumple los 90 segundos. Y sigue pagando para que el modelo copie datos que el código mueve gratis.",
+        "3": "El prefill no está soportado en Claude 4.6 y modelos posteriores; y el problema no es el preámbulo sino reescribir 150k tokens."
+      },
+      "rule": "Si los datos ya son JSON, el merge lo hace el código. Al modelo, solo lo que necesita síntesis.",
+      "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/increase-consistency",
+      "source_quote": "Break down complex tasks into smaller, consistent subtasks. Each prompt then covers a single subtask, reducing inconsistency errors across scaled workflows.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en increase-consistency. Prefill no soportado en 4.6+ (prompting best practices). Batches: mayoría <1h, no cumple 90 s. Merge en código es la única que preserva citas."
+      }
+    },
+    {
+      "id": "o28-s25",
+      "objective": 28,
+      "pool": "sim",
+      "scenario": "A legal-tech company extracts clauses from 5,000 contracts every night. Contracts over 200 pages are split into 6 chunks, and every chunk becomes one request in a single Message Batches API job of about 18,000 requests. The merge step reads the results file line by line and assigns each result to a contract based on the order in which the requests were submitted. Since the switch to batches, auditors find clauses attached to the wrong contract in about 4% of records, and the error rate is higher on nights with larger batches. Every request already uses the same clause schema, and none are truncated. Which change fixes the merge?",
+      "options": [
+        "Give each request a `custom_id` that encodes the contract ID and chunk index, and merge results by `custom_id` instead of by position.",
+        "Submit one batch per contract so that each results file contains only that contract's chunks and result order stays aligned with submission order.",
+        "Add the contract ID as a required field in the clause schema and ask Claude to copy it from the prompt into every clause it extracts.",
+        "Keep each night's batches under 1,000 requests and process them one after another, since result order is only preserved in small batches."
+      ],
+      "correct": 0,
+      "why_correct": "Los resultados de un batch pueden volver en cualquier orden. El `custom_id` existe para eso: codificás contrato y chunk (por ejemplo `c48213-chunk3`) y mergeás por ese campo. Es determinístico y no depende del orden.",
+      "why_wrong": {
+        "1": "5.000 batches por noche multiplica la operación, y ni siquiera dentro de un batch el orden está garantizado.",
+        "2": "Funciona casi siempre, pero confía en que el modelo copie un ID: un dato que ya tenés en tu código no tiene por qué pasar por el modelo.",
+        "3": "El orden no está garantizado en ningún tamaño de batch; achicarlo solo baja la frecuencia del error y multiplica la operación."
+      },
+      "rule": "Batches: el orden de los resultados no está garantizado. Mergeá siempre por `custom_id`.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "source_quote": "Batch results can be returned in any order, and might not match the ordering of requests when the batch was created.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en batch-processing (\"results can be returned in any order... always use the custom_id\"). Ninguna otra opción garantiza el orden."
       }
     }
   ]

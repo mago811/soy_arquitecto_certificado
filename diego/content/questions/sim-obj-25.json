@@ -22,11 +22,11 @@
       "rule": "Structured outputs también funciona con streaming: no tenés que elegir entre UX progresiva y JSON garantizado.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "Stream structured outputs like normal responses",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Confirmado: streaming compatible (\"Feature compatibility\"); prefill 400 desde 4.6 (best practices); Sonnet 5.5 da 400 al forzar tools (define-tools)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Confirmado: streaming compatible (\"Feature compatibility\"); prefill 400 desde 4.6 (best practices); Sonnet 5.5 da 400 al forzar tools (define-tools). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "Sin apuro y con schema obligatorio: Batches API + structured outputs.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "Process structured outputs at scale with a 50 percent discount",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual: batch processing con 50% de descuento compatible con structured outputs; Sonnet 5.5 rechaza any/tool."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual: batch processing con 50% de descuento compatible con structured outputs; Sonnet 5.5 rechaza any/tool. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "Restricciones que la API no soporta: el SDK las mueve a la descripción y las valida en tu código.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "Claude receives a simplified schema, but a helper that validates responses still enforces every constraint in your code.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en \"How SDK transformation works\": quita minimum/maximum, los agrega a la description y valida contra el schema original; la API no soporta restricciones numéricas (400)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en \"How SDK transformation works\": quita minimum/maximum, los agrega a la description y valida contra el schema original; la API no soporta restricciones numéricas (400). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,151 @@
       "rule": "Prefill y JSON outputs no se combinan: si usás `output_config.format`, sacá el prefill.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "Prefilling is incompatible with JSON outputs.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual: \"Prefilling is incompatible with JSON outputs.\" Haiku 4.5 todavía acepta prefill (solo 4.6+ dan 400). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o25-s21",
+      "objective": 25,
+      "pool": "sim",
+      "scenario": "A bank's nightly job extracts transactions from 180,000 card statements into JSON that a Java loader ingests. It runs on Claude Haiku 4.5 and ends each request with a prefilled assistant message, `{\"transactions\": [`, to keep the output machine-readable; malformed JSON still breaks the loader about 0.5% of the time. For accuracy reasons the bank must move the job to Claude Sonnet 5.5. In the first test run on Sonnet 5.5, every request returns a 400 `invalid_request_error`. The loader team requires guaranteed schema-valid JSON in the response itself. Which approach should the team adopt?",
+      "options": [
+        "Move the prefill text into the system prompt as 'Begin your answer with {\"transactions\": [' and keep the current parser.",
+        "Remove the prefill and send the transaction schema in output_config.format, then read the JSON from the response's text block.",
+        "Define a record_transactions tool with strict: true and force it with tool_choice, so the model always returns that tool's input.",
+        "Keep the prefill but move it to an earlier assistant turn in the conversation, which newer models still accept without errors."
+      ],
+      "correct": 1,
+      "why_correct": "El 400 viene del prefill: desde los modelos 4.6 no se acepta un prefill en el último turno de assistant. Para pedir que la respuesta misma tenga una forma JSON fija, la doc indica structured outputs (`output_config.format`), que además elimina el 0,5% de JSON malformado.",
+      "why_wrong": {
+        "0": "Saca el error, pero una instrucción en el system prompt no garantiza JSON válido contra el schema.",
+        "2": "Casi: en Sonnet 5.5 el forced tool use (`tool_choice` `any` o `tool`) también devuelve 400. Con `auto` no tenés garantía de llamada.",
+        "3": "Un mensaje de assistant en un turno anterior ya no es un prefill de la respuesta: no fuerza nada ni garantiza el formato."
+      },
+      "rule": "Migrar prefill a modelos nuevos → structured outputs. En Sonnet/Opus 5.5 ni el prefill ni el forced tool use están disponibles.",
+      "source_url": "https://platform.claude.com/docs/en/api/errors",
+      "source_quote": "Use auto with strict tool use to keep tool inputs schema-valid, or structured outputs when you need the response itself in a fixed JSON shape.",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
         "verdict": "ok",
-        "notes": "Cita textual: \"Prefilling is incompatible with JSON outputs.\" Haiku 4.5 todavía acepta prefill (solo 4.6+ dan 400)."
+        "notes": "Cita textual en api/errors (sección Forced tool use not supported, links markdown quitados). Haiku 4.5 sí acepta prefill (4.6+ no) y Sonnet 5.5 da 400 con prefill y con tool_choice any/tool: confirmado en api/errors y define-tools. Correcta: output_config.format."
+      }
+    },
+    {
+      "id": "o25-s22",
+      "objective": 25,
+      "pool": "sim",
+      "scenario": "A travel company's support agent handles booking changes through tools `search_flights` and `rebook_ticket`, then returns a final message that the mobile app renders as cards. The app needs that final message as JSON with `summary`, `new_itinerary` and `next_steps`. Today two different failures happen: `rebook_ticket` occasionally receives `passengers: \"two\"`, and the final message sometimes arrives as prose with the JSON embedded inside it. Each failure affects about 1% of conversations, and support leads escalate every broken card by hand. The model is Claude Sonnet 5.5 and cannot be changed. Which configuration fixes both failures?",
+      "options": [
+        "Set strict: true on both tools and force rebook_ticket with tool_choice, so the booking step always produces structured data.",
+        "Use output_config.format for the final JSON and rely on that same schema constraint to also validate the rebook_ticket inputs.",
+        "Set strict: true on both tools and ask in the system prompt for the final message to be a JSON object with the three keys.",
+        "Set strict: true on both tools for valid inputs, and use output_config.format with the card schema for the final response."
+      ],
+      "correct": 3,
+      "why_correct": "Son dos problemas distintos con dos features complementarias: `strict: true` valida los parámetros con que Claude llama a tus tools, y `output_config.format` controla la forma de la respuesta. Combinadas, tenés llamadas con parámetros válidos y una respuesta final JSON garantizada.",
+      "why_wrong": {
+        "0": "Forzar tools en Sonnet 5.5 devuelve 400, y aunque anduviera no arregla la forma del mensaje final.",
+        "1": "`output_config.format` controla la respuesta, no los inputs de las tools: el `\"two\"` seguiría pasando.",
+        "2": "Casi: arregla los inputs, pero el mensaje final queda en manos de una instrucción, sin garantía de schema."
+      },
+      "rule": "Tool inputs → `strict: true`. Respuesta final → `output_config.format`. Si fallan las dos cosas, van las dos.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "source_quote": "When combined, Claude can call tools with guaranteed-valid parameters AND return structured JSON responses. This is useful for agentic workflows where you need both reliable tool calls and structured final outputs.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en structured-outputs ('When combined...'). Sonnet 5.5 sin forced tool use (define-tools). Dos fallas → dos features complementarias."
+      }
+    },
+    {
+      "id": "o25-s23",
+      "objective": 25,
+      "pool": "sim",
+      "scenario": "A marketplace screens user-submitted listings with Claude before publishing them. Each request uses `output_config.format` with the schema `{decision: enum[approve, reject, review], reason: string}`, and a Pydantic model parses the response. Roughly 1 in 2,000 requests crashes the parser because the text does not match the schema, and all of those responses have `stop_reason: \"refusal\"`; most are listings for prohibited items. The on-call engineer proposes wrapping the parser in a loop that resends the same request up to five times until it parses. What is the better design?",
+      "options": [
+        "Check stop_reason before parsing, and route refusal responses to a dedicated path such as human review or automatic rejection.",
+        "Add the retry loop as proposed, but raise max_tokens on each retry, since incomplete output is the usual cause of invalid JSON.",
+        "Add a refused value to the decision enum, so the model can express its refusal inside the schema instead of breaking it.",
+        "Switch from JSON outputs to a strict tool, because strict tool inputs keep matching the schema even when the model refuses."
+      ],
+      "correct": 0,
+      "why_correct": "La doc lista el refusal como un caso en que la salida puede no cumplir el schema: el mensaje de rechazo tiene prioridad sobre las restricciones del schema y viene con `stop_reason: \"refusal\"`. Lo correcto es mirar `stop_reason` antes de parsear y darle a ese caso su propio camino.",
+      "why_wrong": {
+        "1": "El problema no es `max_tokens` (eso tendría `stop_reason: \"max_tokens\"`). Reintentar el mismo contenido prohibido va a seguir dando refusal.",
+        "2": "Casi: suena prolijo, pero el refusal tiene prioridad sobre el schema, así que un valor extra en el enum no lo captura.",
+        "3": "No hay nada documentado que diga eso: el refusal es una excepción a la garantía de schema, y cambiar de feature no lo saca."
+      },
+      "rule": "Structured outputs garantiza el schema \"en la mayoría de los casos\": chequeá `stop_reason` (`refusal`, `max_tokens`) antes de parsear.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "source_quote": "The output might not match your schema because the refusal message takes precedence over schema constraints.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en structured-outputs (Refusals: stop_reason refusal, la salida puede no cumplir el schema). Reintentar/subir max_tokens/valor 'refused' no lo resuelven."
+      }
+    },
+    {
+      "id": "o25-s24",
+      "objective": 25,
+      "pool": "sim",
+      "scenario": "An internal developer-productivity team is building two features on Claude. Feature 1 reads a service's README and changelog and writes a migration record that a Go tool loads into the deployment database; any missing field or wrong type aborts the deploy. Feature 2 writes the weekly engineering digest posted to Slack, which should always have three headed sections but varies in length and can include code snippets and links. A tech lead proposes one approach for both: 'Put a JSON schema in the prompt and ask Claude to follow it.' What is the best assignment of methods?",
+      "options": [
+        "Use structured outputs for both features, so the Slack digest is also guaranteed to deliver its three sections as JSON fields.",
+        "Use prompt-based formatting with examples for both features, and add a validator with a retry loop for the migration record.",
+        "Use structured outputs for the migration record, and prompt instructions with examples for the digest's flexible format.",
+        "Use a prefilled assistant message for the migration record, and structured outputs for the digest so the sections are fixed."
+      ],
+      "correct": 2,
+      "why_correct": "El método se elige por cuánta garantía de schema necesitás. El registro de migración lo consume una máquina y un error aborta el deploy: structured outputs. El digest es para personas y necesita flexibilidad: la doc dice que las técnicas de prompt sirven justamente cuando necesitás flexibilidad más allá de un JSON schema estricto.",
+      "why_wrong": {
+        "0": "Casi: funciona para el registro, pero meter un texto libre para Slack en un JSON rígido no aporta nada y te obliga a re-renderizarlo.",
+        "1": "Para el registro, validar y reintentar es un parche de algo que structured outputs garantiza desde el decoding.",
+        "3": "Está al revés y además el prefill no funciona en los modelos actuales (4.6 en adelante devuelven 400)."
+      },
+      "rule": "Máquina que no tolera errores → structured outputs. Texto para humanos con formato flexible → instrucciones + ejemplos.",
+      "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/increase-consistency",
+      "source_quote": "The techniques below are useful for general output consistency or when you need flexibility beyond strict JSON schemas.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en increase-consistency ('flexibility beyond strict JSON schemas'). Asignación de métodos coherente; prefill da 400 en modelos actuales."
+      }
+    },
+    {
+      "id": "o25-s25",
+      "objective": 25,
+      "pool": "sim",
+      "scenario": "A recruiting platform scores interview transcripts with the Python SDK: a Pydantic model `Evaluation` with `score: int = Field(ge=1, le=10)` and `summary: str = Field(max_length=280)` is passed to `client.messages.parse()`. Requests succeed, but about 1% raise a validation error in the SDK because `score` is 11 or `summary` is too long. A developer wants to write the raw JSON schema by hand, with `minimum`, `maximum` and `maxLength`, and send it in `output_config.format`, so that 'the API enforces the bounds during decoding'. What should the team know before deciding?",
+      "options": [
+        "The hand-written schema will work: the API enforces numeric and string constraints while decoding, so out-of-range values disappear.",
+        "The SDK strips those unsupported constraints before sending and checks the response against them; a raw schema with them gets a 400.",
+        "The SDK error means structured outputs is disabled for Pydantic models; a plain dict passed as output_format would enable it.",
+        "Those constraints are ignored on every path, so the team should drop the Pydantic validation and clamp the values in the loader."
+      ],
+      "correct": 1,
+      "why_correct": "Las restricciones numéricas y de longitud de string no están soportadas en el schema que va a la API: mandarlas a mano da 400. El SDK las saca del schema, las agrega a la descripción del campo y valida la respuesta contra el modelo original. Ese error de validación es tu control funcionando: manejalo (reintentar con feedback o mandar a revisión), no lo desactives.",
+      "why_wrong": {
+        "0": "Falso: `minimum`, `maximum` y `maxLength` no están soportados por la API. Un schema con esas restricciones devuelve 400.",
+        "2": "Structured outputs anda con Pydantic. Y un dict pasado como `output_format` en el SDK de Python 1.x tira `TypeError`.",
+        "3": "No se ignoran: el SDK las sigue haciendo cumplir en tu código. Clampear en el loader esconde datos malos."
+      },
+      "rule": "Constraints que la API no soporta (min/max/length) → el SDK las mueve a la descripción y las valida del lado del cliente.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "source_quote": "Claude receives a simplified schema, but a helper that validates responses still enforces every constraint in your code.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en structured-outputs (How SDK transformation works). JSON Schema limitations: minimum/maximum/minLength/maxLength no soportados → 'you'll receive a 400 error'."
       }
     }
   ]

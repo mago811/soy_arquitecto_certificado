@@ -45,7 +45,7 @@ Cuando "el subagente nunca corre", el examen te da síntomas. Pensalo como tres 
 **Cable 3 — la definición llega a la sesión.**
 - `settingSources: []` → no se cargan los agentes de `.claude/agents/`.
 - Archivo con `name` pero sin `description` → se saltea (sale en el debug log).
-- Carpeta `agents` creada a mitad de sesión → hace falta reiniciar.
+- Agente en el `.claude/agents/` de una carpeta sumada con `--add-dir` o `/add-dir` → Claude Code no vigila esa carpeta: hay que reiniciar. (Los cambios en `.claude/agents/` y `~/.claude/agents/` se detectan solos en segundos, "with no restart needed".)
 - Un agente en `agents` de `query()` pisa a uno de archivo con el mismo nombre.
 
 ## El error típico que el examen quiere que cometas

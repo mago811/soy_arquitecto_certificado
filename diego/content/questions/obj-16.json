@@ -22,11 +22,11 @@
       "rule": "\"Tiene que cumplirse siempre\" → permissions o hook, jamás CLAUDE.md.",
       "source_url": "https://code.claude.com/docs/en/memory",
       "source_quote": "Settings rules are enforced by the client regardless of what Claude decides to do. CLAUDE.md instructions shape Claude's behavior but are not a hard enforcement layer.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en memory (sección managed CLAUDE.md vs settings). permissions.deny con Read(./.env) respaldado en permissions; skills y rules con paths son contexto, no enforcement."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en memory (sección managed CLAUDE.md vs settings). permissions.deny con Read(./.env) respaldado en permissions; skills y rules con paths son contexto, no enforcement. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "Convención solo para ciertos archivos → `.claude/rules/` con `paths`.",
       "source_url": "https://code.claude.com/docs/en/memory",
       "source_quote": "Rules can be scoped to specific files using YAML frontmatter with the `paths` field. These conditional rules only apply when Claude is working with files matching the specified patterns.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "Respuesta y cita (memory, path-specific rules) OK; imports no reducen contexto (memory). Se reescribió why_wrong de la opción 1: el matcher es por herramienta (no por ruta) y el stdout plano de PreToolUse no llega a Claude (hooks reference); la versión anterior era imprecisa porque un hook sí puede inyectar contexto vía JSON."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Respuesta y cita (memory, path-specific rules) OK; imports no reducen contexto (memory). Se reescribió why_wrong de la opción 1: el matcher es por herramienta (no por ruta) y el stdout plano de PreToolUse no llega a Claude (hooks reference); la versión anterior era imprecisa porque un hook sí puede inyectar contexto vía JSON. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "Preferencia personal en todos los proyectos → `~/.claude/CLAUDE.md`.",
       "source_url": "https://code.claude.com/docs/en/memory",
       "source_quote": "Personal preferences for all projects",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Tabla de scopes en memory: ~/.claude/CLAUDE.md = 'Personal preferences for all projects', 'Only you (all projects)'. Distractores (CLAUDE.local.md un solo proyecto, rules/CLAUDE.md compartidos) claramente incorrectos."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Tabla de scopes en memory: ~/.claude/CLAUDE.md = 'Personal preferences for all projects', 'Only you (all projects)'. Distractores (CLAUDE.local.md un solo proyecto, rules/CLAUDE.md compartidos) claramente incorrectos. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,11 @@
       "rule": "Personal + un solo proyecto + no commitear → `CLAUDE.local.md` (en `.gitignore`).",
       "source_url": "https://code.claude.com/docs/en/memory",
       "source_quote": "For private per-project preferences that shouldn't be checked into version control, create a `CLAUDE.local.md` at the project root.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en memory. Comentarios HTML de bloque se eliminan antes del contexto (confirmado); settings.json es compartido; ~/.claude/CLAUDE.md aplica a todos los proyectos."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en memory. Comentarios HTML de bloque se eliminan antes del contexto (confirmado); settings.json es compartido; ~/.claude/CLAUDE.md aplica a todos los proyectos. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -134,11 +134,11 @@
       "rule": "Procedimiento reutilizable bajo demanda → Skill (con `disable-model-invocation: true` si tiene efectos).",
       "source_url": "https://code.claude.com/docs/en/skills",
       "source_quote": "Use this for workflows with side effects or that you want to control timing, like `/commit`, `/deploy`, or `/send-slack-message`.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en skills (disable-model-invocation). Body de skill carga solo al usarse; rules sin paths cargan al arrancar (memory). Hook Stop no es a demanda."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en skills (disable-model-invocation). Body de skill carga solo al usarse; rules sin paths cargan al arrancar (memory). Hook Stop no es a demanda. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -162,11 +162,11 @@
       "rule": "Estándares del equipo → `CLAUDE.md` de proyecto, commiteado.",
       "source_url": "https://code.claude.com/docs/en/memory",
       "source_quote": "Create this file and add instructions that apply to anyone working on the project: build and test commands, coding standards, architectural decisions, naming conventions, and common workflows.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en memory (project CLAUDE.md). CLAUDE.local.md va al .gitignore; settings.local.json es personal."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en memory (project CLAUDE.md). CLAUDE.local.md va al .gitignore; settings.local.json es personal. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -190,11 +190,11 @@
       "rule": "\"Siempre después de X\" → hook, no CLAUDE.md.",
       "source_url": "https://code.claude.com/docs/en/memory",
       "source_quote": "Hooks execute as shell commands at fixed lifecycle events and apply regardless of what Claude decides to do.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en memory (troubleshooting). hooks-guide confirma PostToolUse con matcher Edit|Write para Prettier. allow solo evita prompt."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en memory (troubleshooting). hooks-guide confirma PostToolUse con matcher Edit|Write para Prettier. allow solo evita prompt. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -218,11 +218,11 @@
       "rule": "Deny gana siempre: ningún allow de otro scope lo levanta.",
       "source_url": "https://code.claude.com/docs/en/permissions",
       "source_quote": "If a tool is denied at any level, no other level can allow it.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en permissions. Orden deny→ask→allow, especificidad no cambia el orden; listas de permisos se combinan entre scopes (settings). No existe regla 'conflicto→ask'."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en permissions. Orden deny→ask→allow, especificidad no cambia el orden; listas de permisos se combinan entre scopes (settings). No existe regla 'conflicto→ask'. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -246,11 +246,11 @@
       "rule": "Equipo → `.claude/settings.json` (commit). Personal en un proyecto → `.claude/settings.local.json`.",
       "source_url": "https://code.claude.com/docs/en/settings",
       "source_quote": "Commit `.claude/settings.json` so everyone who clones the repository gets the same permissions, hooks, and plugin settings. Each teammate can still override it for themselves in their own `.claude/settings.local.json`",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en settings. Precedencia local > project > user confirmada; ejemplo de model en settings.local.json en la doc."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en settings. Precedencia local > project > user confirmada; ejemplo de model en settings.local.json en la doc. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -274,11 +274,151 @@
       "rule": "Compliance de toda la organización, no desactivable → managed settings con `permissions.deny`.",
       "source_url": "https://code.claude.com/docs/en/permissions",
       "source_quote": "For organizations that need centralized control, administrators deploy managed settings that user and project settings can't override",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en permissions. memory dice usar managed CLAUDE.md para guía y managed settings permissions.deny para enforcement. Sintaxis Read(~/...) válida. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o16-q21",
+      "objective": 16,
+      "pool": "practice",
+      "scenario": "A medical-device software team must have a license header in every new source file, and a CI check rejects PRs without one. Their CLAUDE.md says `After creating any file, run scripts/add-license.ps1 on it`. Claude follows it most of the time, but about one PR in eight fails the check, usually after long sessions. Developers work on Windows with PowerShell; the script takes a file path and is idempotent. The team wants the header added to every new file, for everyone on the repo, without relying on Claude remembering the instruction. Which configuration is most appropriate?",
+      "options": [
+        "A `PreToolUse` hook on `Write` in `.claude/settings.json` that runs the script on `tool_input.file_path` before the file is written.",
+        "A `PostToolUse` hook on `Write` in `.claude/settings.json` that runs the script on the file path from the hook input after each write.",
+        "Move the instruction into a project skill with a clear `description`, so Claude loads the license procedure when it creates files.",
+        "Keep the line in CLAUDE.md but prefix it with IMPORTANT and move it to the top of the file, where Claude reads it first."
+      ],
+      "correct": 1,
+      "why_correct": "Es un \"siempre después de X\": trabajo de un hook, que corre en un punto fijo del ciclo sin importar lo que decida Claude. `PostToolUse` corre cuando el `Write` ya terminó, así que el archivo existe y el script le puede agregar el header. Es el mismo patrón que el formatter de la doc. En `.claude/settings.json` commiteado aplica a todo el equipo.",
+      "why_wrong": {
+        "0": "Casi: es enforcement, pero `PreToolUse` corre ANTES del `Write`. El archivo todavía no existe (o el `Write` lo pisa después con el contenido sin header).",
+        "2": "Una skill es guidance: Claude decide cuándo cargarla. Es el mismo \"casi siempre\" que ya falla.",
+        "3": "La doc dice que agregar IMPORTANT probablemente no lo arregle: si la regla no admite excepciones, va en un hook."
+      },
+      "rule": "\"Siempre después de editar/crear\" → hook `PostToolUse`. CLAUDE.md orienta; el hook garantiza.",
+      "source_url": "https://code.claude.com/docs/en/best-practices",
+      "source_quote": "Here's the formatter rule as a PostToolUse hook. It runs after every Edit or Write, and whether Claude remembers the rule no longer matters, because Claude isn't the one running it:",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
         "verdict": "ok",
-        "notes": "Cita textual en permissions. memory dice usar managed CLAUDE.md para guía y managed settings permissions.deny para enforcement. Sintaxis Read(~/...) válida."
+        "notes": "best-practices: formatter como hook PostToolUse; PreToolUse corre antes del Write. Cita textual."
+      }
+    },
+    {
+      "id": "o16-q22",
+      "objective": 16,
+      "pool": "practice",
+      "scenario": "A SaaS team keeps its production release procedure in `.claude/skills/release/SKILL.md`: bump the version, write the changelog, tag, and push the tag so CI publishes. Last week a developer typed `the fix looks good, we're ready for release notes`, and Claude invoked the release skill on its own, pushing a tag that triggered an unplanned production publish. The team still wants Claude to help draft release notes from merged PRs, but the release itself must run only when a person types `/release`. Which frontmatter change to the release skill is correct?",
+      "options": [
+        "Set `user-invocable: false`, so Claude only uses the release skill as background knowledge and never runs it from a user's request.",
+        "Rewrite its `description` to say `Only use when the user explicitly asks to cut a release`, so Claude matches it far less often.",
+        "Add `allowed-tools: Read Grep`, so that when Claude invokes the release skill on its own it cannot push any tags.",
+        "Set `disable-model-invocation: true`, so Claude can't start the skill and it runs only when someone types `/release`."
+      ],
+      "correct": 3,
+      "why_correct": "`disable-model-invocation: true` hace que Claude no pueda invocar la skill por su cuenta: solo corre cuando alguien la escribe. La doc la recomienda justo para workflows con efectos secundarios, como `/deploy` o `/commit`. Es enforcement sobre QUIÉN la dispara, no una sugerencia en el texto.",
+      "why_wrong": {
+        "0": "Es lo opuesto: con `user-invocable: false` solo Claude la puede invocar, y se oculta del menú `/`.",
+        "1": "La `description` es lo que Claude usa para decidir cuándo aplicarla: sigue siendo decisión del modelo, con otro texto.",
+        "2": "`allowed-tools` pre-aprueba tools para ese turno; no restringe. Además, si lograra bloquear el push, rompería también el release legítimo."
+      },
+      "rule": "Skill con efectos secundarios → `disable-model-invocation: true`. Solo la dispara una persona.",
+      "source_url": "https://code.claude.com/docs/en/skills",
+      "source_quote": "Claude can't invoke the skill on its own. Use this for workflows with side effects or that you want to control timing, like /commit, /deploy, or /send-slack-message.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "skills: disable-model-invocation impide que Claude la invoque; user-invocable:false es lo opuesto; allowed-tools pre-aprueba. Cita textual."
+      }
+    },
+    {
+      "id": "o16-q23",
+      "objective": 16,
+      "pool": "practice",
+      "scenario": "A fintech's root `CLAUDE.md` has grown to 640 lines. About 380 of them are an incident-response runbook (paging, log queries, rollback steps) used a few times a month; the rest are build commands and coding conventions. Developers report Claude ignoring ordinary conventions in everyday tasks, and `/context all` shows memory files taking a large share of every session. An engineer proposes moving the runbook to `docs/runbook.md` and replacing it with a single `@docs/runbook.md` line. The runbook must stay available whenever someone is handling an incident. What is the most effective change?",
+      "options": [
+        "Move the runbook into a project skill at `.claude/skills/incident/SKILL.md`, whose body loads only when it's used.",
+        "Move it to `docs/runbook.md` and import it with `@docs/runbook.md`, which loads the runbook only when Claude needs it.",
+        "Move it to `.claude/rules/incident.md` without `paths`, which keeps it modular and outside the main CLAUDE.md file.",
+        "Keep it in CLAUDE.md but put the conventions first and the runbook last, so the important lines get more attention."
+      ],
+      "correct": 0,
+      "why_correct": "Un procedimiento de varios pasos que se usa a veces es el caso típico de skill: a diferencia de `CLAUDE.md`, el cuerpo de una skill carga solo cuando se usa (en contexto queda nada más su nombre y descripción). Así `CLAUDE.md` vuelve a tener solo lo que importa en todas las sesiones y el runbook sigue a mano.",
+      "why_wrong": {
+        "1": "Casi: el import ordena el archivo, pero la doc aclara que no reduce el costo de contexto. Lo importado carga junto con el `CLAUDE.md` que lo importa.",
+        "2": "Las rules sin `paths` cargan al inicio con la misma prioridad que `.claude/CLAUDE.md`: el costo es el mismo.",
+        "3": "No reduce el tamaño. La doc dice que los archivos largos consumen más contexto y bajan la adherencia, sin importar el orden."
+      },
+      "rule": "Procedimiento largo y ocasional → skill. `@import` organiza, pero carga igual.",
+      "source_url": "https://code.claude.com/docs/en/skills",
+      "source_quote": "Unlike CLAUDE.md content, a skill's body loads only when it's used, so long reference material costs almost nothing until you need it.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "skills: el cuerpo de la skill carga solo al usarse; memory: los @imports no reducen el costo de contexto (cargan con el CLAUDE.md); rules sin paths cargan al inicio. Cita textual."
+      }
+    },
+    {
+      "id": "o16-q24",
+      "objective": 16,
+      "pool": "practice",
+      "scenario": "A monorepo has 60 packages, each with `*.test.ts` files spread across `apps/` and `libs/`. The QA lead wrote 45 lines of testing conventions: use the shared fixtures in `libs/testing`, never make real network calls, and use one `describe` block per exported function. Today they sit in the root CLAUDE.md and load in every session, including documentation and infrastructure work where they are noise. Another engineer proposes putting a copy in a `CLAUDE.md` inside each of the 60 packages. The team wants the conventions applied whenever Claude works on a test file, with a single place to maintain them. What should they do?",
+      "options": [
+        "Create a CLAUDE.md in each package with the conventions, since subdirectory CLAUDE.md files load when Claude works in that folder.",
+        "Move the conventions into a skill whose `description` mentions tests, so Claude loads it whenever it decides a task involves testing.",
+        "Move the conventions into `.claude/rules/testing.md` with `paths: [\"**/*.test.ts\"]`, so they load when Claude works with test files.",
+        "Keep them in the root CLAUDE.md under a `## Testing only` heading, so Claude applies them only when editing test files."
+      ],
+      "correct": 2,
+      "why_correct": "Las rules con `paths` en el frontmatter son condicionales: solo aplican cuando Claude trabaja con archivos que matchean el patrón. Un solo archivo, `**/*.test.ts`, cubre los tests de los 60 paquetes y no carga en las sesiones de docs o infra.",
+      "why_wrong": {
+        "0": "Casi: los `CLAUDE.md` de subdirectorios sí cargan bajo demanda, pero son 60 copias para mantener, y aplican a cualquier archivo del paquete, no solo a los tests.",
+        "1": "Una skill depende de que Claude decida que la tarea es de testing. Para \"cuando toca estos archivos\" el mecanismo es la rule con `paths`.",
+        "3": "Un título no cambia nada: todo `CLAUDE.md` raíz carga completo en cada sesión."
+      },
+      "rule": "Convención atada a un tipo de archivo → `.claude/rules/*.md` con `paths`.",
+      "source_url": "https://code.claude.com/docs/en/memory",
+      "source_quote": "Rules can be scoped to specific files using YAML frontmatter with the paths field. These conditional rules only apply when Claude is working with files matching the specified patterns.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "memory: rules con paths cargan solo con archivos que matchean; CLAUDE.md de subdirectorio carga bajo demanda pero son 60 copias. Cita textual."
+      }
+    },
+    {
+      "id": "o16-q25",
+      "objective": 16,
+      "pool": "practice",
+      "scenario": "In a platform repo, `.claude/rules/terraform.md` starts with frontmatter meant to scope it to `infra/**/*.tf`. Developers notice its 70 lines of Terraform conventions appear in every session, even sessions that only touch the React app, and Claude sometimes applies Terraform naming rules to TypeScript. The frontmatter was copied from a wiki: the line after `paths:` is `- \"infra/**/*.tf\"`, indented with a tab character instead of spaces, which YAML does not allow. No other rule files are affected. Which explanation and next step are correct?",
+      "options": [
+        "`paths` only works for rules stored in a subfolder named after the matching directory, so move this file into `.claude/rules/infra/terraform.md`.",
+        "The YAML doesn't parse, so Claude Code ignores the frontmatter and loads the rule unscoped; fix the indentation and check with `claude --debug`.",
+        "Path-scoped rules always load at launch and only gain priority for matching files, so move these conventions into a skill instead.",
+        "Rule frontmatter is ignored unless it also declares `name` and `description`, so add both fields above `paths` and reload."
+      ],
+      "correct": 1,
+      "why_correct": "Si el YAML entre los `---` no parsea, Claude Code ignora el frontmatter y carga la rule como si no tuviera `paths`, o sea, en todas las sesiones. El tab de indentación es YAML inválido. Se arregla la indentación y, con `claude --debug`, se ve el error de parseo.",
+      "why_wrong": {
+        "0": "La ubicación no importa: las rules se descubren recursivamente en `.claude/rules/` y el alcance lo define `paths`.",
+        "2": "Falso: una rule con `paths` carga cuando Claude usa Read, Write o Edit sobre un archivo que matchea, no al inicio.",
+        "3": "Al revés: `paths` es el único campo que Claude Code lee de una rule; cualquier otro se ignora sin error."
+      },
+      "rule": "Rule que carga siempre aunque tenga `paths` → frontmatter roto. `claude --debug` muestra el error.",
+      "source_url": "https://code.claude.com/docs/en/memory",
+      "source_quote": "If the YAML between the markers doesn't parse, Claude Code ignores the frontmatter and loads the rule as if it had no paths. Run claude --debug to see the parse error.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "memory: YAML que no parsea -> se ignora el frontmatter y la rule carga sin paths; claude --debug; paths es el único campo que se lee; path-scoped carga con Read/Write/Edit. Cita textual."
       }
     }
   ]

@@ -22,11 +22,11 @@
       "rule": "Conocimiento estable que el subagente siempre necesita → `skills` en su definición, no esperar que lo herede.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "Preloaded skill content, unless listed in `AgentDefinition.skills`",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Confirmado: AgentDefinition.skills precarga contenido completo; el subagente no recibe skills cargadas por el padre; listar Skill en tools no precarga."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Confirmado: AgentDefinition.skills precarga contenido completo; el subagente no recibe skills cargadas por el padre; listar Skill en tools no precarga. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "Si el modo de la sesión pisa el `permissionMode` del subagente, restringí con `tools`: lo que no está en la lista no existe.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "the subagent runs in that same mode and Claude Code ignores the `permissionMode` you set",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Confirmado: con acceptEdits/bypass/auto se ignora el permissionMode del subagente; prioridad proyecto (3) > usuario (4)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Confirmado: con acceptEdits/bypass/auto se ignora el permissionMode del subagente; prioridad proyecto (3) > usuario (4). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "Permitir una parte de una tool y bloquear otra → hook `PreToolUse` que valida y sale con código 2.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "This is useful when you need to allow some operations of a tool while blocking others.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Confirmado: PreToolUse para permitir parte de una tool; hooks en frontmatter solo mientras el subagente está activo; exit 2 bloquea; disallowedTools con especificador saca toda la tool."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Confirmado: PreToolUse para permitir parte de una tool; hooks en frontmatter solo mientras el subagente está activo; exit 2 bloquea; disallowedTools con especificador saca toda la tool. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,11 @@
       "rule": "Revisor de solo lectura → lista `tools` explícita sin `Agent` ni tools de edición.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "To keep one subagent from spawning while nesting is on, such as a reviewer that should stay read-only, omit `Agent` from its",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual (omitir Agent de tools en un revisor de solo lectura); sin tools hereda todo; un anidado se configura igual que uno de primer nivel."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual (omitir Agent de tools en un revisor de solo lectura); sin tools hereda todo; un anidado se configura igual que uno de primer nivel. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -134,11 +134,11 @@
       "rule": "Subagente que tiene que editar sin tocar tu checkout → `isolation: worktree`.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "To give the subagent an isolated copy of the repository instead, set",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "Cita textual de sub-agents (isolation: worktree, desde la rama por defecto, se limpia si no hay cambios). why_wrong[2] hablaba del \"rewind del SDK\" en un escenario de Claude Code: se ajustó según checkpointing (\"Subagent edits not restored\")."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual de sub-agents (isolation: worktree, desde la rama por defecto, se limpia si no hay cambios). why_wrong[2] hablaba del \"rewind del SDK\" en un escenario de Claude Code: se ajustó según checkpointing (\"Subagent edits not restored\"). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -162,11 +162,207 @@
       "rule": "Para sacar una familia entera de tools sin listar las demás, usá `disallowedTools` con patrón (`mcp__*`).",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "Withhold every MCP tool from any server",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Confirmado en la tabla de patrones: disallowedTools mcp__* retira toda tool MCP; mcpServers agrega servidores. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o05-s21",
+      "objective": 5,
+      "pool": "sim",
+      "scenario": "Your CI pipeline runs `claude -p` on Linux runners to fix failing tests on pull-request branches. A project subagent `test-fixer` in `.claude/agents/` needs Bash to run `npm test` but must never push. Its frontmatter currently has `disallowedTools: Bash(git push *)`. Since that line was added, every job log shows the subagent reporting that it has no shell tool, and 0 of the last 60 jobs ran the test suite. Security requires that `git push` stays blocked for the subagent in CI. The runners start from a fresh clone and nobody ever accepts a workspace trust dialog on them. Which configuration meets both requirements?",
+      "options": [
+        "Keep the entry and add `Bash` to the subagent's `tools` list, since `tools` is resolved after `disallowedTools` and restores the tool.",
+        "Replace the entry with a `PreToolUse` hook in the subagent's frontmatter that matches `Bash` and exits with code 2 on `git push`.",
+        "Remove the entry and add `Bash(git push *)` to `permissions.deny` in the project's `.claude/settings.json`, which also covers subagents.",
+        "Change the entry to `disallowedTools: Bash(git push:*)`, the prefix syntax that withholds only the matching git commands from the subagent's shell."
+      ],
+      "correct": 2,
+      "why_correct": "Una entrada de `disallowedTools` con especificador saca la tool ENTERA del subagente, no solo los comandos que matchean: por eso se quedó sin Bash. Para mantener Bash y bloquear el push, la doc indica una regla `Bash(git push *)` en `permissions.deny` de settings, que aplica a la conversación principal y a los subagentes. Las settings del proyecto se leen en `-p` sin diálogo de trust.",
+      "why_wrong": {
+        "0": "Si una tool está en las dos listas, se saca: `disallowedTools` se aplica primero y `tools` se resuelve contra lo que queda. No la recupera.",
+        "1": "Casi: un hook sería enforcement. Pero los hooks del frontmatter de un subagente de proyecto solo corren si el folder está trusted, y una sesión `-p` no cuenta como trusted. En CI el hook se saltea y el push queda libre.",
+        "3": "Cualquier especificador en `disallowedTools` saca toda la tool. Cambiar la sintaxis del patrón no cambia ese comportamiento."
+      },
+      "rule": "Bloqueo fino de comandos = `permissions.deny` en settings. `disallowedTools` con especificador saca la tool entera.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "To keep Bash and block specific commands, add a Bash deny rule such as `Bash(git push *)` to `permissions.deny` in your settings. The rule applies to the main conversation and to subagents.",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
         "verdict": "ok",
-        "notes": "Confirmado en la tabla de patrones: disallowedTools mcp__* retira toda tool MCP; mcpServers agrega servidores."
+        "notes": "Cita textual verificada en code.claude.com/docs/en/sub-agents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
+    },
+    {
+      "id": "o05-s22",
+      "objective": 5,
+      "pool": "sim",
+      "scenario": "A research platform runs on the TypeScript Agent SDK with `settingSources: [\"project\"]`. The repository's `CLAUDE.md` (about 6,000 tokens) holds the coordinator's citation and report-format rules plus frontend coding conventions. Each report spawns about 12 `web-searcher` subagents, and each one receives everything it needs in its delegation prompt. Billing shows roughly 70,000 tokens per report spent loading `CLAUDE.md` into searchers, and reviewers found searchers rephrasing queries to follow irrelevant formatting rules. The coordinator must keep reading `CLAUDE.md`. The team runs a current SDK release. What is the most targeted change?",
+      "options": [
+        "Change `settingSources` to `[]` so that CLAUDE.md stops loading, and pass the citation rules to the coordinator through `systemPrompt`.",
+        "Keep CLAUDE.md as is and add an instruction to each searcher's prompt telling it to disregard the formatting rules it finds there.",
+        "Set `autoCompactWindow` on the `web-searcher` definition so the CLAUDE.md content is compacted early in each searcher's context.",
+        "Set `omitClaudeMd: true` on the `web-searcher` AgentDefinition so searchers start without the user, project and local CLAUDE.md files."
+      ],
+      "correct": 3,
+      "why_correct": "`omitClaudeMd: true` deja afuera los CLAUDE.md de user, project y local del contexto inicial de ESE agente (las políticas managed siguen cargando). Es para subagentes que reciben todo en el prompt de delegación, como estos. El coordinador sigue leyendo CLAUDE.md porque el campo solo afecta al subagente.",
+      "why_wrong": {
+        "0": "`settingSources: []` corta CLAUDE.md para toda la query, coordinador incluido, y además saca agents, skills y settings del filesystem. Viola la restricción y no es quirúrgico.",
+        "1": "Es guidance sobre un contexto que ya pagaste: el costo de 70.000 tokens sigue igual y la regla depende de que el modelo la obedezca.",
+        "2": "`autoCompactWindow` regula cuándo se compacta un contexto largo (mínimo 100000 tokens). El CLAUDE.md se carga igual al arrancar y se factura igual."
+      },
+      "rule": "Subagente que vive del prompt de delegación → `omitClaudeMd: true` en SU definición, no apagar CLAUDE.md para todos.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "source_quote": "Leave the user, project, and local CLAUDE.md files out of this agent's initial context; managed policy files still load.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en code.claude.com/docs/en/agent-sdk/subagents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
+    },
+    {
+      "id": "o05-s23",
+      "objective": 5,
+      "pool": "sim",
+      "scenario": "Your customer support resolution agent (Claude Agent SDK, Python) delegates refunds to a `refund-executor` subagent. The session connects two MCP servers: `support` (with `get_customer`, `lookup_order`, `process_refund`, `escalate_to_human`) and `crm` (22 tools, including `delete_contact`). The current definition omits `tools` and sets `disallowedTools=[\"mcp__support__escalate_to_human\"]`. A security review found the executor can run Bash, write files and call any `crm` tool. Policy says it may call exactly `lookup_order` and `process_refund`. A teammate proposes adding `\"mcp__*\"` to `disallowedTools` and listing the two refund tools in `tools`. What should you do?",
+      "options": [
+        "Adopt the teammate's proposal: `disallowedTools` removes every MCP tool, and `tools` then adds back the two refund tools it lists.",
+        "Set `tools=[\"mcp__support__lookup_order\", \"mcp__support__process_refund\"]` and drop the `disallowedTools` entry entirely.",
+        "Keep the current definition and add `\"mcp__crm\"` to `disallowedTools`, which withholds every tool from the `crm` server.",
+        "Keep the current definition and pass `allowed_tools` with the two refund tools so that only those calls get approved."
+      ],
+      "correct": 1,
+      "why_correct": "Mínimo privilegio = allowlist. Con `tools` listando solo las dos tools MCP, el subagente no tiene Bash, ni Write, ni nada de `crm`. Sin `disallowedTools` no hay nada que se reste antes.",
+      "why_wrong": {
+        "0": "Casi, pero al revés: `disallowedTools` se aplica PRIMERO y `tools` se resuelve contra lo que queda. `mcp__*` ya sacó las dos tools de refund, así que `disallowedTools` elimina todas las entradas de `tools`; en ese caso Claude Code ni siquiera da el error de zero tools: lanza el subagente sin ninguna tool y no puede procesar reembolsos.",
+        "2": "Una denylist deja todo lo demás: sigue con Bash, Write y `get_customer`. No cumple \"exactamente dos tools\".",
+        "3": "`allowed_tools` auto-aprueba, no restringe: las tools no listadas siguen existiendo y caen al modo de permisos."
+      },
+      "rule": "\"Solo estas tools\" = `tools` (allowlist). Si combinás con `disallowedTools`, primero resta y después filtra.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "If both are set, `disallowedTools` is applied first, then `tools` is resolved against the remaining pool. A tool listed in both is removed.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Cita textual en sub-agents (orden disallowedTools→tools). Corregí why_wrong de la opción A: según errors (zero tools), si disallowedTools elimina todas las entradas de tools, Claude Code saltea el rechazo y lanza el subagente sin tools; no es que \"no arranca\"."
+      }
+    },
+    {
+      "id": "o05-s24",
+      "objective": 5,
+      "pool": "sim",
+      "scenario": "Your research system runs on a recent Claude Agent SDK release. You defined a `critic` subagent with `tools=[\"Read\", \"Grep\"]` to review draft reports in `reports/` without changing them. Last week, 9 of 40 drafts were modified during critique. The traces show those critiques were not run by `critic`: the coordinator called the Agent tool with `subagent_type: \"fork\"`, because a fork could see the whole drafting conversation, and the fork then rewrote sections with `Edit`. You want critiques that cannot modify files, and you are fine passing the relevant context explicitly. What should you change?",
+      "options": [
+        "Add `\"Edit\"` and `\"Write\"` to the `critic` definition's `disallowedTools` so that the restriction carries over to any fork the coordinator starts.",
+        "Pass `isolation: \"worktree\"` on fork calls so that the forks' edits go to a separate git worktree instead of the `reports/` directory.",
+        "Add a rule to the coordinator's system prompt saying that critiques must always use `critic` and that forks must never edit drafts.",
+        "Add `\"Agent(fork)\"` to `disallowed_tools` and have the coordinator pass the draft path and key decisions in the `critic` prompt."
+      ],
+      "correct": 3,
+      "why_correct": "Un fork no usa ninguna definición tuya: ve el mismo system prompt, las mismas tools y el historial de la conversación padre. Si el padre tiene Edit, el fork también. La regla `Agent(fork)` en `disallowed_tools` bloquea solo los forks; el `critic`, con su allowlist read-only, sigue disponible, y el contexto viaja en su prompt.",
+      "why_wrong": {
+        "0": "Las restricciones de `critic` aplican a `critic`. El fork recibe el pool exacto de tools del padre, no el de otro agente.",
+        "1": "El fork sigue editando archivos, solo que en otra copia. No cumple \"no puede modificar archivos\" y la crítica igual reescribe.",
+        "2": "Es guidance: el coordinador ya eligió el fork por su cuenta y lo puede volver a hacer. Hace falta una regla que lo bloquee."
+      },
+      "rule": "Fork = mismas tools que el padre. Para una revisión read-only: deny `Agent(fork)` + subagente con allowlist.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "source_quote": "To stop Claude from starting forks, add an Agent(fork) deny rule",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en code.claude.com/docs/en/agent-sdk/subagents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
+    },
+    {
+      "id": "o05-s25",
+      "objective": 5,
+      "pool": "sim",
+      "scenario": "A developer on Windows uses Claude Code for a long refactor of a payments service. Each time Claude runs the full test suite in the main conversation, about 12,000 lines of output land in context. After four runs, auto-compaction kicks in and Claude loses track of design decisions made earlier in the session, such as which legacy endpoints must stay backward compatible. After each run the developer only needs the names of the failing tests and their error messages, and wants the design discussion to stay intact in the main conversation. What is the most effective change?",
+      "options": [
+        "Ask Claude to run `/compact` after every test run with instructions to keep the design decisions, so the earlier context survives.",
+        "Ask Claude to use a subagent to run the suite and report only the failing tests with their error messages back to the main conversation.",
+        "Ask Claude to pipe the test output through `Select-Object -Last 50` so that only the tail of each run reaches the main conversation.",
+        "Switch the session to a model with a larger context window so that more test runs fit before auto-compaction triggers."
+      ],
+      "correct": 1,
+      "why_correct": "Es el patrón documentado de aislar operaciones de mucho volumen: el output verboso se queda en el contexto del subagente y a la conversación principal solo vuelve el resumen relevante (tests que fallan + error). La discusión de diseño no compite más con 12.000 líneas.",
+      "why_wrong": {
+        "0": "Compactar resume TODO, incluida la discusión de diseño: sigue el riesgo de perder detalles, y el ruido entra igual en cada corrida.",
+        "2": "Las últimas 50 líneas no garantizan que estén los tests que fallaron ni sus errores, que suelen aparecer en el medio del output. Recorta a ciegas.",
+        "3": "Posterga el problema: el contexto se sigue llenando de logs y en algún momento compacta igual."
+      },
+      "rule": "Output verboso que no necesitás en la conversación principal → subagente que devuelve solo el resumen.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "By delegating these to a subagent, the verbose output stays in the subagent's context while only the relevant summary returns to your main conversation.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en code.claude.com/docs/en/sub-agents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
+    },
+    {
+      "id": "o05-s26",
+      "objective": 5,
+      "pool": "sim",
+      "scenario": "Your data team connects two MCP servers in Claude Code: a legacy server named `reports`, which exposes exactly two tools (`mcp__reports__run_query` and `mcp__reports__export_csv`), and its replacement `reports__v2`. The `kpi-builder` subagent must use only `reports__v2` among reporting servers and keep every other inherited tool. Its frontmatter has `disallowedTools: mcp__reports`. Since that change, `kpi-builder` starts without errors but answers every request with \"no reporting tools available\", while the main conversation can still call `mcp__reports__v2__get_totals`. The team does not want to maintain a full allowlist of tools for this subagent. What should the frontmatter say?",
+      "options": [
+        "`disallowedTools: mcp__reports__*`, the wildcard form that matches only the legacy server's tools and leaves the v2 server intact.",
+        "`tools: mcp__reports__v2`, an allowlist entry naming the v2 server, combined with the current `disallowedTools: mcp__reports`.",
+        "`disallowedTools: mcp__reports__run_query, mcp__reports__export_csv`, listing each legacy tool by name instead of the server.",
+        "`disallowedTools: mcp__reports__run_*`, a narrower pattern that withholds the legacy query tools without touching the v2 tools."
+      ],
+      "correct": 2,
+      "why_correct": "Las tools de `reports__v2` se llaman `mcp__reports__v2__...`: también empiezan con `mcp__reports__`. Por eso `mcp__reports` (o `mcp__reports__*`) le saca al subagente las del server viejo Y las del nuevo. La doc dice que, para retener solo el server `reports`, hay que listar sus tools una por una.",
+      "why_wrong": {
+        "0": "Casi: es justo la otra entrada que la doc menciona como problema. `mcp__reports__*` también matchea `mcp__reports__v2__get_totals`.",
+        "1": "Con `tools` como allowlist el subagente pierde todo lo demás que heredaba, y sin `__*` final `mcp__reports__v2` no matchea ninguna tool. Además la deny sigue sacando las v2.",
+        "3": "No toca las v2, pero deja `mcp__reports__export_csv` del server viejo: no cumple \"solo `reports__v2`\"."
+      },
+      "rule": "Server con `__` en el nombre: `mcp__reports` también tapa a `reports__v2`. Retené las tools viejas una por una.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "With either entry, the subagent loses every `reports__v2` tool as well, because those tool names also begin with `mcp__reports__`. To withhold only the `reports` server's tools, list them one by one instead",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en code.claude.com/docs/en/sub-agents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
+    },
+    {
+      "id": "o05-s27",
+      "objective": 5,
+      "pool": "sim",
+      "scenario": "Your CI job runs `claude -p` on every pull request. The run fans out to subagents: four custom agents in `.claude/agents/`, fourteen agents from a vendor plugin that you cannot modify, and the built-in Explore agent. Some custom agents set `omitClaudeMd: true`, and some spawn nested subagents. A downstream parser requires every subagent's final report to start with a `STATUS: <ok|blocked>` line; today 23% of reports lack it, almost all from plugin agents, Explore and agents that skip CLAUDE.md. The team runs a recent Claude Code release. What is the most reliable way to get the line into every subagent's instructions?",
+      "options": [
+        "Pass the format rule with `--append-subagent-system-prompt`, which appends it to every subagent's system prompt, nested ones included.",
+        "Pass the format rule with `--append-system-prompt`, which extends the system prompt that every agent in the run starts from.",
+        "Add the format rule to the project `CLAUDE.md`, which every subagent in the run, nested ones included, loads at startup as part of its initial context.",
+        "Add the format rule to the body of each file in `.claude/agents/` and ask the plugin vendor to ship the same change upstream."
+      ],
+      "correct": 0,
+      "why_correct": "En modo no interactivo, `--append-subagent-system-prompt` agrega el texto al final del system prompt de TODOS los subagentes, anidados incluidos (salvo forks, que reusan el prompt de la conversación). Llega a los del plugin, a Explore y a los que tienen `omitClaudeMd`, sin tocar archivos que no podés modificar.",
+      "why_wrong": {
+        "1": "`--append-system-prompt` modifica el system prompt de la sesión principal. Los subagentes no reciben el system prompt del padre: corren con el suyo.",
+        "2": "Casi: muchos subagentes cargan CLAUDE.md, pero Explore se lo saltea y los que tienen `omitClaudeMd: true` también. Son justo los que fallan.",
+        "3": "Cubre solo los 4 agentes propios: el plugin no se puede tocar y Explore es built-in. Queda el mismo hueco."
+      },
+      "rule": "Instrucción para TODOS los subagentes en `-p` → `--append-subagent-system-prompt`.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "pass --append-subagent-system-prompt to append your text to the end of every subagent's system prompt, nested subagents included, apart from a forked subagent, which reuses the conversation's own prompt.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en code.claude.com/docs/en/sub-agents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
       }
     }
   ]

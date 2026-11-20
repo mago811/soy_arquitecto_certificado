@@ -22,11 +22,11 @@
       "rule": "Entender un flujo → Grep el punto de entrada, Read de esos archivos, seguir imports. Nunca \"leé todo primero\".",
       "source_url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
       "source_quote": "CLAUDE.md files are naively dropped into context up front, while primitives like glob and grep allow it to navigate its environment and retrieve files just-in-time",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "Cita textual en el post de context engineering (just-in-time con glob/grep). Límite 256 KB de Read confirmado en tools-reference. Se aclaró en el escenario que el agente tiene Grep/Glob (en Linux/macOS no vienen por defecto)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en el post de context engineering (just-in-time con glob/grep). Límite 256 KB de Read confirmado en tools-reference. Se aclaró en el escenario que el agente tiene Grep/Glob (en Linux/macOS no vienen por defecto). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "Función re-exportada por un wrapper → sacá los nombres exportados y Grep por cada uno.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "The Grep tool searches file contents for patterns. Where Glob finds files by name, Grep finds lines inside them.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "La doc solo respalda que Grep busca por contenido (y Glob por nombre); nada sobre wrappers. La respuesta es razonamiento correcto y no hay otra opción defendible (D incumple el requisito de encontrar usos antes de cambiar). Se amplió la cita y se aclaró en why_correct qué parte es de la doc."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "La doc solo respalda que Grep busca por contenido (y Glob por nombre); nada sobre wrappers. La respuesta es razonamiento correcto y no hay otra opción defendible (D incumple el requisito de encontrar usos antes de cambiar). Se amplió la cita y se aclaró en why_correct qué parte es de la doc. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "Archivo enorme → Grep `content` para la línea, Read con `offset`/`limit` alrededor.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "so Claude reads a larger file in pages with `offset` and `limit`.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "Confirmado en tools-reference: 25.000 tokens por defecto, aviso PARTIAL view, paginar con offset/limit, Grep content da archivo y línea. Se agregó al escenario que Grep está disponible."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Confirmado en tools-reference: 25.000 tokens por defecto, aviso PARTIAL view, paginar con offset/limit, Grep content da archivo y línea. Se agregó al escenario que Grep está disponible. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,11 @@
       "rule": "Priorizar qué leer → Grep `count`; ver las líneas → `content`; solo rutas → `files_with_matches`.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "`count`: match count per file, followed by a total across all matching files.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Modos files_with_matches (default), content y count confirmados textual en tools-reference; Grep disponible por el escenario."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Modos files_with_matches (default), content y count confirmados textual en tools-reference; Grep disponible por el escenario. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -134,11 +134,11 @@
       "rule": "Grep da 0 en archivos generados o ignorados → pasale la ruta directamente.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "Grep respects `.gitignore`, so gitignored files are skipped. To search a gitignored file, Claude passes its path directly.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en tools-reference; subagente con tools Read, Grep, Glob (Grep disponible). type filtra por lenguaje."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en tools-reference; subagente con tools Read, Grep, Glob (Grep disponible). type filtra por lenguaje. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -162,11 +162,11 @@
       "rule": "Glob truncado en 100 → patrón más específico, no repetir ni leer lo que vino.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "Results are sorted by modification time and capped at 100 files. If the cap is hit, Claude sees a truncation flag in the result and can narrow the pattern.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual: Glob ordena por mtime, tope 100 y flag de truncamiento."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual: Glob ordena por mtime, tope 100 y flag de truncamiento. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -190,11 +190,11 @@
       "rule": "Símbolo ambiguo en lenguaje tipado → code intelligence (go to definition) antes que grep + leer candidatos.",
       "source_url": "https://code.claude.com/docs/en/costs",
       "source_quote": "A single \"go to definition\" call replaces what might otherwise be a grep followed by reading multiple candidate files.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en costs (code intelligence plugins, go to definition). CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS existe (tools-reference)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en costs (code intelligence plugins, go to definition). CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS existe (tools-reference). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -218,11 +218,151 @@
       "rule": "Grep con mucho ruido de otros tipos de archivo → `glob` o `type` en la llamada.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "Claude can scope results by file with the `glob` parameter, such as `**/*.tsx`, or by language with the `type` parameter, such as `py` or `rust`.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en tools-reference (parámetros glob y type; multiline para cruzar líneas). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o17-q21",
+      "objective": 17,
+      "pool": "practice",
+      "scenario": "A platform team at a payments company uses Claude Code on Windows to onboard engineers into a 4,000-file TypeScript monorepo. A new engineer asks: \"How do failed card charges get retried?\" The transcript shows Claude ran Glob with `**/*.ts` (the result was flagged as truncated at 100 files), then read 31 files from that list one after another. By the time it answered, the session's context was 70% full, and the answer described \"a typical exponential backoff pattern\" without naming the real retry module, which lives in `packages/billing/src/retry/scheduler.ts`. The team wants answers grounded in the actual code and does not want to pre-load documentation for every module. Which change to the exploration approach is most effective?",
+      "options": [
+        "Start with Grep for distinctive terms like `retryCharge` to find entry points, then Read those files and follow their imports through the flow.",
+        "Raise `CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS` so each Read returns complete files, letting Claude cover the same 31 files in fewer, larger calls.",
+        "Narrow the Glob to `packages/billing/**/*.ts` and have Claude Read every file it returns before answering, so that no billing file is skipped.",
+        "Add an architecture overview of every package to the root `CLAUDE.md` so Claude has the full module map in context before it starts searching."
+      ],
+      "correct": 0,
+      "why_correct": "Arrancar con `Grep` por términos distintivos te da los puntos de entrada reales; después `Read` sigue los imports solo donde hace falta. Así el entendimiento se arma de a capas y el contexto queda para el código que importa, no para 31 archivos elegidos por fecha de modificación.",
+      "why_wrong": {
+        "1": "Leer archivos más grandes por llamada no cambia la estrategia: sigue cargando todo de entrada y llena el contexto más rápido.",
+        "2": "Achica el universo, y eso ayuda, pero sigue siendo 'leer todo antes de entender'. En un paquete grande volvés a llenar el contexto con archivos que no tienen nada que ver con el retry.",
+        "3": "Es justo lo que el equipo no quiere: precargar documentación de todos los módulos. Además, un mapa general no reemplaza leer el código concreto del retry."
+      },
+      "rule": "Explorar = `Grep` para encontrar la entrada → `Read` para seguir los imports. Nunca 'leer todo primero'.",
+      "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
+      "source_quote": "Building codebase understanding incrementally: starting with Grep to find entry points, then using Read to follow imports and trace flows, rather than reading all files upfront",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
         "verdict": "ok",
-        "notes": "Cita textual en tools-reference (parámetros glob y type; multiline para cruzar líneas)."
+        "notes": "Cita textual en la guía oficial del examen (PDF everpath) (Task 2.5). Estrategia, no comportamiento técnico; Glob ordenado por mtime y tope de 100 confirmados en code.claude.com/docs/en/tools-reference. Distractores plausibles, ninguno defendible."
+      }
+    },
+    {
+      "id": "o17-q22",
+      "objective": 17,
+      "pool": "practice",
+      "scenario": "A team is renaming the money-formatting helper in a React monorepo with Claude Code. The function is defined as `formatCurrency` in `libs/money/src/format.ts`. Claude ran Grep for `formatCurrency`, found 6 call sites, updated them, and the change was merged. The next CI build failed in 23 files. Investigation shows that `libs/money/src/index.ts` re-exports it as `export { formatCurrency as fmtMoney }`, and `libs/ui/src/index.ts` re-exports the money barrel with `export * as currency from '@acme/money'`, so many callers use `fmtMoney(...)` or `currency.fmtMoney(...)`. The team wants Claude to find every usage before the next rename attempt. Which exploration strategy addresses the root cause?",
+      "options": [
+        "Re-run Grep for `formatCurrency` with `multiline: true`, so that calls the formatter split across several lines are matched as well.",
+        "Use Glob for `**/*money*` and `**/*currency*` to collect every related file in the monorepo, then Read each one to find where the function is used.",
+        "Read the barrel and wrapper modules first to list every exported name and alias for the function, then Grep for each of those names across the repo.",
+        "Run Grep for `formatCurrency` in `count` mode to rank files by usage, then Read the top-ranked files to confirm the remaining call sites."
+      ],
+      "correct": 2,
+      "why_correct": "El problema no es la búsqueda sino el nombre: los wrappers re-exportan la función con otros nombres (`fmtMoney`, `currency.fmtMoney`). Primero listás todos los nombres exportados en los barrels y después hacés un `Grep` por cada uno.",
+      "why_wrong": {
+        "0": "`multiline` sirve para patrones que cruzan líneas, pero los callers que faltan no contienen el texto `formatCurrency`: ningún modo de match los encuentra.",
+        "1": "Buscar por nombre de archivo no dice quién llama a la función: los 23 callers están en archivos de features que no se llaman 'money'. Y leerlos todos gasta contexto.",
+        "3": "`count` solo reordena los mismos 6 resultados que ya tenías; los alias siguen invisibles."
+      },
+      "rule": "Uso a través de wrappers: primero los nombres exportados, después un `Grep` por cada nombre.",
+      "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
+      "source_quote": "Tracing function usage across wrapper modules by first identifying all exported names, then searching for each name across the codebase",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la guía oficial del examen (PDF everpath). Ninguna opción de Grep (multiline/count) encuentra alias; Glob por nombre no da callers. Única correcta C."
+      }
+    },
+    {
+      "id": "o17-q23",
+      "objective": 17,
+      "pool": "practice",
+      "scenario": "An internal developer-productivity team asks Claude Code, running on a developer's Windows laptop, why checkout v3 is enabled in staging. Claude runs Grep for `CHECKOUT_V3_ENABLED` across the repo, gets `No files found`, and tells the developer the flag is not defined anywhere. The developer knows it is set in `config/flags.generated.json`, a file produced at build time and listed in `.gitignore`; a Glob for `config/*.json` does return that file. Company policy forbids committing generated files, and the team wants Claude to search this file reliably without changing what git tracks. What should the developer tell Claude to do?",
+      "options": [
+        "Set `CLAUDE_CODE_GLOB_NO_IGNORE=false` before launching Claude Code, so that both search tools treat gitignored files the same way.",
+        "Pass the file's path directly to Grep when it searches gitignored files such as `config/flags.generated.json`, instead of searching the whole repo.",
+        "Remove `config/flags.generated.json` from `.gitignore` so Grep can see it, and add a pre-commit hook that blocks the file from ever being committed by mistake.",
+        "Escape the underscores in the pattern as `CHECKOUT\\_V3\\_ENABLED`, because Grep uses ripgrep regex syntax rather than plain-text matching."
+      ],
+      "correct": 1,
+      "why_correct": "`Grep` respeta `.gitignore`, por eso el archivo generado no aparece en una búsqueda sobre todo el repo. La doc dice qué hacer: pasarle la ruta del archivo directamente. No toca git ni la política.",
+      "why_wrong": {
+        "0": "Esa variable afecta a `Glob`, no a `Grep`. Y con `false` hace que `Glob` *respete* `.gitignore`: el efecto contrario al que buscás.",
+        "2": "Funcionaría a medias, pero cambia lo que git trackea (el archivo deja de estar ignorado) para esquivar algo que se resuelve pasando la ruta.",
+        "3": "`_` no es un metacaracter de regex; escaparlo no resuelve nada (y ripgrep hasta podría rechazar el escape). El problema es que el archivo está ignorado, no el patrón."
+      },
+      "rule": "`Grep` saltea lo que está en `.gitignore`; para buscar ahí, pasale la ruta del archivo.",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "Grep respects `.gitignore`, so gitignored files are skipped. To search a gitignored file, Claude passes its path directly.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en code.claude.com/docs/en/tools-reference (Grep respeta .gitignore; pasar la ruta). Windows → Grep disponible por defecto. CLAUDE_CODE_GLOB_NO_IGNORE afecta solo a Glob (confirmado)."
+      }
+    },
+    {
+      "id": "o17-q24",
+      "objective": 17,
+      "pool": "practice",
+      "scenario": "A developer on Windows asks Claude Code where the `Invoice` type is defined in `schema/api.graphql`, a 1.4 MB generated GraphQL schema with about 38,000 lines. Claude's first Read call returns an error saying the file is too large and suggesting a partial read. Claude retries the same Read twice, then answers from memory with a guessed definition that has two wrong field names. The developer needs the exact definition plus the types it references, and wants to keep the session's context free for the refactor that follows. What is the most effective instruction to give Claude?",
+      "options": [
+        "Read the whole schema in a single call with `allow_large: true`, so the full file is in context and every referenced type can be checked without more searches.",
+        "Set `CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS` to a higher value and restart, so a single Read of the schema no longer goes over the limit.",
+        "Use the PowerShell tool to print the file with `Get-Content`, since shell output is not subject to the Read tool's file size limits.",
+        "Grep for `type Invoice` in `content` mode to get the line number, then Read that region with `offset` and `limit`, repeating for each referenced type."
+      ],
+      "correct": 3,
+      "why_correct": "La doc dice que un archivo de más de 256 KB se rechaza entero y que la salida es leer una porción con `offset`/`limit` o buscar con `Grep`. `Grep` en modo `content` te da el número de línea; leés solo esa zona y cada tipo referenciado. Contexto chico, dato exacto.",
+      "why_wrong": {
+        "0": "Casi: `allow_large` existe (v2.1.296 o posterior) y leería todo, pero esa lectura se dimensiona contra el lugar que queda en el contexto. Meter 1,4 MB se come justo el contexto que querés guardar para el refactor.",
+        "1": "Esa variable sube el tope de tokens por llamada, pero el rechazo de un archivo entero de más de 256 KB es un límite aparte. Y aunque entrara, llenaría el contexto igual.",
+        "2": "Volcar el archivo por la shell no te da la definición: pasados unos 30.000 caracteres la salida se guarda en un archivo y Claude recibe solo un preview, así que igual tiene que buscar la parte que necesita. Es un rodeo sin dirección, no una lectura precisa."
+      },
+      "rule": "Archivo gigante: `Grep` para ubicar la línea → `Read` con `offset`/`limit`.",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "Whole file over 256 KB, or an `offset` or `limit` read over the token limit: an error telling it to read a portion with `offset` and `limit`, or to search for specific content with Grep instead",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Cita textual en tools-reference (archivo >256 KB rechazado → offset/limit o Grep; allow_large existe desde v2.1.296 y se dimensiona contra el contexto). Corregí why_wrong[2]: la salida de la shell no entra entera al contexto (pasados ~30.000 caracteres se guarda en archivo con preview, según tools-reference); el problema es que es un rodeo no dirigido."
+      }
+    },
+    {
+      "id": "o17-q25",
+      "objective": 17,
+      "pool": "practice",
+      "scenario": "A team uses Claude Code to plan a migration from Express handlers to tRPC in a large Node.js service. Before writing any code, the lead asks Claude to \"find every handler that reads `req.session` and summarize how each one uses it.\" In the main session, Claude runs a dozen Grep searches in `content` mode and reads 40 handler files. The `/context` view now shows most of the window taken by tool results, and the lead still needs this session for a long implementation phase that depends only on the final summary, not on the raw search output. What is the most effective way to run this kind of investigation next time?",
+      "options": [
+        "Let Claude delegate the search to the built-in Explore subagent, which works in its own context window and returns only a summary.",
+        "Run `/compact` after every few searches, so the raw Grep output gets summarized away while Claude keeps working in the main conversation.",
+        "Switch every Grep to `files_with_matches` mode, so the main session only receives file paths and then Reads the 40 files to build the summary.",
+        "Run `/clear` as soon as the searches finish and paste the list of handler names back in, so the implementation phase starts from an empty context."
+      ],
+      "correct": 0,
+      "why_correct": "La investigación es ruidosa y lo único que necesitás después es la conclusión. `Explore` es un subagente de solo lectura con su propio contexto: hace los `Grep`/`Read` allá y devuelve un resumen. El contexto principal queda limpio para implementar.",
+      "why_wrong": {
+        "1": "`/compact` ayuda, pero llega tarde: el output crudo ya entró, y el resumen automático puede perder detalles de cada handler. Aislar la exploración evita el problema en vez de limpiarlo después.",
+        "2": "`files_with_matches` achica la salida del `Grep`, pero leer los 40 archivos en la sesión principal vuelve a llenar el contexto.",
+        "3": "`/clear` borra todo, incluido lo que Claude entendió de cada uso de `req.session`; pegar solo los nombres pierde justo el resumen que necesitabas."
+      },
+      "rule": "Exploración ruidosa → subagente (`Explore`) con contexto propio; vuelve solo el resumen.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "Claude delegates to Explore when it needs to search or understand a codebase without making changes. This keeps exploration results out of your main conversation context.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en code.claude.com/docs/en/sub-agents (Explore mantiene la exploración fuera del contexto principal). /compact, /clear y files_with_matches tratan el síntoma."
       }
     }
   ]

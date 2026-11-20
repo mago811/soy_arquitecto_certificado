@@ -104,7 +104,7 @@ Reiniciá `claude` y repetí con `@"tester (agent)" corré git status y después
 
 ## Si algo falla
 
-- Si el subagente nuevo no aparece en el typeahead `@`: si `.claude\agents\` no existía al abrir la sesión, reiniciá Claude Code.
+- Si el subagente nuevo no aparece en el typeahead `@`: esperá unos segundos (Claude Code detecta solo los cambios en `.claude\agents\`); si sigue sin aparecer, reiniciá Claude Code.
 - Si en el paso 5 el tester igual corre comandos: revisá que `disallowedTools` tenga las dos entradas (`Bash(...)` y `PowerShell(...)`) separadas por coma.
 - Si `git commit` falla con "Please tell me who you are": `git config --global user.name "Diego"` y `git config --global user.email "diego@example.com"`.
 - Si el archivo no carga, revisá que tenga `name` y `description` y que el `---` sea la primera línea.

@@ -22,11 +22,11 @@
       "rule": "En cada nivel de delegación, lo que el subagente necesita va en el prompt que le escribe quien lo lanza.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "Claude composes a delegation message that summarizes the task, and the subagent works from there.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Confirmado en sub-agents: contexto nuevo, mensaje de delegación; anidamiento por defecto hasta 3 capas; autoCompactWindow solo baja la ventana."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Confirmado en sub-agents: contexto nuevo, mensaje de delegación; anidamiento por defecto hasta 3 capas; autoCompactWindow solo baja la ventana. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "Datos de la corrida → prompt de la llamada al Agent tool; reglas estables del rol → definición del subagente.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "The only content you pass from parent to subagent is the Agent tool's prompt string, so include any file paths, error messages, or decisions the subagent needs directly in that prompt.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Confirmado en agent-sdk/subagents: solo pasa el prompt del Agent tool; no recibe el system prompt del padre; initialPrompt se ignora como subagente."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Confirmado en agent-sdk/subagents: solo pasa el prompt del Agent tool; no recibe el system prompt del padre; initialPrompt se ignora como subagente. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "Prompt completo = lo que el subagente no puede descubrir solo, no todo pegado; su ventana depende de su propio modelo.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "Delegating to a model with a smaller window gives that subagent the smaller window.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual (ventana según el modelo del subagente). autoCompactWindow solo para compactar antes; long-form arriba según best practices."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual (ventana según el modelo del subagente). autoCompactWindow solo para compactar antes; long-form arriba según best practices. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,11 @@
       "rule": "Para seguir el trabajo de un subagente, retomalo; una invocación nueva arranca de cero.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "Each subagent invocation creates a new instance rather than continuing an earlier one.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Confirmado: cada invocación es instancia nueva; SendMessage retoma; Explore/Plan son one-shot sin agent ID."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Confirmado: cada invocación es instancia nueva; SendMessage retoma; Explore/Plan son one-shot sin agent ID. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -134,11 +134,11 @@
       "rule": "Un subagente no puede preguntarle al humano: las decisiones tienen que viajar resueltas en el prompt de delegación.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "narrowed by two filters: the first removes a short list of tools from every subagent",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Confirmado: AskUserQuestion está en el primer filtro que quita tools a todo subagente; en primer plano pasan los pedidos de permiso."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Confirmado: AskUserQuestion está en el primer filtro que quita tools a todo subagente; en primer plano pasan los pedidos de permiso. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -162,11 +162,207 @@
       "rule": "Delegá con los hechos ya establecidos y sus IDs exactos, en formato estructurado, para que el subagente no repita ni adivine.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "The parent's conversation history or tool results",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Confirmado en la tabla de agent-sdk/subagents (no recibe historial ni tool results del padre); continue_conversation retoma la sesión más reciente (sessions). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o03-s21",
+      "objective": 3,
+      "pool": "sim",
+      "scenario": "A developer at a gaming studio has spent two hours in a Claude Code session (Code Generation with Claude Code) chasing a desync bug: about 80 messages of failed hypotheses, packet captures and partial patches that would be impractical to summarize. They want three parallel attempts at a fix, each building on everything learned so far. Their first try delegated to three general-purpose subagents; each came back with a shallow patch that re-proposed hypotheses already ruled out, because the delegation message left out key reproduction details. What is the best approach for the next attempt?",
+      "options": [
+        "Ask Claude to write much longer delegation prompts that summarize every hypothesis and capture before spawning the subagents.",
+        "Use forks, which inherit the entire conversation so far, so each parallel attempt starts from the full debugging history.",
+        "Resume the three previous subagents so each one continues with its own history and the new instructions.",
+        "Write the debugging notes into CLAUDE.local.md so every subagent loads them and starts with the background."
+      ],
+      "correct": 1,
+      "why_correct": "La doc recomienda un fork cuando cualquier otro subagente necesitaría demasiado contexto para ser útil, o cuando querés probar varios enfoques en paralelo desde el mismo punto. Las dos condiciones se cumplen: 80 mensajes imposibles de resumir y tres intentos paralelos.",
+      "why_wrong": {
+        "0": "Casi: es el fix normal para un subagente no-fork, pero el escenario dice que el contexto es impracticable de resumir. Ahí la doc apunta al fork.",
+        "2": "Un subagente retomado conserva SU historial, que nunca incluyó la conversación de debugging del padre.",
+        "3": "Funciona a medias: pasa notas resumidas, que es justo lo que no se puede, y mete basura temporal en memoria persistente."
+      },
+      "rule": "Subagente que necesitaría demasiado background, o varios intentos desde el mismo punto → fork.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "Use a fork when any other subagent would need too much background to be useful, or when you want to try several approaches in parallel from the same starting point.",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
         "verdict": "ok",
-        "notes": "Confirmado en la tabla de agent-sdk/subagents (no recibe historial ni tool results del padre); continue_conversation retoma la sesión más reciente (sessions)."
+        "notes": "Cita textual confirmada en sub-agents (Fork the current conversation)."
+      }
+    },
+    {
+      "id": "o03-s22",
+      "objective": 3,
+      "pool": "sim",
+      "scenario": "A Multi-Agent Research System for a pharma company uses a coordinator whose context holds about 400k tokens of raw search results. It delegates statistical review of trial data to an `analysis` subagent that must stay on a small, cheap model. Most analysis runs end with \"I need the list of trial IDs and the date range to proceed\", so the coordinator spawns a second run; the average is 2.3 spawns per task, and latency per question doubled. What is the most effective change?",
+      "options": [
+        "Give the analysis subagent the SendMessage tool so it can ask the coordinator for missing context during its run, whenever something is missing.",
+        "Spawn the analysis step as a fork so it inherits the coordinator's full conversation, including the trial IDs.",
+        "Change the delegation template so each analysis prompt carries the objective, output format, trial IDs, date range and boundaries.",
+        "Raise the analysis subagent's maxTurns so it has enough turns to find the trial IDs and date range by itself."
+      ],
+      "correct": 2,
+      "why_correct": "El post de ingeniería de Anthropic lo dice: cada subagente necesita objetivo, formato de salida, guía de tools y fuentes, y límites claros. Si el prompt de delegación ya trae los IDs y el rango de fechas, el subagente no tiene que volver. Se ataca la causa, que es un prompt incompleto.",
+      "why_wrong": {
+        "0": "Agrega un canal de preguntas, o sea más round-trips: trata el síntoma.",
+        "1": "Un fork usa el mismo modelo y system prompt que el padre y hereda los 400k tokens: choca con la restricción del modelo chico y barato.",
+        "3": "Más turnos no le dan datos que solo tiene el coordinador; puede salir a buscarlos y equivocarse."
+      },
+      "rule": "Si el subagente vuelve a pedir contexto, el problema está en el prompt de delegación: objetivo, formato, fuentes, límites y datos, todo adentro.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "Each subagent needs an objective, an output format, guidance on the tools and sources to use, and clear task boundaries.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Fuente de ingeniería de Anthropic aceptada (no hay equivalente textual en code/platform docs); cita confirmada. Fork usa el mismo modelo del padre según sub-agents, lo que respalda el distractor B."
+      }
+    },
+    {
+      "id": "o03-s23",
+      "objective": 3,
+      "pool": "sim",
+      "scenario": "A bank's Customer Support Resolution Agent runs on the Agent SDK. For disputed charges, the main agent delegates to a `compliance-checker` subagent that returns a 12-item regulatory checklist with a pass/fail per item. Supervisors must see that checklist exactly as produced, because regulators audit the item wording, not a summary of it. In 27% of cases, the user-facing reply shows a paraphrased checklist with items merged or missing, although the subagent's final report in the trace is complete and correct. What is the most effective fix?",
+      "options": [
+        "Add an instruction to keep the checklist verbatim in the prompt or systemPrompt passed to the main query() call.",
+        "Add \"Return your checklist verbatim and do not summarize it\" to the compliance-checker's AgentDefinition.prompt.",
+        "Set background: false on the compliance-checker so the main agent waits for the complete report before answering.",
+        "Lower the main agent's effort level so it rewrites less of the subagent's report when composing the reply."
+      ],
+      "correct": 0,
+      "why_correct": "El padre recibe el reporte final del subagente, pero puede resumirlo en su respuesta. La doc dice que para conservarlo textual hay que poner la instrucción en el prompt o `systemPrompt` del `query()` principal. El subagente ya devuelve todo bien; quien parafrasea es el agente principal.",
+      "why_wrong": {
+        "1": "Casi: el subagente ya devuelve la checklist completa (se ve en la traza). La pérdida ocurre después, cuando el padre arma su respuesta.",
+        "2": "El padre ya recibe el reporte completo; esperar o no, no cambia que después lo resuma.",
+        "3": "Bajar el esfuerzo no es una instrucción de conservar texto y puede empeorar la respuesta."
+      },
+      "rule": "El output del subagente lo resume el padre; si tiene que salir textual, la instrucción va en el prompt del `query()` principal.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "source_quote": "To preserve subagent output verbatim in the user-facing response, include an instruction to do so in the prompt or `systemPrompt` option you pass to the main `query()` call.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual confirmada en agent-sdk/subagents (preservar output verbatim con instrucción en el query() principal)."
+      }
+    },
+    {
+      "id": "o03-s24",
+      "objective": 3,
+      "pool": "sim",
+      "scenario": "A procurement platform runs a Structured Data Extraction pipeline for 200-page supplier contracts. A coordinator splits each contract by section and sends one section's raw text per subagent, which extracts obligations into a JSON schema. Sections often say \"as defined in Section 2.1\" or \"subject to the Liability Cap\"; because subagents never see those definitions, 31% of `cap_amount` and `notice_period_days` fields come back null when the value is in the contract. Sending the full contract to every subagent is ruled out for cost. What is the best change to the subagent prompts?",
+      "options": [
+        "Send every subagent the whole contract with its own section highlighted, so it can resolve any cross-reference.",
+        "Give the subagents SendMessage so they can ask the coordinator for a definition whenever they hit a cross-reference.",
+        "Merge all the sections into a single extraction agent so that every definition sits in one context window.",
+        "Extract the definitions first, then pass them, the section text and its metadata in separate XML-tagged blocks."
+      ],
+      "correct": 3,
+      "why_correct": "El subagente solo sabe lo que viaja en su prompt. Si el valor depende de una definición de otra sección, esa definición tiene que ir incluida, separada del texto de la sección y de la metadata. Las XML tags ayudan a que Claude no confunda instrucciones, contexto y datos.",
+      "why_wrong": {
+        "0": "Resuelve las referencias pero viola la restricción de costo, que el escenario descarta.",
+        "1": "Suma un round-trip por referencia; es exactamente lo que un buen prompt de delegación evita.",
+        "2": "Pierde el paralelismo y mete 200 páginas en un solo contexto; no ataca qué contexto necesita cada parte."
+      },
+      "rule": "Subagente sin el dato que necesita → el coordinador se lo pasa en el prompt, estructurado (contenido, definiciones, metadata en tags separados).",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "XML tags help Claude parse complex prompts unambiguously, especially when your prompt mixes instructions, context, examples, and variable inputs.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Cita confirmada en claude-prompting-best-practices (XML tags). Cambio: acorté la correcta, que era la más larga."
+      }
+    },
+    {
+      "id": "o03-s25",
+      "objective": 3,
+      "pool": "sim",
+      "scenario": "A fintech team does Code Generation with Claude Code. After discussing a 9-file change for 30 minutes, the developer types: \"Have the reviewer subagent review the diff we discussed.\" The custom `reviewer` subagent comes back with comments on unrelated files across `src\\`, plus generic style advice. Its transcript shows a task message that says \"Review the recent changes in the repository\" and nothing about the branch, the 9 files or the concerns raised in the discussion. What should the developer change in how they ask for the delegation?",
+      "options": [
+        "Name the base and head refs, the 9 file paths and the concerns in the request, so they reach the delegation message.",
+        "Set model: inherit on the reviewer so it uses the same model and sees the same context as the main conversation.",
+        "Run the reviewer in the foreground instead of the background so it can see the main conversation while it reviews the change.",
+        "Set omitClaudeMd: false on the reviewer so it loads the project CLAUDE.md and understands what was discussed."
+      ],
+      "correct": 0,
+      "why_correct": "Cada subagente arranca con contexto nuevo y aislado: no ve la conversación ni los archivos que Claude ya leyó. Trabaja a partir del mensaje de delegación que Claude compone. Si el pedido es vago, el mensaje también; nombrar refs, archivos y preocupaciones hace que viajen al subagente.",
+      "why_wrong": {
+        "1": "`model: inherit` comparte modelo, no contexto.",
+        "2": "Foreground o background cambia si el padre espera el resultado, no qué contexto recibe el subagente.",
+        "3": "CLAUDE.md ya se carga por defecto, y de todos modos no contiene la discusión de los últimos 30 minutos."
+      },
+      "rule": "Delegación vaga = subagente perdido. Paths, refs y criterios van explícitos en el pedido.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "Claude composes a delegation message that summarizes the task, and the subagent works from there.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita confirmada en sub-agents; CLAUDE.md se carga por defecto salvo omitClaudeMd: true; foreground/background no cambia el contexto."
+      }
+    },
+    {
+      "id": "o03-s26",
+      "objective": 3,
+      "pool": "sim",
+      "scenario": "A think tank's Multi-Agent Research System runs eight search subagents in parallel. Each one currently ends with a long report that includes the raw HTML of every page it opened, so the coordinator can pass \"everything\" to the synthesis step. Coordinator context reaches about 700k tokens per question, cost per report tripled, and the synthesis still misses claims buried in the noise. Synthesis must keep exact source attribution, and the team cannot afford a second round of page fetching for each report. What should the team change?",
+      "options": [
+        "Keep the raw reports but have the coordinator run /compact before delegating to the synthesis subagent.",
+        "Have the synthesis step run as a fork of the coordinator so it receives the full reports without the coordinator re-sending them.",
+        "Have each search subagent return structured findings (claim, quote, URL, date) instead of raw pages, and pass those on.",
+        "Pass the synthesis subagent only the list of URLs and let it re-read whichever pages it considers relevant."
+      ],
+      "correct": 2,
+      "why_correct": "Completo no es lo mismo que crudo. Los subagentes ya aíslan su exploración; lo que vuelve al coordinador tiene que ser un resultado compacto. La doc advierte que muchos subagentes que devuelven resultados detallados consumen mucho contexto. Hallazgos estructurados con su cita y su fuente dan a la síntesis todo lo que necesita.",
+      "why_wrong": {
+        "0": "Compactar resume sin control: se pueden perder justo las citas y la atribución que el escenario exige.",
+        "1": "Un fork hereda los 700k tokens del coordinador (aunque reuse el prompt cache): no saca el HTML crudo y la síntesis sigue buscando las afirmaciones entre el ruido.",
+        "3": "Rehace el trabajo de búsqueda y lectura; triplica costo por otro lado."
+      },
+      "rule": "Lo que viaja entre agentes: hallazgos estructurados con metadata de fuente, no transcripts ni páginas crudas.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "Running many subagents that each return detailed results can consume significant context, and each subagent spends tokens of its own while it runs.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Cita confirmada en sub-agents. Cambio: ajusté why_wrong de B, porque la doc dice que el fork reusa el cache del padre (no es 'caro' per se); el problema es que no saca el ruido."
+      }
+    },
+    {
+      "id": "o03-s27",
+      "objective": 3,
+      "pool": "sim",
+      "scenario": "A team uses Claude Code for Continuous Integration: a nightly `claude -p` job runs the test suite, then delegates fixes to a custom `test-fixer` subagent. Each delegation message says only \"Fix the failing tests.\" Logs show every `test-fixer` run starts by running the whole suite again (12 minutes) to discover what failed, and the nightly job now exceeds its 2-hour window. The main agent already has the failing test IDs and stack traces from its own run. What change addresses the root cause?",
+      "options": [
+        "Remove Bash from test-fixer's tools so it cannot rerun the suite and must fix the tests from reading the source code alone.",
+        "Instruct in the -p prompt that each delegation must include the failing test file paths, test names and their error output.",
+        "Run test-fixer as a fork so it inherits the main agent's whole conversation, including the full test log.",
+        "Give test-fixer a maxTurns limit so it stops before rerunning the suite and returns its partial fixes."
+      ],
+      "correct": 1,
+      "why_correct": "El subagente no ve los resultados de tools del padre: solo recibe el prompt de delegación. Si ese prompt no trae paths, nombres de tests y errores, el subagente los tiene que descubrir de nuevo (12 minutos). La doc dice explícitamente que pongas en el prompt los paths, mensajes de error y decisiones que necesita.",
+      "why_wrong": {
+        "0": "Le saca la capacidad de verificar sus fixes y no le da la información que le falta.",
+        "2": "Casi: un fork tendría el log, pero un fork no es el `test-fixer`: corre con el system prompt, tools y modelo del padre y hereda toda la conversación del job. Lo directo es que la delegación lleve paths, tests y errores.",
+        "3": "Corta el trabajo a la mitad y devuelve fixes parciales; no le da los datos."
+      },
+      "rule": "Paths, errores y decisiones que el subagente necesita → en el prompt de delegación. No los va a \"ver\" del padre.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "source_quote": "The only content you pass from parent to subagent is the Agent tool's prompt string, so include any file paths, error messages, or decisions the subagent needs directly in that prompt.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Cita textual confirmada en agent-sdk/subagents. Cambio: precisé why_wrong de C (un fork usa system prompt/tools/modelo del padre según sub-agents, no la definición del test-fixer)."
       }
     }
   ]

@@ -46,7 +46,7 @@ Con el SDK en hosts efímeros, igual: "Capture the results you need (analysis ou
 - **"Empezá de cero y que explore todo"** cuando cambiaron 2 archivos: funciona, pero repite trabajo.
 - **"Fork para ver los cambios nuevos"**: el fork copia el mismo historial viejo. No refresca nada.
 - **Creer que el fork aísla archivos**: "Forking branches the conversation history, not the filesystem." Si las dos ramas editan, se pisan.
-- **Retomar la misma sesión en dos terminales sin fork**: "messages from both interleave into one transcript".
+- **Retomar la misma sesión en dos terminales sin fork**: "both write to one transcript. When you resume that session later, messages from one of them can be missing." El fix: `--fork-session` en cada `claude`.
 
 ## Ejemplo
 

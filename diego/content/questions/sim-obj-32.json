@@ -22,11 +22,11 @@
       "rule": "En Linux/macOS sin flags, las búsquedas de Claude son llamadas a `Bash`: hooks y permisos se escriben contra `Bash`.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "In Claude's shell those two commands run embedded versions of `bfs` and `ugrep`, and the searches reach your hooks and permission rules as `Bash` calls.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "tools-reference: en macOS/Linux/WSL Glob/Grep fuera del set por defecto, búsquedas llegan a hooks/permisos como Bash; allow rule en settings no las restaura. Escenario explicita Linux sin flags."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "tools-reference: en macOS/Linux/WSL Glob/Grep fuera del set por defecto, búsquedas llegan a hooks/permisos como Bash; allow rule en settings no las restaura. Escenario explicita Linux sin flags. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "Patrón que tiene que cruzar líneas → Grep con `multiline: true`.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "By default, patterns match within a single line. Claude can set `multiline: true` to match across line boundaries.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "tools-reference: 'By default, patterns match within a single line... multiline: true'. Ripgrep rechazado => error con diagnóstico (v2.1.208+). Escenario deja claro que Grep está (subagente sin Bash). Distinto de o32-q06."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "tools-reference: 'By default, patterns match within a single line... multiline: true'. Ripgrep rechazado => error con diagnóstico (v2.1.208+). Escenario deja claro que Grep está (subagente sin Bash). Distinto de o32-q06. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "Read rechaza binarios como `.parquet` o `.xlsx` → leelos con un comando o script por Bash.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "Read refuses a file whose extension it treats as binary, such as `.xlsx`, `.parquet`, `.heic`, or `.zip`.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "tools-reference: Read rechaza .parquet por extensión; el error sugiere comando/script de shell; allow_large solo cambia límites de texto. Distinto de o32-q03 (directorio)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "tools-reference: Read rechaza .parquet por extensión; el error sugiere comando/script de shell; allow_large solo cambia límites de texto. Distinto de o32-q03 (directorio). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,179 @@
       "rule": "Write sobrescribe todo; para agregar o cambiar una parte de un archivo, Edit con un `old_string` único.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "The Write tool creates a new file or overwrites an existing one with the full content provided. It doesn't append or merge.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "tools-reference: Write 'doesn't append or merge'; Edit para cambios parciales. Corregido why_wrong[3]: la lectura previa obligatoria depende del modelo (Opus 4.6/Haiku 4.5 y anteriores sí; modelos nuevos no siempre). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o32-s21",
+      "objective": 32,
+      "pool": "sim",
+      "scenario": "A healthcare SaaS runs automated pull-request reviews on Linux CI runners with `claude -p`. Compliance requires that every content search Claude performs be logged and that searches inside `fixtures/patients/` be blocked, so the team added a PreToolUse hook with matcher `Grep` that writes an audit line and exits 2 for that path. The review job only needs to read code: it never runs commands or edits files. After a month, the audit log is empty, yet transcripts clearly show Claude searching the code base, including `fixtures/patients/`. The same hook works when developers run Claude Code on their Windows laptops. Which change makes the hook see and block these searches in CI?",
+      "options": [
+        "Add `\"allow\": [\"Grep\", \"Glob\"]` to the project's `.claude/settings.json`, so the dedicated search tools are enabled for the CI session and every search reaches the `Grep` hook.",
+        "Start the CI job with `--tools \"Read,Grep,Glob\"`, so the session has only those tools and every content search runs as a `Grep` call that the hook can audit and block.",
+        "Add a deny rule for `Bash(grep *)` to the project settings, so the shell search is refused and Claude is pushed onto the Grep tool that the hook is watching.",
+        "Move the hook from the project's `.claude/settings.json` to the CI user's `~/.claude/settings.json`, since project hooks are skipped in non-interactive `-p` runs."
+      ],
+      "correct": 1,
+      "why_correct": "En Linux, macOS y WSL, Claude Code deja `Glob` y `Grep` fuera del set por defecto y busca con `find`/`grep` a través de `Bash`: el hook con matcher `Grep` nunca se dispara. Nombrar las tools en `--tools` te da exactamente esas; sin `Bash`, toda búsqueda de contenido pasa por `Grep` y el hook la ve. Además cumple con que el job solo lea.",
+      "why_wrong": {
+        "0": "La doc lo dice explícito: una allow rule en un archivo de settings NO devuelve `Glob`/`Grep`. Solo lo hacen `--tools`/`--allowedTools`, sacar `Bash` de la sesión, o un subagente que las liste sin `Bash`.",
+        "2": "Una regla con especificador como `Bash(grep *)` no saca `Bash` de la sesión (eso lo hace una deny que cubre toda la tool), así que `Grep` sigue ausente y Claude puede buscar con `find` u otros comandos.",
+        "3": "Los hooks de los settings del proyecto sí corren en `-p`. El problema no es dónde está el hook sino qué tool usa Claude para buscar."
+      },
+      "rule": "En Linux/macOS/WSL las búsquedas van por `Bash` salvo que pidas `Glob`/`Grep` con `--tools`/`--allowedTools` (o saques `Bash`); una allow rule no alcanza.",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "On macOS, Linux, and WSL, Claude Code leaves Glob and Grep out of the default tool set, and Claude searches with `find` and `grep` through the Bash tool instead.",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc: en Linux Glob/Grep fuera del set por defecto, vuelven con --tools/--allowedTools; una allow rule en settings no alcanza; deny scoped no saca Bash. Cita textual."
+      }
+    },
+    {
+      "id": "o32-s22",
+      "objective": 32,
+      "pool": "sim",
+      "scenario": "A pharmaceutical company built a multi-agent research system with the Agent SDK on Windows workstations. A `regulatory-reader` subagent with `tools: [\"Read\", \"Grep\", \"Glob\"]` summarizes FDA guidance PDFs saved under `corpus\\fda\\`. Short PDFs (6–9 pages) work every time. Every PDF longer than 10 pages fails, and the subagent's transcript shows: `pdftoppm is not installed`. The synthesis agent then reports \"source unavailable\" for 64% of the corpus. The team cannot change the corpus format, and the subagent must stay read-only. What fixes the root cause?",
+      "options": [
+        "Raise `CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS` on the workstations so the subagent can read each long PDF whole in one call, avoiding page-range reads entirely.",
+        "Change the subagent's instructions to request smaller ranges, such as `pages: \"1-5\"`, since rendering 20 pages at a time is what exceeds the tool's limits.",
+        "Install a poppler build that puts `pdftoppm` on the `PATH` of the workstations, because Read renders page ranges of long PDFs with it.",
+        "Have the subagent call Read with `allow_large: true` on each long PDF, so the whole document is read in one call sized against the remaining context."
+      ],
+      "correct": 2,
+      "why_correct": "`Read` lee enteros los PDFs cortos; los de más de 10 páginas los lee por rangos con `pages`, y esa lectura renderiza con `pdftoppm` de poppler. En Windows tenés que instalar un build de poppler que deje `pdftoppm` en el `PATH`. Sin eso, toda lectura por rango falla con exactamente ese mensaje.",
+      "why_wrong": {
+        "0": "Imágenes, PDFs y notebooks mantienen sus propios límites; esa variable no hace que un PDF largo se lea entero sin rangos.",
+        "1": "Achicar el rango no cambia nada: cualquier lectura por rango necesita `pdftoppm`, sea de 5 o de 20 páginas.",
+        "3": "`allow_large` aplica a archivos de texto grandes; la doc aclara que imágenes, PDFs y notebooks mantienen sus límites."
+      },
+      "rule": "PDF de más de 10 páginas = `Read` con `pages`, que depende de `pdftoppm` instalado. El error es de entorno, no de prompt.",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "On Windows and other platforms, install a poppler build that puts `pdftoppm` on your `PATH`. Without it, a page-range read fails with `pdftoppm is not installed`.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc: PDFs >10 páginas por rangos con pdftoppm; en Windows instalar poppler en PATH; allow_large no aplica a PDFs. Cita textual."
+      }
+    },
+    {
+      "id": "o32-s23",
+      "objective": 32,
+      "pool": "sim",
+      "scenario": "A distributor processes supplier price lists with a `claude -p` job on a Linux runner. Each run receives 30–40 `.xlsx` files in `inbox/` and must emit a JSON array of SKU prices. The job allows `Read`, `Glob`, and `Bash(python3 *)`; the runner has Python with `openpyxl` installed. Logs show Claude calls Read on each workbook, gets a refusal, and then writes the output from memory, producing plausible but invented prices in 22% of rows. An engineer proposes several fixes. The team wants no new infrastructure and no fabricated values. Which change addresses the root cause?",
+      "options": [
+        "Reference each workbook in the prompt with an `@` mention, such as `@inbox/prices-acme.xlsx`, so Claude Code attaches the file contents before the run starts.",
+        "Rename the files to `.csv` in a pre-step so Read accepts them, because the refusal is based on the extension and not on what the file actually contains.",
+        "Add a Grep call over `inbox/` for `SKU` and `Price`, so Claude locates the relevant cells first and only then reads the rows that contain the matches.",
+        "Instruct Claude to read each workbook with a short `python3` script using `openpyxl`, as the Read refusal suggests for binary formats, and fail the row if a cell is empty."
+      ],
+      "correct": 3,
+      "why_correct": "`Read` rechaza extensiones que trata como binarias, como `.xlsx`. El error mismo sugiere una skill para ese formato si existe, o un comando/script que lea el formato. Acá ya tenés `Bash(python3 *)` y `openpyxl`: leer con un script es elegir la tool correcta para la naturaleza del archivo, y marcar las celdas vacías evita inventar valores.",
+      "why_wrong": {
+        "0": "Si hacés `@` de un archivo que `Read` rechaza, Claude recibe la ruta pero no el contenido. Sigue sin datos.",
+        "1": "Un `.xlsx` es un archivo comprimido: cambiarle la extensión no lo convierte en CSV. El contenido sigue siendo binario, así que Claude seguiría sin poder leer las celdas como texto.",
+        "2": "`Grep` busca líneas de texto; el contenido de un `.xlsx` no es texto plano. No vas a ubicar celdas así."
+      },
+      "rule": "Formato binario (xlsx, parquet, zip): `Read` no; script o skill que entienda el formato.",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "Read refuses a file whose extension it treats as binary, such as `.xlsx`, `.parquet`, `.heic`, or `.zip`. Claude keeps working after a refusal: the error suggests a skill for that file type if one is available, or else a shell command or script that reads the format.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
         "verdict": "corregida",
-        "notes": "tools-reference: Write 'doesn't append or merge'; Edit para cambios parciales. Corregido why_wrong[3]: la lectura previa obligatoria depende del modelo (Opus 4.6/Haiku 4.5 y anteriores sí; modelos nuevos no siempre)."
+        "notes": "Doc: Read rechaza .xlsx, el error sugiere skill o script; @ de archivo rechazado da solo la ruta. Cita textual. Se suavizó el why_wrong de B (no afirmar qué devolvería Read)."
+      }
+    },
+    {
+      "id": "o32-s24",
+      "objective": 32,
+      "pool": "sim",
+      "scenario": "An insurance company is migrating off an in-house HTTP helper. The team asked Claude Code to find every caller of `httpClient.get` before replacing it. Claude ran Grep for `httpClient\\.get\\(` and found 12 call sites, all of which were migrated. In staging, tracing still shows 37 requests per minute going through the old helper. Investigation shows `src/lib/http/index.ts` re-exports the helper as `getJson`, `fetchResource`, and a default export that several modules import under their own names. The team wants a method that Claude can apply to the next two helpers they plan to retire. What should Claude do?",
+      "options": [
+        "Glob for `**/*http*.ts` to find every module related to HTTP, then Read each one to see which ones still call the old helper under any name.",
+        "Read `src/lib/http/index.ts` to identify every exported name and alias of the helper, then Grep for each of those names across the codebase.",
+        "Re-run Grep for `httpClient\\.get\\(` with `multiline: true`, since some calls are probably split across lines and the first search missed them.",
+        "Read every file under `src/` once to build complete context, then ask Claude to list each place that reaches the helper through any import path."
+      ],
+      "correct": 1,
+      "why_correct": "Cuando hay un módulo wrapper que re-exporta con otros nombres, buscar el nombre original no alcanza. La guía del examen describe el método: primero identificás todos los nombres exportados (leyendo el wrapper) y después buscás cada uno con `Grep`. Es exploración incremental y repetible para los próximos helpers.",
+      "why_wrong": {
+        "0": "Los que llaman al helper no tienen por qué tener `http` en el nombre del archivo: `Glob` busca por nombre, no por uso. Y leer todo lo que aparezca quema contexto.",
+        "2": "`multiline` atraparía llamadas partidas en varias líneas, pero el problema real son los alias (`getJson`, `fetchResource`, default export), que no contienen `httpClient.get`.",
+        "3": "Leer todo de entrada es justo lo que la guía dice que no hay que hacer: no escala y llena el contexto antes de llegar a la respuesta."
+      },
+      "rule": "Wrapper con alias: leé qué exporta y hacé `Grep` por cada nombre; no busques solo el nombre original.",
+      "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
+      "source_quote": "Tracing function usage across wrapper modules by first identifying all exported names, then searching for each name across the codebase",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Guía del examen (PDF): rastrear wrappers identificando nombres exportados y buscando cada uno. Cita textual."
+      }
+    },
+    {
+      "id": "o32-s25",
+      "objective": 32,
+      "pool": "sim",
+      "scenario": "A mobile banking team wants a test inventory before a framework upgrade. A developer on Windows asks Claude Code to count the `*.test.tsx` files in a monorepo with 14 packages under `packages/`. Claude runs a single Glob with `**/*.test.tsx` and reports \"100 test files\", which the developer pastes into the upgrade plan. A reviewer later finds 341 test files. The transcript shows the Glob result came with a truncation flag that Claude ignored. The developer wants an accurate count without leaving the built-in file tools. How should Claude get the correct number?",
+      "options": [
+        "Set `CLAUDE_CODE_GLOB_NO_IGNORE=false` before launching Claude Code so Glob returns the complete list instead of stopping early at the default cap.",
+        "Call Glob again with the same pattern, because results are sorted by modification time and each new call continues from where the previous result stopped.",
+        "Narrow the pattern per package, such as `packages/payments/**/*.test.tsx`, until no result carries the truncation flag, and add up the counts.",
+        "Read the `packages/` folder to obtain the recursive file tree, then filter the entries that end in `.test.tsx` and count them in the response."
+      ],
+      "correct": 2,
+      "why_correct": "Los resultados de `Glob` vienen ordenados por fecha de modificación y con tope de 100 archivos. Si se llega al tope, Claude ve un flag de truncado y puede achicar el patrón. Partir por paquete hasta que ninguna llamada venga truncada y sumar da el número real.",
+      "why_wrong": {
+        "0": "Esa variable decide si `Glob` respeta `.gitignore`; no tiene nada que ver con el tope de 100. Y con `false` incluso podrías perder archivos.",
+        "1": "La doc no describe paginación para `Glob`: el mismo patrón devuelve los mismos 100 más recientes.",
+        "3": "`Read` no lee directorios; para listar una carpeta Claude usa un comando de shell."
+      },
+      "rule": "`Glob` corta en 100 con flag de truncado: si aparece, achicá el patrón; nunca reportes el 100 como total.",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "Results are sorted by modification time and capped at 100 files. If the cap is hit, Claude sees a truncation flag in the result and can narrow the pattern.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc: Glob ordena por mtime, tope 100 con flag de truncado, achicar patrón; Read no lee directorios. Cita textual."
+      }
+    },
+    {
+      "id": "o32-s26",
+      "objective": 32,
+      "pool": "sim",
+      "scenario": "A SaaS company renames `fetchUser(` to `loadUser(` across its TypeScript code. Developers work on Windows. The project's `.claude/settings.json` has a PostToolUse hook on `Edit|Write` that runs the formatter and writes an audit entry required by their SOC 2 controls. Grep shows 41 files with matches, some with up to 14 occurrences each, and several files exceed 2,000 lines. A first attempt failed because Edit reported that `old_string` matched more than once. The team needs every changed file to pass through the hook and wants to avoid rewriting large files wholesale. Which approach should Claude take?",
+      "options": [
+        "Run one PowerShell loop with `(Get-Content $f) -replace 'fetchUser\\(', 'loadUser(' | Set-Content $f` over the 41 files, which is faster than per-file tool calls.",
+        "Read each file and then Write it back in full with every occurrence replaced, since Write is the documented fallback whenever Edit cannot find a unique match.",
+        "Call Edit on each file with `old_string` set to the regex `fetchUser\\(` so a single pattern matches every call site regardless of the surrounding code.",
+        "Use the Grep results to visit each of the 41 files and call Edit with `old_string: \"fetchUser(\"`, `new_string: \"loadUser(\"`, and `replace_all: true`."
+      ],
+      "correct": 3,
+      "why_correct": "Cuando `old_string` aparece más de una vez, `Edit` pide o un texto más largo que lo haga único o `replace_all: true` para reemplazar todas. Acá querés todas: `Edit` con `replace_all` por archivo hace cambios puntuales sin reescribir 2.000 líneas, y cada llamada pasa por el hook `Edit|Write` que exige SOC 2.",
+      "why_wrong": {
+        "0": "El reemplazo por shell funciona, pero no es una llamada a `Edit` ni a `Write`: el hook de auditoría con matcher `Edit|Write` no se dispara, y la restricción pide que cada archivo pase por él.",
+        "1": "Read + Write es un fallback válido cuando no hay ancla única, y el hook correría, pero reescribe archivos enteros de 2.000 líneas: la restricción dice que eso se quiere evitar, y `replace_all` lo resuelve sin riesgo.",
+        "2": "`Edit` hace reemplazo exacto de texto: no usa regex ni matching difuso. Buscaría literalmente `fetchUser\\(` y no lo encontraría."
+      },
+      "rule": "Muchas ocurrencias del mismo texto: `Edit` con `replace_all: true`. `Edit` nunca usa regex.",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "Uniqueness: `old_string` must appear exactly once. When it appears more than once, Claude either supplies a longer string with enough surrounding context to pin down one occurrence, or sets `replace_all: true` to replace them all.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Doc: Edit sin regex; old_string único o replace_all. Cita textual. Se quitó del why_wrong de A la afirmación no documentada sobre el encoding de Set-Content en PowerShell 5.1."
       }
     }
   ]

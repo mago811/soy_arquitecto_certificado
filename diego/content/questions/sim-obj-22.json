@@ -22,11 +22,11 @@
       "rule": "El ruteo a revisión no puede depender de la capitalización exacta de un enum: compará sin distinguir mayúsculas.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "Compare enum values case-insensitively, and avoid enum values that differ only in capitalization.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "structured-outputs (Invalid outputs): no garantiza capitalización de enum, termina normal sin stop_reason especial, aplica a strict tool use. Cita textual."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "structured-outputs (Invalid outputs): no garantiza capitalización de enum, termina normal sin stop_reason especial, aplica a strict tool use. Cita textual. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "Juez binario sin salida = adivina. Dale 'Unknown' y ruteá esos campos a humanos.",
       "source_url": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
       "source_quote": "To avoid hallucinations, give the LLM a way out, like providing an instruction to return “Unknown” when it doesn’t have enough information.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Blog demystifying evals: 'give the LLM a way out... Unknown' y juez aislado por dimensión, textual. Aplicación a un verificador de extracción es directa (es un LLM-as-judge). Distinto de práctica obj-22."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Blog demystifying evals: 'give the LLM a way out... Unknown' y juez aislado por dimensión, textual. Aplicación a un verificador de extracción es directa (es un LLM-as-judge). Distinto de práctica obj-22. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "Ruteo a revisión se evalúa con precisión y recall contra etiquetas, no con 'cuánto mandamos'.",
       "source_url": "https://platform.claude.com/docs/en/about-claude/use-case-guides/content-moderation",
       "source_quote": "Regularly assess the performance of your content moderation system using metrics such as precision and recall tracking.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "content-moderation: cita textual (precision and recall) y risk levels flagged for human review. Se apoya por analogía: why_correct ahora lo dice explícito y no presenta la guía como si hablara de extracciones. Ajustada la definición de precisión (era 1-precisión). Distinto de o22-q04/q10."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "content-moderation: cita textual (precision and recall) y risk levels flagged for human review. Se apoya por analogía: why_correct ahora lo dice explícito y no presenta la guía como si hablara de extracciones. Ajustada la definición de precisión (era 1-precisión). Distinto de o22-q04/q10. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -134,11 +134,179 @@
       "rule": "Si la confianza del modelo no discrimina, usá el desacuerdo entre corridas (por campo) como señal de ruteo, no el azar ni el voto.",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
       "source_quote": "Run Claude through the same prompt multiple times and compare the outputs. Inconsistencies across outputs could indicate hallucinations.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual (Best-of-N verification) en reduce-hallucinations. La explicación atribuye a la doc solo la comparación entre corridas; el ruteo por campo queda como diseño, con la salvedad de que coincidir no prueba que esté bien. Distractores no defendibles. Distinto de o22-q04 (calibrar umbral) y de o22-s01..s04. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o22-s21",
+      "objective": 22,
+      "pool": "sim",
+      "scenario": "A B2B payments company extracts supplier invoices with Claude via the Message Batches API overnight. Each morning, about 1,800 invoices are flagged for human review because at least one field fell below its calibrated threshold, but the four reviewers can only clear 300 per day. The queue is processed first-in, first-out, so a €480,000 invoice with an uncertain IBAN waited six days while reviewers checked low-value invoices with an uncertain `po_number`. Late payments on large invoices triggered penalties last quarter. Reviewer headcount is fixed. What is the most effective improvement?",
+      "options": [
+        "Move extraction from the Message Batches API to the synchronous Messages API so invoices are flagged as they arrive and the queue builds up more evenly",
+        "Raise every field's confidence threshold so fewer invoices are flagged each night and the four reviewers can clear the whole queue within a single day",
+        "Define risk tiers combining which field is uncertain (IBAN, amount) with the invoice value, and have reviewers work from the highest tier down",
+        "Ask the model to add a `priority` field to each extraction stating how urgent it believes a review is, and sort the review queue by that field"
+      ],
+      "correct": 2,
+      "why_correct": "La capacidad es fija; lo que falta es priorizar. La guía pide rutear priorizando la capacidad limitada de revisores, y la guía de moderación muestra el patrón: varios niveles de riesgo para ajustar cuán agresivo es el tratamiento de cada uno. Un IBAN dudoso en una factura enorme vale más revisión que un `po_number` en una chica.",
+      "why_wrong": {
+        "0": "Pasar a sincrónico cambia cuándo llegan, no cuántas hay ni cuáles importan más. Y pierde el descuento de Batches sin resolver nada.",
+        "1": "Subir umbrales para que entre en la cola es esconder incertidumbre: las facturas grandes dudosas pasarían a pago automático.",
+        "3": "La prioridad autorreportada por el modelo no está calibrada ni conoce el costo de negocio de cada error; no es una base confiable para ordenar."
+      },
+      "rule": "Más casos dudosos que revisores → niveles de riesgo (qué campo + cuánto vale) y revisar de mayor a menor.",
+      "source_url": "https://platform.claude.com/docs/en/about-claude/use-case-guides/content-moderation",
+      "source_quote": "Creating multiple risk levels allows you to adjust the aggressiveness of your moderation. For example, you might want to automatically block user queries that are deemed high risk, whereas users with many medium risk queries are flagged for human review.",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
         "verdict": "ok",
-        "notes": "Cita textual (Best-of-N verification) en reduce-hallucinations. La explicación atribuye a la doc solo la comparación entre corridas; el ruteo por campo queda como diseño, con la salvedad de que coincidir no prueba que esté bien. Distractores no defendibles. Distinto de o22-q04 (calibrar umbral) y de o22-s01..s04."
+        "notes": "Cita textual en el use-case guide de content moderation (niveles de riesgo); la Exam Guide respalda priorizar capacidad limitada. Correcta única."
+      }
+    },
+    {
+      "id": "o22-s22",
+      "objective": 22,
+      "pool": "sim",
+      "scenario": "A bank extracts 30 fields from scanned account-opening forms. Each field gets a calibrated confidence, but routing is decided per document: if any field is below its threshold, the whole form goes to a reviewer, who re-checks all 30 fields against the scan. Logs show that 62% of forms are flagged, almost always because of one or two fields (usually `occupation` or a second phone number), and reviewers spend about 9 minutes per form. Compliance requires a human to confirm every low-confidence value. The team wants to cut review time without lowering accuracy. What is the most effective change?",
+      "options": [
+        "Lower the thresholds for `occupation` and secondary phone numbers so those fields stop triggering a review of the whole form so frequently",
+        "Route at field level: show reviewers only the fields below threshold, with their scan region, and auto-accept fields above their thresholds",
+        "Add more few-shot examples for `occupation` and phone numbers to the prompt so the model reports higher confidence on those two fields",
+        "Split the 30 fields across three extraction calls of 10 fields each, so a low-confidence field only flags one third of the form for review"
+      ],
+      "correct": 1,
+      "why_correct": "La confianza ya es por campo; el ruteo no. La guía habla de confianza a nivel de campo para dirigir la ATENCIÓN de revisión. Mostrar solo los campos dudosos cumple compliance (un humano confirma cada valor de baja confianza) y elimina la re-revisión de 28 campos que ya estaban bien.",
+      "why_wrong": {
+        "0": "Bajar umbrales para que dejen de saltar viola compliance: valores que hoy son de baja confianza pasarían sin humano.",
+        "2": "Subir la confianza que REPORTA el modelo no lo hace más preciso; sin recalibrar, solo esconde la duda.",
+        "3": "Partir las llamadas reduce la revisión a un tercio del formulario, pero sigue revisando campos que no lo necesitan, y triplica las llamadas. Es un parche del ruteo por bloque."
+      },
+      "rule": "Confianza por campo → ruteo y revisión por campo, no por documento entero.",
+      "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
+      "source_quote": "Field-level confidence scores calibrated using labeled validation sets for routing review attention",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la Exam Guide (field-level confidence para dirigir la atención). Correcta única y compatible con la restricción de compliance."
+      }
+    },
+    {
+      "id": "o22-s23",
+      "objective": 22,
+      "pool": "sim",
+      "scenario": "An insurer extracts claim data from a standard claim form with Claude. Thresholds were calibrated in March on 2,000 labeled forms, and stratified sampling of auto-approved extractions has run weekly since then. In September the insurer released version 4 of the form, which moved the incident date into a table. This week's sample shows the error rate on `incident_date` for v4 forms at 19%, versus under 1% for v3 forms; other fields and versions look normal. About 30% of incoming forms are now v4. Claims must be paid within 10 days. What should the team do first?",
+      "options": [
+        "Double the stratified sampling rate across all form versions for the next month to confirm whether the 19% error rate is real before taking any action",
+        "Lower the confidence threshold for `incident_date` across every form version, so many more of those fields go to human review starting this week",
+        "Update the extraction prompt with an example of the v4 table layout and redeploy it immediately, since the new layout is clearly the cause of the errors",
+        "Route `incident_date` on v4 forms to human review now, and recalibrate that threshold on newly labeled v4 forms before automating it again"
+      ],
+      "correct": 3,
+      "why_correct": "El muestreo hizo su trabajo: detectó un patrón nuevo en un segmento (v4, un campo). La guía pide validar por tipo de documento y por segmento de campo antes de automatizar lo de alta confianza. Primero frenás el daño en ese segmento (revisión humana) y después recalibrás con datos etiquetados de v4.",
+      "why_wrong": {
+        "0": "Duplicar el muestreo de todo retrasa la acción mientras el 19% de error sigue pagando reclamos; además ya está claro en qué segmento está el problema.",
+        "1": "Un umbral más bajo para todas las versiones inunda la cola con fechas de v3 que funcionan bien, y no está claro que atrape los errores de v4 (que pueden tener confianza alta).",
+        "2": "Mejorar el prompt puede ser parte de la solución, pero redesplegar sin validar contra datos etiquetados de v4 es automatizar a ciegas otra vez."
+      },
+      "rule": "El muestreo encuentra un segmento roto → revisión humana para ESE segmento y recalibrar con datos etiquetados antes de reautomatizar.",
+      "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
+      "source_quote": "The importance of validating accuracy by document type and field segment before automating high-confidence extractions",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita verificada en el PDF de la Exam Guide (TS 5.5): en el PDF el término aparece como 'high-' / 'confidence' cortado en dos líneas (pdftotext sin -layout lo pega como 'highconfidence'); la cita 'high-confidence' es fiel al texto. Correcta única."
+      }
+    },
+    {
+      "id": "o22-s24",
+      "objective": 22,
+      "pool": "sim",
+      "scenario": "A healthcare billing firm asks Claude to return, for each of 18 fields extracted from insurance claims, a `confidence` from 1 to 10. Routing sends anything below 7 to coders. Three months of data show that 93% of field scores are 9 or 10, and errors are spread almost evenly across scores 8, 9 and 10; the score barely separates good extractions from bad ones. The team has 900 claims double-coded by senior staff. An engineer proposes changing the scale to 0-100 for more granularity. What is the most effective response?",
+      "options": [
+        "Treat the raw score as uncalibrated: measure real error rates per field and score level on the 900 labeled claims, and set thresholds from that",
+        "Adopt the 0-100 scale as proposed, because the wider range lets the model express smaller differences in certainty between similar extractions",
+        "Add an instruction that the model must not give a score of 10 unless the value appears verbatim in the claim, to spread the scores more evenly",
+        "Drop confidence scores and route a fixed random 20% of claims to the coders, since the scores have been shown to be unreliable for routing"
+      ],
+      "correct": 0,
+      "why_correct": "Un número que el modelo se pone a sí mismo no es confianza calibrada; la guía advierte que la confianza autorreportada es un proxy poco confiable, y propone calibrar los umbrales con un set de validación etiquetado. Con 900 claims doble-codificados pueden medir qué tasa de error real hay en cada nivel y campo.",
+      "why_wrong": {
+        "1": "Más granularidad sobre una escala sin calibrar da números más finos igual de poco informativos.",
+        "2": "Puede abrir un poco la distribución, pero sigue siendo autorreporte sin medir contra la verdad; es casi correcta pero no resuelve la calibración.",
+        "3": "Volver al muestreo aleatorio tira la posibilidad de rutear por señal; el objetivo es justamente rutear por confianza calibrada, no al azar."
+      },
+      "rule": "Confianza autorreportada que no separa aciertos de errores → calibrala contra datos etiquetados; no cambies la escala.",
+      "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
+      "source_quote": "Field-level confidence scores calibrated using labeled validation sets for routing review attention",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la Exam Guide. Cambiar la escala sin calibrar no ayuda; correcta única."
+      }
+    },
+    {
+      "id": "o22-s25",
+      "objective": 22,
+      "pool": "sim",
+      "scenario": "A legal-tech company extracts 12 clauses from commercial leases using Claude with the Citations feature enabled on the PDF documents. The response is parsed line by line into `field: value` pairs, and each line's citations are attached. Fields with a value are auto-approved. An audit found that about 3% of auto-approved values, mostly `break_clause_date` and `rent_review_basis`, have no citation at all, and several of them do not appear anywhere in the lease. Reviewer capacity is limited and the team does not want to review every field. What change should they make to the routing logic?",
+      "options": [
+        "Turn on structured outputs with a strict schema for the 12 fields, since a schema-compliant response guarantees that every field is supported by the document",
+        "Ask the model in the prompt to only state values that it can cite, and keep auto-approving every field that comes back with a non-empty value",
+        "Check that each field has a value and at least one citation, and route fields without a supporting citation to human review instead of approving them",
+        "Send every lease that contains a `break_clause_date` or `rent_review_basis` to human review, since those two fields concentrate the uncited values"
+      ],
+      "correct": 2,
+      "why_correct": "La doc de Citations es explícita: chequeá que cada campo tenga un valor y al menos una cita, porque la API no garantiza ninguna de las dos cosas. Un campo sin cita es una señal barata y por campo de que el valor puede no estar en el documento: va a revisión, el resto sigue automático.",
+      "why_wrong": {
+        "0": "Structured outputs garantiza que la respuesta cumpla el schema, no que el valor esté respaldado por el documento. Un valor inventado puede ser perfectamente schema-compliant.",
+        "1": "Pedirlo en el prompt es guidance; la doc dice que la API no garantiza ni el valor ni la cita, así que hay que chequearlo en código.",
+        "3": "Rutea por nombre de campo, no por la señal real: manda a revisión los 97% de esos campos que sí tienen cita y desperdicia capacidad."
+      },
+      "rule": "Extracción con Citations: campo sin cita → revisión humana. La API no garantiza ni valor ni cita.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/citations",
+      "source_quote": "Check that each field has a value and at least one citation. The API doesn’t guarantee either.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en citations ('The API doesn’t guarantee either'). Correcta única."
+      }
+    },
+    {
+      "id": "o22-s26",
+      "objective": 22,
+      "pool": "sim",
+      "scenario": "A retailer's customer-support resolution agent issues refunds based on data extracted from customer-uploaded receipts (merchant, date, total). The extraction step reports 96% overall accuracy, and today every receipt is auto-approved. A segment analysis on 3,000 labeled receipts shows: printed receipts 99% on `total`, e-mail screenshots 98%, but faded thermal-paper photos only 71% on `total`, while `merchant` and `date` stay above 97% on all types. Thermal photos are 15% of volume. Two support specialists are available to review, and refund fraud is a growing concern. Which routing design best uses this analysis?",
+      "options": [
+        "Route every thermal-paper receipt to the two specialists for a full review of all fields, and auto-approve the printed receipts and the e-mail screenshots",
+        "Route the `total` of thermal-paper photos to the specialists, auto-approve the other segments and fields, and keep sampling auto-approved receipts",
+        "Keep auto-approving everything, but add an instruction telling the agent to ask the customer to confirm the total when the photo looks faded or blurry",
+        "Lower the global confidence threshold for `total` across all receipt types so that more of the uncertain totals reach the two specialists for review"
+      ],
+      "correct": 1,
+      "why_correct": "El análisis por segmento dice exactamente dónde está el problema: el campo `total` en fotos térmicas. Rutear por característica del documento Y por campo usa la capacidad chica en lo que importa, y el muestreo de lo auto-aprobado vigila que no aparezcan errores nuevos.",
+      "why_wrong": {
+        "0": "Casi correcta, pero revisa también `merchant` y `date` de esas fotos, que están arriba del 97%: gasta capacidad de dos personas donde no hace falta y no deja vigilancia sobre lo auto-aprobado.",
+        "2": "Delegar en que el agente \"note\" que la foto está borrosa es guidance sin respaldo de datos; el análisis ya identificó el segmento, no hace falta adivinar.",
+        "3": "Un umbral global para `total` manda también totales de recibos impresos (99% de precisión) y no apunta al segmento que falla."
+      },
+      "rule": "El análisis por segmento te dice QUÉ campo de QUÉ tipo de documento revisar: ruteá eso, no documentos enteros ni todo.",
+      "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
+      "source_quote": "Analyzing accuracy by document type and field to verify consistent performance across all segments before reducing human review",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la Exam Guide. Distinta de o22-q21 (acá el análisis por segmento ya está hecho y se rutea un campo puntual). Correcta única."
       }
     }
   ]

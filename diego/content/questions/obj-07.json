@@ -22,11 +22,11 @@
       "rule": "Tarea abierta → mapear, priorizar por impacto, y un plan que se rehace con cada descubrimiento.",
       "source_url": "https://www.anthropic.com/engineering/building-effective-agents",
       "source_quote": "This workflow is well-suited for complex tasks where you can’t predict the subtasks needed",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "building-effective-agents (orchestrator-workers): quote textual. Mapear→priorizar→plan adaptable coincide con descomposición dinámica; distractores fijos o paralelos no priorizan."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "building-effective-agents (orchestrator-workers): quote textual. Mapear→priorizar→plan adaptable coincide con descomposición dinámica; distractores fijos o paralelos no priorizan. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "Hallazgo nuevo → el coordinador re-planifica y lanza subtareas nuevas; el plan inicial no es sagrado.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "The LeadResearcher synthesizes these results and decides whether more research is needed—if so, it can create additional subagents or refine its strategy.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "multi-agent-research-system: quote textual sobre el LeadResearcher que decide si hace falta más investigación y crea subagentes."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "multi-agent-research-system: quote textual sobre el LeadResearcher que decide si hace falta más investigación y crea subagentes. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "Pasos conocidos y siempre iguales → cadena fija con gates, no descomposición dinámica.",
       "source_url": "https://www.anthropic.com/engineering/building-effective-agents",
       "source_quote": "This workflow is ideal for situations where the task can be easily and cleanly decomposed into fixed subtasks.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "building-effective-agents (prompt chaining): quote textual; el post describe gates programáticos entre pasos. Votación = variante de parallelization, no garantiza orden."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "building-effective-agents (prompt chaining): quote textual; el post describe gates programáticos entre pasos. Votación = variante de parallelization, no garantiza orden. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,11 @@
       "rule": "Review grande → pasadas locales por archivo + una pasada de integración.",
       "source_url": "https://www.anthropic.com/engineering/building-effective-agents",
       "source_quote": "For complex tasks with multiple considerations, LLMs generally perform better when each consideration is handled by a separate LLM call, allowing focused attention on each specific aspect.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "building-effective-agents (parallelization/sectioning): quote textual. Se aclaró en why_correct que es el patrón sectioning; la pasada de integración aparte es la práctica de la guía (Task 1.6). Ningún distractor defendible."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "building-effective-agents (parallelization/sectioning): quote textual. Se aclaró en why_correct que es el patrón sectioning; la pasada de integración aparte es la práctica de la guía (Task 1.6). Ningún distractor defendible. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -134,11 +134,11 @@
       "rule": "Si el paso 1 ya encontró la pista, el plan tiene que poder cambiar.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "The model must operate autonomously for many turns, making decisions about which directions to pursue based on intermediate findings.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "multi-agent-research-system: quote textual (\"operate autonomously for many turns... based on intermediate findings\")."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "multi-agent-research-system: quote textual (\"operate autonomously for many turns... based on intermediate findings\"). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -162,11 +162,151 @@
       "rule": "Plan escrito ≠ plan congelado: dependencia descubierta → actualizar y reordenar.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "When people conduct research, they tend to continuously update their approach based on discoveries, following leads that emerge during investigation.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "multi-agent-research-system: quote textual (\"continuously update their approach based on discoveries\"). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o07-q21",
+      "objective": 7,
+      "pool": "practice",
+      "scenario": "A team asks Claude Code to \"add meaningful test coverage to our 2016 Node monolith\". Following its instructions, Claude first mapped the codebase with Glob and Grep, ranked modules by import count and business risk, and wrote a 12-item plan to `PLAN.md`, starting with `payments/`. While testing item 2, it discovered that every payments function reaches the database through a module-level singleton that cannot be mocked. Claude kept executing the plan in its original order: items 3 through 7 produced 140 tests that hit a real staging database and fail intermittently in CI. What change to the instructions would have prevented this?",
+      "options": [
+        "Have Claude write the complete test plan for every module before mapping the codebase, so the order cannot drift during execution.",
+        "Instruct Claude to skip any module whose functions cannot be mocked and simply move on to the next highest-ranked module in `PLAN.md`.",
+        "Raise the session's turn budget so Claude can finish all twelve plan items and then repair the flaky tests in a final cleanup pass.",
+        "Instruct Claude to update and reorder `PLAN.md` when it discovers a dependency, for example adding a seam for the DB singleton first."
+      ],
+      "correct": 3,
+      "why_correct": "El mapeo y el ranking estaban bien; lo que faltó es que el plan se ADAPTE cuando aparece una dependencia. La guía del examen describe justo esto: mapear la estructura, identificar lo de mayor impacto y armar un plan priorizado que se ajusta a medida que se descubren dependencias. El singleton cambia el orden: primero un seam para inyectar la DB, después los tests.",
+      "why_wrong": {
+        "0": "Planificar antes de mapear es peor: el plan sale a ciegas y además queda congelado. Es el problema, no la solución.",
+        "1": "Saltear el módulo de mayor riesgo deja sin tests justo lo más importante. Evita el síntoma y pierde el valor.",
+        "2": "Más turnos ejecutan más rápido el plan equivocado y generan más tests frágiles para limpiar."
+      },
+      "rule": "Tarea abierta: el plan existe, pero se reescribe cuando un hallazgo cambia las dependencias.",
+      "source_url": "https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification",
+      "source_quote": "Decomposing open-ended tasks (e.g., \"add comprehensive tests to a legacy codebase\") by first mapping structure, identifying high-impact areas, then creating a prioritized plan that adapts as dependencies are discovered",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
         "verdict": "ok",
-        "notes": "multi-agent-research-system: quote textual (\"continuously update their approach based on discoveries\")."
+        "notes": "Cita textual verificada en el PDF de la guía del examen (linkeado desde Skilljar); la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
+    },
+    {
+      "id": "o07-q22",
+      "objective": 7,
+      "pool": "practice",
+      "scenario": "An accounts-payable team extracts supplier invoices with Claude. Every document follows the same three steps: extract fields to a JSON schema, validate tax IDs and totals against the supplier registry, then format the record for the ERP. Six months ago they replaced the code-driven sequence with a single orchestrator agent that \"decides what to do next\" and has the three steps as tools. Audit logs now show that 7% of posted records never went through validation, and the ERP rejected 212 invoices last month. The steps and their order have not changed in over a year. What is the most effective fix?",
+      "options": [
+        "Add a prominent instruction to the orchestrator's system prompt stating that validation is mandatory before formatting any record.",
+        "Keep the orchestrator but force the validation tool on every turn with `tool_choice`, so that the model can never skip that step.",
+        "Return to a fixed chain in code: extract, then validate, then format, with a programmatic gate that stops records failing validation.",
+        "Add an evaluator agent after formatting that reviews each ERP record and sends it back to the orchestrator whenever the record looks invalid."
+      ],
+      "correct": 2,
+      "why_correct": "Los pasos son siempre los mismos y en el mismo orden. La guía de prompting de Anthropic dice que el prompt chaining explícito (llamadas secuenciales a la API) sigue sirviendo cuando necesitás inspeccionar salidas intermedias o forzar una estructura fija de pipeline: es justo este caso. Con la secuencia en código, validar no depende de que el modelo se acuerde, y el gate programático frena lo que no pasa.",
+      "why_wrong": {
+        "0": "Es guidance para algo que tiene que pasar siempre. Bajará el 7%, pero no lo lleva a cero.",
+        "1": "Forzar la misma tool en TODOS los turnos impide llamar a extraer y formatear: rompe el flujo en vez de ordenarlo.",
+        "3": "Detecta tarde y con otro juicio del modelo lo que un paso fijo garantiza de entrada. Suma costo y no asegura la validación."
+      },
+      "rule": "Pasos predecibles y fijos → cadena en código con gates. Lo dinámico es para lo que no se puede prever.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Explicit prompt chaining (breaking a task into sequential API calls) is still useful when you need to inspect intermediate outputs or enforce a specific pipeline structure.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Respuesta confirmada (building-effective-agents: chaining para subtareas fijas). Cambié la fuente a platform.claude.com (prompting best practices, \"Chain complex prompts\"), que dice lo mismo, con cita textual, y ajusté why_correct."
+      }
+    },
+    {
+      "id": "o07-q23",
+      "objective": 7,
+      "pool": "practice",
+      "scenario": "Your CI pipeline runs `claude -p` to review pull requests in a single pass over the full diff. For a 38-file PR that renamed a field in a shared `OrderDto`, the review left detailed comments on the first nine files and one-line comments on the rest, and it missed that three consumers in other packages still read the old field name; production broke after merge. Across the last quarter, 81% of findings landed in the first quarter of the files reviewed. The CI time budget allows several sequential `claude -p` calls per PR. What is the most effective redesign?",
+      "options": [
+        "Review each file in its own pass for local issues, then run a separate cross-file integration pass over the change for contract breaks.",
+        "Review each file in its own pass for local issues, and concatenate the per-file findings into a single pull-request comment.",
+        "Keep the single pass but switch to a model with a larger context window, so that all 38 files fit with plenty of room to spare.",
+        "Run the same single-pass review three times and report only the findings that at least two of the three runs agree on."
+      ],
+      "correct": 0,
+      "why_correct": "Una sola pasada sobre 38 archivos diluye la atención: mucho al principio, poco al final. Partirla en pasadas por archivo resuelve eso, y la pasada de integración aparte es la que ve el contrato roto entre paquetes (el campo renombrado y sus consumidores).",
+      "why_wrong": {
+        "1": "Casi: arregla la dilución, pero una pasada por archivo no ve relaciones entre archivos. El bug real (consumidores en otros paquetes) se sigue escapando.",
+        "2": "Que entre en la ventana no significa que reciba atención pareja. El problema es de foco, no de tamaño.",
+        "3": "Votar tres corridas con el mismo sesgo repite el mismo sesgo: los archivos del final siguen con poca atención."
+      },
+      "rule": "Review grande = pasadas por archivo + una pasada de integración entre archivos.",
+      "source_url": "https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification",
+      "source_quote": "Splitting large code reviews into per-file local analysis passes plus a separate cross-file integration pass to avoid attention dilution",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en el PDF de la guía del examen (linkeado desde Skilljar); la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
+    },
+    {
+      "id": "o07-q24",
+      "objective": 7,
+      "pool": "practice",
+      "scenario": "Your multi-agent research system is asked about \"incentives for small-scale solar in Argentina\". The coordinator writes a four-subtask plan up front and dispatches two rounds of subagents. In round 1, the regulation subagent reports, with sources, that the main subsidy program was replaced in 2025 by a tax-credit scheme. Round 2 nonetheless runs the original subtasks \"eligibility under the subsidy program\" and \"application steps for the subsidy\", and the final report presents the repealed program as current. Every subagent did its assigned task correctly. What change addresses the root cause?",
+      "options": [
+        "Add a final fact-checking subagent that verifies every claim in the report against current sources before it is delivered.",
+        "Have the coordinator evaluate each round's findings and rewrite or create the next round's subtasks before dispatching them.",
+        "Let subagents message each other directly so the regulation subagent can warn the other subagents about the change in policy right away.",
+        "Give each subagent a longer, more detailed procedural checklist so each one detects outdated premises in its own subtask."
+      ],
+      "correct": 1,
+      "why_correct": "La investigación depende del camino: lo que encontrás en la ronda 1 cambia qué hay que buscar en la 2. En el sistema de Research de Anthropic, el lead agent sintetiza cada ronda y decide si hace falta más investigación, creando subagentes nuevos o refinando la estrategia. Acá el coordinador ejecutó un plan congelado.",
+      "why_wrong": {
+        "0": "Casi: probablemente detectaría el error, pero al final, después de gastar una ronda entera en el programa derogado. Trata el síntoma; el plan sigue sin adaptarse.",
+        "2": "Saca la información del coordinador, que es quien decide los subtasks. Y los subagentes ya habían hecho bien lo suyo.",
+        "3": "Más procedimiento rígido es lo contrario a adaptarse. Cada subagente veía solo su subtarea: el hallazgo estaba en otra."
+      },
+      "rule": "Si un hallazgo intermedio cambia la premisa, el coordinador re-planifica antes de la ronda siguiente.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "The LeadResearcher synthesizes these results and decides whether more research is needed—if so, it can create additional subagents or refine its strategy.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en www.anthropic.com/engineering/multi-agent-research-system; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
+    },
+    {
+      "id": "o07-q25",
+      "objective": 7,
+      "pool": "practice",
+      "scenario": "Your customer support resolution agent (Claude Agent SDK) receives one email: \"I was charged twice for order 8812, the blender in order 8790 arrived cracked, and please move my next delivery to my new address.\" The agent's prompt takes the first issue it identifies, resolves it end to end, and closes the ticket. Quality review shows 34% of multi-issue emails get reopened, with customers repeating the issues that were ignored. First-contact resolution is the team's main KPI, and the three issues share the same customer record and order history. What is the most effective design?",
+      "options": [
+        "Resolve the first issue, then reply asking the customer to open a separate ticket for each remaining issue so each one is tracked on its own.",
+        "Escalate every email that contains more than one issue to a human agent, who can weigh the issues against each other first.",
+        "Split the email into distinct issues, investigate each in parallel with the shared customer context, and send one unified resolution.",
+        "Resolve the issues one after another in the same session, replying to the customer as each one is closed so progress stays visible."
+      ],
+      "correct": 2,
+      "why_correct": "Un pedido con varios problemas se descompone en ítems separados; cada uno se investiga (en paralelo) usando el contexto compartido del cliente, y al final se arma UNA resolución. Así se resuelven los tres en el primer contacto.",
+      "why_wrong": {
+        "0": "Le pasa el trabajo al cliente y garantiza más contactos: va directo contra el KPI de first-contact resolution.",
+        "1": "No hay ambigüedad real acá: son tres pedidos claros que el agente puede resolver. Escalar todos los multi-tema le saca volumen al agente y mata la tasa de resolución en primer contacto.",
+        "3": "Funciona a medias: los resuelve, pero en serie, sin aprovechar que comparten el mismo contexto de cliente, y con varias respuestas sueltas en vez de UNA resolución unificada."
+      },
+      "rule": "Pedido multi-tema → ítems separados, investigación en paralelo con contexto compartido, una sola respuesta.",
+      "source_url": "https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification",
+      "source_quote": "Decomposing multi-concern customer requests into distinct items, then investigating each in parallel using shared context before synthesizing a unified resolution",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Cita textual en el PDF de la guía del examen (Task 1.x, multi-concern requests). Endurecí dos distractores débiles (B \"inherently ambiguous\" y D \"cerrar y reabrir el ticket\") por versiones plausibles; ajusté why_wrong. Respuesta sin cambios."
       }
     }
   ]

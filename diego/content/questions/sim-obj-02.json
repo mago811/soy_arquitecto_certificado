@@ -22,11 +22,11 @@
       "rule": "Varios usuarios = guardás un `session_id` por usuario y usás `resume`; `continue` es solo para \"la última\".",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
       "source_quote": "Required when you have multiple sessions (for example, one per user in a multi-user app) or want to return to one that isn't the most recent.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en agent-sdk/sessions. continue = sesión más reciente del directorio; resume con session_id del ResultMessage; fork copia la historia de la sesión elegida. Distinta de o02-q01 (CLI, un solo usuario)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en agent-sdk/sessions. continue = sesión más reciente del directorio; resume con session_id del ResultMessage; fork copia la historia de la sesión elegida. Distinta de o02-q01 (CLI, un solo usuario). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "Al retomar, volvé a pasar `--mcp-config`, `--settings`, `--plugin-dir` y `--add-dir`: no vienen con la sesión.",
       "source_url": "https://code.claude.com/docs/en/sessions",
       "source_quote": "If the session depended on `--mcp-config`, `--settings`, `--plugin-dir`, `--fallback-model`, or directories added with `--add-dir`, pass them again when you resume",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "Cita textual en sessions (\"What a resumed session restores\"). La doc no dice nada sobre qué hace --fork-session con --mcp-config: reemplacé el distractor de --fork-session (y su why_wrong) por uno con --continue, cuya falsedad sí respalda la doc. --session-id confirmado en cli-reference (\"Use a specific session ID for the conversation\")."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en sessions (\"What a resumed session restores\"). La doc no dice nada sobre qué hace --fork-session con --mcp-config: reemplacé el distractor de --fork-session (y su why_wrong) por uno con --continue, cuya falsedad sí respalda la doc. --session-id confirmado en cli-reference (\"Use a specific session ID for the conversation\"). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "Crash en medio de una tool: al retomar, decile qué se cortó y que verifique el estado real antes de seguir.",
       "source_url": "https://code.claude.com/docs/en/sessions",
       "source_quote": "Interrupted tool calls: a tool that was still running when the previous process ended, for example in a crash, doesn't get rerun when you resume.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en sessions: las tool calls interrumpidas por un crash no se re-ejecutan al retomar. Distractores claros (compact, fork + rerun, confirmar dato falso). Sin solapamiento con o02-q02 (archivos cambiados)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en sessions: las tool calls interrumpidas por un crash no se re-ejecutan al retomar. Distractores claros (compact, fork + rerun, confirmar dato falso). Sin solapamiento con o02-q02 (archivos cambiados). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,11 @@
       "rule": "`error_max_turns` → `resume` con el `session_id` del resultado y un límite más alto, no reintento desde cero.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
       "source_quote": "Recover from a limit. The first run ended with `error_max_turns` or `error_max_budget_usd` (see Handle the result); resume with a higher limit.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en agent-sdk/sessions (\"Recover from a limit\"); la misma página confirma que session_id está en todo ResultMessage, éxito o error, y que continue toma la sesión más reciente del directorio."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en agent-sdk/sessions (\"Recover from a limit\"); la misma página confirma que session_id está en todo ResultMessage, éxito o error, y que continue toma la sesión más reciente del directorio. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -134,11 +134,11 @@
       "rule": "Lo que no puede perderse en una compactación va a un archivo; al retomar, le decís que lo lea.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Use structured formats for state data: When tracking structured information (such as test results or task status), use JSON or other structured formats to make schema requirements explicit to Claude.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "La cita original (sessions: \"The messages that the last compaction summarized aren't loaded again\") explica el síntoma pero no respalda el fix. Cambié source a prompting best practices (state management: estado en archivos estructurados + \"Review progress.txt, tests.json...\"), y dejé el dato de compactación atribuido a la doc de sesiones en why_correct. Ajusté why_wrong 0 (las compactaciones fueron antes de cerrar) y 2 (fork no afirmado más allá de la doc)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "La cita original (sessions: \"The messages that the last compaction summarized aren't loaded again\") explica el síntoma pero no respalda el fix. Cambié source a prompting best practices (state management: estado en archivos estructurados + \"Review progress.txt, tests.json...\"), y dejé el dato de compactación atribuido a la doc de sesiones en why_correct. Ajusté why_wrong 0 (las compactaciones fueron antes de cerrar) y 2 (fork no afirmado más allá de la doc). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -162,11 +162,207 @@
       "rule": "Sesión de `claude -p` o del Agent SDK → `claude --resume <session-id>`; no aparece en `--continue` ni en el picker.",
       "source_url": "https://code.claude.com/docs/en/sessions",
       "source_quote": "Claude Code leaves sessions created with `claude -p` or the Agent SDK out of the session picker and out of `claude --continue`. You can still resume one by passing its session ID to `claude --resume <session-id>`.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en sessions; la salida json de -p incluye el session ID (sessions, \"Run Claude once and capture the result\"). Ctrl+B existe en el picker. --session-id según cli-reference solo fija el UUID. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o02-s21",
+      "objective": 2,
+      "pool": "sim",
+      "scenario": "A payments team used one Claude Code session for three days to plan a module split (Code Generation with Claude Code). The transcript holds roughly 600k tokens, mostly tool results from reading files and running tests. Since then the team did a large rebase: about 70% of the files Claude analyzed were rewritten, and two of the decisions recorded in the session were reversed in an architecture review. A developer wants to continue the work today and keep the decisions that still stand. Which approach is the most reliable?",
+      "options": [
+        "Start a fresh session with a structured summary of the surviving decisions, and point Claude to the progress notes and git log.",
+        "Resume the session and paste the full list of changed files so Claude re-reads each one of them before continuing.",
+        "Resume the session with --fork-session, so the stale analysis stays in the original and the fork starts clean.",
+        "Resume the session and run /compact with instructions to keep only the decisions, then continue from the summary."
+      ],
+      "correct": 0,
+      "why_correct": "Cuando la mayor parte de los tool results quedó vieja, retomar arrastra contexto que confunde. La doc sugiere considerar una ventana nueva y apoyarse en el estado del filesystem (notas de progreso, tests, git). Le pasás un resumen estructurado con lo que sigue valiendo y lo que se revirtió, y Claude descubre el resto del disco.",
+      "why_wrong": {
+        "1": "Casi: el re-análisis dirigido sirve cuando el contexto está mayormente vigente. Con 70% reescrito y decisiones revertidas, la conversación vieja pesa más de lo que aporta.",
+        "2": "El fork copia el historial completo, con todo lo viejo. No arranca limpio.",
+        "3": "Compactar resume lo que hay, incluidas las dos decisiones revertidas y el análisis viejo; no lo actualiza con el estado real."
+      },
+      "rule": "Contexto mayormente vigente → retomás y avisás qué cambió. Mayormente viejo → sesión nueva + resumen estructurado + estado en disco.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "When a context window is cleared, consider starting with a brand new context window rather than using compaction. Claude’s latest models are extremely effective at discovering state from the local filesystem.",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Cita confirmada en claude-prompting-best-practices. Cambio: acorté la correcta, que era la más larga por ~20%."
+      }
+    },
+    {
+      "id": "o02-s22",
+      "objective": 2,
+      "pool": "sim",
+      "scenario": "A company runs Claude Code for Continuous Integration with the Agent SDK (TypeScript) in ephemeral containers. Job A analyzes a monorepo, prints the `session_id` from the result message and saves it as a pipeline variable. Job B, which runs later on a different runner, calls `query()` with `resume` set to that ID so it can draft the release notes from the prior analysis. Job B always fails with \"No conversation found with session ID\", although the ID string matches exactly. Both jobs check out the repo to the same path. Which diagnosis and fix are correct?",
+      "options": [
+        "The session ID expires when job A's process exits; job B should pass the same UUID with --session-id to re-open the same conversation.",
+        "The resume lookup only searches the current project directory; job B must run with the exact same cwd as job A.",
+        "Sessions created with claude -p or the SDK are excluded from resume; job B should use continue: true instead.",
+        "Session files are local to the machine that created them; attach a sessionStore adapter and resume from a matching cwd."
+      ],
+      "correct": 3,
+      "why_correct": "Los archivos de sesión viven en la máquina que los creó. Job B corre en otro runner, así que el ID no existe ahí. La doc da como opción un adapter `sessionStore` que espeja transcripts a tu backend; la clave depende del working directory, por eso hay que retomar desde un cwd igual (y el escenario ya lo tiene).",
+      "why_wrong": {
+        "0": "Los IDs no expiran al terminar el proceso. `--session-id` fija el ID de una conversación nueva, no trae un transcript que no está en el disco.",
+        "1": "Ya corren en el mismo path; y aunque el cwd importa para el store, el problema es que el archivo no existe en ese host.",
+        "2": "Casi: las sesiones de `-p`/SDK quedan fuera del picker y de `claude --continue`, pero se pueden retomar por ID. Y `continue` en otro host tampoco encontraría nada."
+      },
+      "rule": "Sesión en otro host = el archivo no está. `sessionStore`, mover el `.jsonl`, o pasar el estado en el prompt de una sesión nueva.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
+      "source_quote": "Session files are local to the machine that created them.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
         "verdict": "ok",
-        "notes": "Cita textual en sessions; la salida json de -p incluye el session ID (sessions, \"Run Claude once and capture the result\"). Ctrl+B existe en el picker. --session-id según cli-reference solo fija el UUID."
+        "notes": "Confirmado en agent-sdk/sessions (Session files are local..., sessionStore con cwd igual, lookup cross-directory) y en sessions (-p/SDK fuera del picker y de --continue pero retomables por ID)."
+      }
+    },
+    {
+      "id": "o02-s23",
+      "objective": 2,
+      "pool": "sim",
+      "scenario": "A data team using the Agent SDK (Python) analyzed a legacy reporting module in one session, then wanted to compare two migration paths from that shared analysis. They resumed the session twice with `fork_session=True`: fork A was told to migrate the data layer to SQLAlchemy, fork B to raw SQL with a query builder. The two fork IDs are different and the original history is intact. Yet fork B's agent reports that `reports/models.py` \"already uses SQLAlchemy sessions\" and builds on fork A's half-finished edits. Both forks ran in the same working directory. What explains this, and what is the documented way to branch and revert file changes?",
+      "options": [
+        "fork_session only copies the history lazily, so fork B read fork A's conversation; resume the original first, then fork.",
+        "Forking branches the conversation, not the filesystem, so fork A's edits were real; use file checkpointing to branch and revert file changes.",
+        "The forks ran concurrently and shared a transcript; run fork B only after fork A finishes so each sees a consistent state.",
+        "A fork inherits the latest state of the original session; start each approach as a fresh session with a summary instead of forking the analysis."
+      ],
+      "correct": 1,
+      "why_correct": "Un fork ramifica el historial de la conversación, no los archivos. Si un fork edita archivos, esos cambios son reales y los ve cualquier sesión del mismo directorio. Para ramificar y revertir cambios de archivos, la doc remite a file checkpointing.",
+      "why_wrong": {
+        "0": "Los IDs distintos y el original intacto muestran que el fork funcionó bien. El problema son los archivos, no el historial.",
+        "2": "Correr en serie no arregla nada: fork B igual encontraría en disco las ediciones de fork A.",
+        "3": "Una sesión nueva sigue en el mismo directorio con los mismos archivos editados, y además pierde la base de análisis compartida."
+      },
+      "rule": "Fork = otra rama de la CONVERSACIÓN. Los archivos se comparten; para ramificar archivos, file checkpointing.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
+      "source_quote": "Forking branches the conversation history, not the filesystem. If a forked agent edits files, those changes are real and visible to any session working in the same directory.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual confirmada en agent-sdk/sessions (fork ramifica conversación, no filesystem; remite a file checkpointing)."
+      }
+    },
+    {
+      "id": "o02-s24",
+      "objective": 2,
+      "pool": "sim",
+      "scenario": "A telecom's Customer Support Resolution Agent stores one Claude Code session per support case. When an escalation arrives, two workers start at the same time: one resumes the case with `claude -p --resume <case-session-id>` to draft the customer reply, the other resumes the same ID to write a supervisor summary. Days later, when an agent resumes the case session to handle a follow-up, either the drafted reply or the summary exchange is missing from the history in about 40% of escalations. Both outputs must remain available for later turns, and the two workers must keep running in parallel. What should the team change?",
+      "options": [
+        "Use --continue in both workers so Claude Code picks up the case session without needing the ID.",
+        "Add a lock so the second worker waits until the first one finishes resuming the session.",
+        "Give each worker a new UUID with --session-id so they write to separate transcripts from the start of each escalation.",
+        "Add --fork-session to each worker's claude command so each resume writes to its own copy of the conversation."
+      ],
+      "correct": 3,
+      "why_correct": "Si dos `claude -p` retoman la misma sesión a la vez, escriben en un mismo transcript y después pueden faltar mensajes de uno. La doc indica agregar `--fork-session` a cada comando para conservar las dos conversaciones; cada fork parte del historial del caso y tiene su propio ID.",
+      "why_wrong": {
+        "0": "`--continue` retoma la conversación más reciente del directorio, que no tiene por qué ser la del caso, y dos procesos sobre la misma sesión siguen escribiendo en un mismo transcript.",
+        "1": "Serializar evita la colisión, pero viola la restricción de correr en paralelo.",
+        "2": "Una sesión con un UUID nuevo arranca sin el historial del caso: las respuestas se escriben sin contexto."
+      },
+      "rule": "Dos procesos sobre la misma sesión al mismo tiempo → `--fork-session` en cada uno.",
+      "source_url": "https://code.claude.com/docs/en/sessions",
+      "source_quote": "If you resume the same session in two terminals or two `claude -p` runs at the same time, both write to one transcript. When you resume that session later, messages from one of them can be missing.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita confirmada en sessions: dos claude -p sobre la misma sesión escriben un transcript y pueden faltar mensajes; la doc indica --fork-session."
+      }
+    },
+    {
+      "id": "o02-s25",
+      "objective": 2,
+      "pool": "sim",
+      "scenario": "A biotech company's Multi-Agent Research System runs on the Agent SDK. A `literature-scout` subagent has `maxTurns: 25`. On broad topics it hits the limit after reviewing about 60 papers, and the Agent tool result comes back marked as partial. The coordinator currently responds by spawning a brand-new `literature-scout` with the same prompt and a note to \"finish the job\"; that new run repeats most of the first run's searches, and costs per topic have doubled. The team wants the second run to pick up exactly where the first stopped. What should the coordinator do?",
+      "options": [
+        "Spawn the new subagent with maxTurns: 50 and the original prompt, so it can complete the whole review in a single run.",
+        "Spawn a fork instead, so the new subagent inherits the coordinator's whole conversation, including the partial report.",
+        "Resume the same subagent by the agentId in its Agent tool result, so it keeps its full history of tool calls and results.",
+        "Pass the partial report into a new subagent's prompt and ask it to cover only the papers not mentioned there."
+      ],
+      "correct": 2,
+      "why_correct": "Un subagente retomado conserva todo su historial: llamadas a tools, resultados y razonamiento. Cuando corta por `maxTurns`, el resultado viene marcado como parcial justamente para que se lo pueda retomar. Usando el `agentId` del resultado se sigue donde quedó, sin repetir búsquedas.",
+      "why_wrong": {
+        "0": "Una corrida nueva desde cero repite las primeras 25 vueltas; solo cambia cuánto tarda en cortar.",
+        "1": "Un fork hereda la conversación del coordinador, que solo tiene el reporte final del subagente, no sus tool calls ni resultados intermedios.",
+        "3": "Casi: evita parte de la repetición, pero el subagente nuevo pierde qué búsquedas ya se hicieron y qué se descartó. Retomar conserva todo eso."
+      },
+      "rule": "Subagente que cortó a mitad → retomalo por `agentId`; conserva tool calls, resultados y razonamiento.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "source_quote": "A resumed subagent retains its full conversation history, including all previous tool calls, results, and reasoning.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Confirmado en agent-sdk/subagents: maxTurns marca el output como parcial, se retoma por agentId y conserva historial. Cambio: acorté la correcta, que era la más larga."
+      }
+    },
+    {
+      "id": "o02-s26",
+      "objective": 2,
+      "pool": "sim",
+      "scenario": "An insurance company runs a Structured Data Extraction service on the Agent SDK (Python) as a Linux systemd service. After analyzing a batch of policy PDFs, users can ask follow-ups such as \"which policies lack a flood exclusion?\". To survive restarts, the service calls `query()` with `continue_conversation=True` after each restart. A new deployment script starts the service from `/` instead of `/srv/extractor`, and since then follow-ups after a restart answer as if nothing had been analyzed. The service runs one batch conversation at a time. What change makes restarts restore the right conversation regardless of the start directory?",
+      "options": [
+        "Persist the session_id from the result message and pass it to resume after a restart, instead of relying on continue_conversation.",
+        "Resume with fork_session=True after each restart so a new branch carries the batch history into the new process.",
+        "Inject the last assistant message from the previous run into the first prompt after restart so the agent recovers the batch context.",
+        "Set persistSession to true in the query options so the SDK keeps the transcript on disk across process restarts."
+      ],
+      "correct": 0,
+      "why_correct": "`continue` busca la sesión más reciente en el directorio actual; al cambiar el cwd, no encuentra la del batch. Guardar el `session_id` (que viene en el result message, sea éxito o error) y pasarlo a `resume` apunta a la sesión exacta, y el lookup por ID busca más allá del directorio actual.",
+      "why_wrong": {
+        "1": "Forkear necesita igual identificar la sesión de origen; con `continue` desde otro cwd sigue sin encontrarla.",
+        "2": "Un solo mensaje no trae los archivos leídos ni el análisis previo; es un parche parcial.",
+        "3": "`persistSession` es una opción de TypeScript y la persistencia ya está activa por defecto: el transcript existe, el problema es cómo se lo busca."
+      },
+      "rule": "`continue` = más reciente EN ESTE directorio. Si el cwd puede cambiar o hay varias, guardá el `session_id` y usá `resume`.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
+      "source_quote": "Continue finds the most recent session in the current directory. You don't track anything. Works well when your app runs one conversation at a time.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Confirmado en agent-sdk/sessions: continue busca en el directorio actual; session_id en todo result message; resume busca más allá del cwd; persistSession solo TS."
+      }
+    },
+    {
+      "id": "o02-s27",
+      "objective": 2,
+      "pool": "sim",
+      "scenario": "A team runs a Developer Productivity bot on the Agent SDK (TypeScript) that answers architecture questions about a large monorepo. The first `query()` per thread explores the code for about 8 minutes and writes an analysis. Each follow-up in the same thread is currently a new `query()` containing only the user's question, so the agent re-explores the repo every time and follow-ups cost about six times more than expected. Follow-ups build on each other: question three often refers to the answer to question two. Which change addresses this?",
+      "options": [
+        "Resume each follow-up with forkSession: true from the original analysis session, so every question starts from the clean analysis.",
+        "Capture the session_id of the thread and pass it to resume on every follow-up, so each question continues the same session.",
+        "Ask the agent to write its analysis to ANALYSIS.md and add a CLAUDE.md line telling future runs to read it before exploring.",
+        "Lower maxTurns on follow-up queries so the agent cannot re-explore the repository and must answer from the question alone."
+      ],
+      "correct": 1,
+      "why_correct": "Retomar la sesión le da al agente todo el contexto previo: archivos leídos, análisis hecho, decisiones tomadas. Es el caso que la doc llama \"follow up on a completed task\" sin releer archivos. Como cada pregunta se apoya en la anterior, todas tienen que continuar la misma sesión.",
+      "why_wrong": {
+        "0": "Casi: cada fork tiene el análisis, pero parte siempre del análisis original y no ve las preguntas y respuestas anteriores del hilo, que el escenario necesita.",
+        "2": "Ayuda a medias: un resumen en disco no trae los archivos leídos y CLAUDE.md es contexto compartido por todos los hilos.",
+        "3": "Recortar turnos no da contexto; solo produce respuestas sin base o parciales."
+      },
+      "rule": "Follow-ups que se apoyan entre sí = misma sesión con `resume`. Fork cuando querés ramas independientes.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
+      "source_quote": "Returning to a session means the agent has full context from before: files it already read, analysis it already performed, decisions it already made.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita confirmada en agent-sdk/sessions (Follow up on a completed task); el fork no ve las preguntas anteriores del hilo."
       }
     }
   ]

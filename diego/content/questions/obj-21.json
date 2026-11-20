@@ -22,11 +22,11 @@
       "rule": "Números, fechas e IDs del caso → bloque estructurado persistente fuera del resumen, en cada request.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "When tracking structured information (such as test results or task status), use JSON or other structured formats to make schema requirements explicit to Claude.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual (State management: JSON para estado). Context rot del distractor B respaldado por la página Context windows. La correcta se apoya en la doc (estado estructurado), no solo en la guía."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual (State management: JSON para estado). Context rot del distractor B respaldado por la página Context windows. La correcta se apoya en la doc (estado estructurado), no solo en la guía. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "Tool que devuelve 45 campos y usás 5 → recortá en la tool, antes de que entre al contexto.",
       "source_url": "https://www.anthropic.com/engineering/writing-tools-for-agents",
       "source_quote": "tool implementations should take care to return only high signal information back to agents.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en Writing tools for agents."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en Writing tools for agents. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "Input largo → documentos arriba con tags y fuente, hallazgos clave al principio, pregunta al final.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Queries at the end can improve response quality by up to 30 percent in tests, especially with complex, multidocument inputs.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "Cita textual. Se sacó de la opción correcta 'un resumen de hallazgos clave' y de why_correct la referencia al efecto de posición ('lost in the middle'): no están en la doc, solo en la guía del examen."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual. Se sacó de la opción correcta 'un resumen de hallazgos clave' y de why_correct la referencia al efecto de posición ('lost in the middle'): no están en la doc, solo en la guía del examen. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,11 @@
       "rule": "Documento largo y respuestas imprecisas → pedí las citas textuales primero, la respuesta después.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "For long document tasks, ask Claude to quote relevant parts of the documents first before carrying out its task. This helps Claude focus on the relevant content and ignore the rest of the document.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual (Ground responses in quotes)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual (Ground responses in quotes). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -127,18 +127,18 @@
       "correct": 2,
       "why_correct": "La Messages API es stateless: no guarda nada entre requests. Siempre hay que mandar el historial completo. Si eso es caro, se gestiona de forma explícita (compactación, context editing, estado estructurado), pero nunca omitiendo el historial.",
       "why_wrong": {
-        "0": "No existe un mecanismo así en la Messages API: no hay memoria server-side que se recupere con el id de una respuesta.",
+        "0": "Por defecto la Messages API no guarda nada: un id suelto no recupera la conversación. Existe message threads (beta), pero hay que crear el thread a propósito con el campo `thread`, vence a los 5 minutos y es best-effort; tu app igual tiene que guardar y poder reenviar el historial.",
         "1": "Batches procesa requests independientes de forma asíncrona. No encadena conversaciones ni guarda estado.",
         "3": "El caching abarata un prefijo que vos MANDÁS. Si no mandás el historial, no hay nada que cachear ni recordar."
       },
       "rule": "Messages API = stateless: cada request lleva el historial completo. Memoria server-side → opción falsa.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/working-with-messages",
       "source_quote": "The Messages API is stateless, which means that you always send the full conversational history to the API.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "Cita textual. Se corrigió 'del lado del cliente' en why_correct: compaction y context editing de la API se aplican del lado del servidor sobre el historial que mandás."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual. Se corrigió 'del lado del cliente' en why_correct: compaction y context editing de la API se aplican del lado del servidor sobre el historial que mandás. Revisión 2026-11-20: why_wrong[0] decía que no existe ningún mecanismo server-side; se actualizó porque la doc actual documenta message threads (beta): 'With message threads, in beta, the API can keep the conversation, so that each later request sends only the new messages.' La correcta no cambia. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -162,11 +162,11 @@
       "rule": "Muchos resultados de tools viejos que ya no sirven → context editing con `clear_tool_uses_20250919`.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
       "source_quote": "Older tool results (such as file contents or search results) are no longer needed once Claude has processed them.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual; clear_thinking_20251015, placeholder y 'solo resultados por defecto' confirmados en context editing."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual; clear_thinking_20251015, placeholder y 'solo resultados por defecto' confirmados en context editing. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -190,11 +190,11 @@
       "rule": "Context editing borra algo que necesitás siempre → `exclude_tools` con esa tool.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
       "source_quote": "List of tool names whose tool uses and results should never be cleared. Useful for preserving important context.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual de la tabla (exclude_tools); clear_tool_inputs, keep (default 3) y trigger confirmados."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual de la tabla (exclude_tools); clear_tool_inputs, keep (default 3) y trigger confirmados. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -218,11 +218,11 @@
       "rule": "Ventana deslizante que pierde lo del principio → compactación (resumen de lo viejo + turnos recientes textuales).",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/compaction",
       "source_quote": "when the last few turns must reach Claude word for word. The summary covers only the older turns.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en Compaction overview (compaction that keeps recent turns). La correcta se apoya en la doc; 'ventana deslizante' solo aparece en el escenario/distractores."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en Compaction overview (compaction that keeps recent turns). La correcta se apoya en la doc; 'ventana deslizante' solo aparece en el escenario/distractores. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -246,11 +246,11 @@
       "rule": "El resumen descarta algo crítico → prompt de resumen propio que diga qué conservar.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/compaction",
       "source_quote": "when the default summary drops something a later turn needs. Your prompt replaces the default one.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual (write your own summarization prompt)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual (write your own summarization prompt). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -274,11 +274,151 @@
       "rule": "Downstream con poco contexto → el upstream devuelve datos estructurados y condensados, no transcripciones.",
       "source_url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
       "source_quote": "Each subagent might explore extensively, using tens of thousands of tokens or more, but returns only a condensed, distilled summary of its work (often 1,000-2,000 tokens).",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en el post de context engineering (1,000-2,000 tokens). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o21-q21",
+      "objective": 21,
+      "pool": "practice",
+      "scenario": "An online retailer's customer-support resolution agent runs on the Messages API with tools for order lookup, refunds, and escalation. To control context, the application replaces older turns with a model-written summary every 20 turns. In long cases, after two or three summaries, the agent says 'your refund of about $1,200' when the customer was promised $1,240.50, loses one of two order numbers, and forgets that the customer asked for delivery before 14 March. 14% of escalated cases reach humans with at least one wrong amount or date. The team must keep summarizing because cases run to 150+ turns. What is the most effective change?",
+      "options": [
+        "Keep a structured case-facts object (order IDs, amounts, dates, statuses, customer expectations) outside the summary and include it in every request.",
+        "Summarize every 40 turns instead of every 20, so each summary condenses fewer times and exact amounts survive longer.",
+        "Replace the custom summarization with context editing that clears old tool results once the conversation passes 100,000 tokens.",
+        "Ask the summarizer to 'preserve all numbers, dates, and order IDs exactly' and keep the current every-20-turns schedule."
+      ],
+      "correct": 0,
+      "why_correct": "Los datos transaccionales no deberían pasar por el resumen. La doc recomienda llevar la información de estado en un formato estructurado como JSON. Un bloque de 'case facts' que viaja en cada request, fuera del historial resumido, conserva montos, IDs y fechas exactos.",
+      "why_wrong": {
+        "1": "Retrasa la pérdida pero no la evita: con 150 turnos igual hay varios resúmenes encadenados.",
+        "2": "Context editing limpia resultados de tools, no los turnos del cliente donde está la promesa ni la fecha; resuelve otro problema.",
+        "3": "Es guidance sobre el resumidor: mejora algo, pero cada resumen vuelve a reescribir los datos y puede volver a redondear."
+      },
+      "rule": "Montos, IDs y fechas → objeto de estado estructurado en cada request, fuera del resumen.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Use structured formats for state data: When tracking structured information (such as test results or task status), use JSON or other structured formats to make schema requirements explicit to Claude.",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
         "verdict": "ok",
-        "notes": "Cita textual en el post de context engineering (1,000-2,000 tokens)."
+        "notes": "Revisada contra https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices. Prompting best practices: estado en formatos estructurados (JSON). Cita textual; context editing solo limpia tool results. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
+    },
+    {
+      "id": "o21-q22",
+      "objective": 21,
+      "pool": "practice",
+      "scenario": "A telecom's support agent calls a `get_order` tool that returns the full order record from the billing system: 48 fields including internal routing codes, warehouse bin IDs, and audit timestamps. The agent only uses about 5 of them (status, items, amounts, ship date, return eligibility). Average cases make 25 lookups, and input tokens per request grow by roughly 2,500 with each one. Quality reviews show the agent occasionally quoting internal codes to customers and missing the return-eligibility flag. The billing API cannot be changed, but the team owns the tool implementation. What change addresses the root cause?",
+      "options": [
+        "Enable prompt caching on the conversation so the repeated order records cost less on every subsequent request.",
+        "Enable context editing with `clear_tool_uses_20250919` so older `get_order` results are cleared from the prompt.",
+        "Make the tool implementation return only the fields the agent needs, with stable identifiers, instead of the full 48-field record.",
+        "Add to the system prompt: 'Ignore internal fields in order records and never mention routing codes or bin IDs to customers.'"
+      ],
+      "correct": 2,
+      "why_correct": "La doc pide diseñar las respuestas de las tools para que devuelvan solo información de alta señal: los campos que Claude necesita para su próximo paso. Las respuestas infladas gastan contexto y le cuesta más encontrar lo importante. Recortar en la implementación de la tool ataca la causa.",
+      "why_wrong": {
+        "0": "El caché cambia lo que pagás, no cuánto ocupa: los 48 campos siguen en el contexto.",
+        "1": "Casi: limpia resultados viejos, pero cada lookup nuevo entra igual con 48 campos, y el ruido sigue en los resultados recientes.",
+        "3": "Es una instrucción para ignorar ruido que igual está en el contexto; no baja tokens ni garantiza nada."
+      },
+      "rule": "Tool que devuelve de más → recortá en la tool. Solo campos de alta señal.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "source_quote": "include only the fields Claude needs to reason about its next step. Bloated responses waste context and make it harder for Claude to extract what matters.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools. Define tools: devolver solo los campos que Claude necesita. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
+    },
+    {
+      "id": "o21-q23",
+      "objective": 21,
+      "pool": "practice",
+      "scenario": "A bank's support agent uses context editing (beta header `context-management-2025-06-27`) with the `clear_tool_uses_20250919` strategy, default `trigger` and `keep`. Early in each case the agent calls `get_refund_policy`, which returns the policy that applies to the customer's account tier. In long cases, once the prompt passes the trigger, that result is replaced with a placeholder; afterwards the agent misstates refund windows in 7% of long cases. Bulk results from `search_transactions` must keep being cleared because they dominate token usage. What is the most targeted fix?",
+      "options": [
+        "Raise `keep` from 3 to 10 tool uses so that more recent tool results, including the policy, survive each clearing pass.",
+        "Add `get_refund_policy` to `exclude_tools` so its tool uses and results are never cleared while other results still are.",
+        "Set `clear_tool_inputs` to `true` so only the tool call parameters are removed and the policy text itself stays in place.",
+        "Raise the `trigger` to 200,000 input tokens so clearing starts later and the policy remains in context for most cases."
+      ],
+      "correct": 1,
+      "why_correct": "`exclude_tools` es la lista de tools cuyos usos y resultados nunca se limpian, pensada para conservar contexto importante. La política queda siempre disponible y `search_transactions` se sigue limpiando como antes.",
+      "why_wrong": {
+        "0": "`keep` conserva los N usos más recientes; la política se pidió al principio, así que tarde o temprano igual sale.",
+        "2": "`clear_tool_inputs: true` borra TAMBIÉN los parámetros de las llamadas, además de los resultados; no protege el texto de la política.",
+        "3": "Solo posterga el problema y deja crecer el contexto con los resultados masivos."
+      },
+      "rule": "Resultado de tool que siempre tiene que quedar → `exclude_tools`. `keep` es por recencia.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
+      "source_quote": "List of tool names whose tool uses and results should never be cleared. Useful for preserving important context.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://platform.claude.com/docs/en/build-with-claude/context-editing. Context editing: exclude_tools, keep=3 por recencia, clear_tool_inputs borra también parámetros. Tabla de parámetros verificada; cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
+    },
+    {
+      "id": "o21-q24",
+      "objective": 21,
+      "pool": "practice",
+      "scenario": "A commercial-lending team extracts covenant terms from 60–120 page loan agreements on the Messages API. The prompt currently reads: system role, then 'Extract every financial covenant and its threshold. Use the schema below,' then the schema and two examples, and finally the full agreement text (about 70,000 tokens). Accuracy is good for covenants near the start and the end of agreements but drops sharply for covenants in the middle sections; across 200 test agreements, recall is 74%. The team cannot split agreements into separate calls because covenants reference definitions elsewhere in the document. What change is most likely to improve recall?",
+      "options": [
+        "Repeat the extraction instruction every 10,000 tokens inside the agreement text so it stays close to every section.",
+        "Move the two examples to the end of the prompt, after the agreement, so the model sees them right before answering.",
+        "Raise `max_tokens` so the model has enough room to list every covenant, including the ones in the middle sections.",
+        "Put the agreement at the top of the prompt, above the instructions, schema, and examples, and put the query at the end."
+      ],
+      "correct": 3,
+      "why_correct": "La doc recomienda poner los documentos largos arriba del prompt, por encima de la consulta, las instrucciones y los ejemplos, y dejar la pregunta al final: en pruebas mejora la calidad hasta un 30%, sobre todo con entradas complejas. Acá el prompt tiene el orden invertido.",
+      "why_wrong": {
+        "0": "Partir el documento con instrucciones repetidas no está documentado y puede confundir la estructura del contrato.",
+        "1": "Mueve los ejemplos, pero el documento sigue debajo de la consulta; no aplica la recomendación completa.",
+        "2": "El problema no es que la respuesta se corte; es la ubicación de la información en una entrada larga."
+      },
+      "rule": "Long context: documento arriba, instrucciones y pregunta al final.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Queries at the end can improve response quality by up to 30 percent in tests, especially with complex, multidocument inputs.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices. Prompting best practices: long docs arriba, query al final, hasta 30%. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
+    },
+    {
+      "id": "o21-q25",
+      "objective": 21,
+      "pool": "practice",
+      "scenario": "To cut costs, a travel company's chat assistant on the Messages API was changed to send only the system prompt and the latest user message on each request, plus a `conversation_id` the team added to `metadata`, expecting the platform to retrieve earlier turns. Input tokens fell 80%, but the assistant now asks customers for their booking reference again on almost every turn and contradicts what it said two messages earlier. Conversations average 30 turns. The team still needs to reduce token usage. What is the correct approach?",
+      "options": [
+        "Send the full conversation history on every request, and keep it within budget with compaction and trimmed tool results.",
+        "Keep sending only the latest message, but enable prompt caching keyed on `conversation_id` so earlier turns can be retrieved.",
+        "Move to the Message Batches API, which keeps the conversation state between requests that share the same custom ID.",
+        "Send the latest message plus the previous one, which is enough short-term memory for most booking conversations."
+      ],
+      "correct": 0,
+      "why_correct": "La Messages API es stateless: siempre se manda el historial completo. No hay memoria del lado del servidor por `conversation_id`. Para ahorrar tokens se gestiona el historial (compaction, recortar resultados de tools), no se lo saca.",
+      "why_wrong": {
+        "1": "El caché abarata prefijos que vos mismo mandás; no recupera turnos que no enviaste.",
+        "2": "Batches es procesamiento asincrónico de requests independientes; tampoco guarda estado de conversación.",
+        "3": "Una ventana tan chica pierde datos del principio, como la referencia de reserva; es el mismo problema en menor escala."
+      },
+      "rule": "Messages API = stateless. Toda opción con memoria del lado del servidor es falsa.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/working-with-messages",
+      "source_quote": "The Messages API is stateless, which means that you always send the full conversational history to the API.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://platform.claude.com/docs/en/build-with-claude/working-with-messages. Working with messages: API stateless, historial completo. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
       }
     }
   ]

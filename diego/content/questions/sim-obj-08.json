@@ -1,173 +1,341 @@
 {
- "objective": 8,
- "questions": [
-  {
-   "id": "o08-s01",
-   "objective": 8,
-   "pool": "sim",
-   "scenario": "Cobertura Sur, una aseguradora, mantiene el repo del motor de cálculo de primas. El equipo acordó que toda conversación con Claude arranque en plan mode y commiteó `\"defaultMode\": \"plan\"` en `.claude/settings.json`. Los que trabajan en la terminal arrancan bien en plan. Pero la mitad del equipo usa la extensión de VS Code, sus conversaciones arrancan en otro modo y ya hubo dos ediciones sin plan aprobado. Nadie va a cambiar de editor. ¿Qué hacen?",
-   "options": [
-    "Repetir `\"defaultMode\": \"plan\"` en el `.claude/settings.local.json` de cada dev de VS Code, que pisa al archivo compartido.",
-    "Que cada dev de VS Code configure `claudeCode.initialPermissionMode` en `plan` en sus user settings de VS Code.",
-    "Agregar al CLAUDE.md del repo: \"En VS Code arrancá siempre planificando y no edites nada sin un plan aprobado\".",
-    "Poner `defaultMode: plan` en `~/.claude/settings.json` de cada dev: la extensión lo lee antes que cualquier otro valor."
-   ],
-   "correct": 1,
-   "why_correct": "La extensión de VS Code no lee los settings del proyecto para decidir el modo inicial. Para fijarlo hay que usar `claudeCode.initialPermissionMode` en los user settings de VS Code, que es lo primero que la extensión mira.",
-   "why_wrong": {
-    "0": "La extensión nunca lee `.claude/settings.json` ni `.claude/settings.local.json` para el modo inicial. Cambiar de archivo no cambia nada.",
-    "2": "Es guía en CLAUDE.md, no configuración. El problema es en qué modo arranca la conversación, y eso no lo decide el modelo.",
-    "3": "`~/.claude/settings.json` sí cuenta, pero está tercero en el orden: antes van `claudeCode.initialPermissionMode` y el último modo elegido en el selector. No es \"lo primero\"."
-   },
-   "rule": "VS Code no lee el `defaultMode` del proyecto: el modo inicial se fija con `claudeCode.initialPermissionMode`.",
-   "source_url": "https://code.claude.com/docs/en/permission-modes",
-   "source_quote": "The extension never reads a project's .claude/settings.json or .claude/settings.local.json for the starting permission mode.",
-   "status": "verificada",
-   "verification": {
-    "date": "2026-11-13",
-    "verdict": "ok",
-    "notes": "Cita textual en permission-modes; la extensión de VS Code usa claudeCode.initialPermissionMode primero y nunca lee settings del proyecto. ~/.claude/settings.json es el ítem 3 del orden."
-   }
-  },
-  {
-   "id": "o08-s02",
-   "objective": 8,
-   "pool": "sim",
-   "scenario": "En Fintech Austral, un dev senior arranca siempre `claude --allow-dangerously-skip-permissions` en su terminal, para poder pasar a bypass cuando prueba scripts en un contenedor. Para un cambio delicado en el motor de conciliación bancaria aprieta `Shift+Tab` hasta ver `plan mode on` y pide un plan. Mientras planificaba, Claude modificó dos archivos de configuración sin pedir nada. La política del equipo exige que en estos cambios no se toque ningún archivo antes de aprobar el plan. ¿Cuál es el fix?",
-   "options": [
-    "Agregar al CLAUDE.md \"En plan mode está prohibido editar archivos\", para que el modelo respete la fase de planificación.",
-    "Entrar a plan mode con el prefijo `/plan` en vez de `Shift+Tab`, porque solo `/plan` activa los bloqueos de edición.",
-    "Pasar a `acceptEdits` antes de planificar, así cada edición queda en un checkpoint y se puede deshacer con `/rewind`.",
-    "Abrir la sesión sin `--allow-dangerously-skip-permissions`: con bypass disponible, plan no bloquea."
-   ],
-   "correct": 3,
-   "why_correct": "En una terminal interactiva con bypass permissions disponible, Claude Code no aplica los bloqueos de plan mode: a Claude se le pide planificar, pero una edición que intente corre sin prompt. El flag `--allow-dangerously-skip-permissions` deja bypass disponible aunque no esté activo. Sin ese flag, plan mode vuelve a bloquear las ediciones hasta aprobar.",
-   "why_wrong": {
-    "0": "Es guía, no bloqueo. El modelo ya tenía la instrucción de no editar en plan mode y lo hizo igual; hace falta que Claude Code lo impida.",
-    "1": "`/plan` y `Shift+Tab` entran al mismo plan mode. El problema no es cómo se entra sino que bypass está disponible en la sesión.",
-    "2": "`acceptEdits` aprueba ediciones sin preguntar: es lo contrario de lo que pide la política. Poder deshacer no es lo mismo que no tocar nada."
-   },
-   "rule": "Plan mode solo bloquea de verdad si la sesión interactiva no tiene bypass disponible.",
-   "source_url": "https://code.claude.com/docs/en/permission-modes",
-   "source_quote": "In interactive terminal sessions with bypass permissions available, Claude Code also doesn't enforce plan mode's blocks.",
-   "status": "verificada",
-   "verification": {
-    "date": "2026-11-13",
-    "verdict": "ok",
-    "notes": "Cita textual en permission-modes: con bypass disponible (--allow-dangerously-skip-permissions) no se aplican los bloqueos de plan mode en terminal interactiva."
-   }
-  },
-  {
-   "id": "o08-s03",
-   "objective": 8,
-   "pool": "sim",
-   "scenario": "El equipo de Datos Patagonia usa plan mode para refactors grandes de su pipeline de ETL. Planificar lleva una hora: Claude lee decenas de archivos, descarta enfoques y la conversación queda llena de material que ya no sirve. Una vez aprobado el plan, quieren que la implementación arranque solo con el plan, sin ese ruido. Además, no quieren copiar el plan a mano a una sesión nueva cada vez. ¿Qué configuran?",
-   "options": [
-    "Activar `showClearContextOnPlanAccept`, que suma la opción de aprobar el plan y limpiar el contexto.",
-    "Aprobar siempre con \"Yes, manually approve edits\", que descarta la exploración y deja solo el plan en el contexto.",
-    "Correr `/compact` apenas aprueban, que borra la conversación previa y deja en contexto únicamente el plan aprobado.",
-    "Implementar con una skill con `context: fork`, que recibe el plan aprobado pero no la exploración de la conversación."
-   ],
-   "correct": 0,
-   "why_correct": "Con `showClearContextOnPlanAccept` activado, el prompt de aprobación gana una primera opción que aprueba el plan y limpia el contexto de planificación. Es exactamente \"arrancar la implementación solo con el plan\", sin pasos manuales.",
-   "why_wrong": {
-    "1": "\"Yes, manually approve edits\" cambia cómo se aprueban las ediciones (una por una). No limpia nada del contexto.",
-    "2": "`/compact` resume la conversación para liberar espacio; no la reemplaza por el plan. El ruido queda resumido, no eliminado.",
-    "3": "Una skill con `context: fork` arranca un subagente que NO ve la conversación, así que tampoco ve el plan, salvo que lo escribas en la skill."
-   },
-   "rule": "Para implementar con contexto limpio después de planificar: `showClearContextOnPlanAccept`.",
-   "source_url": "https://code.claude.com/docs/en/permission-modes",
-   "source_quote": "When showClearContextOnPlanAccept is enabled, the list gains a first option that approves the plan and clears the planning context.",
-   "status": "verificada",
-   "verification": {
-    "date": "2026-11-13",
-    "verdict": "ok",
-    "notes": "Cita textual en permission-modes (showClearContextOnPlanAccept). Distractor de context: fork confirmado en skills (el subagente no ve la conversación)."
-   }
-  },
-  {
-   "id": "o08-s04",
-   "objective": 8,
-   "pool": "sim",
-   "scenario": "En Logística Cuyo definieron en `.claude/agents/` el subagente `migrator`, con `permissionMode: acceptEdits`, para que escriba migraciones de esquema sin pedir permiso. Un dev entra en plan mode para analizar una migración riesgosa y, en esa misma fase, le pide a Claude que delegue en `migrator` \"para adelantar trabajo\". El subagente devuelve un informe pero no escribió ningún archivo. El dev cree que la definición está rota. ¿Qué está pasando?",
-   "options": [
-    "`permissionMode` no es un campo válido en un subagente; el modo se pasa con `--permission-mode` al abrir la sesión.",
-    "Los subagentes nunca editan archivos; para escribir, `migrator` tendría que ser una skill con `context: fork`.",
-    "Con la conversación principal en plan mode, el subagente queda en plan mode aunque su `permissionMode` diga otra cosa.",
-    "`acceptEdits` solo aprueba comandos como `mkdir` o `mv`; para escribir archivos, el subagente necesita `bypassPermissions`."
-   ],
-   "correct": 2,
-   "why_correct": "El modo de la conversación principal manda. Si está en `plan`, el subagente sigue en plan mode sin importar el `permissionMode` que tenga su definición. La definición no está rota: es el diseño que protege la fase de planificación.",
-   "why_wrong": {
-    "0": "`permissionMode` sí es un campo del frontmatter de subagentes. Lo que pasa es que plan mode en la conversación principal tiene prioridad.",
-    "1": "Los subagentes pueden editar si tienen las tools y el modo lo permite. Una skill con fork también sería un subagente y quedaría igual en plan.",
-    "3": "`acceptEdits` aprueba ediciones de archivos además de comandos comunes de filesystem. No hace falta bypass."
-   },
-   "rule": "En plan mode, los subagentes también planifican: su `permissionMode` no lo saltea.",
-   "source_url": "https://code.claude.com/docs/en/sub-agents",
-   "source_quote": "When the main conversation is in plan mode, the subagent stays in plan mode whichever permissionMode you set",
-   "status": "verificada",
-   "verification": {
-    "date": "2026-11-13",
-    "verdict": "ok",
-    "notes": "Cita textual en sub-agents: con la conversación principal en plan, el subagente queda en plan sea cual sea su permissionMode."
-   }
-  },
-  {
-   "id": "o08-s05",
-   "objective": 8,
-   "pool": "sim",
-   "scenario": "Una healthtech trabaja en fases: entrevista con Claude → `SPEC.md` → implementación en una sesión nueva → review. En la review, un subagente recibe el diff con el prompt \"buscá todos los problemas que encuentres\". Siempre devuelve 15 a 20 hallazgos, el equipo los arregla todos, y el código terminó lleno de capas de abstracción y tests para casos imposibles. Mientras tanto, dos requisitos del spec quedaron sin implementar y nadie lo notó. ¿Cómo rediseñan la fase de review?",
-   "options": [
-    "Hacer la review en la misma sesión que implementó, que conoce las decisiones tomadas y descarta lo que no aplica.",
-    "Pedirle al subagente que reporte solo hallazgos de severidad alta, y arreglar todo lo que devuelva sin discutirlo.",
-    "Reemplazar la review por un hook `Stop` que corra el linter, así no hay hallazgos subjetivos que arreglar.",
-    "Que el subagente revise el diff contra `SPEC.md`: cada requisito, sus casos borde con tests, y \"skip style\"."
-   ],
-   "correct": 3,
-   "why_correct": "Un reviewer al que le pedís \"problemas\" siempre encuentra algo, y arreglar todo agrega abstracciones y tests inútiles. Revisar contra el spec cambia la pregunta: ¿está cada requisito? ¿los casos borde tienen test? Así aparecen los dos requisitos faltantes y se cae el ruido de estilo.",
-   "why_wrong": {
-    "0": "La misma sesión ya está convencida por su propio razonamiento. La doc recomienda un reviewer fresco que no vio la conversación.",
-    "1": "Filtrar por severidad baja el volumen, pero la review sigue sin mirar el spec: los requisitos faltantes siguen sin aparecer.",
-    "2": "Un hook `Stop` sirve para forzar un chequeo pass/fail. Un linter no detecta requisitos del spec sin implementar."
-   },
-   "rule": "Review en fase aparte: contra el spec, con \"skip style\", y no arreglar cada hallazgo por reflejo.",
-   "source_url": "https://code.claude.com/docs/en/best-practices",
-   "source_quote": "If you fix every finding, you end up with extra abstraction layers and tests for cases that can't happen.",
-   "status": "verificada",
-   "verification": {
-    "date": "2026-11-13",
-    "verdict": "ok",
-    "notes": "Cita textual en best-practices (review contra SPEC.md, 'skip style', reviewer fresco). Distinta de o08-q07."
-   }
-  },
-  {
-   "id": "o08-s06",
-   "objective": 8,
-   "pool": "sim",
-   "scenario": "En Banco Litoral, Claude presentó en plan mode un plan de 9 pasos para migrar el módulo de transferencias. El tech lead está de acuerdo con casi todo, pero quiere sacar el paso 6 (reescribir el cliente HTTP) y reordenar otros dos antes de que Claude empiece. Tiene que quedar exactamente su versión, sin otra ronda de chat en la que Claude vuelva a mover cosas. Está mirando el prompt de aprobación. ¿Qué hace?",
-   "options": [
-    "Elige \"No, keep planning\" y pega en el chat el plan corregido para que Claude lo reformule y lo vuelva a presentar.",
-    "Aprieta `Ctrl+G`, edita el plan propuesto en su editor de texto y recién después lo aprueba.",
-    "Aprueba con \"Yes, manually approve edits\" y va rechazando en el momento cada edición que toque el paso 6.",
-    "Aprieta `Shift+Tab` en el prompt para salir de plan mode y escribe el plan corregido como prompt nuevo."
-   ],
-   "correct": 1,
-   "why_correct": "`Ctrl+G` abre el plan propuesto en tu editor para que lo edites directamente antes de que Claude avance. Queda exactamente tu versión, sin otra vuelta de planificación.",
-   "why_wrong": {
-    "0": "\"Keep planning\" sirve para pedir cambios, pero Claude reescribe el plan a su manera: es justo la ronda extra que quiere evitar.",
-    "2": "El plan aprobado seguiría teniendo el paso 6 y el orden viejo. Rechazar ediciones sobre la marcha no cambia el plan.",
-    "3": "En el prompt de aprobación, `Shift+Tab` APRUEBA el plan. Para salir sin aprobar primero hay que apretar `Esc`."
-   },
-   "rule": "Para corregir el plan tal cual antes de aprobarlo: `Ctrl+G` y lo editás vos.",
-   "source_url": "https://code.claude.com/docs/en/permission-modes",
-   "source_quote": "Press Ctrl+G to open the proposed plan in your default text editor and edit it directly before Claude proceeds.",
-   "status": "verificada",
-   "verification": {
-    "date": "2026-11-13",
-    "verdict": "ok",
-    "notes": "Cita textual en permission-modes (Ctrl+G). Confirmado que Shift+Tab en el prompt de aprobación aprueba el plan."
-   }
-  }
- ]
+  "objective": 8,
+  "questions": [
+    {
+      "id": "o08-s01",
+      "objective": 8,
+      "pool": "sim",
+      "scenario": "Cobertura Sur, una aseguradora, mantiene el repo del motor de cálculo de primas. El equipo acordó que toda conversación con Claude arranque en plan mode y commiteó `\"defaultMode\": \"plan\"` en `.claude/settings.json`. Los que trabajan en la terminal arrancan bien en plan. Pero la mitad del equipo usa la extensión de VS Code, sus conversaciones arrancan en otro modo y ya hubo dos ediciones sin plan aprobado. Nadie va a cambiar de editor. ¿Qué hacen?",
+      "options": [
+        "Repetir `\"defaultMode\": \"plan\"` en el `.claude/settings.local.json` de cada dev de VS Code, que pisa al archivo compartido.",
+        "Que cada dev de VS Code configure `claudeCode.initialPermissionMode` en `plan` en sus user settings de VS Code.",
+        "Agregar al CLAUDE.md del repo: \"En VS Code arrancá siempre planificando y no edites nada sin un plan aprobado\".",
+        "Poner `defaultMode: plan` en `~/.claude/settings.json` de cada dev: la extensión lo lee antes que cualquier otro valor."
+      ],
+      "correct": 1,
+      "why_correct": "La extensión de VS Code no lee los settings del proyecto para decidir el modo inicial. Para fijarlo hay que usar `claudeCode.initialPermissionMode` en los user settings de VS Code, que es lo primero que la extensión mira.",
+      "why_wrong": {
+        "0": "La extensión nunca lee `.claude/settings.json` ni `.claude/settings.local.json` para el modo inicial. Cambiar de archivo no cambia nada.",
+        "2": "Es guía en CLAUDE.md, no configuración. El problema es en qué modo arranca la conversación, y eso no lo decide el modelo.",
+        "3": "`~/.claude/settings.json` sí cuenta, pero está tercero en el orden: antes van `claudeCode.initialPermissionMode` y el último modo elegido en el selector. No es \"lo primero\"."
+      },
+      "rule": "VS Code no lee el `defaultMode` del proyecto: el modo inicial se fija con `claudeCode.initialPermissionMode`.",
+      "source_url": "https://code.claude.com/docs/en/permission-modes",
+      "source_quote": "The extension never reads a project's .claude/settings.json or .claude/settings.local.json for the starting permission mode.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en permission-modes; la extensión de VS Code usa claudeCode.initialPermissionMode primero y nunca lee settings del proyecto. ~/.claude/settings.json es el ítem 3 del orden. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o08-s02",
+      "objective": 8,
+      "pool": "sim",
+      "scenario": "En Fintech Austral, un dev senior arranca siempre `claude --allow-dangerously-skip-permissions` en su terminal, para poder pasar a bypass cuando prueba scripts en un contenedor. Para un cambio delicado en el motor de conciliación bancaria aprieta `Shift+Tab` hasta ver `plan mode on` y pide un plan. Mientras planificaba, Claude modificó dos archivos de configuración sin pedir nada. La política del equipo exige que en estos cambios no se toque ningún archivo antes de aprobar el plan. ¿Cuál es el fix?",
+      "options": [
+        "Agregar al CLAUDE.md \"En plan mode está prohibido editar archivos\", para que el modelo respete la fase de planificación.",
+        "Entrar a plan mode con el prefijo `/plan` en vez de `Shift+Tab`, porque solo `/plan` activa los bloqueos de edición.",
+        "Pasar a `acceptEdits` antes de planificar, así cada edición queda en un checkpoint y se puede deshacer con `/rewind`.",
+        "Abrir la sesión sin `--allow-dangerously-skip-permissions`: con bypass disponible, plan no bloquea."
+      ],
+      "correct": 3,
+      "why_correct": "En una terminal interactiva con bypass permissions disponible, Claude Code no aplica los bloqueos de plan mode: a Claude se le pide planificar, pero una edición que intente corre sin prompt. El flag `--allow-dangerously-skip-permissions` deja bypass disponible aunque no esté activo. Sin ese flag, plan mode vuelve a bloquear las ediciones hasta aprobar.",
+      "why_wrong": {
+        "0": "Es guía, no bloqueo. El modelo ya tenía la instrucción de no editar en plan mode y lo hizo igual; hace falta que Claude Code lo impida.",
+        "1": "`/plan` y `Shift+Tab` entran al mismo plan mode. El problema no es cómo se entra sino que bypass está disponible en la sesión.",
+        "2": "`acceptEdits` aprueba ediciones sin preguntar: es lo contrario de lo que pide la política. Poder deshacer no es lo mismo que no tocar nada."
+      },
+      "rule": "Plan mode solo bloquea de verdad si la sesión interactiva no tiene bypass disponible.",
+      "source_url": "https://code.claude.com/docs/en/permission-modes",
+      "source_quote": "In interactive terminal sessions with bypass permissions available, Claude Code also doesn't enforce plan mode's blocks.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en permission-modes: con bypass disponible (--allow-dangerously-skip-permissions) no se aplican los bloqueos de plan mode en terminal interactiva. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o08-s03",
+      "objective": 8,
+      "pool": "sim",
+      "scenario": "El equipo de Datos Patagonia usa plan mode para refactors grandes de su pipeline de ETL. Planificar lleva una hora: Claude lee decenas de archivos, descarta enfoques y la conversación queda llena de material que ya no sirve. Una vez aprobado el plan, quieren que la implementación arranque solo con el plan, sin ese ruido. Además, no quieren copiar el plan a mano a una sesión nueva cada vez. ¿Qué configuran?",
+      "options": [
+        "Activar `showClearContextOnPlanAccept`, que suma la opción de aprobar el plan y limpiar el contexto.",
+        "Aprobar siempre con \"Yes, manually approve edits\", que descarta la exploración y deja solo el plan en el contexto.",
+        "Correr `/compact` apenas aprueban, que borra la conversación previa y deja en contexto únicamente el plan aprobado.",
+        "Implementar con una skill con `context: fork`, que recibe el plan aprobado pero no la exploración de la conversación."
+      ],
+      "correct": 0,
+      "why_correct": "Con `showClearContextOnPlanAccept` activado, el prompt de aprobación gana una primera opción que aprueba el plan y limpia el contexto de planificación. Es exactamente \"arrancar la implementación solo con el plan\", sin pasos manuales.",
+      "why_wrong": {
+        "1": "\"Yes, manually approve edits\" cambia cómo se aprueban las ediciones (una por una). No limpia nada del contexto.",
+        "2": "`/compact` resume la conversación para liberar espacio; no la reemplaza por el plan. El ruido queda resumido, no eliminado.",
+        "3": "Una skill con `context: fork` arranca un subagente que NO ve la conversación, así que tampoco ve el plan, salvo que lo escribas en la skill."
+      },
+      "rule": "Para implementar con contexto limpio después de planificar: `showClearContextOnPlanAccept`.",
+      "source_url": "https://code.claude.com/docs/en/permission-modes",
+      "source_quote": "When showClearContextOnPlanAccept is enabled, the list gains a first option that approves the plan and clears the planning context.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en permission-modes (showClearContextOnPlanAccept). Distractor de context: fork confirmado en skills (el subagente no ve la conversación). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o08-s04",
+      "objective": 8,
+      "pool": "sim",
+      "scenario": "En Logística Cuyo definieron en `.claude/agents/` el subagente `migrator`, con `permissionMode: acceptEdits`, para que escriba migraciones de esquema sin pedir permiso. Un dev entra en plan mode para analizar una migración riesgosa y, en esa misma fase, le pide a Claude que delegue en `migrator` \"para adelantar trabajo\". El subagente devuelve un informe pero no escribió ningún archivo. El dev cree que la definición está rota. ¿Qué está pasando?",
+      "options": [
+        "`permissionMode` no es un campo válido en un subagente; el modo se pasa con `--permission-mode` al abrir la sesión.",
+        "Los subagentes nunca editan archivos; para escribir, `migrator` tendría que ser una skill con `context: fork`.",
+        "Con la conversación principal en plan mode, el subagente queda en plan mode aunque su `permissionMode` diga otra cosa.",
+        "`acceptEdits` solo aprueba comandos como `mkdir` o `mv`; para escribir archivos, el subagente necesita `bypassPermissions`."
+      ],
+      "correct": 2,
+      "why_correct": "El modo de la conversación principal manda. Si está en `plan`, el subagente sigue en plan mode sin importar el `permissionMode` que tenga su definición. La definición no está rota: es el diseño que protege la fase de planificación.",
+      "why_wrong": {
+        "0": "`permissionMode` sí es un campo del frontmatter de subagentes. Lo que pasa es que plan mode en la conversación principal tiene prioridad.",
+        "1": "Los subagentes pueden editar si tienen las tools y el modo lo permite. Una skill con fork también sería un subagente y quedaría igual en plan.",
+        "3": "`acceptEdits` aprueba ediciones de archivos además de comandos comunes de filesystem. No hace falta bypass."
+      },
+      "rule": "En plan mode, los subagentes también planifican: su `permissionMode` no lo saltea.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "When the main conversation is in plan mode, the subagent stays in plan mode whichever permissionMode you set",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en sub-agents: con la conversación principal en plan, el subagente queda en plan sea cual sea su permissionMode. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o08-s05",
+      "objective": 8,
+      "pool": "sim",
+      "scenario": "Una healthtech trabaja en fases: entrevista con Claude → `SPEC.md` → implementación en una sesión nueva → review. En la review, un subagente recibe el diff con el prompt \"buscá todos los problemas que encuentres\". Siempre devuelve 15 a 20 hallazgos, el equipo los arregla todos, y el código terminó lleno de capas de abstracción y tests para casos imposibles. Mientras tanto, dos requisitos del spec quedaron sin implementar y nadie lo notó. ¿Cómo rediseñan la fase de review?",
+      "options": [
+        "Hacer la review en la misma sesión que implementó, que conoce las decisiones tomadas y descarta lo que no aplica.",
+        "Pedirle al subagente que reporte solo hallazgos de severidad alta, y arreglar todo lo que devuelva sin discutirlo.",
+        "Reemplazar la review por un hook `Stop` que corra el linter, así no hay hallazgos subjetivos que arreglar.",
+        "Que el subagente revise el diff contra `SPEC.md`: cada requisito, sus casos borde con tests, y \"skip style\"."
+      ],
+      "correct": 3,
+      "why_correct": "Un reviewer al que le pedís \"problemas\" siempre encuentra algo, y arreglar todo agrega abstracciones y tests inútiles. Revisar contra el spec cambia la pregunta: ¿está cada requisito? ¿los casos borde tienen test? Así aparecen los dos requisitos faltantes y se cae el ruido de estilo.",
+      "why_wrong": {
+        "0": "La misma sesión ya está convencida por su propio razonamiento. La doc recomienda un reviewer fresco que no vio la conversación.",
+        "1": "Filtrar por severidad baja el volumen, pero la review sigue sin mirar el spec: los requisitos faltantes siguen sin aparecer.",
+        "2": "Un hook `Stop` sirve para forzar un chequeo pass/fail. Un linter no detecta requisitos del spec sin implementar."
+      },
+      "rule": "Review en fase aparte: contra el spec, con \"skip style\", y no arreglar cada hallazgo por reflejo.",
+      "source_url": "https://code.claude.com/docs/en/best-practices",
+      "source_quote": "If you fix every finding, you end up with extra abstraction layers and tests for cases that can't happen.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en best-practices (review contra SPEC.md, 'skip style', reviewer fresco). Distinta de o08-q07. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o08-s06",
+      "objective": 8,
+      "pool": "sim",
+      "scenario": "En Banco Litoral, Claude presentó en plan mode un plan de 9 pasos para migrar el módulo de transferencias. El tech lead está de acuerdo con casi todo, pero quiere sacar el paso 6 (reescribir el cliente HTTP) y reordenar otros dos antes de que Claude empiece. Tiene que quedar exactamente su versión, sin otra ronda de chat en la que Claude vuelva a mover cosas. Está mirando el prompt de aprobación. ¿Qué hace?",
+      "options": [
+        "Elige \"No, keep planning\" y pega en el chat el plan corregido para que Claude lo reformule y lo vuelva a presentar.",
+        "Aprieta `Ctrl+G`, edita el plan propuesto en su editor de texto y recién después lo aprueba.",
+        "Aprueba con \"Yes, manually approve edits\" y va rechazando en el momento cada edición que toque el paso 6.",
+        "Aprieta `Shift+Tab` en el prompt para salir de plan mode y escribe el plan corregido como prompt nuevo."
+      ],
+      "correct": 1,
+      "why_correct": "`Ctrl+G` abre el plan propuesto en tu editor para que lo edites directamente antes de que Claude avance. Queda exactamente tu versión, sin otra vuelta de planificación.",
+      "why_wrong": {
+        "0": "\"Keep planning\" sirve para pedir cambios, pero Claude reescribe el plan a su manera: es justo la ronda extra que quiere evitar.",
+        "2": "El plan aprobado seguiría teniendo el paso 6 y el orden viejo. Rechazar ediciones sobre la marcha no cambia el plan.",
+        "3": "En el prompt de aprobación, `Shift+Tab` APRUEBA el plan. Para salir sin aprobar primero hay que apretar `Esc`."
+      },
+      "rule": "Para corregir el plan tal cual antes de aprobarlo: `Ctrl+G` y lo editás vos.",
+      "source_url": "https://code.claude.com/docs/en/permission-modes",
+      "source_quote": "Press Ctrl+G to open the proposed plan in your default text editor and edit it directly before Claude proceeds.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en permission-modes (Ctrl+G). Confirmado que Shift+Tab en el prompt de aprobación aprueba el plan. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o08-s21",
+      "objective": 8,
+      "pool": "sim",
+      "scenario": "A payments company on the Enterprise plan turned on Code Review for its GitHub repositories at the Deep review level. Compliance requires that no PR touching `ledger/` merges while a high-severity finding is unresolved and without a person signing off. To automate this, the platform team marked the `Claude Code Review` check run as a required status check in branch protection and removed the human-approval requirement to speed up merges. Two weeks later an auditor finds three merged PRs whose reviews listed high-severity findings in the check run details. Each of those PRs had the check present and completed. Which change satisfies the compliance requirement?",
+      "options": [
+        "Keep the required check and add a `REVIEW.md` on the default branch telling Code Review to fail the check on any high-severity finding.",
+        "Comment `@claude review` after every push to `ledger/`, so a fresh review always updates the required check before the merge.",
+        "Restore a required human approval in branch protection: Code Review never blocks a PR, and its check run doesn't conclude as a failure.",
+        "Replace Code Review with a CI job that runs `/code-review --comment`, and treat a run that posts no comments as approval to merge."
+      ],
+      "correct": 2,
+      "why_correct": "Code Review nunca aprueba ni bloquea un PR: la decisión de mergear queda en el equipo. Su check run no concluye como failure, así que marcarlo como requerido no frena nada, solo exige que exista. Para \"nadie mergea sin que una persona firme\", la última palabra tiene que ser de una persona con branch protection.",
+      "why_wrong": {
+        "0": "`REVIEW.md` ajusta qué marca la review, no cambia cómo concluye el check run. La doc no documenta que se pueda hacer fallar el check.",
+        "1": "Más reviews no cambian que el check nunca falla. Seguiría sin haber nadie que apruebe el merge.",
+        "3": "Saca a la persona del circuito. La doc avisa que una review sin hallazgos no significa que el código esté libre de errores."
+      },
+      "rule": "Una review automática informa; la aprobación del merge queda en una persona, con branch protection.",
+      "source_url": "https://code.claude.com/docs/en/code-review",
+      "source_quote": "A review never approves or blocks the pull request, so the decision to merge stays with your team.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "code-review: nunca aprueba ni bloquea; el check run no concluye como failure; REVIEW.md no cambia eso. Cita textual."
+      }
+    },
+    {
+      "id": "o08-s22",
+      "objective": 8,
+      "pool": "sim",
+      "scenario": "A team building a webhook retry service follows a multi-phase workflow: a spec session wrote `SPEC.md` with 11 requirements and 6 edge cases, a fresh session implemented it, and that same implementing session was then asked `review your changes and list any problems`. The review returned 23 findings: 19 about naming, comment style, and extra abstraction, and none about the two spec edge cases that were later found untested in staging. The team will keep using Claude for the review step and wants the reviewer to catch spec gaps rather than produce noise. Which review setup is most effective?",
+      "options": [
+        "Have a subagent review the diff against `SPEC.md`, checking each requirement and edge case for tests, and report only correctness gaps, skipping style.",
+        "Keep the review in the implementing session but raise the effort to `xhigh` and ask it to list every issue it can find, however small.",
+        "Ask the implementing session to re-read `SPEC.md` through an `@SPEC.md` mention and then review its own diff for style and for correctness together.",
+        "Run `/code-review` in the implementing session with no extra prompt, since its fresh reviewer automatically checks the diff against any spec file."
+      ],
+      "correct": 0,
+      "why_correct": "Dos cosas fallaron: el revisor era el mismo que escribió el código, y el pedido no tenía criterio. La doc recomienda un revisor que no haya visto la conversación (un subagente) y, si querés que revise contra el plan en vez de buscar bugs en general, escribir vos el prompt: contra `SPEC.md`, requisito por requisito, con `skip style`.",
+      "why_wrong": {
+        "1": "Sigue siendo el autor revisándose, con su razonamiento en contexto. Pedir \"todo, por chico que sea\" multiplica justo el ruido que querían sacar.",
+        "2": "Casi: agrega el spec como criterio, pero el revisor sigue siendo el autor, y mezclar estilo con correctitud vuelve a llenar la review de ruido.",
+        "3": "`/code-review` sí revisa en un subagente fresco, pero busca bugs de correctitud en general: no compara solo contra `SPEC.md`. Para eso la doc dice que escribas el prompt vos."
+      },
+      "rule": "Review en multi-fase: revisor fresco + criterio explícito (el spec) + `skip style`.",
+      "source_url": "https://code.claude.com/docs/en/best-practices",
+      "source_quote": "If you'd rather have the review check the work against your plan than hunt for bugs in general, write the review prompt yourself:",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "best-practices: review contra SPEC.md con subagente y skip style; /code-review usa subagente fresco pero no compara contra spec. Cita textual."
+      }
+    },
+    {
+      "id": "o08-s23",
+      "objective": 8,
+      "pool": "sim",
+      "scenario": "A bank wants Claude Code to refactor services in CI but requires a human to approve each plan before any code changes. Its GitHub Actions job runs `claude -p \"Plan and then implement the refactor of payments-adapter\" --permission-mode plan --allowedTools \"Read,Edit,Bash(npm test *)\" --output-format json`. Every run ends with exit code 0 and a detailed plan in `result`, but no files ever change, even though `Edit` is in the allowlist. A developer suggests switching to `bypassPermissions` inside the container so the plan gets executed. The approval requirement is audited quarterly, and the team wants an approval trail outside the model. What is the best design?",
+      "options": [
+        "Keep one job but switch to `--permission-mode bypassPermissions`, and add a `Stop` hook that fails the run whenever the tests don't pass.",
+        "Keep plan mode and add `--max-turns 40`, since the run stops after planning when it runs out of turns before it can start implementing.",
+        "Run one job in `--permission-mode auto` with `don't edit until a human approves the plan` in the prompt, letting the classifier hold edits.",
+        "Split it: a plan-mode job posts the plan for review, a protected step records human approval, and a second job implements with `acceptEdits`."
+      ],
+      "correct": 3,
+      "why_correct": "Plan mode mantiene sus bloqueos donde no hay terminal interactiva, incluido `claude -p`: dentro de esa corrida no hay forma de aprobar el plan, por eso nunca edita (aunque `Edit` esté en `--allowedTools`). La aprobación humana tiene que ir ENTRE dos corridas: una planifica, una persona aprueba con registro, y otra implementa con un modo que permita editar.",
+      "why_wrong": {
+        "0": "Elimina la aprobación humana, que es el requisito auditado. El `Stop` hook verifica los tests, no aprueba el enfoque.",
+        "1": "Los turnos no son la causa: en `-p`, plan mode bloquea los edits sin importar cuántos turnos haya.",
+        "2": "El classifier de auto mode es juicio de un modelo, y una frase en el prompt no deja ningún registro de aprobación. Lo que importa, según la doc, va en reglas o hooks, no en la conversación."
+      },
+      "rule": "En `-p`, plan mode planifica y nunca edita: la aprobación humana va entre dos corridas.",
+      "source_url": "https://code.claude.com/docs/en/permission-modes",
+      "source_quote": "Plan mode keeps its blocks wherever Claude Code runs without an interactive terminal, including non-interactive runs with -p, Agent SDK sessions, and conversations in the VS Code extension's chat panel.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "permission-modes: plan mode mantiene bloqueos en -p; aprobación humana entre corridas. Distractor auto+prompt es guidance. Cita textual."
+      }
+    },
+    {
+      "id": "o08-s24",
+      "objective": 8,
+      "pool": "sim",
+      "scenario": "A team plans every schema change with Claude Code. A developer on Windows is reviewing a seven-step plan Claude proposed for splitting the `orders` table. Halfway through, she realizes the plan assumes the wrong ownership model, and she wants to leave plan mode entirely to discuss the design with a colleague in a normal conversation before any planning resumes. At the approval prompt she presses `Shift+Tab`, the shortcut she always uses to cycle modes, and Claude immediately starts generating migration files. The team now wants its runbook to say how to leave plan mode from the approval prompt without approving anything. What should the runbook say?",
+      "options": [
+        "Choose 'No, keep planning' at the prompt; that option exits plan mode and returns the session to its previous mode without approving.",
+        "Press `Esc` first to dismiss the approval prompt, then `Shift+Tab`; at the prompt itself, `Shift+Tab` approves the plan.",
+        "Press `Ctrl+G` to open the plan in the editor, delete its contents and save, which cancels the plan and leaves plan mode.",
+        "Type `/plan` again at the approval prompt, which toggles plan mode off and discards the current plan without approving it."
+      ],
+      "correct": 1,
+      "why_correct": "La doc lo dice textual: con el prompt de aprobación abierto, apretar `Shift+Tab` aprueba el plan. Por eso Claude empezó a editar. Para salir sin aprobar hay que apretar `Esc` primero y recién después `Shift+Tab`.",
+      "why_wrong": {
+        "0": "Casi: \"No, keep planning\" no aprueba, pero te deja dentro de plan mode para que le digas a Claude qué cambiar. Ella quería salir de plan mode.",
+        "2": "`Ctrl+G` abre el plan en tu editor para modificarlo antes de que Claude siga. No cancela el plan ni sale de plan mode.",
+        "3": "`/plan` sirve para entrar a plan mode, no para salir."
+      },
+      "rule": "En el prompt de aprobación, `Shift+Tab` = aprobar. Para salir sin aprobar: `Esc` y después `Shift+Tab`.",
+      "source_url": "https://code.claude.com/docs/en/permission-modes",
+      "source_quote": "At the approval prompt, press Esc first, since pressing Shift+Tab there approves the plan.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "permission-modes: en el prompt de aprobación Shift+Tab aprueba, Esc primero; 'No, keep planning' se queda en plan; Ctrl+G edita el plan. Cita textual."
+      }
+    },
+    {
+      "id": "o08-s25",
+      "objective": 8,
+      "pool": "sim",
+      "scenario": "A developer at a SaaS company runs a long Claude Code session in auto mode on Windows, iterating quickly on UI copy and small component fixes. In the middle of that work he needs one risky change: rewriting the session-token refresh in `src/auth/`. He wants Claude to research and propose that change without touching disk, approve the plan himself, and then carry on with the rest of the session as it is, keeping the context he has built up over two hours. His team's `.claude/settings.json` sets no `defaultMode`, and he doesn't want to change anything for teammates or for his future sessions. What is the most effective way to handle the auth change?",
+      "options": [
+        "Send that one prompt as `/plan rewrite the token refresh in src/auth/`, review the plan, and approve it to continue working.",
+        "Exit and relaunch with `claude --permission-mode plan`, then paste a summary of the session before asking for the auth plan.",
+        "Add `\"defaultMode\": \"plan\"` to `.claude/settings.local.json` so it applies only to him, then ask for the auth plan.",
+        "Stay in auto mode and write `don't edit src/auth/ until I approve a plan` in the prompt, so the classifier holds those edits."
+      ],
+      "correct": 0,
+      "why_correct": "Se entra a plan mode con `Shift+Tab` o con `/plan` delante de un solo prompt, y `/plan <descripción>` además arranca directamente con esa tarea. Al aprobar, la sesión sale de plan mode y pasa al modo de la opción elegida. No reinicia nada ni toca settings: conserva las dos horas de contexto.",
+      "why_wrong": {
+        "1": "Funciona, pero pierde el contexto real de la sesión y lo reemplaza por un resumen hecho a mano. Justo lo que quería evitar.",
+        "2": "`defaultMode` decide cómo ARRANCAN las sesiones nuevas: no cambia la que está corriendo, y dejaría todas sus sesiones futuras de ese repo en plan.",
+        "3": "El classifier toma frases como esa como señal de bloqueo, pero es un modelo leyendo el transcript, no un bloqueo garantizado, y la frase se puede perder al compactar."
+      },
+      "rule": "Un prompt riesgoso en medio de una sesión rápida → `/plan <tarea>`. No reinicies ni toques settings.",
+      "source_url": "https://code.claude.com/docs/en/permission-modes",
+      "source_quote": "Enter plan mode by pressing Shift+Tab or prefixing a single prompt with /plan.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "permission-modes: /plan como prefijo de un prompt; aprobar sale de plan mode al modo elegido. Cita textual."
+      }
+    },
+    {
+      "id": "o08-s26",
+      "objective": 8,
+      "pool": "sim",
+      "scenario": "A platform team at a retailer is writing guidance for three Claude Code tasks queued this sprint. (1) Rename a misspelled config key in two files of a service that has fast unit tests. (2) Redesign how the checkout service handles partial refunds, touching about 30 files in code few people understand. (3) Replace a deprecated logging call in 180 independent files across the monorepo; each change is mechanical, and the team wants a separate PR per area. Reviewers want human sign-off on the approach wherever the direction is uncertain, but don't want approval ceremonies for trivial edits. Which mapping is most appropriate?",
+      "options": [
+        "(1) plan mode; (2) plan mode followed by `/batch`; (3) a single direct-execution session in `acceptEdits` that edits all 180 files.",
+        "(1) direct execution; (2) direct execution with a `Stop` hook running tests; (3) plan mode in one session approving one combined plan.",
+        "(1) direct execution; (2) plan mode, with the approach approved before edits; (3) `/batch`, which plans the units and opens PRs after approval.",
+        "(1) `/batch`; (2) a `claude -p` loop per file in `dontAsk` mode; (3) plan mode, approving one plan before a single session edits everything."
+      ],
+      "correct": 2,
+      "why_correct": "Cada tarea pide una arquitectura distinta. (1) es chica y tiene tests: ejecución directa, sin ceremonia. (2) es compleja y en código poco conocido: plan mode, para aprobar el enfoque antes de editar. (3) es masiva, mecánica e independiente: `/batch` investiga, la descompone en unidades, presenta el plan y, una vez aprobado, lanza un subagente por unidad en su worktree; cada uno abre su PR.",
+      "why_wrong": {
+        "0": "Pone ceremonia donde no hace falta (1) y, para (3), un solo diff de 180 archivos sin PR por área.",
+        "1": "En (2), donde la dirección es incierta, no hay aprobación del enfoque: un `Stop` hook verifica tests, no el diseño. (3) queda en un solo diff combinado.",
+        "3": "Está al revés: `/batch` para un rename de dos archivos, y la tarea incierta (2) sin ninguna aprobación humana."
+      },
+      "rule": "Chico y verificable → directo. Complejo o incierto → plan mode. Masivo y mecánico → `/batch`.",
+      "source_url": "https://code.claude.com/docs/en/commands",
+      "source_quote": "Researches the codebase, decomposes the work into 5 to 30 independent units, and presents a plan. Once approved, spawns one background subagent per unit in an isolated worktree.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "commands (/batch) + permission-modes: mapeo directo/plan/batch coherente con la doc. Cita textual."
+      }
+    }
+  ]
 }
