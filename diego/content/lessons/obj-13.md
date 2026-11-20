@@ -39,7 +39,7 @@ La doc de GitHub Actions dice: creá un `CLAUDE.md` en la raíz del repo con gu�
 | `./CLAUDE.md` o `./.claude/CLAUDE.md` (proyecto) | Sí, viene con el checkout |
 | `$HOME\.claude\CLAUDE.md` (tu usuario) | No, vive en tu máquina |
 
-**Trampa:** `--bare` saltea el CLAUDE.md, "the repo's as well as the machine's". Si usás `--bare`, pasá los estándares con `--append-system-prompt-file`.
+**Trampa:** `--bare` saltea los `CLAUDE.md` "from the repo and your home directory" (el del repo y el de tu usuario). Si usás `--bare`, pasá los estándares con `--append-system-prompt-file`.
 
 **Code Review gestionado** (el servicio de Anthropic) también lee `REVIEW.md`. Lo lee de la rama base, nunca de los cambios del PR.
 

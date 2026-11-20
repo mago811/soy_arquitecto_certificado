@@ -28,6 +28,12 @@ Ya lo sabés: pedir "agregá tests" a secas da tests que **pasan pero no prueban
 | Convenciones de fixtures y comandos | `CLAUDE.md` (persistente) | Usa las fixtures que ya existen y sabe correr un test suelto. La doc no nombra "fixtures": entran como convenciones del proyecto, junto a "build and test commands" |
 | Criterios de "test que vale" | En el prompt o en `CLAUDE.md` | Pide comportamiento y casos borde, no asserts triviales |
 
+## Cuándo se usa
+
+- **Los tests generados no se parecen a los del repo** (otro framework, datos a mano) → pasale un test existente como modelo con `@`.
+- **Cada dev re-explica las fixtures en el prompt** → movelas al `CLAUDE.md` del proyecto, junto al comando para correr un test suelto.
+- **Los tests pasan pero no detectan bugs** (solo camino feliz, asserts de "no es None") → listá los comportamientos y pedile que proponga casos borde: "error conditions, boundary values, and unexpected inputs".
+
 ## El error típico que el examen quiere que cometas
 
 - **"Subí la cobertura al 90%"** → la métrica se cumple con asserts vacíos. Pedí **comportamiento**: "be specific about what behavior you want to verify".
