@@ -1,0 +1,293 @@
+{
+  "objective": 6,
+  "questions": [
+    {
+      "id": "o06-q21",
+      "objective": 6,
+      "pool": "practice",
+      "scenario": "A research coordinator built with the Claude Agent SDK (Python) defines `web-searcher` and `doc-analyst` in `agents`. After a security-hardening PR, the options include `permission_mode=\"dontAsk\"`, `allowed_tools=[\"Read\", \"Grep\", \"WebSearch\", \"Agent\"]` and `disallowed_tools=[\"Agent\", \"Bash\", \"Write\"]`. Since the deploy, traces show zero subagent invocations: the coordinator runs every search itself, report latency doubled, and the coordinator's context overflows on long topics. Both `AgentDefinition`s are unchanged and valid, and the `system:init` tools list no longer contains `Task`. Which change restores delegation without weakening the rest of the hardening?",
+      "options": [
+        "Add `\"Agent\"` to the `tools` list of both subagent definitions so that the coordinator is allowed to spawn them.",
+        "Remove `\"Agent\"` from `disallowed_tools`, since a bare tool name there removes the tool from Claude's context entirely.",
+        "Switch `permission_mode` from `\"dontAsk\"` to `\"default\"`, because `dontAsk` silently denies the Agent calls that would need approval.",
+        "Add an instruction to the coordinator's system prompt telling it to always delegate searches to `web-searcher` first."
+      ],
+      "correct": 1,
+      "why_correct": "Un nombre pelado en `disallowed_tools` saca la tool del contexto de Claude: el coordinador ni siquiera tiene `Agent` para delegar (por eso `Task` desapareció de `system:init`). Y la deny gana sobre la allow, así que tenerlo también en `allowed_tools` no sirve. Sacarlo de la deny devuelve la delegación; `Bash` y `Write` siguen bloqueados.",
+      "why_wrong": {
+        "0": "Los `tools` del subagente dicen qué puede usar el subagente, no si el coordinador puede lanzarlo. Es el cable equivocado.",
+        "2": "Casi: suena lógico, pero `Agent` es de las tools que no piden aprobación, y esas corren aunque el modo sea `dontAsk`. El modo no era el problema.",
+        "3": "Guidance no arregla un bloqueo: la tool no existe en la sesión del coordinador."
+      },
+      "rule": "Coordinador que no delega: primero mirá si `Agent` está en `disallowedTools`. Ahí no hay prompt que valga.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/permissions",
+      "source_quote": "To hide a built-in tool from Claude entirely rather than deny its calls, add its bare name to `disallowedTools`.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o06-q22",
+      "objective": 6,
+      "pool": "practice",
+      "scenario": "Your team keeps nine subagents in `.claude/agents/`. Last week a new pre-commit hook started inserting a two-line HTML license comment at the very top of every Markdown file in the repository. Since then, developers on Windows and macOS report that none of the custom subagents appear in the @-mention typeahead and Claude never delegates to them. There is no error on screen, and the files still contain valid `name` and `description` fields right below the comment. Built-in subagents keep working normally, and nothing else in the files changed. What is the most likely cause and fix?",
+      "options": [
+        "The watcher stopped tracking the directory after the bulk rewrite; restarting every developer's session reloads all nine definitions.",
+        "The license text makes the YAML unparseable; run `claude plugin validate .claude/agents` and fix the reported indentation.",
+        "The filenames no longer match the `name` fields after the hook ran; rename each file so it matches its subagent's `name`.",
+        "Frontmatter must open on the first line; with the comment above `---`, the files are read as documentation, so move it below."
+      ],
+      "correct": 3,
+      "why_correct": "Si el `---` de apertura no está en la primera línea, Claude Code lee el archivo como si no tuviera frontmatter y lo trata como documentación guardada al lado de los agentes. Sin error en pantalla. El fix es que el comentario vaya después del bloque de frontmatter (o excluir `.claude/agents/` del hook).",
+      "why_wrong": {
+        "0": "El watcher detecta ediciones en una carpeta que ya existía. El problema no es que no las vea, es cómo las interpreta.",
+        "1": "El YAML no se llega a parsear: sin `---` en la línea 1 no hay frontmatter. No hay indentación que arreglar.",
+        "2": "El nombre del archivo no tiene que coincidir con `name`; la identidad sale solo del frontmatter."
+      },
+      "rule": "Subagentes que desaparecen sin error: chequeá que `---` sea la PRIMERA línea del archivo.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "An opening `---` that isn't the file's first line: Claude Code reads the file as having no frontmatter and treats it as documentation.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o06-q23",
+      "objective": 6,
+      "pool": "practice",
+      "scenario": "A platform team reorganized `.claude/agents/` into subfolders. During the move, `review/security.md` was created with `name: security-reviewer` and a new OWASP-focused system prompt, but the old `legacy/security-old.md`, which also declares `name: security-reviewer`, was never deleted. Now some developers get the new reviews and others still get the old checklist, consistently per machine, with no warning in the session. Nobody uses `--agent`, plugins or managed settings for this agent, and the team wants one authoritative reviewer definition. What should the team do?",
+      "options": [
+        "Give every definition a unique `name` by deleting or renaming the legacy file, and run `/doctor` to find other same-name clashes.",
+        "Move the new file to the top level of `.claude/agents/`, because definitions closer to the directory root win over subfolders.",
+        "Rename `review/security.md` to `security-reviewer.md` so the filename matches the `name` field and takes precedence.",
+        "Copy the new definition into `~/.claude/agents/` so the user-level copy overrides both project files on every machine."
+      ],
+      "correct": 0,
+      "why_correct": "Si dos archivos bajo el mismo `.claude/agents/` (subcarpetas incluidas) declaran el mismo `name`, Claude Code carga uno solo, elegido por el orden de lectura del filesystem y no por una precedencia documentada. Por eso cambia según la máquina. El fix es que los nombres sean únicos; `/doctor` reporta archivos del mismo directorio que comparten nombre.",
+      "why_wrong": {
+        "1": "La subcarpeta no afecta la identidad ni la precedencia: Claude Code escanea recursivo y la identidad sale solo de `name`.",
+        "2": "El nombre del archivo no importa para la identidad. Seguís teniendo dos `security-reviewer`.",
+        "3": "Los agentes de usuario (`~/.claude/agents/`) tienen MENOS prioridad que los de proyecto. No pisan nada."
+      },
+      "rule": "Dos agentes con el mismo `name` en el mismo árbol = comportamiento aleatorio por máquina. Nombres únicos y `/doctor`.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "if two files under the same `.claude/agents/` directory, including its subfolders, declare the same name, Claude Code loads only one of them, chosen by filesystem read order rather than a documented precedence.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o06-q24",
+      "objective": 6,
+      "pool": "practice",
+      "scenario": "Your team commits `.claude/agents/jira-sync.md` with `tools: mcp__jira__*, mcp__confluence__*`. It works for the three developers who added the Jira and Confluence MCP servers to their own setup with `claude mcp add`, which uses the default local scope. For the other 27 developers, every delegation fails with an Agent tool error saying `jira-sync` would be spawned with zero tools, listing both entries as matching no tools in this session. The team wants the subagent to work the same way for everyone, with the same two servers. What should they do?",
+      "options": [
+        "Delete the `tools` field so the subagent inherits every tool available to subagents, which avoids the zero-tools refusal everywhere.",
+        "Rewrite the entries as `mcp__jira` and `mcp__confluence`, the server-level form that matches a server even before it connects.",
+        "Add both servers to the project's `.mcp.json` so that every developer's session connects them and the `tools` entries resolve.",
+        "Set `background: false` on the subagent, because background subagents drop MCP tools that foreground subagents keep."
+      ],
+      "correct": 2,
+      "why_correct": "El error agrupa las entradas en \"matched no tools in this session\": son válidas, pero en esa sesión no hay ninguna tool que matchee porque el server no está conectado. En 27 máquinas no existe: el scope local es solo de cada dev. Compartirlos en el `.mcp.json` del proyecto hace que todos los tengan conectados y las entradas resuelvan.",
+      "why_wrong": {
+        "0": "El subagente arrancaría, pero sin tools de Jira ni Confluence en esas 27 máquinas: tapa el error y no hace el trabajo.",
+        "1": "En `tools`, la forma para un server entero es `mcp__<server>__*`; además, ninguna sintaxis hace aparecer tools de un server que no está conectado.",
+        "3": "Al revés: un subagente en background conserva TODAS las tools MCP. Lo que recorta el background son built-ins."
+      },
+      "rule": "\"Zero tools\" con entradas MCP que \"no matchean en esta sesión\" = el server no está conectado ahí. Revisá el scope del MCP.",
+      "source_url": "https://code.claude.com/docs/en/errors",
+      "source_quote": "the entry is valid but no tool in the current session matches it right now, such as `mcp__github__*` with no GitHub MCP server connected",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o06-q25",
+      "objective": 6,
+      "pool": "practice",
+      "scenario": "Your support platform runs the Claude Agent SDK (TypeScript) with default `settingSources`. Escalations to humans are written by an `escalation-writer` subagent. To meet a new handoff policy, a teammate edited `.claude/agents/escalation-writer.md` so its system prompt requires customer ID, root cause, refund amount and recommended action. Two days later, 100% of handoffs still use the old three-field format. The service was restarted after the change and the debug log shows no frontmatter errors. The service's code passes `agents: { \"escalation-writer\": { description, prompt: LEGACY_PROMPT, tools } }` to `query()`. What is the cause?",
+      "options": [
+        "The filesystem watcher ignores edits made outside an interactive session, so the SDK keeps serving a cached copy of the old file.",
+        "Filesystem agents load only when `settingSources` explicitly includes `\"project\"`; the default skips the `.claude/agents/` folder.",
+        "The edited file now exceeds the description token limit, so Claude Code falls back to the last valid definition it had loaded.",
+        "Agents passed in the `agents` option override filesystem agents with the same name, so the code's legacy prompt is the one used."
+      ],
+      "correct": 3,
+      "why_correct": "Hay dos definiciones con el mismo nombre: la del archivo y la programática. Los agentes definidos en `agents` de `query()` tienen prioridad sobre los del filesystem con el mismo nombre. El archivo editado nunca se usa; hay que actualizar `LEGACY_PROMPT` (o sacar esa entrada del código).",
+      "why_wrong": {
+        "0": "Se reinició el servicio: no hay copia vieja que valga. Y el archivo se lee bien, solo que pierde contra la definición programática.",
+        "1": "Con `settingSources` omitido, el SDK lee lo mismo que la CLI: user, project y local, incluidos los agentes de `.claude/agents/`.",
+        "2": "Pasar el límite de tokens de descriptions da un warning al arrancar y carga todos los subagentes igual. No hay fallback a una versión vieja."
+      },
+      "rule": "Mismo nombre en `agents` de `query()` y en `.claude/agents/` → gana el programático.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "source_quote": "Programmatically defined agents take precedence over filesystem-based agents with the same name.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o06-s21",
+      "objective": 6,
+      "pool": "sim",
+      "scenario": "To cap cost in a multi-agent research system built on headless Claude Code runs, the platform team added `\"Agent(model:opus)\"` to `permissions.deny` in the project's `.claude/settings.json`. A week later, billing still shows Opus usage on every report. Traces show the coordinator spawning `deep-analyst`, whose frontmatter sets `model: opus`, with Agent tool inputs that include `subagent_type` and `prompt` but no `model` field. Finance wants no subagent in this pipeline running on Opus, and `deep-analyst` must keep running, on Sonnet. What should the team change?",
+      "options": [
+        "Change the deny rule to `Agent(model:*)` so that it matches every Agent call regardless of which model tier the call requests.",
+        "Change the deny rule to `Agent(model:claude-opus-5-5)` so that it matches the full model ID that the frontmatter alias resolves to.",
+        "Set `model: sonnet` in `deep-analyst`'s frontmatter, since the rule only matches a `model` value present in the call's own input.",
+        "Keep the rule and set `CLAUDE_CODE_SUBAGENT_MODEL=sonnet` in `env`, which forces every subagent onto Sonnet over its frontmatter."
+      ],
+      "correct": 2,
+      "why_correct": "Una regla de parámetro compara contra el input literal de la llamada. La llamada no trae `model`, y un parámetro omitido nunca matchea: la regla no se dispara y el modelo sale del frontmatter (`opus`). Cambiando el frontmatter a `sonnet`, `deep-analyst` sigue andando en Sonnet, y la regla sigue cortando cualquier llamada que pida `opus` explícito.",
+      "why_wrong": {
+        "0": "Casi: suena a comodín total, pero la doc lo dice con este mismo ejemplo: `Agent(model:*)` no matchea una llamada que deja `model` sin setear. Y bloquearía llamadas legítimas que piden otro modelo.",
+        "1": "La regla compara el valor literal que manda Claude, antes de normalizar. Igual la llamada no trae `model`: no hay nada que matchear.",
+        "3": "La variable es la fuente 3 en el orden: pierde contra el `model` del frontmatter. `deep-analyst` seguiría en Opus (para forzar hace falta otra variable)."
+      },
+      "rule": "`Agent(param:valor)` solo ve lo que viene en la llamada. Si el modelo sale del frontmatter, cambialo ahí.",
+      "source_url": "https://code.claude.com/docs/en/permissions",
+      "source_quote": "A parameter the model omits is never matched, so `Agent(model:*)` doesn't match a call that leaves `model` unset",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o06-s22",
+      "objective": 6,
+      "pool": "sim",
+      "scenario": "In CI, `claude -p` runs with `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=1`, which the security team set to forbid nested delegation. A project subagent `finding-fanout` was written to spawn one verifier per review finding, so its frontmatter is `tools: Agent`. Every run now logs an Agent tool error saying `finding-fanout` would be spawned with zero tools, and the review step is skipped. The nesting ban stays in place, and the subagent must not gain shell or edit access. Reviews of up to 15 findings fit comfortably in one agent. What should you change?",
+      "options": [
+        "Raise `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` to `2` for this job only, so `finding-fanout` is allowed to keep the Agent tool.",
+        "Change the frontmatter to `tools: Read, Grep, Glob` so the subagent verifies the findings itself using read-only tools.",
+        "Delete the `tools` field so that the subagent inherits every tool available to subagents and the refusal no longer applies.",
+        "Replace `Agent` with its alias `Task` in the `tools` list, because the depth limit withholds the tool only under its current name."
+      ],
+      "correct": 1,
+      "why_correct": "Con profundidad 1, los subagentes no pueden lanzar subagentes: Claude Code les retira `Agent`. Una lista `tools` que solo tiene `Agent` resuelve a nada y el lanzamiento se rechaza. La doc da dos salidas: subir el límite o darle al menos otra tool. Como el límite no se toca, le das tools read-only y verifica él mismo.",
+      "why_wrong": {
+        "0": "Arregla el error pero viola la restricción de seguridad: el anidamiento tiene que seguir prohibido.",
+        "2": "Arranca, pero hereda Bash, Edit y Write: viola \"sin shell ni edición\".",
+        "3": "`Task` es un alias de `Agent`: es la misma tool y se retira igual en el límite de profundidad."
+      },
+      "rule": "En el límite de profundidad `Agent` desaparece: una lista con solo `Agent` = zero tools.",
+      "source_url": "https://code.claude.com/docs/en/errors",
+      "source_quote": "For a `tools` list that contains only `Agent`, raise the depth limit or give the agent at least one other tool: Claude Code withholds `Agent` at that limit, so a list with nothing else in it resolves to no tools",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o06-s23",
+      "objective": 6,
+      "pool": "sim",
+      "scenario": "Your developer-productivity agent (Claude Agent SDK) delegates release reminders to a `release-scheduler` subagent whose definition sets `tools: [\"CronCreate\", \"CronList\"]` and `background: true`, so the main agent can keep working while reminders are scheduled. After an upgrade, every delegation fails with an Agent tool error saying the subagent would be spawned with zero tools, grouping both entries as not available to subagents. The task takes a few seconds and the team accepts that the main agent waits for it. What fixes the definition while keeping its tools?",
+      "options": [
+        "Remove `background: true` and have Claude wait for the subagent, so it runs in the foreground and keeps the Cron tools.",
+        "Add `\"CronCreate\"` and `\"CronList\"` to the main agent's `allowedTools` so they are pre-approved for the subagent too.",
+        "Keep `background: true` and raise `CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`, since background slots are what filter tools.",
+        "Replace the list with `tools: [\"Agent\"]` so the subagent spawns a nested helper that has the Cron tools available."
+      ],
+      "correct": 0,
+      "why_correct": "Los subagentes en background tienen un set de built-ins más chico y las tools de Cron no están. Por eso, en background, la lista resuelve a nada. La doc: para conservar una tool como `CronCreate`, dejá que Claude espere al subagente (corre en foreground y la conserva), y si la definición tiene `background: true`, sacalo primero.",
+      "why_wrong": {
+        "1": "`allowedTools` auto-aprueba; no hace que una tool filtrada por el background vuelva a existir en el subagente.",
+        "2": "El límite de concurrencia cuenta cuántos subagentes corren a la vez. No tiene nada que ver con qué tools recibe uno en background.",
+        "3": "El helper anidado también arrancaría en background por defecto, con el mismo filtro; y agregás una capa sin resolver nada."
+      },
+      "rule": "Tool built-in que \"no está disponible para subagentes\" en background → correlo en foreground (sin `background: true`).",
+      "source_url": "https://code.claude.com/docs/en/errors",
+      "source_quote": "To keep a tool such as `CronCreate` instead, let Claude wait for the subagent, since a subagent Claude waits for runs in the foreground and keeps the tool. If the definition sets `background: true`, remove that field first",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o06-s24",
+      "objective": 6,
+      "pool": "sim",
+      "scenario": "A team copied the frontmatter style of their skills into a new subagent file, `.claude/agents/schema-auditor.md`: `name: schema-auditor`, `description: Audits Prisma schema changes before merge`, and `allowed-tools: Read, Grep, Glob`. The subagent loads, appears in the typeahead and receives delegations, but in two sessions it ran `npx prisma migrate dev` through Bash and edited `schema.prisma`. No error or warning appeared at any point. The team wants the auditor strictly read-only, whatever permission mode the main session uses. What should they do?",
+      "options": [
+        "Add `disallowedTools: Edit, Write` next to the existing line so the auditor loses the file-editing tools on top of its allowlist.",
+        "Wrap the `allowed-tools` value in a YAML list, because comma-separated strings are accepted only in skills and ignored here.",
+        "Set `permissionMode: plan` on the auditor, which keeps it in read-only exploration whatever mode the main session uses.",
+        "Rename the field to `tools`: subagent frontmatter has no `allowed-tools` field, so it was ignored and every tool was inherited."
+      ],
+      "correct": 3,
+      "why_correct": "`allowed-tools` es un campo de skills, no de subagentes. Claude Code ignora sin avisar cualquier campo de frontmatter que no reconoce. Sin un `tools` válido, el subagente hereda todo, Bash y Edit incluidos. El fix es usar el nombre exacto, `tools`. Con `claude --debug` el log nombra los campos que no reconoce.",
+      "why_wrong": {
+        "0": "Funciona a medias: saca Edit y Write, pero sigue con Bash y puede volver a correr la migración. Y deja un campo muerto.",
+        "1": "El formato no es el problema: el nombre del campo no existe para subagentes, sea string o lista.",
+        "2": "`permissionMode` no se respeta en cualquier modo: si la sesión principal está en `acceptEdits`, `auto` o `bypassPermissions`, el subagente corre en ese modo."
+      },
+      "rule": "Campo mal escrito en un subagente = ignorado en silencio. `tools`, `disallowedTools`, `maxTurns`: nombres exactos.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "Multi-word field names use camelCase, such as `maxTurns` and `disallowedTools`, and must match the table exactly: Claude Code ignores a field it doesn't recognize without reporting an error.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o06-s25",
+      "objective": 6,
+      "pool": "sim",
+      "scenario": "Your support agent (Claude Agent SDK, TypeScript) builds its `AgentDefinition`s from a YAML config at startup with `tools: cfg.tools ?? []`. After a config refactor renamed the key `tools` to `toolset`, the `order-investigator` subagent started replying \"I don't have access to any tools to look up orders\" on 100% of delegations. There is no Agent tool error in any trace, the MCP servers show as connected, and the main agent can still call `lookup_order` itself. The engineer expected a zero-tools refusal and is confused. What explains why no refusal was raised?",
+      "options": [
+        "The `support` MCP server reconnects lazily for subagents, so its tools appear only after the subagent's first failed call.",
+        "An unrecognized `toolset` key is rejected silently by the SDK, so the definition falls back to the last valid configuration it loaded.",
+        "An empty `tools` list skips the zero-tools refusal and launches the subagent with no tools, so the `[]` fallback disabled it.",
+        "Subagents launched in the background drop MCP tools by default, so the investigator must be run in the foreground instead."
+      ],
+      "correct": 2,
+      "why_correct": "El rechazo \"zero tools\" salta cuando las entradas de la lista no resuelven a nada. Pero si la lista está VACÍA (o `disallowedTools` saca todas sus entradas), Claude Code saltea el rechazo y lanza el subagente sin tools. El `?? []` convirtió el key renombrado en una lista vacía.",
+      "why_wrong": {
+        "0": "No hay reconexión perezosa documentada para subagentes: el server está conectado y el agente principal lo usa.",
+        "1": "`toolset` lo lee tu código, no el SDK: el SDK solo recibe `tools: []`. No hay \"última configuración válida\".",
+        "3": "Al revés: un subagente en background conserva todas las tools MCP."
+      },
+      "rule": "`tools: []` no da error: lanza un subagente sin tools. Si no querés restringir, omití el campo.",
+      "source_url": "https://code.claude.com/docs/en/errors",
+      "source_quote": "If you leave the `tools` list empty, or `disallowedTools` removes every entry in it, Claude Code also skips the refusal and launches the subagent without tools.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o06-s26",
+      "objective": 6,
+      "pool": "sim",
+      "scenario": "In a monorepo, the root `.claude/agents/test-writer.md` was updated to generate Vitest tests that use the shared fixtures. Developers on the billing team, who start Claude Code from `packages/billing`, still get Jest tests that ignore the fixtures. That package contains an older `packages/billing/.claude/agents/test-writer.md` with the same `name: test-writer`. Engineers who start sessions elsewhere in the repository get the new behavior. Billing developers cannot change where they start their sessions, and the team wants a single source of truth for this subagent. What should they do?",
+      "options": [
+        "Delete or rename the nested billing definition, since the definition closest to the working directory wins over the root one.",
+        "Copy the updated definition into `~/.claude/agents/` so the user-level copy overrides the nested project file for billing.",
+        "Rename the root file to `test-writer-v2.md`, since a filename that differs from the nested one keeps the two definitions apart.",
+        "Add a `version: 2` field to the root definition's frontmatter so Claude Code prefers the most recent of the two definitions."
+      ],
+      "correct": 0,
+      "why_correct": "Los agentes de proyecto se descubren subiendo desde el directorio de trabajo hasta la raíz del repo, y si varias carpetas anidadas definen el mismo `name`, gana la más cercana al directorio de trabajo. Desde `packages/billing` gana la vieja. Borrar o renombrar la anidada deja una sola fuente.",
+      "why_wrong": {
+        "1": "Los agentes de usuario tienen menos prioridad que los de proyecto: no pisan la definición anidada.",
+        "2": "La identidad sale de `name`, no del nombre de archivo. Siguen siendo dos `test-writer`.",
+        "3": "No existe un campo `version` para subagentes: Claude Code ignora los campos que no reconoce, y no hay precedencia por fecha."
+      },
+      "rule": "Mismo `name` en carpetas anidadas → gana la más cercana al cwd. Una sola definición por nombre.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "When more than one of these nested directories defines the same `name`, Claude Code uses the definition closest to the working directory.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o06-s27",
+      "objective": 6,
+      "pool": "sim",
+      "scenario": "Your nightly CI job runs `claude -p` on a fresh clone to generate data-quality reports. The project subagent `db-reader` in `.claude/agents/` has `tools: Bash` and a frontmatter `PreToolUse` hook that runs `./scripts/validate-readonly-query.sh`, which exits 2 on `INSERT`, `UPDATE` or `DELETE`. On developers' laptops the hook blocks writes as expected. Last night in CI, `db-reader` ran an `UPDATE` against the reporting database, and the debug log contains an error explaining how to trust the folder. Nobody can answer dialogs on the runner, and the job never needs to write to the database. Which change makes the block effective in CI?",
+      "options": [
+        "Run `chmod +x` on the validation script in the CI image, since a non-executable script on Linux makes the hook fail instead of blocking.",
+        "Move the `PreToolUse` hook into the project's `.claude/settings.json`, whose hooks run in `-p` sessions without this trust step.",
+        "Add an IMPORTANT line to `db-reader`'s system prompt forbidding write queries, as a fallback for runs where hooks don't load.",
+        "Change the script's exit code from 2 to 1 so that the failure is reported as a blocking error instead of a non-blocking one."
+      ],
+      "correct": 1,
+      "why_correct": "Los hooks del frontmatter de un subagente de proyecto solo corren si el folder está trusted, y una sesión `-p` no cuenta como trusted: el subagente corre igual, pero sin su hook (eso dice el debug log). Los hooks de los settings files tienen una regla más laxa y corren en `-p`, y los `PreToolUse` de settings también disparan para las tools de los subagentes.",
+      "why_wrong": {
+        "0": "Es una falla real en Linux, pero no es esta: el debug log habla de trust, no de permisos de ejecución, y en un clone el bit de ejecución se conserva.",
+        "2": "Es guidance: no bloquea nada de forma determinística. Justo lo que el hook tenía que garantizar.",
+        "3": "Al revés: en `PreToolUse` el código que bloquea es 2. Con 1 el comando se ejecuta."
+      },
+      "rule": "En `-p`, los hooks del frontmatter de subagentes de proyecto no corren (no hay trust). Los de settings sí.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "This is a stricter rule than the one for hooks in settings files: trusting a parent folder isn't enough, and a `-p` session doesn't count as trusted.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

@@ -22,8 +22,12 @@
       "rule": "Dato que puede faltar → `required` + nullable + permiso explícito para `null`. Nunca un centinela ni un valor inferido.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview",
       "source_quote": "Claude (particularly Claude Sonnet) might guess values you didn’t supply",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en tool-use/overview (Claude, particularly Sonnet, might guess values). Required no-nullable obliga a poner algo; required + ['string','null'] da salida honesta (1 union type, bajo el límite de 16)."
+      }
     },
     {
       "id": "o26-q22",
@@ -37,7 +41,7 @@
         "Make category optional, so the model can simply leave it out when the conversation does not fit any of the three labels."
       ],
       "correct": 0,
-      "why_correct": "Un enum cerrado sin salida obliga al modelo a elegir la etiqueta \"menos mala\", y eso ensucia el dashboard. Darle una opción explícita (`other`) más un detalle opcional en texto es darle permiso para decir \"no encaja\", manteniendo el enum para todo lo demás. Cuando definan las subcategorías, el detalle ya está juntado.",
+      "why_correct": "Un enum cerrado sin salida obliga al modelo a elegir la etiqueta \"menos mala\", y eso ensucia el dashboard. Darle una opción explícita (`other`) más un detalle opcional en texto es darle permiso para decir \"no encaja\", manteniendo el enum para todo lo demás. Cuando definan las subcategorías, el detalle ya está juntado. Ojo: la doc no prescribe literalmente un valor `other`; es la aplicación al schema del principio documentado de darle permiso explícito para decir \"no sé / no encaja\".",
       "why_wrong": {
         "1": "Tira la normalización que hace útil al dashboard: volvés a tener decenas de variantes de texto para la misma categoría.",
         "2": "Casi: aclara el criterio, pero el modelo sigue obligado a elegir una de tres etiquetas que no corresponden.",
@@ -46,8 +50,12 @@
       "rule": "Enum cerrado + casos que no encajan → agregá una salida explícita (`other` + detalle). No obligues a elegir mal.",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
       "source_quote": "Allow Claude to say “I don’t know”: Explicitly give Claude permission to admit uncertainty. This technique can drastically reduce false information.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "La cita ('Allow Claude to say I don't know', reduce-hallucinations) es textual y respalda el principio, no el valor 'other': busqué en la doc oficial y no hay una recomendación literal de 'other' en enums. Alcanza, porque ningún distractor queda respaldado por la doc (texto libre contradice 'use tools with an enum field' para clasificación; opcional es ambiguo; la descripción no da salida). Agregué a why_correct que es un patrón de diseño derivado del principio, para no atribuirle a la doc algo que no dice."
+      }
     },
     {
       "id": "o26-q23",
@@ -70,8 +78,12 @@
       "rule": "Claves desconocidas en structured outputs → array de `{key, value}`. Un objeto sin `properties` solo puede ser `{}`.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "If you don’t know the keys in advance, use an array instead. Give each item a key and a value",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en structured-outputs (Objects with arbitrary keys: objeto sin properties solo puede ser {}; additionalProperties debe ser false; usar array de {key, value}). 40 opcionales pasan el límite de 24."
+      }
     },
     {
       "id": "o26-q24",
@@ -94,8 +106,12 @@
       "rule": "Los límites de structured outputs (24 opcionales, 16 con union types) se suman en todo el request. Required donde se pueda.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "These limits apply to the combined total across all strict schemas in a single request. For example, if you have four strict tools with six optional parameters each, you’ll reach the 24-parameter limit even though no single tool seems complex.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en structured-outputs (Explicit limits: 24 opcionales en total de todas las schemas strict del request). 31 > 24; partir/juntar en el mismo request no baja el total."
+      }
     },
     {
       "id": "o26-q25",
@@ -118,8 +134,12 @@
       "rule": "Opcionales mal usados (se omiten o se inventan) → `input_examples` que muestren cuándo va cada campo y cuándo no.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
       "source_quote": "Examples are included in the prompt alongside your tool schema, showing Claude concrete patterns for well-formed tool calls. These patterns indicate when to include optional parameters, what formats to use, and how to structure complex inputs.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en define-tools (Providing tool use examples). input_examples va en la definición de la tool y cada ejemplo debe validar contra input_schema."
+      }
     },
     {
       "id": "o26-s21",
@@ -142,8 +162,12 @@
       "rule": "Strict = forma válida, no dato real. Lo que puede faltar va nullable, con permiso para `null` y ruteo a revisión.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview",
       "source_quote": "Claude Sonnet might ask, especially when prompted to think before outputting a tool request. But it might also infer a reasonable value.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en tool-use/overview (Sonnet might infer a reasonable value). Opus 5.5 sin forced tool use confirmado en define-tools/api/errors. Misma familia de fix que q21 (nullable) pero con otro giro: 'strict garantiza forma, no verdad' + pattern como distractor; no lo considero duplicado."
+      }
     },
     {
       "id": "o26-s22",
@@ -166,8 +190,12 @@
       "rule": "Nullable no es gratis: máximo 16 union types por request. Nullable solo en lo que de verdad puede faltar.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "Total parameters that use anyOf or type arrays (for example, \"type\": [\"string\", \"null\"]) across all strict schemas. These are especially expensive because they create exponential compilation cost.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en structured-outputs (tabla de límites: 16 union types; anyOf y type arrays cuentan igual). Matemática consistente: 12 nullable ≤ 16; 20 por request > 16; 40 opcionales > 24."
+      }
     },
     {
       "id": "o26-s23",
@@ -190,8 +218,12 @@
       "rule": "En structured outputs salen primero las requeridas. ¿El orden importa? Todo `required` (nullable donde haga falta).",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "If property order in the output is important to your application, mark all properties as required, or account for this reordering in your parsing logic.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en structured-outputs (Property ordering: required primero, luego opcionales; 'mark all properties as required'). El síntoma (suspected_cause en la columna owner) coincide con el reordenamiento."
+      }
     },
     {
       "id": "o26-s24",
@@ -214,8 +246,12 @@
       "rule": "Categorías que se dispersan en texto libre → `enum` en el schema de la tool, con una salida explícita para lo que no encaja.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "For classification tasks, use either tools with an enum field containing your valid labels or structured outputs.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en claude-prompting-best-practices ('For classification tasks, use either tools with an enum field...'). Normalización a posteriori/instrucciones tratan síntoma."
+      }
     },
     {
       "id": "o26-s25",
@@ -238,8 +274,12 @@
       "rule": "Necesitás distinguir \"ausente\" de \"no extraído\" → `required` + nullable. Opcional = solo omitir.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "Reduce optional parameters. Make parameters required where possible. Each optional parameter roughly doubles a portion of the grammar’s state space.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en structured-outputs (Reduce optional parameters / make required where possible). Nota: la doc da esa recomendación por complejidad de gramática, no por semántica; acá la correcta se sostiene por diseño (opcional no-nullable solo permite omitir). Ningún distractor queda respaldado por la doc."
+      }
     }
   ]
 }

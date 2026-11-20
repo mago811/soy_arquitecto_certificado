@@ -22,8 +22,12 @@
       "rule": "Varios temas de review en un prompt compiten entre sí → una pasada por tema, cada una con sus ejemplos.",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/increase-consistency",
       "source_quote": "Break down complex tasks into smaller, consistent subtasks. Each prompt then covers a single subtask, reducing inconsistency errors across scaled workflows.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en increase-consistency ('Break down complex tasks...'). Una pasada por tema entra en 3 llamadas paralelas; balancear ejemplos/énfasis/votación no separan los temas."
+      }
     },
     {
       "id": "o24-q22",
@@ -46,8 +50,12 @@
       "rule": "No pidas \"solo lo grave\" adentro del review: pedí todo con severidad y filtrá en otro paso.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5",
       "source_quote": "If your review prompt says “only report high-severity issues” or “be conservative,” the model might follow that instruction literally and report less; ask it to report everything and filter in a separate pass instead.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en prompting-claude-opus-5 (report everything and filter in a separate pass). Distractores repiten el filtro dentro de la pasada o deshacen la separación."
+      }
     },
     {
       "id": "o24-q23",
@@ -70,8 +78,12 @@
       "rule": "Few-shot de una pasada: 3–5 ejemplos diversos que cubran los casos reales, no cuatro copias del mismo caso.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Cover edge cases and vary enough that Claude doesn’t pick up unintended patterns.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en claude-prompting-best-practices (examples: Relevant/Diverse, 'Include 3–5 examples', tags <example>). Sin llamadas extra."
+      }
     },
     {
       "id": "o24-q24",
@@ -94,8 +106,12 @@
       "rule": "Review especializado en Claude Code → un subagente por tema, con prompt propio y `description` precisa para que Claude delegue bien.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "Claude uses each subagent's description to decide when to delegate tasks. When you create a subagent, write a clear description so Claude knows when to use it.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en code.claude.com sub-agents ('Claude uses each subagent's description to decide when to delegate'). Un subagente por tema con description específica; CLAUDE.md/secciones/Bash no separan temas."
+      }
     },
     {
       "id": "o24-q25",
@@ -118,8 +134,12 @@
       "rule": "Si necesitás medir y tunear cada pasada → llamadas encadenadas explícitas, no un solo agente que hace todo adentro.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Explicit prompt chaining (breaking a task into sequential API calls) is still useful when you need to inspect intermediate outputs or enforce a specific pipeline structure.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en claude-prompting-best-practices (explicit prompt chaining para inspeccionar salidas intermedias). Las etiquetas por tema son el 'casi' bien justificado."
+      }
     },
     {
       "id": "o24-s21",
@@ -142,8 +162,12 @@
       "rule": "Una pasada por tema = instrucciones Y ejemplos propios. Ejemplos compartidos vuelven a mezclar los temas.",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/increase-consistency",
       "source_quote": "Break down complex tasks into smaller, consistent subtasks. Each prompt then covers a single subtask, reducing inconsistency errors across scaled workflows.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en increase-consistency. Decisión distinta a q21 (ejemplos compartidos entre pasadas ya separadas)."
+      }
     },
     {
       "id": "o24-s22",
@@ -166,8 +190,12 @@
       "rule": "Recall alto + muchos falsos positivos → agregá un paso de verificación de hallazgos, no restricciones dentro de cada pasada.",
       "source_url": "https://code.claude.com/docs/en/code-review",
       "source_quote": "Verify: a verification step checks the candidate findings against the code and filters out false positives.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en code.claude.com/docs/en/code-review ('Verify: a verification step checks the candidate findings against the code and filters out false positives'). Pedir certeza/subir severidad bajaría recall."
+      }
     },
     {
       "id": "o24-s23",
@@ -190,8 +218,12 @@
       "rule": "Review en el camino crítico con SLA → pasada rápida con menos esfuerzo ahora y pasada profunda después.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5",
       "source_quote": "Accuracy holds at lower effort settings, which supports a fast pass at review time and a more thorough pass later.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en prompting-claude-opus-5 ('Accuracy holds at lower effort settings...'). Batches no sirve para un paso bloqueante; recortar diff/rotar pierde cobertura."
+      }
     },
     {
       "id": "o24-s24",
@@ -214,8 +246,12 @@
       "rule": "Pasada de verificación por hallazgo, aislada y en paralelo → subagentes anidados (un verificador por hallazgo).",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "Nested subagents suit a delegated task that itself splits into parallel subtasks, such as a reviewer subagent that dispatches a verifier per finding.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en sub-agents (nested subagents: 'a reviewer subagent that dispatches a verifier per finding'; por defecto el que lanza espera los reportes). CLAUDE_AUTOCOMPACT_PCT_OVERRIDE existe y aplica a subagentes, pero no aísla ni paraleliza."
+      }
     },
     {
       "id": "o24-s25",
@@ -238,8 +274,12 @@
       "rule": "Si necesitás auditar cada corrección → separá review y refinamiento en llamadas distintas y logueá cada paso.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Each step is a separate API call so you can log, evaluate, or branch at any point.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en claude-prompting-best-practices (self-correction: draft → review → refine, 'Each step is a separate API call so you can log, evaluate, or branch'). Change log/few-shot/correr dos veces no dan salidas intermedias auditables."
+      }
     }
   ]
 }

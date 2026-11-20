@@ -22,8 +22,12 @@
       "rule": "Si el paralelismo cae sin cambiar prompt ni modelo, mirá primero el historial: todos los `tool_result` van juntos en UN mensaje `user`.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
       "source_quote": "The most common issue is formatting tool results incorrectly in the conversation history. This “teaches” Claude to avoid parallel calls.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Confirmado en parallel-tool-use: el formato de historial con tool_result en mensajes separados 'enseña' a no paralelizar; disable_parallel_tool_use:false no cambia nada (paralelo por defecto)."
+      }
     },
     {
       "id": "o01-q22",
@@ -31,10 +35,10 @@
       "pool": "practice",
       "scenario": "A platform team built an internal developer-productivity agent on the Messages API with tools `create_directory`, `write_file`, `read_file` and `search_code`. Most traffic is read-only, so the executor runs every `tool_use` block of a response with `Promise.all`. In about 18% of report-generation tasks, Claude emits `create_directory(\"reports/2026-11\")` and `write_file(\"reports/2026-11/summary.md\")` in the same response; `write_file` loses the race and fails with ENOENT. The current handler drops the failed call and sends back only the `create_directory` result, and those requests fail with `tool_use ids were found without tool_result blocks immediately after`. The team wants to keep parallel execution for the read-only tools, which are 85% of calls. What is the most effective fix?",
       "options": [
-        "Set disable_parallel_tool_use: true inside tool_choice for all requests, so a dependent pair of calls can never appear together in one response from Claude.",
+        "Set disable_parallel_tool_use: true inside tool_choice for all requests, so dependent calls stop appearing together in one response from Claude.",
         "Run the batch sequentially and, when a call fails, omit the remaining calls from the next user message so Claude re-plans from the failure.",
         "Send the successful create_directory tool_result, followed by a text block explaining that write_file failed and should be retried next turn.",
-        "Return a tool_result for every tool_use, with is_error: true and the natural error for write_file, and tell Claude in the system prompt to batch only independent calls."
+        "Return a tool_result for every tool_use (is_error: true with the natural error for write_file) and add a system prompt line to batch only independent calls."
       ],
       "correct": 3,
       "why_correct": "La doc cubre exactamente este caso: si corrés en paralelo y una llamada falla porque su prerequisito no había terminado, devolvés `is_error: true` con el error natural y Claude la reintenta en el turno siguiente. Además, cada `tool_use` necesita su `tool_result` (por eso el 400). La línea de system prompt reduce que aparezcan llamadas dependientes juntas sin apagar el paralelismo de las lecturas.",
@@ -46,8 +50,12 @@
       "rule": "Toda `tool_use` lleva su `tool_result`, aunque haya fallado o no la hayas corrido: `is_error: true` y Claude reintenta.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
       "source_quote": "If you run in parallel and a call fails because its prerequisite hadn’t completed, return `is_error: true` with the natural error message. Claude will reissue the call on the next turn.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Cita y la línea 'Only batch tool calls that are independent of each other.' confirmadas en parallel-tool-use. Cambios: acorté la correcta (era la más larga) y saqué el 'can never' de la opción A."
+      }
     },
     {
       "id": "o01-q23",
@@ -70,8 +78,12 @@
       "rule": "\"Máximo una tool, pero puede contestar en texto\" = `tool_choice: {type: auto, disable_parallel_tool_use: true}`. Con `any`/`tool` es exactamente una.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
       "source_quote": "When the `tool_choice` type is `auto` (the default), setting `disable_parallel_tool_use: true` means Claude calls at most one tool in each response. Claude can still answer in plain text without calling any tool.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Confirmado en parallel-tool-use: auto + disable_parallel_tool_use = como máximo una tool y puede contestar en texto; any/tool = exactamente una; el campo va dentro de tool_choice."
+      }
     },
     {
       "id": "o01-q24",
@@ -94,8 +106,12 @@
       "rule": "Agent SDK: custom tool que solo lee y corre en serie → `readOnlyHint` en annotations.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
       "source_quote": "Custom tools default to sequential execution. To enable parallel execution for a custom tool, set `readOnlyHint` in its annotations.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Confirmado en agent-sdk/agent-loop: custom tools secuenciales por defecto, readOnlyHint habilita paralelo; allowedTools no afecta concurrencia."
+      }
     },
     {
       "id": "o01-q25",
@@ -118,8 +134,12 @@
       "rule": "Subtareas independientes → varias llamadas a subagentes en el MISMO turno; terminan en el tiempo del más lento.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "**Parallelization**: multiple subagents can run concurrently, so independent subtasks finish in the time of the slowest one rather than the sum of all of them.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita confirmada en agent-sdk/subagents (Parallelization). La doc actual dice que los subagentes corren en background por defecto y Claude espera cuando su siguiente acción necesita el reporte; la correcta sigue siendo la única que paraleliza sin perder especialización."
+      }
     },
     {
       "id": "o01-s21",
@@ -142,8 +162,12 @@
       "rule": "En el mensaje de vuelta: solo `tool_result`, todos juntos y primero. El texto extra trae errores 400 o respuestas vacías.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
       "source_quote": "In the user message containing tool results, the `tool_result` blocks must come FIRST in the content array. Any text must come AFTER all tool results.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita confirmada en handle-tool-calls; el distractor C (texto después de los tool_result) está respaldado como causa de respuestas vacías con end_turn en handling-stop-reasons."
+      }
     },
     {
       "id": "o01-s22",
@@ -152,7 +176,7 @@
       "scenario": "A company built its own PR-review bot for Claude Code for Continuous Integration, but on the raw Messages API instead of `claude -p`. Tools: `read_file`, `list_changed_files` and `upsert_summary_comment`, which edits the single summary comment on the PR. Claude frequently returns five or six `read_file` calls plus two `upsert_summary_comment` calls (one per section) in the same response. The executor runs every call concurrently. On 12% of PRs one section of the summary is silently lost because the two upserts overwrite each other. Reviews must finish in under 3 minutes, and `read_file` accounts for 70% of the calls. What should the team change?",
       "options": [
         "Run the read_file calls concurrently and the two upserts sequentially in their original order, returning all results in one user message.",
-        "Set disable_parallel_tool_use: true inside tool_choice so each response contains a single call and the upserts can never collide on the same comment.",
+        "Set disable_parallel_tool_use: true inside tool_choice so each response contains a single call and the two upserts stop colliding on the same comment.",
         "Retry upsert_summary_comment with exponential backoff whenever the comment's updated_at timestamp changed during the call.",
         "Return each upsert result in a separate user message so Claude sees the first write before it issues the second one."
       ],
@@ -166,8 +190,12 @@
       "rule": "Lecturas independientes en paralelo; side effects o estado compartido en serie. La estrategia de ejecución es tuya, no de la API.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
       "source_quote": "Independent, read-only operations are usually safe to run in parallel for lower latency. Tools with side effects, shared state, or ordering requirements might be better run sequentially.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Cita confirmada en parallel-tool-use (la estrategia de ejecución es del cliente). Cambio: saqué el 'can never' de la opción B."
+      }
     },
     {
       "id": "o01-s23",
@@ -175,7 +203,7 @@
       "pool": "sim",
       "scenario": "An airline's Customer Support Resolution Agent completes web check-in for passengers using the browser use tool. To cut latency, a developer changed the executor: when Claude returns several browser member calls in one turn (a batch action such as click the passport field, type the number, click \"Continue\"), they now run concurrently. Since then 22% of check-ins fail: the \"Continue\" click lands before the typed value is committed, and later actions act on the wrong page. Check-in must finish within 60 seconds and the team wants to keep batch actions. What is the correct way to execute these batches?",
       "options": [
-        "Set disable_parallel_tool_use: true inside tool_choice so Claude sends one browser action per response, never a batch.",
+        "Set disable_parallel_tool_use: true inside tool_choice so Claude sends one browser action per response instead of a batch.",
         "Keep concurrent execution for speed, but retry any failed member call once after all the other calls in the batch complete.",
         "Run the member calls sequentially in the order they appear, stop at the first failure, and return the tool-defined text for the calls you skip.",
         "Run the member calls sequentially in the order they appear; if one fails, continue with the rest and mark the failed one with is_error: true."
@@ -190,8 +218,12 @@
       "rule": "Browser/computer use en batch: en orden, frenando en la primera falla. No es opcional como en las otras tools.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
       "source_quote": "When Claude returns several of their member tool calls in one turn (a batch action), run them sequentially in the order they appear and stop at the first failure; each tool defines the exact text to return for the calls you skip.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Cita confirmada en parallel-tool-use y en browser-use-tool#batch-actions (en orden, frenar en la primera falla, texto exacto para las salteadas). Cambio: saqué el 'never' de la opción A."
+      }
     },
     {
       "id": "o01-s24",
@@ -202,7 +234,7 @@
         "Set CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS to 30 in the env option (spreading process.env so PATH is kept).",
         "Raise maxBudgetUsd for deep-dive requests so the SDK stops refusing additional subagents.",
         "Set CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH to a higher value so more subagents can be created per query.",
-        "Tell the coordinator in its prompt to never spawn more than 20 subagents and to merge the remaining source families."
+        "Tell the coordinator in its prompt to spawn at most 20 subagents per response and to merge the remaining source families."
       ],
       "correct": 0,
       "why_correct": "El mensaje `Concurrent subagent limit reached` es el límite de concurrencia (default 20 subagentes a la vez), que se ajusta con `CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS` vía la opción `env`. En TypeScript `env` reemplaza el entorno del subproceso, por eso hay que esparcir `process.env`. Como la infra banca 30, subir el límite ataca la causa.",
@@ -214,8 +246,12 @@
       "rule": "Leé el error: `Concurrent subagent limit reached` → concurrencia (`CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`), no depth ni budget.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "Refuses to spawn another subagent, returning `Concurrent subagent limit reached`, until the running count drops below the limit.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Confirmado en agent-sdk/subagents: límite de concurrencia default 20 con CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS, mensaje exacto, Budget limit reached para el gasto y spread de process.env en TS. Cambio: saqué el 'never' de la opción D."
+      }
     },
     {
       "id": "o01-s25",
@@ -226,7 +262,7 @@
         "Remove the skipped notify_customer tool_use block from the stored assistant message before sending the next request.",
         "Return a tool_result for notify_customer with is_error: true and a brief explanation that it was not run because issue_refund failed.",
         "Return a tool_result for notify_customer with is_error: false and the content \"skipped\", so Claude does not try to retry it in the next turn.",
-        "Run both calls concurrently instead, so notify_customer always has a result and the 400 error disappears."
+        "Run both calls concurrently instead, so notify_customer gets a result in every case and the 400 error disappears."
       ],
       "correct": 1,
       "why_correct": "La doc lo dice directo: si decidís no correr una llamada (por ejemplo, porque corriste secuencial y falló una anterior), igual devolvés su `tool_result` con `is_error: true` y una explicación breve. Así el historial queda válido y Claude sabe que el mail no salió.",
@@ -238,8 +274,12 @@
       "rule": "Llamada que no corriste = `tool_result` con `is_error: true` y una razón corta. Nunca la omitas ni la marques como éxito.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
       "source_quote": "If you choose not to run a particular call (for example, because you ran the batch sequentially and an earlier call failed), still return a `tool_result` for it with `is_error: true` and a brief explanation.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Cita textual confirmada en parallel-tool-use (is_error: true para llamadas no ejecutadas). Cambio: reformulé el 'always' de la opción D."
+      }
     },
     {
       "id": "o01-s26",
@@ -262,8 +302,12 @@
       "rule": "Historial OK y poco paralelismo → prompt de \"invoke all relevant tools simultaneously\" y medir promedio de tool calls por mensaje (> 1.0).",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
       "source_quote": "Claude 4 and later models make parallel tool calls by default when a request benefits from multiple tools. For all models, you can increase the likelihood of parallel tool calls with targeted prompting",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Confirmado en parallel-tool-use: prompt documentado para aumentar paralelismo; 'Only batch tool calls that are independent' es para reducir llamadas dependientes; Sonnet/Opus 5.5 no soportan any."
+      }
     },
     {
       "id": "o01-s27",
@@ -274,7 +318,7 @@
         "Remove readOnlyHint from all three tools so every custom tool goes back to sequential execution.",
         "Add a PreToolUse hook that blocks rerun_job when the same job ID was rerun in the previous 60 seconds.",
         "Remove readOnlyHint from rerun_job only, keeping it on the two tools that just read.",
-        "Add \"Never call rerun_job more than once per response\" to the system prompt and keep the annotations."
+        "Add \"Call rerun_job at most once per response\" to the system prompt and keep the readOnlyHint annotations."
       ],
       "correct": 2,
       "why_correct": "`readOnlyHint` es lo que habilita que una custom tool corra en paralelo; las que modifican estado corren en serie para evitar conflictos. `rerun_job` tiene side effects, así que marcarla read-only fue el error. Sacarle la annotation solo a ella mantiene la ganancia en las lecturas y vuelve a serializar la escritura.",
@@ -286,8 +330,12 @@
       "rule": "`readOnlyHint` solo en tools que de verdad solo leen. Si la tool cambia algo, que corra en serie.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
       "source_quote": "Tools that modify state (like `Edit`, `Write`, and `Bash`) run sequentially to avoid conflicts.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Confirmado en agent-sdk/agent-loop (tools que modifican estado en serie; readOnlyHint para custom tools). Cambio: reformulé el 'Never' de la opción D."
+      }
     }
   ]
 }

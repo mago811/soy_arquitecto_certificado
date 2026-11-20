@@ -22,14 +22,18 @@
       "rule": "Bloqueante (alguien espera) → Messages API. Tolera horas → Message Batches API. Separá los workloads, no los mezcles.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
       "source_quote": "Batches might take up to 24 hours for processing, but many complete sooner. Actual processing time depends on the size of the batch, current demand, and your request volume.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en batch-processing (FAQ). Batches sin latencia garantizada (hasta 24 h) → el check bloqueante va sincrónico; distractores (polling, batch de 1, volver todo + caching) no resuelven o pierden el 50%."
+      }
     },
     {
       "id": "o23-q22",
       "objective": 23,
       "pool": "practice",
-      "scenario": "An accounts-payable vendor extracts header fields from 8,000 supplier invoices per night. A script builds the batch from a list of file paths, submits it with the Message Batches API, and when `processing_status` is `ended` it reads the `.jsonl` results and writes line N to the invoice at position N of the original list. Each request already carries a `custom_id` such as `inv-000123`, but the loader ignores it. Auditors found that about 15% of invoices in the ERP show totals and vendor names from other documents, and the affected rows change from night to night. Reprocessing any affected invoice on its own always returns the correct values. The team cannot add manual review. Which change addresses the root cause?",
+      "scenario": "An accounts-payable vendor extracts header fields from 8,000 supplier invoices per night. A script builds the batch from a list of file paths, submits it with the Message Batches API, and when `processing_status` is `ended` it reads the `.jsonl` results and writes line N to the invoice at position N of the original list. Each request carries a `custom_id` such as `inv-000123`, which the loader only logs for debugging. Auditors found that about 15% of invoices in the ERP show totals and vendor names from other documents, and the affected rows change from night to night. Reprocessing any affected invoice on its own always returns the correct values. The team cannot add manual review. Which change addresses the root cause?",
       "options": [
         "Join each result line to its source invoice by the custom_id in that line instead of by its position in the .jsonl file.",
         "Sort the .jsonl lines by their processing timestamps before writing them, so they follow the order the requests were submitted in.",
@@ -46,8 +50,12 @@
       "rule": "En Batches, el match resultado↔request es SIEMPRE por `custom_id`. El orden del `.jsonl` no significa nada.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
       "source_quote": "Batch results can be returned in any order, and might not match the ordering of requests when the batch was created.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Cita textual en batch-processing; la doc agrega 'always use the custom_id field'. Cambié en el escenario 'but the loader ignores it' por 'which the loader logs for debugging': la frase delataba la respuesta por palabra clave."
+      }
     },
     {
       "id": "o23-q23",
@@ -70,8 +78,12 @@
       "rule": "SLA con Batches = frecuencia de envío + 24 h de procesamiento máximo. Calculá la ventana de envío a partir del SLA.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
       "source_quote": "You can access batch results when all messages have completed or after 24 hours, whichever comes first. Batches expire if processing does not complete within 24 hours.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en batch-processing (Batch limitations). Peor caso = espera hasta el envío + hasta 24 h; resultados solo al terminar todo o a las 24 h (descarta C); no se puede modificar/cancelar no es inmediato (descarta B). Matemática del SLA coherente con el síntoma."
+      }
     },
     {
       "id": "o23-q24",
@@ -94,8 +106,12 @@
       "rule": "Falla de batch: reenviá solo por `custom_id`. `invalid_request_error` → arreglá el body; error de servidor o `expired` → reenviá directo.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
       "source_quote": "Request body must be fixed before re-sending request",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "La cita sale de un comentario dentro del ejemplo de código Python de batch-processing (aparece textual en todos los SDKs del ejemplo, junto a '# Request can be retried directly'): es contenido oficial de la página y alcanza. Errored/expired no se facturan; invalid_request_error requiere arreglar el body."
+      }
     },
     {
       "id": "o23-q25",
@@ -118,8 +134,12 @@
       "rule": "Antes de un batch grande: dry run de UN request con la Messages API. Los errores de validación del batch llegan al final.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
       "source_quote": "The API validates the params object of each message request asynchronously, and returns validation errors when processing of the entire batch has ended. To check that you build your input correctly, verify your request shape with the Messages API first.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en batch-processing (validación async de params; best practice 'Dry run a single request shape with the Messages API'). Distractor C (rechazo up-front) contradicho por la doc."
+      }
     },
     {
       "id": "o23-s21",
@@ -142,8 +162,12 @@
       "rule": "Batches = 50% menos para lo que no bloquea a nadie. Hacé la cuenta del gasto por workload antes de decidir.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
       "source_quote": "This approach is well-suited to tasks that do not require immediate responses, with most batches finishing in less than 1 hour while reducing costs by 50 percent and increasing throughput.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Duplicado de o23-q21 dentro del mismo objetivo: mismo contexto (review de PR bloqueante en CI + jobs nocturnos) y misma decisión (lo bloqueante en Messages API, lo demás en Batches). SPEC: las sim no repiten escenario de práctica. Contenido técnico correcto (cita textual, cuenta 37,5%)."
+      }
     },
     {
       "id": "o23-s22",
@@ -153,7 +177,7 @@
       "options": [
         "Move the job to the Messages API and add cache_control to the manual, because concurrent batch requests cannot use prompt caching.",
         "Keep the job on batches and add a pre-classification pass, so each request only includes the manual section for its clause type.",
-        "Keep the job on batches and add cache_control to the shared manual prefix; both discounts stack, though cache hits are best-effort.",
+        "Keep the job on batches and add cache_control to the shared manual prefix, since the batch and caching discounts stack.",
         "Keep the job on batches and pack all 20,000 clauses into a few very large requests, so the manual is only sent a handful of times."
       ],
       "correct": 2,
@@ -166,8 +190,12 @@
       "rule": "Prefijo grande repetido en un batch → `cache_control`. Batch y caching se combinan (hits best-effort).",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
       "source_quote": "The pricing discounts from prompt caching and Message Batches can stack, providing even greater cost savings when both features are used together. However, because batch requests are processed asynchronously and concurrently, cache hits are provided on a best-effort basis.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Cita textual en batch-processing (prompt caching + batches se suman, hits best-effort). La opción C era la única con matiz ('though cache hits are best-effort') y delataba la correcta: la reescribí sin el matiz, que queda en why_correct."
+      }
     },
     {
       "id": "o23-s23",
@@ -190,8 +218,12 @@
       "rule": "Job masivo que no es urgente y compite con tráfico en vivo → Message Batches API: no toca los rate limits de la Messages API.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
       "source_quote": "Usage of the Batches API does not affect rate limits in the Messages API.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en batch-processing (FAQ rate limits). Batch saca el job de los rate limits de Messages API; throttle/backoff/mover franja tratan síntoma."
+      }
     },
     {
       "id": "o23-s24",
@@ -214,8 +246,12 @@
       "rule": "Antes de pasar a Batches por costo, chequeá data handling: Batches no es elegible para ZDR (retención de hasta 29 días).",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
       "source_quote": "Batch processing stores request and response data for up to 29 days after batch creation.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en batch-processing (Data retention). La tabla Data handling marca ZDR 'Not eligible' (y HIPAA tampoco). Vision soportada, resultados 29 días, requests independientes sin fuga: los 3 distractores son falsos según la doc."
+      }
     },
     {
       "id": "o23-s25",
@@ -238,8 +274,12 @@
       "rule": "Batch en curso con bug: no se edita. Cancelá, rescatá los parciales buenos por `custom_id` y reenviá solo lo afectado.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
       "source_quote": "Canceled batches end up with a status of ended and might contain partial results for requests that were processed before cancellation.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en batch-processing. FAQ: un batch enviado 'cannot be modified... cancel and submit a new one'; cancelados terminan en ended con parciales. Distractores contradichos por la doc."
+      }
     }
   ]
 }
