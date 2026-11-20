@@ -22,8 +22,12 @@
       "rule": "Tarea abierta: el plan existe, pero se reescribe cuando un hallazgo cambia las dependencias.",
       "source_url": "https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification",
       "source_quote": "Decomposing open-ended tasks (e.g., \"add comprehensive tests to a legacy codebase\") by first mapping structure, identifying high-impact areas, then creating a prioritized plan that adapts as dependencies are discovered",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en el PDF de la guía del examen (linkeado desde Skilljar); la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o07-q22",
@@ -37,17 +41,21 @@
         "Add an evaluator agent after formatting that reviews each ERP record and sends it back to the orchestrator whenever the record looks invalid."
       ],
       "correct": 2,
-      "why_correct": "Los pasos son siempre los mismos y en el mismo orden: es una tarea que se descompone limpio en subtareas fijas, el caso ideal del prompt chaining. Con la secuencia en código, validar no depende de que el modelo se acuerde, y el gate programático frena lo que no pasa.",
+      "why_correct": "Los pasos son siempre los mismos y en el mismo orden. La guía de prompting de Anthropic dice que el prompt chaining explícito (llamadas secuenciales a la API) sigue sirviendo cuando necesitás inspeccionar salidas intermedias o forzar una estructura fija de pipeline: es justo este caso. Con la secuencia en código, validar no depende de que el modelo se acuerde, y el gate programático frena lo que no pasa.",
       "why_wrong": {
         "0": "Es guidance para algo que tiene que pasar siempre. Bajará el 7%, pero no lo lleva a cero.",
         "1": "Forzar la misma tool en TODOS los turnos impide llamar a extraer y formatear: rompe el flujo en vez de ordenarlo.",
         "3": "Detecta tarde y con otro juicio del modelo lo que un paso fijo garantiza de entrada. Suma costo y no asegura la validación."
       },
       "rule": "Pasos predecibles y fijos → cadena en código con gates. Lo dinámico es para lo que no se puede prever.",
-      "source_url": "https://www.anthropic.com/engineering/building-effective-agents",
-      "source_quote": "This workflow is ideal for situations where the task can be easily and cleanly decomposed into fixed subtasks.",
-      "status": "no_verificado",
-      "verification": null
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Explicit prompt chaining (breaking a task into sequential API calls) is still useful when you need to inspect intermediate outputs or enforce a specific pipeline structure.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Respuesta confirmada (building-effective-agents: chaining para subtareas fijas). Cambié la fuente a platform.claude.com (prompting best practices, \"Chain complex prompts\"), que dice lo mismo, con cita textual, y ajusté why_correct."
+      }
     },
     {
       "id": "o07-q23",
@@ -70,8 +78,12 @@
       "rule": "Review grande = pasadas por archivo + una pasada de integración entre archivos.",
       "source_url": "https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification",
       "source_quote": "Splitting large code reviews into per-file local analysis passes plus a separate cross-file integration pass to avoid attention dilution",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en el PDF de la guía del examen (linkeado desde Skilljar); la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o07-q24",
@@ -94,8 +106,12 @@
       "rule": "Si un hallazgo intermedio cambia la premisa, el coordinador re-planifica antes de la ronda siguiente.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "The LeadResearcher synthesizes these results and decides whether more research is needed—if so, it can create additional subagents or refine its strategy.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en www.anthropic.com/engineering/multi-agent-research-system; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o07-q25",
@@ -104,22 +120,26 @@
       "scenario": "Your customer support resolution agent (Claude Agent SDK) receives one email: \"I was charged twice for order 8812, the blender in order 8790 arrived cracked, and please move my next delivery to my new address.\" The agent's prompt takes the first issue it identifies, resolves it end to end, and closes the ticket. Quality review shows 34% of multi-issue emails get reopened, with customers repeating the issues that were ignored. First-contact resolution is the team's main KPI, and the three issues share the same customer record and order history. What is the most effective design?",
       "options": [
         "Resolve the first issue, then reply asking the customer to open a separate ticket for each remaining issue so each one is tracked on its own.",
-        "Escalate every email that contains more than one issue to a human agent, since multi-issue requests are inherently ambiguous.",
+        "Escalate every email that contains more than one issue to a human agent, who can weigh the issues against each other first.",
         "Split the email into distinct issues, investigate each in parallel with the shared customer context, and send one unified resolution.",
-        "Process the issues strictly in the order they appear, closing and reopening the ticket after each one of them is resolved."
+        "Resolve the issues one after another in the same session, replying to the customer as each one is closed so progress stays visible."
       ],
       "correct": 2,
       "why_correct": "Un pedido con varios problemas se descompone en ítems separados; cada uno se investiga (en paralelo) usando el contexto compartido del cliente, y al final se arma UNA resolución. Así se resuelven los tres en el primer contacto.",
       "why_wrong": {
         "0": "Le pasa el trabajo al cliente y garantiza más contactos: va directo contra el KPI de first-contact resolution.",
-        "1": "No hay ambigüedad real acá: son tres pedidos claros. Escalar todo mata la tasa de resolución.",
-        "3": "Funciona a medias: los resuelve, pero en serie y con aperturas y cierres que confunden al cliente y al tracking."
+        "1": "No hay ambigüedad real acá: son tres pedidos claros que el agente puede resolver. Escalar todos los multi-tema le saca volumen al agente y mata la tasa de resolución en primer contacto.",
+        "3": "Funciona a medias: los resuelve, pero en serie, sin aprovechar que comparten el mismo contexto de cliente, y con varias respuestas sueltas en vez de UNA resolución unificada."
       },
       "rule": "Pedido multi-tema → ítems separados, investigación en paralelo con contexto compartido, una sola respuesta.",
       "source_url": "https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification",
       "source_quote": "Decomposing multi-concern customer requests into distinct items, then investigating each in parallel using shared context before synthesizing a unified resolution",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Cita textual en el PDF de la guía del examen (Task 1.x, multi-concern requests). Endurecí dos distractores débiles (B \"inherently ambiguous\" y D \"cerrar y reabrir el ticket\") por versiones plausibles; ajusté why_wrong. Respuesta sin cambios."
+      }
     },
     {
       "id": "o07-s21",
@@ -142,8 +162,12 @@
       "rule": "Si un resultado intermedio ya responde, el plan tiene que poder cambiar. Objetivo + criterio, no pasos fijos.",
       "source_url": "https://www.anthropic.com/engineering/building-effective-agents",
       "source_quote": "During execution, it's crucial for the agents to gain “ground truth” from the environment at each step (such as tool call results or code execution) to assess its progress.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en www.anthropic.com/engineering/building-effective-agents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o07-s22",
@@ -166,8 +190,12 @@
       "rule": "Descomposición dinámica: los subtasks de la ronda 2 salen de lo que encontró la ronda 1.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "The model must operate autonomously for many turns, making decisions about which directions to pursue based on intermediate findings. A linear, one-shot pipeline cannot handle these tasks.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en www.anthropic.com/engineering/multi-agent-research-system; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o07-s23",
@@ -190,8 +218,12 @@
       "rule": "Fijo para lo predecible, dinámico para lo impredecible. Si conviven, ruteá.",
       "source_url": "https://www.anthropic.com/engineering/building-effective-agents",
       "source_quote": "This workflow is well-suited for complex tasks where you can’t predict the subtasks needed",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en www.anthropic.com/engineering/building-effective-agents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o07-s24",
@@ -214,8 +246,12 @@
       "rule": "Review predecible y multi-aspecto → prompt chaining. Lo dinámico es para lo abierto.",
       "source_url": "https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification",
       "source_quote": "Selecting task decomposition patterns appropriate to the workflow: prompt chaining for predictable multi-aspect reviews, dynamic decomposition for open-ended investigation tasks",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en el PDF de la guía del examen (linkeado desde Skilljar); la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o07-s25",
@@ -238,8 +274,12 @@
       "rule": "Plan adaptativo en tareas largas = hipótesis y descartes persistidos en un archivo, revisados en cada paso.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Regularly self-critique your approach and plan. Update a hypothesis tree or research notes file to persist information and provide transparency.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o07-s26",
@@ -262,8 +302,12 @@
       "rule": "Si la rama correcta depende de un resultado de tool, el plan se arma con ese resultado, no antes.",
       "source_url": "https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification",
       "source_quote": "The value of adaptive investigation plans that generate subtasks based on what is discovered at each step",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en el PDF de la guía del examen (linkeado desde Skilljar); la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o07-s27",
@@ -286,8 +330,12 @@
       "rule": "Documento grande: pasadas por parte + una pasada de integración entre partes.",
       "source_url": "https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification",
       "source_quote": "Prompt chaining patterns that break reviews into sequential steps (e.g., analyze each file individually, then run a cross-file integration pass)",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en el PDF de la guía del examen (linkeado desde Skilljar); la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     }
   ]
 }

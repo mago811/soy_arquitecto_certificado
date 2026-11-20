@@ -22,8 +22,12 @@
       "rule": "Coordinador que no delega: primero mirá si `Agent` está en `disallowedTools`. Ahí no hay prompt que valga.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/permissions",
       "source_quote": "To hide a built-in tool from Claude entirely rather than deny its calls, add its bare name to `disallowedTools`.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en code.claude.com/docs/en/agent-sdk/permissions; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o06-q22",
@@ -46,8 +50,12 @@
       "rule": "Subagentes que desaparecen sin error: chequeá que `---` sea la PRIMERA línea del archivo.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "An opening `---` that isn't the file's first line: Claude Code reads the file as having no frontmatter and treats it as documentation.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en code.claude.com/docs/en/sub-agents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o06-q23",
@@ -55,13 +63,13 @@
       "pool": "practice",
       "scenario": "A platform team reorganized `.claude/agents/` into subfolders. During the move, `review/security.md` was created with `name: security-reviewer` and a new OWASP-focused system prompt, but the old `legacy/security-old.md`, which also declares `name: security-reviewer`, was never deleted. Now some developers get the new reviews and others still get the old checklist, consistently per machine, with no warning in the session. Nobody uses `--agent`, plugins or managed settings for this agent, and the team wants one authoritative reviewer definition. What should the team do?",
       "options": [
-        "Give every definition a unique `name` by deleting or renaming the legacy file, and run `/doctor` to find other same-name clashes.",
+        "Delete the legacy file or change its `name` field, so that a single definition in the agents tree declares `security-reviewer`.",
         "Move the new file to the top level of `.claude/agents/`, because definitions closer to the directory root win over subfolders.",
         "Rename `review/security.md` to `security-reviewer.md` so the filename matches the `name` field and takes precedence.",
         "Copy the new definition into `~/.claude/agents/` so the user-level copy overrides both project files on every machine."
       ],
       "correct": 0,
-      "why_correct": "Si dos archivos bajo el mismo `.claude/agents/` (subcarpetas incluidas) declaran el mismo `name`, Claude Code carga uno solo, elegido por el orden de lectura del filesystem y no por una precedencia documentada. Por eso cambia según la máquina. El fix es que los nombres sean únicos; `/doctor` reporta archivos del mismo directorio que comparten nombre.",
+      "why_correct": "Si dos archivos bajo el mismo `.claude/agents/` (subcarpetas incluidas) declaran el mismo `name`, Claude Code carga uno solo, elegido por el orden de lectura del filesystem y no por una precedencia documentada. Por eso cambia según la máquina y no hay warning. El fix es que quede una sola definición con ese `name`: borrás el archivo viejo o le cambiás el `name`.",
       "why_wrong": {
         "1": "La subcarpeta no afecta la identidad ni la precedencia: Claude Code escanea recursivo y la identidad sale solo de `name`.",
         "2": "El nombre del archivo no importa para la identidad. Seguís teniendo dos `security-reviewer`.",
@@ -70,8 +78,12 @@
       "rule": "Dos agentes con el mismo `name` en el mismo árbol = comportamiento aleatorio por máquina. Nombres únicos y `/doctor`.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "if two files under the same `.claude/agents/` directory, including its subfolders, declare the same name, Claude Code loads only one of them, chosen by filesystem read order rather than a documented precedence.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Cita textual en sub-agents. La correcta decía que /doctor encuentra los choques, pero la doc solo dice que /doctor reporta archivos del MISMO directorio con el mismo nombre (acá están en subcarpetas distintas). Reescribí la opción A sin /doctor y ajusté why_correct. Prioridad user < project confirmada."
+      }
     },
     {
       "id": "o06-q24",
@@ -94,8 +106,12 @@
       "rule": "\"Zero tools\" con entradas MCP que \"no matchean en esta sesión\" = el server no está conectado ahí. Revisá el scope del MCP.",
       "source_url": "https://code.claude.com/docs/en/errors",
       "source_quote": "the entry is valid but no tool in the current session matches it right now, such as `mcp__github__*` with no GitHub MCP server connected",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en code.claude.com/docs/en/errors; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o06-q25",
@@ -118,8 +134,12 @@
       "rule": "Mismo nombre en `agents` de `query()` y en `.claude/agents/` → gana el programático.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "Programmatically defined agents take precedence over filesystem-based agents with the same name.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en code.claude.com/docs/en/agent-sdk/subagents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o06-s21",
@@ -142,8 +162,12 @@
       "rule": "`Agent(param:valor)` solo ve lo que viene en la llamada. Si el modelo sale del frontmatter, cambialo ahí.",
       "source_url": "https://code.claude.com/docs/en/permissions",
       "source_quote": "A parameter the model omits is never matched, so `Agent(model:*)` doesn't match a call that leaves `model` unset",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en code.claude.com/docs/en/permissions; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o06-s22",
@@ -166,8 +190,12 @@
       "rule": "En el límite de profundidad `Agent` desaparece: una lista con solo `Agent` = zero tools.",
       "source_url": "https://code.claude.com/docs/en/errors",
       "source_quote": "For a `tools` list that contains only `Agent`, raise the depth limit or give the agent at least one other tool: Claude Code withholds `Agent` at that limit, so a list with nothing else in it resolves to no tools",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en code.claude.com/docs/en/errors; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o06-s23",
@@ -190,8 +218,12 @@
       "rule": "Tool built-in que \"no está disponible para subagentes\" en background → correlo en foreground (sin `background: true`).",
       "source_url": "https://code.claude.com/docs/en/errors",
       "source_quote": "To keep a tool such as `CronCreate` instead, let Claude wait for the subagent, since a subagent Claude waits for runs in the foreground and keeps the tool. If the definition sets `background: true`, remove that field first",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en code.claude.com/docs/en/errors; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o06-s24",
@@ -214,8 +246,12 @@
       "rule": "Campo mal escrito en un subagente = ignorado en silencio. `tools`, `disallowedTools`, `maxTurns`: nombres exactos.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "Multi-word field names use camelCase, such as `maxTurns` and `disallowedTools`, and must match the table exactly: Claude Code ignores a field it doesn't recognize without reporting an error.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en code.claude.com/docs/en/sub-agents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o06-s25",
@@ -238,8 +274,12 @@
       "rule": "`tools: []` no da error: lanza un subagente sin tools. Si no querés restringir, omití el campo.",
       "source_url": "https://code.claude.com/docs/en/errors",
       "source_quote": "If you leave the `tools` list empty, or `disallowedTools` removes every entry in it, Claude Code also skips the refusal and launches the subagent without tools.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en code.claude.com/docs/en/errors; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o06-s26",
@@ -262,8 +302,12 @@
       "rule": "Mismo `name` en carpetas anidadas → gana la más cercana al cwd. Una sola definición por nombre.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "When more than one of these nested directories defines the same `name`, Claude Code uses the definition closest to the working directory.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en code.claude.com/docs/en/sub-agents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o06-s27",
@@ -286,8 +330,12 @@
       "rule": "En `-p`, los hooks del frontmatter de subagentes de proyecto no corren (no hay trust). Los de settings sí.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "This is a stricter rule than the one for hooks in settings files: trusting a parent folder isn't enough, and a `-p` session doesn't count as trusted.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en code.claude.com/docs/en/sub-agents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     }
   ]
 }

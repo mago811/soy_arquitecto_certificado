@@ -22,8 +22,12 @@
       "rule": "Restringir a un subagente = `tools` en SU `AgentDefinition`. El prompt orienta; la allowlist garantiza.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "Array of allowed tool names; listing one doesn't pre-approve it. If omitted, inherits every tool available to subagents",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en code.claude.com/docs/en/agent-sdk/subagents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o05-q22",
@@ -46,8 +50,12 @@
       "rule": "Subagente = contexto en blanco. Rutas, errores y decisiones van DENTRO del prompt de delegación.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "The only content you pass from parent to subagent is the Agent tool's prompt string, so include any file paths, error messages, or decisions the subagent needs directly in that prompt.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en code.claude.com/docs/en/agent-sdk/subagents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o05-q23",
@@ -70,8 +78,12 @@
       "rule": "MCP que solo usa un subagente → inline en su `mcpServers`, no en `.mcp.json`.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "To keep an MCP server out of the main conversation entirely and avoid its tool descriptions consuming context there, define it inline here rather than in `.mcp.json`. The subagent gets the tools; the parent conversation doesn't.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en code.claude.com/docs/en/sub-agents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o05-q24",
@@ -94,8 +106,12 @@
       "rule": "`memory` en un subagente suma Read, Write y Edit. Read-only + memory no van juntos.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "Read, Write, and Edit tools are automatically enabled so the subagent can manage its memory files.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en code.claude.com/docs/en/sub-agents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o05-q25",
@@ -118,8 +134,12 @@
       "rule": "Explore y Plan no cargan CLAUDE.md: lo que tienen que respetar va en el prompt de delegación.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "If a rule must, such as \"ignore the `vendor/` directory,\" restate it in the prompt you give Claude when delegating.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en code.claude.com/docs/en/sub-agents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o05-s21",
@@ -142,8 +162,12 @@
       "rule": "Bloqueo fino de comandos = `permissions.deny` en settings. `disallowedTools` con especificador saca la tool entera.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "To keep Bash and block specific commands, add a Bash deny rule such as `Bash(git push *)` to `permissions.deny` in your settings. The rule applies to the main conversation and to subagents.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en code.claude.com/docs/en/sub-agents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o05-s22",
@@ -166,8 +190,12 @@
       "rule": "Subagente que vive del prompt de delegación → `omitClaudeMd: true` en SU definición, no apagar CLAUDE.md para todos.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "Leave the user, project, and local CLAUDE.md files out of this agent's initial context; managed policy files still load.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en code.claude.com/docs/en/agent-sdk/subagents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o05-s23",
@@ -183,15 +211,19 @@
       "correct": 1,
       "why_correct": "Mínimo privilegio = allowlist. Con `tools` listando solo las dos tools MCP, el subagente no tiene Bash, ni Write, ni nada de `crm`. Sin `disallowedTools` no hay nada que se reste antes.",
       "why_wrong": {
-        "0": "Casi, pero al revés: `disallowedTools` se aplica PRIMERO y `tools` se resuelve contra lo que queda. `mcp__*` ya sacó las dos tools de refund, así que `tools` no resuelve a nada y el subagente no arranca (zero tools).",
+        "0": "Casi, pero al revés: `disallowedTools` se aplica PRIMERO y `tools` se resuelve contra lo que queda. `mcp__*` ya sacó las dos tools de refund, así que `disallowedTools` elimina todas las entradas de `tools`; en ese caso Claude Code ni siquiera da el error de zero tools: lanza el subagente sin ninguna tool y no puede procesar reembolsos.",
         "2": "Una denylist deja todo lo demás: sigue con Bash, Write y `get_customer`. No cumple \"exactamente dos tools\".",
         "3": "`allowed_tools` auto-aprueba, no restringe: las tools no listadas siguen existiendo y caen al modo de permisos."
       },
       "rule": "\"Solo estas tools\" = `tools` (allowlist). Si combinás con `disallowedTools`, primero resta y después filtra.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "If both are set, `disallowedTools` is applied first, then `tools` is resolved against the remaining pool. A tool listed in both is removed.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Cita textual en sub-agents (orden disallowedTools→tools). Corregí why_wrong de la opción A: según errors (zero tools), si disallowedTools elimina todas las entradas de tools, Claude Code saltea el rechazo y lanza el subagente sin tools; no es que \"no arranca\"."
+      }
     },
     {
       "id": "o05-s24",
@@ -214,8 +246,12 @@
       "rule": "Fork = mismas tools que el padre. Para una revisión read-only: deny `Agent(fork)` + subagente con allowlist.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "To stop Claude from starting forks, add an Agent(fork) deny rule",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en code.claude.com/docs/en/agent-sdk/subagents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o05-s25",
@@ -238,8 +274,12 @@
       "rule": "Output verboso que no necesitás en la conversación principal → subagente que devuelve solo el resumen.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "By delegating these to a subagent, the verbose output stays in the subagent's context while only the relevant summary returns to your main conversation.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en code.claude.com/docs/en/sub-agents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o05-s26",
@@ -262,8 +302,12 @@
       "rule": "Server con `__` en el nombre: `mcp__reports` también tapa a `reports__v2`. Retené las tools viejas una por una.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "With either entry, the subagent loses every `reports__v2` tool as well, because those tool names also begin with `mcp__reports__`. To withhold only the `reports` server's tools, list them one by one instead",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en code.claude.com/docs/en/sub-agents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o05-s27",
@@ -286,8 +330,12 @@
       "rule": "Instrucción para TODOS los subagentes en `-p` → `--append-subagent-system-prompt`.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "pass --append-subagent-system-prompt to append your text to the end of every subagent's system prompt, nested subagents included, apart from a forked subagent, which reuses the conversation's own prompt.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en code.claude.com/docs/en/sub-agents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     }
   ]
 }

@@ -22,8 +22,12 @@
       "rule": "Huecos en el reporte con subagentes que hicieron bien su parte → la culpa es de cómo partió el coordinador.",
       "source_url": "https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification",
       "source_quote": "Risks of overly narrow task decomposition by the coordinator, leading to incomplete coverage of broad research topics",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en el PDF de la guía del examen (linkeado desde Skilljar); la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o10-q22",
@@ -46,8 +50,12 @@
       "rule": "Escalá el esfuerzo a la consulta: el coordinador elige qué subagentes invocar, no siempre todos.",
       "source_url": "https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification",
       "source_quote": "Designing coordinator agents that analyze query requirements and dynamically select which subagents to invoke rather than always routing through the full pipeline",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en el PDF de la guía del examen (linkeado desde Skilljar); la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o10-q23",
@@ -70,14 +78,18 @@
       "rule": "Independientes → todas las llamadas `Agent` en la misma respuesta del coordinador.",
       "source_url": "https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification",
       "source_quote": "Spawning parallel subagents by emitting multiple Task tool calls in a single coordinator response rather than across separate turns",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en el PDF de la guía del examen (linkeado desde Skilljar); la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o10-q24",
       "objective": 10,
       "pool": "practice",
-      "scenario": "An extraction pipeline processes expense reports in three stages: extract line items, normalize currencies to USD using each report's date, then post totals to the ledger. To cut latency, an engineer started launching the three stage agents in parallel on each report. Since then, 6% of ledger postings contain unconverted amounts and the nightly reconciliation fails. Each report is independent of the others, and the nightly batch holds about 40,000 reports that must finish before 6 a.m. What is the most effective way to restore correctness while keeping throughput?",
+      "scenario": "An extraction pipeline processes expense reports in three stages: extract line items, normalize currencies to USD using each report's date, then post totals to the ledger. To cut latency, an engineer started launching the three stage agents in parallel on each report. Since then, 6% of ledger postings contain unconverted amounts and the nightly reconciliation fails. Auditors require each stage's output to be stored as a separate record. Each report is independent of the others, and the nightly batch holds about 40,000 reports that must finish before 6 a.m. What is the most effective way to restore correctness while keeping throughput?",
       "options": [
         "Keep the stages parallel, but add a retry on the posting stage whenever the reconciliation job reports a currency mismatch.",
         "Run the stages in sequence within each report, and get throughput by processing many independent reports in parallel.",
@@ -88,14 +100,18 @@
       "why_correct": "El paralelismo sirve para subtareas INDEPENDIENTES: terminan en el tiempo de la más lenta. Acá las etapas dependen una de otra (postear necesita montos normalizados), así que van en secuencia. Lo independiente son los reportes: paralelizás entre reportes y mantenés el throughput.",
       "why_wrong": {
         "0": "Reintenta después del daño: el posteo mal hecho ya ocurrió y la causa (correr sin la entrada) sigue.",
-        "2": "Casi: ordena los pasos, pero pierde las etapas separadas que se pueden inspeccionar, y una llamada con tres tareas es menos precisa que tres llamadas enfocadas.",
+        "2": "Casi: ordena los pasos y mantiene el throughput, pero pierde las etapas separadas que auditoría exige guardar por separado, y una llamada con tres tareas es menos precisa que tres llamadas enfocadas.",
         "3": "\"Usualmente\" no es correcto: es una carrera con timing. Sigue fallando cuando la normalización tarda más."
       },
       "rule": "Paralelo entre cosas independientes; secuencia entre pasos dependientes.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "Parallelization: multiple subagents can run concurrently, so independent subtasks finish in the time of the slowest one rather than the sum of all of them.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Cita textual en agent-sdk/subagents (Parallelization). La opción C (una sola llamada por reporte) también restauraba corrección y throughput: agregué al escenario que auditoría exige guardar la salida de cada etapa por separado, para que quede una sola correcta. Ajusté why_wrong C."
+      }
     },
     {
       "id": "o10-q25",
@@ -118,8 +134,12 @@
       "rule": "Multi-agente: los resultados y errores pasan por el coordinador. Subagentes hablando directo = errores invisibles.",
       "source_url": "https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification",
       "source_quote": "Routing all subagent communication through the coordinator for observability, consistent error handling, and controlled information flow",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en el PDF de la guía del examen (linkeado desde Skilljar); la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o10-s21",
@@ -142,8 +162,12 @@
       "rule": "Fases que comparten mucho contexto, o mucho ida y vuelta → conversación principal, no cadena de subagentes.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "Multiple phases share significant context, such as planning, implementation, and testing",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en code.claude.com/docs/en/sub-agents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o10-s22",
@@ -166,8 +190,12 @@
       "rule": "Cada subagente: objetivo, formato, fuentes y límites claros. Partí el alcance para no duplicar.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "Each subagent needs an objective, an output format, guidance on the tools and sources to use, and clear task boundaries.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en www.anthropic.com/engineering/multi-agent-research-system; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o10-s23",
@@ -190,8 +218,12 @@
       "rule": "Revisiones independientes → en paralelo. El tiempo total es el de la más lenta.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "During a code review, you can run `style-checker`, `security-scanner`, and `test-coverage` subagents simultaneously instead of sequentially.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en code.claude.com/docs/en/agent-sdk/subagents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o10-s24",
@@ -214,8 +246,12 @@
       "rule": "Huecos en la síntesis → el coordinador re-delega búsquedas dirigidas y re-sintetiza.",
       "source_url": "https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification",
       "source_quote": "Implementing iterative refinement loops where the coordinator evaluates synthesis output for gaps, re-delegates to search and analysis subagents with targeted queries, and re-invokes synthesis until coverage is sufficient",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en el PDF de la guía del examen (linkeado desde Skilljar); la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o10-s25",
@@ -238,8 +274,12 @@
       "rule": "Salida grande de un subagente → que la guarde afuera y devuelva una referencia. Nada de \"teléfono descompuesto\".",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "Subagents call tools to store their work in external systems, then pass lightweight references back to the coordinator.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en www.anthropic.com/engineering/multi-agent-research-system; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o10-s26",
@@ -262,8 +302,12 @@
       "rule": "Más confianza = intentos independientes en paralelo; el desacuerdo decide qué va a revisión humana.",
       "source_url": "https://www.anthropic.com/engineering/building-effective-agents",
       "source_quote": "Parallelization is effective when the divided subtasks can be parallelized for speed, or when multiple perspectives or attempts are needed for higher confidence results.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en www.anthropic.com/engineering/building-effective-agents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     },
     {
       "id": "o10-s27",
@@ -286,8 +330,12 @@
       "rule": "Prompt que modera la delegación orienta; `maxBudgetUsd` + límites de profundidad y concurrencia garantizan.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "Either instruction only steers Claude, so set the limits as well. Claude Code enforces them however Claude decides to delegate.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en code.claude.com/docs/en/agent-sdk/subagents; la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
     }
   ]
 }
