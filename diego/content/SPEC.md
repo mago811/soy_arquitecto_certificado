@@ -84,6 +84,31 @@ Son escenarios más largos y con más contexto, como en el examen real (empresa 
 No pueden repetir escenarios de `questions/obj-XX.json`. La cuota por objetivo está en `research/sim-quota.json`.
 `sims/sim-N.json` arma cada simulacro con 60 ids, respetando el reparto por dominio (16/12/12/11/9).
 
+## Preguntas v2: en inglés y con escenarios de examen (desde el 20/11/2026)
+
+El banco original (en español, escenarios de un párrafo) quedó **reemplazado**. Diego rinde en inglés y el examen real trae escenarios largos, con varias decisiones de diseño en juego. Reglas para las preguntas nuevas:
+
+**Idioma.** `scenario` y `options` en **inglés**, tal como en el examen. `why_correct`, `why_wrong` y `rule` en **español rioplatense** (nombres técnicos en inglés y entre backticks), porque son para que Diego entienda. `source_quote` sigue siendo textual en inglés.
+
+**Ids y archivos.** Las preguntas nuevas se escriben primero en `content/questions-en/obj-XX.json` (staging, la app no lo lee) con el mismo formato de siempre. Ids: práctica `oXX-q21`, `oXX-q22`…; simulacro `oXX-s21`, `oXX-s22`… (desde 21 para no chocar con las viejas). Después se mueven a `questions/obj-XX.json` y `questions/sim-obj-XX.json` y las viejas pasan a `descartada`.
+
+**Anclar en los 6 escenarios oficiales del examen.** Cada pregunta transcurre en uno de estos contextos (variá entre ellos según lo que pida el objetivo):
+1. Customer Support Resolution Agent (agente con tools de pedidos/reembolsos, escalamiento a humanos, políticas).
+2. Code Generation with Claude Code (equipo que usa Claude Code en un repo real: CLAUDE.md, rules, skills, hooks, permisos, subagentes).
+3. Multi-Agent Research System (coordinador + subagentes de búsqueda/análisis/síntesis, procedencia de fuentes).
+4. Developer Productivity with Claude (exploración de codebases, herramientas internas, MCP servers del equipo).
+5. Claude Code for Continuous Integration (`claude -p` en pipelines, salida JSON, revisiones automáticas de PRs, permisos en CI).
+6. Structured Data Extraction (facturas/contratos/formularios, schemas, nullable/enums, validación, Batches).
+
+**Qué hace difícil a una pregunta (obligatorio):**
+- **Escenario de 80 a 180 palabras**: empresa + arquitectura actual (qué modelo, qué tools, qué config) + **síntoma observado con datos concretos** (un log, un porcentaje, un fragmento de config o JSON, un comportamiento intermitente) + **restricción** (costo, latencia, compliance, no se puede cambiar el modelo, el equipo es de 40 devs…). Termina con una pregunta del estilo "What is the most effective way to…", "Which change addresses the root cause…", "What should the team do first?".
+- **Las cuatro opciones son cosas que un ingeniero competente propondría.** Cada distractor tiene que ser una práctica real que resuelve OTRO problema, que funcionaría a medias, que trata el síntoma y no la causa, o que viola un principio sutil (guidance cuando hace falta enforcement, fix por prompt cuando hace falta uno estructural, más contexto cuando hace falta aislarlo, reintentar cuando el error no es transitorio, etc.).
+- **Prohibido**: opciones absurdas o de relleno, la correcta como la única más larga o la única con matices, palabras absolutas solo en los distractores ("always", "never"), preguntas que se contestan reconociendo una palabra clave del enunciado, definiciones ("What is X?").
+- **Al menos un 30% de las preguntas de cada objetivo con dos opciones "casi correctas"**, donde la diferencia está en un detalle de la doc (scope, orden de ejecución, qué garantiza y qué no, qué campo existe).
+- Largos de opciones parecidos (±30%). Posición de la correcta pareja entre A/B/C/D.
+- Integrar conceptos: cuando el objetivo lo permite, que haga falta combinar dos ideas (por ejemplo hooks + scopes de settings, o tool_choice + orden de tools dependientes).
+- Las de `pool: "sim"` no repiten el escenario de ninguna de práctica del mismo objetivo.
+
 ## Verificación (solo el verificador escribe esto)
 
 ```json
