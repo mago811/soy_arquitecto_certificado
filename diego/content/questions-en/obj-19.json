@@ -22,8 +22,12 @@
       "rule": "Hueco de cobertura → el sintetizador lo declara. Dale permiso explícito para decir 'no hay suficiente información'.",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
       "source_quote": "Explicitly give Claude permission to admit uncertainty. This technique can drastically reduce false information.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations. Reduce hallucinations: permiso explícito para admitir incertidumbre, textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o19-q22",
@@ -46,8 +50,12 @@
       "rule": "Claim sin cita que lo respalde → se retracta y se marca. Verificación post-hoc claim por claim.",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
       "source_quote": "You can also have Claude verify each claim by finding a supporting quote after it generates a response. If it can’t find a quote, it must retract the claim.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations. Reduce hallucinations: verificación por claim con retracción; el ejemplo oficial marca con [] vacíos. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o19-q23",
@@ -70,8 +78,12 @@
       "rule": "¿Querés detectar alucinaciones sin revisar todo? Best-of-N: lo que cambia entre corridas es sospechoso.",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
       "source_quote": "Best-of-N verification: Run Claude through the same prompt multiple times and compare the outputs. Inconsistencies across outputs could indicate hallucinations.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations. Reduce hallucinations: Best-of-N, textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o19-q24",
@@ -94,8 +106,12 @@
       "rule": "Documentos largos y matices que se pierden → primero citas textuales, después la síntesis.",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
       "source_quote": "For tasks involving long documents (>20k tokens), ask Claude to extract word-for-word quotes first before performing its task.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations. Reduce hallucinations: extraer citas textuales primero en docs >20k tokens. Cita textual; A contradice la recomendación de long context. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o19-q25",
@@ -118,8 +134,12 @@
       "rule": "¿Citas que tienen que existir de verdad? Citations de la API, no citas pedidas por prompt.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/citations",
       "source_quote": "Because the API parses citations into the response formats described in the following sections and extracts `cited_text` directly, citations are guaranteed to contain valid pointers to the provided documents.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://platform.claude.com/docs/en/build-with-claude/citations. Citations: cited_text extraído por la API, punteros válidos garantizados y no cuenta como output tokens. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o19-s21",
@@ -142,8 +162,12 @@
       "rule": "Investigación con evidencia mixta → hipótesis en competencia + confianza registrada en notas.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "As you gather data, develop several competing hypotheses. Track your confidence levels in your progress notes to improve calibration. Regularly self-critique your approach and plan.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices. Prompting best practices: hipótesis en competencia + confianza en notas + autocrítica. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o19-s22",
@@ -166,8 +190,12 @@
       "rule": "Dato que no está en el corpus pero el modelo 'sabe' → restricción explícita a los documentos provistos.",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
       "source_quote": "External knowledge restriction: Explicitly instruct Claude to only use information from provided documents and not its general knowledge.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations. Reduce hallucinations: restricción a conocimiento externo, textual; best-of-N no detecta un error estable. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o19-s23",
@@ -190,8 +218,12 @@
       "rule": "Las técnicas anti-alucinación reducen, no eliminan. Alto impacto → humano valida lo crítico.",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
       "source_quote": "Remember, although these techniques significantly reduce hallucinations, they don’t eliminate them entirely. Always validate critical information, especially for high-stakes decisions.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations. Reduce hallucinations: las técnicas reducen pero no eliminan, validar lo crítico. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o19-s24",
@@ -214,8 +246,12 @@
       "rule": "Varias fuentes en un prompt → un `<document>` por fuente con `<source>` y metadata.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "When using multiple documents, wrap each document in `<document>` tags with `<document_content>` and `<source>` (and other metadata) subtags for clarity.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices. Prompting best practices: <document> con <document_content> y <source>. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o19-s25",
@@ -238,8 +274,12 @@
       "rule": "Citations: todos los documentos o ninguno. El tipo de fuente va como metadata, no como 'con o sin citas'.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/citations",
       "source_quote": "Set `citations.enabled=true` on each of your documents. A request can’t mix documents that have citations enabled with documents that don’t.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://platform.claude.com/docs/en/build-with-claude/citations. Citations: no se pueden mezclar docs con y sin citas; context para metadata. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o19-s26",
@@ -262,8 +302,12 @@
       "rule": "¿Etiquetas de certeza mal puestas? Segunda pasada que verifica la salida contra las fuentes.",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
       "source_quote": "Iterative refinement: Use Claude’s outputs as inputs for follow-up prompts, asking it to verify or expand on previous statements. This can catch and correct inconsistencies.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations. Reduce hallucinations: iterative refinement, textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     }
   ]
 }

@@ -22,8 +22,12 @@
       "rule": "Montos, IDs y fechas → objeto de estado estructurado en cada request, fuera del resumen.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Use structured formats for state data: When tracking structured information (such as test results or task status), use JSON or other structured formats to make schema requirements explicit to Claude.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices. Prompting best practices: estado en formatos estructurados (JSON). Cita textual; context editing solo limpia tool results. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o21-q22",
@@ -46,8 +50,12 @@
       "rule": "Tool que devuelve de más → recortá en la tool. Solo campos de alta señal.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
       "source_quote": "include only the fields Claude needs to reason about its next step. Bloated responses waste context and make it harder for Claude to extract what matters.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools. Define tools: devolver solo los campos que Claude necesita. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o21-q23",
@@ -70,8 +78,12 @@
       "rule": "Resultado de tool que siempre tiene que quedar → `exclude_tools`. `keep` es por recencia.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
       "source_quote": "List of tool names whose tool uses and results should never be cleared. Useful for preserving important context.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://platform.claude.com/docs/en/build-with-claude/context-editing. Context editing: exclude_tools, keep=3 por recencia, clear_tool_inputs borra también parámetros. Tabla de parámetros verificada; cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o21-q24",
@@ -94,8 +106,12 @@
       "rule": "Long context: documento arriba, instrucciones y pregunta al final.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Queries at the end can improve response quality by up to 30 percent in tests, especially with complex, multidocument inputs.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices. Prompting best practices: long docs arriba, query al final, hasta 30%. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o21-q25",
@@ -118,8 +134,12 @@
       "rule": "Messages API = stateless. Toda opción con memoria del lado del servidor es falsa.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/working-with-messages",
       "source_quote": "The Messages API is stateless, which means that you always send the full conversational history to the API.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://platform.claude.com/docs/en/build-with-claude/working-with-messages. Working with messages: API stateless, historial completo. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o21-s21",
@@ -142,8 +162,12 @@
       "rule": "El resumen por defecto pierde algo que necesitás → prompt de resumen propio.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/compaction",
       "source_quote": "Write your own summarization prompt: when the default summary drops something a later turn needs. Your prompt replaces the default one.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://platform.claude.com/docs/en/build-with-claude/compaction. Compaction: prompt de resumen propio reemplaza el default; también existe `instructions` en compaction por umbral. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o21-s22",
@@ -166,8 +190,12 @@
       "rule": "Prompt caching = más barato, no más chico. Lo cacheado ocupa la ventana igual.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/context-windows",
       "source_quote": "Cached prompt prefixes still occupy the context window: prompt caching changes what you pay for those tokens, not whether they count.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://platform.claude.com/docs/en/build-with-claude/context-windows. Context windows: los prefijos cacheados siguen ocupando la ventana. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o21-s23",
@@ -190,8 +218,12 @@
       "rule": "Turnos recientes que tienen que llegar textuales → compaction que mantiene los turnos recientes.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/compaction",
       "source_quote": "Compaction that keeps recent turns: when the last few turns must reach Claude word for word. The summary covers only the older turns.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://platform.claude.com/docs/en/build-with-claude/compaction. Compaction: variante que mantiene los turnos recientes textuales. Cita textual; buen par casi-correcto con A. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o21-s24",
@@ -214,8 +246,12 @@
       "rule": "Context editing es server-side: tu historial local queda completo y no se sincroniza.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
       "source_quote": "Context editing is applied server-side before the prompt reaches Claude. Your client application maintains the full, unmodified conversation history. You do not need to sync your client state with the edited version.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://platform.claude.com/docs/en/build-with-claude/context-editing. Context editing: server-side, el cliente mantiene historial completo sin sync. Cita textual; clear_tool_inputs default false. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o21-s25",
@@ -238,8 +274,12 @@
       "rule": "Ventana grande ≠ usarla toda. Contexto chico y curado + estado estructurado.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/context-windows",
       "source_quote": "A larger context window allows the model to handle more complex and lengthy prompts, but more context isn’t automatically better. As token count grows, accuracy and recall degrade, a phenomenon known as context rot.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://platform.claude.com/docs/en/build-with-claude/context-windows. Context windows: context rot, más contexto no es mejor. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o21-s26",
@@ -262,8 +302,12 @@
       "rule": "Context editing + caching → `clear_at_least` para que cada limpieza justifique romper el caché.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
       "source_quote": "To account for this, clear enough tokens to make the cache invalidation worthwhile. Use the `clear_at_least` parameter to ensure a minimum number of tokens is cleared each time.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://platform.claude.com/docs/en/build-with-claude/context-editing. Context editing: clear_at_least para que valga romper el caché; si no alcanza el mínimo la estrategia no se aplica. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     }
   ]
 }

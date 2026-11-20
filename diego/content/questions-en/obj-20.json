@@ -22,8 +22,12 @@
       "rule": "¿Tiene que sobrevivir a la compactación? CLAUDE.md raíz o regla sin `paths:`. Lo condicional se recarga solo al tocar el archivo.",
       "source_url": "https://code.claude.com/docs/en/context-window",
       "source_quote": "Path-scoped rules and nested CLAUDE.md files load into message history when Claude reads, writes, or edits their trigger file, so compaction summarizes them away with everything else. If a rule must persist across compaction, drop the `paths:` frontmatter or move it to the project-root CLAUDE.md.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://code.claude.com/docs/en/context-window. Context window: reglas con paths y CLAUDE.md anidados se resumen al compactar; sacar paths o mover al CLAUDE.md raíz. Cita textual; /autocompact existe. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o20-q22",
@@ -46,8 +50,12 @@
       "rule": "Exploración verbosa → subagente (Explore) que devuelve resumen. El hilo principal guarda el entendimiento de alto nivel.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "Claude delegates to Explore when it needs to search or understand a codebase without making changes. This keeps exploration results out of your main conversation context.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://code.claude.com/docs/en/sub-agents. Sub-agents: Explore mantiene la exploración fuera del contexto principal. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o20-q23",
@@ -70,8 +78,12 @@
       "rule": "Subagentes en paralelo → resúmenes cortos de vuelta; el detalle a archivos (scratchpad).",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "Ask for short summaries back, so twenty results don't fill your context anyway.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://code.claude.com/docs/en/best-practices. Best practices: pedir resúmenes cortos a los subagentes. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o20-q24",
@@ -94,8 +106,12 @@
       "rule": "Conocimiento del subagente para el equipo → `memory: project` (se versiona). `user` = solo vos.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "`project` is the recommended default scope. It makes subagent knowledge shareable via version control.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://code.claude.com/docs/en/sub-agents. Sub-agents: memory project recomendado y compartible por control de versiones; user en ~/.claude. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o20-q25",
@@ -118,8 +134,12 @@
       "rule": "Antes de una tarea larga nueva: `/compact` con foco en lo que querés conservar.",
       "source_url": "https://code.claude.com/docs/en/context-window",
       "source_quote": "Compact with a focus: run `/compact` with instructions, like `/compact focus on the auth bug fix`, before starting a long new task. The summary keeps what you choose instead of what the automatic pass guesses is important.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://code.claude.com/docs/en/context-window. Context window: /compact con foco antes de una tarea larga. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o20-s21",
@@ -142,8 +162,12 @@
       "rule": "Contexto dinámico de hooks que se pierde al compactar → `SessionStart` con matcher `compact`.",
       "source_url": "https://code.claude.com/docs/en/hooks-guide",
       "source_quote": "Use a `SessionStart` hook with a `compact` matcher to re-inject critical context after every compaction.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://code.claude.com/docs/en/hooks-guide. Hooks guide: SessionStart con matcher compact re-inyecta contexto. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o20-s22",
@@ -166,8 +190,12 @@
       "rule": "Subagente = aislar ruido o paralelizar. Pregunta puntual sobre código ya leído → en el hilo principal.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "a fresh subagent first has to gather context your conversation already had, so it can end up slower than doing the task where you are.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://code.claude.com/docs/en/best-practices. Best practices: un subagente nuevo tiene que juntar contexto y puede ser más lento. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o20-s23",
@@ -190,8 +218,12 @@
       "rule": "Guiar la compactación para todo el equipo → 'Compact Instructions' en el CLAUDE.md raíz.",
       "source_url": "https://code.claude.com/docs/en/how-claude-code-works",
       "source_quote": "To control what's preserved during compaction, add a \"Compact Instructions\" section to CLAUDE.md or run `/compact` with a focus (like `/compact focus on the API changes`).",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://code.claude.com/docs/en/how-claude-code-works. How Claude Code works: sección 'Compact Instructions' en CLAUDE.md o /compact con foco. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o20-s24",
@@ -214,8 +246,12 @@
       "rule": "Hallazgos que tienen que cruzar compactaciones y sesiones → archivo de notas (scratchpad) que se actualiza y se lee.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Update a hypothesis tree or research notes file to persist information and provide transparency.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices. Prompting best practices: árbol de hipótesis / archivo de notas para persistir. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o20-s25",
@@ -238,14 +274,18 @@
       "rule": "Compactó el hilo principal → el subagente sigue intacto. Reanudalo para el detalle.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "Main conversation compaction: when the main conversation compacts, subagent transcripts are unaffected. They're stored in separate files.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://code.claude.com/docs/en/sub-agents. Sub-agents: la compactación principal no afecta transcripts de subagentes; se puede reanudar. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o20-s26",
       "objective": 20,
       "pool": "sim",
-      "scenario": "A developer-productivity team explores an SDK whose generated client, `src/gen/api-client.ts`, is about 1.2 MB. When asked how pagination works for the `listInvoices` endpoint, Claude's whole-file Read returns an error telling it to read a portion. One developer then raised `CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS` and asked Claude to read the file whole; the next answers were slow and the session compacted soon after, dropping earlier findings. The team wants Claude to answer questions about specific endpoints in generated files without flooding the context. What should they standardize on?",
+      "scenario": "A developer-productivity team explores an SDK whose generated client, `src/gen/api-client.ts`, is about 1.2 MB. When asked how pagination works for the `listInvoices` endpoint, Claude's whole-file Read returns an error telling it to read a portion. One developer then raised `CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS` and explicitly asked Claude for the entire file, which it then loaded in one call; the next answers were slow and the session compacted soon after, dropping earlier findings. The team wants Claude to answer questions about specific endpoints in generated files without flooding the context. What should they standardize on?",
       "options": [
         "Raise `CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS` for everyone so that generated files can always be read whole in one call.",
         "Use Grep to find the `listInvoices` definition and its line numbers, then Read only that range with `offset` and `limit`.",
@@ -255,15 +295,19 @@
       "correct": 1,
       "why_correct": "Para un archivo grande, el propio error de Read le indica a Claude leer una porción con `offset` y `limit`, o buscar el contenido con Grep. Lectura dirigida: Grep para ubicar el símbolo y Read del rango justo, sin meter 1,2 MB en el contexto.",
       "why_wrong": {
-        "0": "Subir el límite resuelve el error pero mete el archivo entero en el contexto: es lo que provocó la compactación.",
+        "0": "El env var sube el tope de tokens por llamada, pero no levanta el rechazo de archivos enteros de más de 256 KB; y aunque Claude lo lea entero (con `allow_large`, cuando se lo pedís), mete 1,2 MB en el contexto: justo lo que provocó la compactación.",
         "2": "Aislar en un subagente tiene sentido, pero pedirle el contenido completo de vuelta anula el aislamiento.",
         "3": "Adjuntar el archivo entero vuelve a llenar el contexto; el `@` no evita el problema del tamaño."
       },
       "rule": "Archivo enorme → Grep para ubicar + Read con `offset`/`limit`. Nunca 'leelo entero'.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "Whole file over 256 KB, or an `offset` or `limit` read over the token limit: an error telling it to read a portion with `offset` and `limit`, or to search for specific content with Grep instead",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Corregido: la doc dice que Read rechaza un archivo entero de más de 256 KB aunque subas `CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS` (leerlo entero requiere `allow_large`). Ajusté el escenario para que no implique que el env var solo bastó y el why_wrong de A, que decía 'resuelve el error'. Cita textual; respuesta correcta sin cambios."
+      }
     }
   ]
 }

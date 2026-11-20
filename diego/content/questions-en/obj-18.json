@@ -22,8 +22,12 @@
       "rule": "¿Salida validada de un worker? `query()` con `output_format` → `structured_output`. `AgentDefinition` no lleva schema.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/structured-outputs",
       "source_quote": "pass it to `query()` via the `outputFormat` option (TypeScript) or `output_format` option (Python). When the agent finishes, the result message includes a `structured_output` field with validated data matching your schema.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://code.claude.com/docs/en/agent-sdk/structured-outputs. SDK structured outputs: output_format en query() → structured_output. Verificado que AgentDefinition no tiene outputFormat (tabla de campos). Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o18-q22",
@@ -46,8 +50,12 @@
       "rule": "Citations + `output_config.format` = 400. Una línea por campo con citas → parseás vos.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/citations",
       "source_quote": "To get a citation for each extracted value, prompt Claude to answer with one line per field. Then parse the lines into structured data in your code.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://platform.claude.com/docs/en/build-with-claude/citations. Citations: incompatibles con output_config.format (400), una línea por campo y parseo en código; no mezclar docs con y sin citas; 'only JSON' da pocas citas. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o18-q23",
@@ -70,8 +78,12 @@
       "rule": "Structured output del SDK: leé `structured_output` del result, nunca el `tool_use` de `StructuredOutput`.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/structured-outputs",
       "source_quote": "Read the validated data from `structured_output` on the result message rather than from a `tool_use` block",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://code.claude.com/docs/en/agent-sdk/structured-outputs. SDK structured outputs: varios StructuredOutput con is_error, leer structured_output del result. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o18-q24",
@@ -94,8 +106,12 @@
       "rule": "Dato que puede faltar en la fuente → campo opcional. Requerido + sin dato = fallo o invento.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/structured-outputs",
       "source_quote": "Match schema to task. If the task might not have all the information your schema requires, make those fields optional.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://code.claude.com/docs/en/agent-sdk/structured-outputs. SDK structured outputs: 'Match schema to task... make those fields optional' textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o18-q25",
@@ -118,8 +134,12 @@
       "rule": "¿El padre resume lo que el subagente devolvió? La instrucción de conservar textual va en el prompt del `query()` principal.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "The parent receives the subagent's final report, but may summarize it in its own response. To preserve subagent output verbatim in the user-facing response, include an instruction to do so in the prompt or `systemPrompt` option you pass to the main `query()` call.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://code.claude.com/docs/en/agent-sdk/subagents. SDK subagents: el padre puede resumir; instrucción verbatim en prompt/systemPrompt del query() principal. Cita textual; background y omitClaudeMd existen y no aplican. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o18-s21",
@@ -142,8 +162,12 @@
       "rule": "`format` en el schema del SDK = anotación. Fechas/emails se validan en tu código.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/structured-outputs",
       "source_quote": "The `format` keyword, such as `\"format\": \"email\"`, is accepted as an annotation and isn't enforced by the SDK's validator.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://code.claude.com/docs/en/agent-sdk/structured-outputs. SDK structured outputs: format es anotación no aplicada; draft-07, versiones nuevas rechazadas. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o18-s22",
@@ -157,7 +181,7 @@
         "Add few-shot examples showing the exact capitalization of each category to the triage system prompt and keep exact matching."
       ],
       "correct": 2,
-      "why_correct": "Structured outputs no garantiza la capitalización de los valores `enum`: el modelo puede devolver un valor que difiere solo en mayúsculas, sin error ni `stop_reason` especial. La doc pide comparar sin distinguir mayúsculas y evitar valores que solo difieran en eso (como 'Account access' frente a 'Account Access').",
+      "why_correct": "Structured outputs no garantiza la capitalización de los valores `enum`: el modelo puede devolver uno que difiere solo en mayúsculas (`\"Account Access\"` en vez de `\"Account access\"`), sin error ni `stop_reason` especial, y eso aplica también a strict tool use. La doc pide comparar sin distinguir mayúsculas y evitar valores que solo difieran en eso; al renombrar, chequeá que la comparación case-insensitive no choque dos categorías.",
       "why_wrong": {
         "0": "Casi: suena más estricto, pero la doc aclara que esto aplica tanto a JSON outputs como a strict tool use.",
         "1": "No hay `stop_reason` especial para este caso; la respuesta termina normal. No hay señal para disparar el reintento.",
@@ -166,14 +190,18 @@
       "rule": "Enums en structured outputs: compará case-insensitive y no tengas valores que difieran solo en mayúsculas.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "This applies to both JSON outputs and strict tool use. Compare enum values case-insensitively, and avoid enum values that differ only in capitalization.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "why_correct corregido: decía que el enum tenía 'Account access' frente a 'Account Access', pero el enum del escenario no tiene dos valores que solo difieran en mayúsculas. Cita textual confirmada; distractores verificados (aplica a JSON outputs y strict tool use, no hay stop_reason especial)."
+      }
     },
     {
       "id": "o18-s23",
       "objective": 18,
       "pool": "sim",
-      "scenario": "A research system's synthesis subagent calls the Messages API with `output_config.format` and a schema that returns an array of findings, each with claim, sources, confidence label, and notes. Reports on broad topics contain 50–70 findings. About 5% of responses fail `JSON.parse` in the report builder; every failing response has `stop_reason: \"max_tokens\"`, while successful ones end with `end_turn`. The request currently sets `max_tokens: 4096`. Product requires that no findings be dropped silently. What should the team do?",
+      "scenario": "A research system's synthesis subagent calls the Messages API with `output_config.format` and a schema that returns an array of findings, each with claim, sources, confidence label, and notes. Reports on broad topics contain 50–70 findings. About 5% of responses fail `JSON.parse` in the report builder; every failing response has `stop_reason: \"max_tokens\"`, while successful ones end with `end_turn`, and the failing payloads stop mid-object, usually inside the last finding's notes. The request currently sets `max_tokens: 4096`. Product requires that no findings be dropped silently. What should the team do?",
       "options": [
         "Check `stop_reason`, and when it is `max_tokens`, retry with a higher `max_tokens` value so the structured output completes.",
         "Add `strict: true` to the schema so constrained decoding guarantees the closing brackets are always emitted before the limit.",
@@ -190,8 +218,12 @@
       "rule": "JSON inválido con `stop_reason: \"max_tokens\"` → reintentá con más `max_tokens` (o pedí menos por llamada).",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "Retry with a higher `max_tokens` value to get the complete structured output.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Escenario alargado (tenía 76 palabras) con un síntoma concreto más (el JSON se corta a mitad de objeto). Respuesta verificada en la sección de max_tokens de structured outputs; refusal tiene su propio stop_reason; cita textual."
+      }
     },
     {
       "id": "o18-s24",
@@ -214,8 +246,12 @@
       "rule": "Metadata de procedencia con citations → `title` corto + `context` (texto o JSON). Nunca dentro del texto citable.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/citations",
       "source_quote": "`title` is limited in length, so the `context` field is useful for storing document metadata as text or stringified JSON.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://platform.claude.com/docs/en/build-with-claude/citations. Citations: title limitado, context para metadata (no citable). Cita textual; no se pueden mezclar docs con/sin citas. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o18-s25",
@@ -238,8 +274,12 @@
       "rule": "RAG con atribución → tool que devuelve `search_result` (con `source` y `title`) + citas activadas.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/search-results",
       "source_quote": "Search result content blocks let Claude cite your own content the same way it cites web search results: each citation carries the source and title you provided.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://platform.claude.com/docs/en/build-with-claude/search-results. Search results: bloques search_result con source y title citables. Cita textual; context de document no es contenido citado. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o18-s26",
@@ -262,8 +302,12 @@
       "rule": "Citas válidas ≠ citas presentes. Validá en tu código: valor + al menos una cita por campo.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/citations",
       "source_quote": "Check that each field has a value and at least one citation. The API doesn’t guarantee either.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://platform.claude.com/docs/en/build-with-claude/citations. Citations: 'Check that each field has a value and at least one citation. The API doesn't guarantee either' textual; citas válidas ≠ presentes. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     }
   ]
 }

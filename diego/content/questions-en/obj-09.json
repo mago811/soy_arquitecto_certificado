@@ -22,8 +22,12 @@
       "rule": "Pipeline en hosts efímeros: el estado que importa va a storage durable (manifest + resultados) y se inyecta en una sesión nueva; no confíes en el `resume` local.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
       "source_quote": "Don't rely on session resume. Capture the results you need (analysis output, decisions, file diffs) as application state and pass them into a fresh session's prompt. This is often more robust than shipping transcript files around.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://code.claude.com/docs/en/agent-sdk/sessions. Sessions SDK: archivos de sesión locales al host; 'Don't rely on session resume' textual. continue/fork no sirven sin el archivo en el host nuevo. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o09-q22",
@@ -46,8 +50,12 @@
       "rule": "`error_max_turns` / `error_max_budget_usd` → `resume` con el `session_id` de ese resultado y un límite más alto. Varias sesiones a la vez → ID, nunca `continue`.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
       "source_quote": "Recover from a limit. The first run ended with `error_max_turns` or `error_max_budget_usd` (see Handle the result); resume with a higher limit.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://code.claude.com/docs/en/agent-sdk/sessions. Sessions SDK: 'Recover from a limit' textual; continue toma la más reciente del directorio (choque con concurrencia); session_id presente en todo result. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o09-q23",
@@ -70,8 +78,12 @@
       "rule": "`fork_session` = rama de conversación, no de archivos. Agentes en paralelo que editan → un directorio de trabajo por agente.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
       "source_quote": "Forking branches the conversation history, not the filesystem. If a forked agent edits files, those changes are real and visible to any session working in the same directory.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://code.claude.com/docs/en/agent-sdk/sessions. Sessions SDK: 'Forking branches the conversation history, not the filesystem' textual; checkpoints no aíslan forks paralelos. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o09-q24",
@@ -94,8 +106,12 @@
       "rule": "Resume después de un crash: lo que estaba corriendo NO se re-ejecuta. Verificá el estado real antes de seguir.",
       "source_url": "https://code.claude.com/docs/en/sessions",
       "source_quote": "Interrupted tool calls: a tool that was still running when the previous process ended, for example in a crash, doesn't get rerun when you resume.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://code.claude.com/docs/en/sessions. Sessions (Claude Code): tool interrumpida no se re-ejecuta al reanudar, textual; checkpoints solo cubren ediciones de archivos. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o09-q25",
@@ -118,8 +134,12 @@
       "rule": "¿Vas a continuar el trabajo de un subagente? Usá `general-purpose` o uno propio (tienen agent ID); Explore y Plan son de una pasada.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "For work you'll continue later, use `general-purpose` or a custom subagent. The built-in Explore and Plan agents can finish without giving Claude an ID to resume them with.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://code.claude.com/docs/en/sub-agents. Sub-agents: Explore/Plan pueden terminar sin ID para reanudar; usar general-purpose o custom. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o09-s21",
@@ -142,8 +162,12 @@
       "rule": "Guardá el `session_id` de TODO result message (también los de error): sin él no hay `resume`.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
       "source_quote": "Read it from the `session_id` field on the result message (`ResultMessage` in Python, `SDKResultMessage` in TypeScript), which is present on every result regardless of success or error.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://code.claude.com/docs/en/agent-sdk/sessions. Sessions SDK: session_id en todo result message sin importar éxito o error, textual; continue/listSessions no resuelven con concurrencia. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o09-s22",
@@ -166,8 +190,12 @@
       "rule": "Checkpointing = ediciones del hilo principal con Write/Edit. Subagentes y Bash quedan afuera → git.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/file-checkpointing",
       "source_quote": "Edits a subagent applies aren't tracked, except a skill with `context: fork` running in the foreground. A rewind reverts them only in files the main conversation had already edited; use git to revert the rest",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://code.claude.com/docs/en/agent-sdk/file-checkpointing. File checkpointing: tabla de limitaciones, ediciones de subagentes no se trackean, usar git. Cita textual; AgentDefinition no tiene campo de checkpointing. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o09-s23",
@@ -177,7 +205,7 @@
       "options": [
         "Move to a 1M-token context model variant so the whole migration fits in one window and compaction never needs to run.",
         "Have the agent append a narrative paragraph about each migrated file to CLAUDE.md, so every new window loads the history.",
-        "Track per-file and per-test status in a structured `tests.json`, keep freeform notes in `progress.txt`, commit to git, and start each window by reviewing them.",
+        "Keep per-file and per-test status in a JSON file, freeform notes in `progress.txt`, commit to git, and read them at each window start.",
         "Lower the compaction threshold so summaries happen more often and each one carries a shorter, more precise list of migrated files."
       ],
       "correct": 2,
@@ -190,8 +218,12 @@
       "rule": "Estado entre ventanas: JSON para lo estructurado, texto para notas, git para checkpoints. Nunca solo el resumen.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Use structured formats for state data: When tracking structured information (such as test results or task status), use JSON or other structured formats to make schema requirements explicit to Claude.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Correcta (opción C) acortada: era 159 caracteres contra 117–130 de los distractores y se delataba por largo. Respuesta y sentido sin cambios. Cita textual en la página, respaldo correcto."
+      }
     },
     {
       "id": "o09-s24",
@@ -214,8 +246,12 @@
       "rule": "Dos procesos reanudando la misma sesión a la vez → `--fork-session` en cada uno.",
       "source_url": "https://code.claude.com/docs/en/sessions",
       "source_quote": "If you resume the same session in two terminals or two `claude -p` runs at the same time, both write to one transcript. When you resume that session later, messages from one of them can be missing. To keep both conversations, add `--fork-session` to each `claude` command.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://code.claude.com/docs/en/sessions. Sessions (Claude Code): dos claude -p reanudando la misma sesión a la vez → --fork-session en cada uno. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o09-s25",
@@ -238,8 +274,12 @@
       "rule": "Resume entre hosts → `session_store` + mismo `cwd` que la corrida original.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
       "source_quote": "Attach a `sessionStore` / `session_store` adapter so the SDK mirrors transcripts to your own backend and another host can resume them. The store lookup key derives from the working directory, so resume from a `cwd` matching the original run's.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://code.claude.com/docs/en/agent-sdk/sessions. Sessions SDK, Resume across hosts: session_store + cwd igual al original. Cita textual; buen par casi-correcto con B. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     },
     {
       "id": "o09-s26",
@@ -262,8 +302,12 @@
       "rule": "Subagente parcial por `maxTurns` → `resume` de la misma sesión + continuar ese agente por ID.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "Each `query()` call starts a new session by default, and you must resume the same session to access the subagent's transcript.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://code.claude.com/docs/en/agent-sdk/subagents. SDK subagents: maxTurns → salida parcial reanudable; cada query() es sesión nueva, hay que resume de la misma sesión + agent ID. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
     }
   ]
 }
