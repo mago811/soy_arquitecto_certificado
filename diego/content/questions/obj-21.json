@@ -127,7 +127,7 @@
       "correct": 2,
       "why_correct": "La Messages API es stateless: no guarda nada entre requests. Siempre hay que mandar el historial completo. Si eso es caro, se gestiona de forma explícita (compactación, context editing, estado estructurado), pero nunca omitiendo el historial.",
       "why_wrong": {
-        "0": "No existe un mecanismo así en la Messages API: no hay memoria server-side que se recupere con el id de una respuesta.",
+        "0": "Por defecto la Messages API no guarda nada: un id suelto no recupera la conversación. Existe message threads (beta), pero hay que crear el thread a propósito con el campo `thread`, vence a los 5 minutos y es best-effort; tu app igual tiene que guardar y poder reenviar el historial.",
         "1": "Batches procesa requests independientes de forma asíncrona. No encadena conversaciones ni guarda estado.",
         "3": "El caching abarata un prefijo que vos MANDÁS. Si no mandás el historial, no hay nada que cachear ni recordar."
       },
@@ -138,7 +138,7 @@
       "verification": {
         "date": "2026-11-13",
         "verdict": "corregida",
-        "notes": "Cita textual. Se corrigió 'del lado del cliente' en why_correct: compaction y context editing de la API se aplican del lado del servidor sobre el historial que mandás."
+        "notes": "Cita textual. Se corrigió 'del lado del cliente' en why_correct: compaction y context editing de la API se aplican del lado del servidor sobre el historial que mandás. Revisión 2026-11-20: why_wrong[0] decía que no existe ningún mecanismo server-side; se actualizó porque la doc actual documenta message threads (beta): 'With message threads, in beta, the API can keep the conversation, so that each later request sends only the new messages.' La correcta no cambia."
       }
     },
     {
