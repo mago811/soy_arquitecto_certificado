@@ -1,0 +1,269 @@
+{
+  "objective": 18,
+  "questions": [
+    {
+      "id": "o18-q21",
+      "objective": 18,
+      "pool": "practice",
+      "scenario": "A due-diligence firm runs a multi-agent research system on the Python Agent SDK. The coordinator defines a `web-researcher` subagent through `AgentDefinition` and spawns six of them per engagement; a synthesis step then builds the client report from their final messages. The researchers return prose paragraphs. An audit of 40 reports found that 31% of factual claims could not be traced to a source URL, and publication dates were missing for most claims, so analysts spend hours re-finding sources. The firm wants every finding to arrive as machine-readable data with claim, evidence excerpt, source URL, and publication date, validated before synthesis. What is the most reliable way to achieve this?",
+      "options": [
+        "Add an `outputFormat` JSON schema to the `web-researcher` AgentDefinition so each subagent's final message is validated against it.",
+        "Run each researcher as its own `query()` with `output_format` requiring claim, excerpt, URL, and date, then read `structured_output`.",
+        "Append 'always include the source URL and date for every claim' to the researcher's `prompt` and keep the AgentDefinition as is.",
+        "Add the `StructuredOutput` tool to the researcher's `tools` list so it can emit its findings as validated JSON to the coordinator."
+      ],
+      "correct": 1,
+      "why_correct": "La validación contra un JSON Schema se configura en `query()` con `output_format`: el SDK valida, re-pide si no coincide y deja el dato en `structured_output`. `AgentDefinition` no tiene campo de schema de salida, así que para garantizar el formato de cada investigador hay que correrlo como su propio `query()`.",
+      "why_wrong": {
+        "0": "Suena lógico, pero `AgentDefinition` no tiene un campo `outputFormat`; el schema de salida es una opción de `query()`.",
+        "2": "Es guidance: mejora el promedio pero no valida nada. Sigue pudiendo faltar la URL en un porcentaje de claims.",
+        "3": "`StructuredOutput` lo agrega el SDK solo cuando configurás `output_format`; no es una tool que se habilita a mano en `tools`."
+      },
+      "rule": "¿Salida validada de un worker? `query()` con `output_format` → `structured_output`. `AgentDefinition` no lleva schema.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/structured-outputs",
+      "source_quote": "pass it to `query()` via the `outputFormat` option (TypeScript) or `output_format` option (Python). When the agent finishes, the result message includes a `structured_output` field with validated data matching your schema.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o18-q22",
+      "objective": 18,
+      "pool": "practice",
+      "scenario": "A legal-tech company extracts 14 fields (parties, effective date, renewal terms, liability cap, and so on) from commercial contracts with the Messages API. Auditors now require that every extracted value point to the exact passage it came from. The team enabled `citations.enabled=true` on the contract and its annexes and kept `output_config.format` with their JSON schema, but every request now fails with HTTP 400. They must keep one citation per field and still load the result into their contracts database as structured records. What should they do?",
+      "options": [
+        "Prompt for one `field: value` line per field with citations enabled, then parse the lines into the structured record in code.",
+        "Keep `output_config.format`, and enable citations only on the main contract while leaving the annexes without citations.",
+        "Drop `output_config.format` and add 'Return only a JSON object, no other text' so the citations attach to each JSON field.",
+        "Disable citations and add a `source_excerpt` string property to every field in the JSON schema for the auditors to check."
+      ],
+      "correct": 0,
+      "why_correct": "Citations y structured outputs son incompatibles: si activás citas en cualquier documento y mandás `output_config.format`, la API devuelve 400. La doc propone pedir una línea por campo, con citas, y armar el JSON en tu código. Así cada valor trae su cita verificable.",
+      "why_wrong": {
+        "1": "El 400 aparece si activás citas en CUALQUIER documento junto con `output_config.format`; además no se pueden mezclar documentos con y sin citas.",
+        "2": "La doc avisa que pedir 'solo JSON' hace que la respuesta traiga pocas o ninguna cita.",
+        "3": "Un excerpt que escribe el modelo no es una cita parseada por la API: puede estar parafraseado o inventado, y no tiene garantía de apuntar al documento."
+      },
+      "rule": "Citations + `output_config.format` = 400. Una línea por campo con citas → parseás vos.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/citations",
+      "source_quote": "To get a citation for each extracted value, prompt Claude to answer with one line per field. Then parse the lines into structured data in your code.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o18-q23",
+      "objective": 18,
+      "pool": "practice",
+      "scenario": "A developer-productivity team runs a dependency-audit agent on the TypeScript Agent SDK with `outputFormat` set to a schema whose findings require `package`, `severity`, and `advisory_url`. Their stream logger takes the first `tool_use` block named `StructuredOutput` it sees and forwards its `input` to the security dashboard. About 4% of the objects that reach the dashboard are missing `severity`, even though the schema marks it required and runs report subtype `success`. The team also noticed that some runs contain two or three `StructuredOutput` calls. What change makes the dashboard receive only validated data?",
+      "options": [
+        "Forward the last `StructuredOutput` tool_use block instead of the first, since the agent's final attempt is the one that passed validation.",
+        "Mark `severity` as optional in the schema so the first `StructuredOutput` call passes validation more often and fewer retries occur.",
+        "Add a PostToolUse hook that blocks `StructuredOutput` calls missing `severity` before the logger can forward them to the dashboard.",
+        "Read the data from `structured_output` on the result message, and treat `is_error: true` or a missing `structured_output` as a failure."
+      ],
+      "correct": 3,
+      "why_correct": "Cuando un intento no cumple el schema, el `tool_result` vuelve con `is_error: true` y el agente vuelve a llamar `StructuredOutput`. Por eso hay varios bloques y el primero puede ser inválido. La doc dice que leas el dato validado de `structured_output` en el result message, y que trates `is_error` o la ausencia del campo como fallo.",
+      "why_wrong": {
+        "0": "Casi: el último intento suele ser el bueno, pero si se agotan los reintentos también es inválido. El dato garantizado está en el result message, no en un `tool_use`.",
+        "1": "Ataca el síntoma y empeora el dato: `severity` es necesario para el dashboard; volverlo opcional deja pasar hallazgos incompletos.",
+        "2": "El SDK ya valida y re-pide; el problema es leer del lugar equivocado. Un hook extra no cambia lo que lee el logger."
+      },
+      "rule": "Structured output del SDK: leé `structured_output` del result, nunca el `tool_use` de `StructuredOutput`.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/structured-outputs",
+      "source_quote": "Read the validated data from `structured_output` on the result message rather than from a `tool_use` block",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o18-q24",
+      "objective": 18,
+      "pool": "practice",
+      "scenario": "A public-policy think tank runs search subagents on the Python Agent SDK, each started as its own `query()` with an `output_format` schema. Every finding object requires `claim`, `excerpt`, `source_url`, `author`, and `publication_date`. Many sources are government statistical datasets that list no individual author. Metrics over two weeks: 18% of runs end with `error_max_structured_output_retries`, and among successful runs, 11% of findings show `author: \"Staff\"` or `\"Unknown Author\"`, values that appear nowhere in the source. The synthesis agent needs to distinguish real authors from missing ones. What is the best change?",
+      "options": [
+        "Keep both fields required and instruct the subagent to write 'N/A' whenever a source does not list an author or a date.",
+        "Increase `max_turns` on the search subagents so they have more attempts to find the missing author before retries run out.",
+        "Remove `author` and `publication_date` from `required` so the subagent can omit them when a source does not provide them.",
+        "Flatten the finding schema into parallel top-level arrays so fewer nested required objects have to be satisfied per run."
+      ],
+      "correct": 2,
+      "why_correct": "Si la tarea puede no tener toda la información que el schema exige, la doc dice que esos campos sean opcionales. Exigir un autor que no existe produce fallos de validación o valores inventados. Opcionales, el sintetizador distingue 'no hay autor' de un autor real.",
+      "why_wrong": {
+        "0": "Un 'N/A' es un placeholder que se mezcla con datos reales; sigue obligando al modelo a rellenar y no arregla la causa.",
+        "1": "No es un problema de turnos: el dato no existe en la fuente. Más turnos no lo hacen aparecer.",
+        "3": "Simplificar el anidamiento ayuda en general, pero el campo seguiría requerido y sin dato en la fuente."
+      },
+      "rule": "Dato que puede faltar en la fuente → campo opcional. Requerido + sin dato = fallo o invento.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/structured-outputs",
+      "source_quote": "Match schema to task. If the task might not have all the information your schema requires, make those fields optional.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o18-q25",
+      "objective": 18,
+      "pool": "practice",
+      "scenario": "A research platform's coordinator runs on the TypeScript Agent SDK. After the search subagents finish, a `citation-checker` subagent returns a table that maps each claim to its verified source URL and excerpt. The coordinator's final response is shown to clients as the report. QA found that the final report paraphrases the table into two summary paragraphs, and 70% of the URLs disappear. Logs confirm the `citation-checker` final message contains the complete table. Clients need the verified table exactly as the checker produced it. Which change addresses the root cause?",
+      "options": [
+        "Add 'return the table verbatim, never summarize it' to the `citation-checker` AgentDefinition `prompt`, since that agent builds the table.",
+        "Set `background: true` on the `citation-checker` so its output reaches the client directly instead of passing through the coordinator.",
+        "Set `omitClaudeMd: true` on the `citation-checker` so the project's CLAUDE.md brevity guidelines stop shortening its table.",
+        "Instruct the main `query()` call's `systemPrompt` to include the `citation-checker` report verbatim in the final answer."
+      ],
+      "correct": 3,
+      "why_correct": "El padre recibe el informe completo del subagente, pero puede resumirlo en su respuesta. La doc dice que, para conservarlo textual, la instrucción va en el prompt o `systemPrompt` del `query()` principal: quien resume es el coordinador, no el checker.",
+      "why_wrong": {
+        "0": "Casi: el checker ya devuelve la tabla completa (lo confirman los logs). La pérdida ocurre en el padre, así que la instrucción tiene que ir ahí.",
+        "1": "`background` hace que el subagente no bloquee; su resultado sigue volviendo al padre, que igual puede resumirlo.",
+        "2": "El problema no está en el contexto del checker, cuya salida ya está completa; está en cómo el padre la reescribe."
+      },
+      "rule": "¿El padre resume lo que el subagente devolvió? La instrucción de conservar textual va en el prompt del `query()` principal.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "source_quote": "The parent receives the subagent's final report, but may summarize it in its own response. To preserve subagent output verbatim in the user-facing response, include an instruction to do so in the prompt or `systemPrompt` option you pass to the main `query()` call.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o18-s21",
+      "objective": 18,
+      "pool": "sim",
+      "scenario": "An accounts-payable team extracts invoice data with the Python Agent SDK. Their `output_format` schema declares `\"invoice_date\": {\"type\": \"string\", \"format\": \"date\"}` and `\"due_date\"` the same way. Every run reports `success` with `structured_output` present, yet about 6% of records fail when inserted into a PostgreSQL `DATE` column because values look like `\"Q3 2025\"`, `\"03/04/25\"`, or `\"upon receipt\"`. The team expected the SDK's validation and re-prompting to reject these values. They cannot switch to a different extraction framework this quarter. What should they do?",
+      "options": [
+        "Change the schema to declare JSON Schema draft 2020-12, whose validator enforces `format`, and pass it to `output_format` unchanged.",
+        "Treat `format` as an annotation the SDK doesn't enforce, and normalize and validate both dates in application code before inserting.",
+        "Repeat `\"format\": \"date\"` on every nested date property, since the SDK's validator only checks formats declared at the top level.",
+        "Rely on the SDK's re-prompting on mismatch and raise its retry limit so invalid dates get corrected before the result is returned."
+      ],
+      "correct": 1,
+      "why_correct": "El SDK acepta `format` (por ejemplo `\"format\": \"email\"`) solo como anotación: su validador no lo aplica. Por eso los valores pasan como strings válidos. La validación y normalización de fechas tiene que hacerse en tu código antes del insert.",
+      "why_wrong": {
+        "0": "El SDK valida con draft-07; un schema que declara una versión más nueva se rechaza, no se aplica más estricto.",
+        "2": "No hay tal regla de 'solo nivel superior': `format` no se aplica en ningún nivel.",
+        "3": "Los reintentos solo ocurren cuando el validador detecta un desajuste; como `format` no se aplica, nunca hay desajuste que corregir."
+      },
+      "rule": "`format` en el schema del SDK = anotación. Fechas/emails se validan en tu código.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/structured-outputs",
+      "source_quote": "The `format` keyword, such as `\"format\": \"email\"`, is accepted as an annotation and isn't enforced by the SDK's validator.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o18-s22",
+      "objective": 18,
+      "pool": "sim",
+      "scenario": "An e-commerce company's customer-support resolution agent uses a triage step on the Messages API: a strict tool (`strict: true`) named `route_ticket` whose `category` property is an enum: `[\"Refund Request\", \"Shipping Delay\", \"Account access\", \"Account Access Reset\"]`. A downstream router does an exact string match on `category` to pick the queue. About 3% of tickets land in the 'unrouted' bucket; logs show values like `\"Account Access\"`. Every response ended with `stop_reason: \"tool_use\"` and no errors were raised. The team cannot rename the queues this sprint, but can change the enum strings and the router. What is the most effective fix?",
+      "options": [
+        "Switch from strict tool use to `output_config.format`, which constrains enum strings exactly, including their capitalization.",
+        "Check `stop_reason` for a schema-violation signal and retry the request whenever the category is not an exact enum match.",
+        "Compare enum values case-insensitively in the router and rename values so that no two differ only in capitalization.",
+        "Add few-shot examples showing the exact capitalization of each category to the triage system prompt and keep exact matching."
+      ],
+      "correct": 2,
+      "why_correct": "Structured outputs no garantiza la capitalización de los valores `enum`: el modelo puede devolver un valor que difiere solo en mayúsculas, sin error ni `stop_reason` especial. La doc pide comparar sin distinguir mayúsculas y evitar valores que solo difieran en eso (como 'Account access' frente a 'Account Access').",
+      "why_wrong": {
+        "0": "Casi: suena más estricto, pero la doc aclara que esto aplica tanto a JSON outputs como a strict tool use.",
+        "1": "No hay `stop_reason` especial para este caso; la respuesta termina normal. No hay señal para disparar el reintento.",
+        "3": "Los ejemplos pueden bajar la frecuencia, pero no la garantizan; con match exacto el 'unrouted' sigue apareciendo."
+      },
+      "rule": "Enums en structured outputs: compará case-insensitive y no tengas valores que difieran solo en mayúsculas.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "source_quote": "This applies to both JSON outputs and strict tool use. Compare enum values case-insensitively, and avoid enum values that differ only in capitalization.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o18-s23",
+      "objective": 18,
+      "pool": "sim",
+      "scenario": "A research system's synthesis subagent calls the Messages API with `output_config.format` and a schema that returns an array of findings, each with claim, sources, confidence label, and notes. Reports on broad topics contain 50–70 findings. About 5% of responses fail `JSON.parse` in the report builder; every failing response has `stop_reason: \"max_tokens\"`, while successful ones end with `end_turn`. The request currently sets `max_tokens: 4096`. Product requires that no findings be dropped silently. What should the team do?",
+      "options": [
+        "Check `stop_reason`, and when it is `max_tokens`, retry with a higher `max_tokens` value so the structured output completes.",
+        "Add `strict: true` to the schema so constrained decoding guarantees the closing brackets are always emitted before the limit.",
+        "Treat these responses as refusals and route them to human review, since constrained decoding cannot produce invalid JSON.",
+        "Add a repair step before `JSON.parse` that closes open brackets and drops the incomplete last finding from the array."
+      ],
+      "correct": 0,
+      "why_correct": "Structured outputs garantiza el schema en la mayoría de los casos, pero si la respuesta se corta por `max_tokens` la salida puede quedar incompleta. La doc dice que reintentes con un `max_tokens` más alto para recibir la salida completa.",
+      "why_wrong": {
+        "1": "`strict: true` es para tools; y ningún modo de constrained decoding evita que la generación se corte al llegar a `max_tokens`.",
+        "2": "Una negativa tiene `stop_reason: \"refusal\"`; acá es `max_tokens`. Mandarlo a revisión humana trata mal la causa.",
+        "3": "Repara el síntoma y viola el requisito: descarta hallazgos en silencio."
+      },
+      "rule": "JSON inválido con `stop_reason: \"max_tokens\"` → reintentá con más `max_tokens` (o pedí menos por llamada).",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "source_quote": "Retry with a higher `max_tokens` value to get the complete structured output.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o18-s24",
+      "objective": 18,
+      "pool": "sim",
+      "scenario": "A retrieval subagent in a market-research system hands documents to a synthesis agent on the Messages API with citations enabled on every `document` block. To keep provenance, the team writes `\"title\": \"https://... | Publisher | 2024-03-11 | Full article headline\"`. Reports show truncated titles, and the publication date is missing from 40% of citations, which matters because analysts compare figures across years. A first experiment prepended the metadata line to the document text; Claude then sometimes cited that line as evidence instead of the article body. What is the best way to carry the metadata?",
+      "options": [
+        "Prepend the metadata to each document's `source` text in a fixed header format, and instruct Claude never to cite that header line.",
+        "Move the metadata into the system prompt as a table keyed by document index, and leave each document's `title` empty.",
+        "Keep a short `title` and store URL, publisher, and publication date as stringified JSON in each document's `context` field.",
+        "Disable citations on the metadata-heavy documents and keep them enabled on the rest of the documents in the same request."
+      ],
+      "correct": 2,
+      "why_correct": "`title` tiene un largo limitado; la doc sugiere usar `context` para guardar metadata como texto o JSON en string. `title` y `context` llegan al modelo pero no cuentan como contenido citable, así que la metadata acompaña al documento sin terminar citada como evidencia.",
+      "why_wrong": {
+        "0": "Lo que está dentro del `source` es citable; pedirle que no lo cite es guidance y el problema ya apareció en el experimento.",
+        "1": "Puede funcionar a medias, pero separa la metadata del documento y depende de que el modelo cruce índices; `context` existe justo para esto.",
+        "3": "Una request no puede mezclar documentos con citas activadas y documentos sin citas."
+      },
+      "rule": "Metadata de procedencia con citations → `title` corto + `context` (texto o JSON). Nunca dentro del texto citable.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/citations",
+      "source_quote": "`title` is limited in length, so the `context` field is useful for storing document metadata as text or stringified JSON.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o18-s25",
+      "objective": 18,
+      "pool": "sim",
+      "scenario": "A developer-productivity team built an internal Q&A agent over its engineering knowledge base on the Messages API. The `kb_search` tool returns the top eight hits concatenated into one text string, with `[KB-1234]` style IDs inline. Answers reach engineers as prose; a review found that 35% of claims had no attribution and 9% were attributed to the wrong article. The team wants every claim to carry the article ID and title it came from, without writing a citation parser, and the response must stay prose for the chat UI. What change best achieves this?",
+      "options": [
+        "Return each hit as a `search_result` block with `source` set to the article ID, a `title`, its text `content`, and citations enabled.",
+        "Return the hits as a JSON string with `id` and `title` keys and instruct Claude to cite the matching ID in square brackets.",
+        "Return the hits as `document` blocks with the article ID stored in `context`, since `context` is what citations point back to.",
+        "Enable citations only on the top three hits by relevance, so the answer stays short and attribution focuses on the best sources."
+      ],
+      "correct": 0,
+      "why_correct": "Los bloques `search_result` permiten que Claude cite tu contenido igual que cita búsquedas web: cada cita trae el `source` y el `title` que le diste. Con citas activadas, la atribución viene en la respuesta sin parsers ni prompts especiales, y sigue siendo prosa.",
+      "why_wrong": {
+        "1": "Es el enfoque por prompt: mejora algo, pero no garantiza que cada claim tenga cita ni que el ID sea el correcto.",
+        "2": "Casi: `document` con citas también sirve, pero `context` NO se usa como contenido citado; el ID no viajaría en la cita.",
+        "3": "Todos los search results de una request tienen que usar la misma configuración de citas."
+      },
+      "rule": "RAG con atribución → tool que devuelve `search_result` (con `source` y `title`) + citas activadas.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/search-results",
+      "source_quote": "Search result content blocks let Claude cite your own content the same way it cites web search results: each citation carries the source and title you provided.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o18-s26",
+      "objective": 18,
+      "pool": "sim",
+      "scenario": "A procurement team extracts 20 fields from supplier agreements. Following the docs, they enabled citations on all documents, asked for one `field: value` line per field, and parse the lines into JSON in code. Auditors sampled 500 records and found that 2% of fields have a value but no citation attached, and a handful of fields are missing entirely. The lead engineer argues nothing is wrong, because 'the API guarantees citations are valid'. Records feed a payment-terms system, so every stored value must be traceable to the contract. What should the team change?",
+      "options": [
+        "Nothing in code: citations are guaranteed valid pointers, so a line without a citation means the contract lacks that clause.",
+        "Add `output_config.format` alongside citations so the schema forces a citation object to be returned for every field.",
+        "Switch the documents to custom content blocks so that every chunk is forced to receive at least one citation in the response.",
+        "After parsing, check that each field has a value and at least one citation, and route the lines that fail to a retry or review."
+      ],
+      "correct": 3,
+      "why_correct": "Las citas que vuelven sí apuntan a lugares válidos del documento, pero la API no garantiza que cada campo tenga valor ni que tenga al menos una cita. La doc pide chequear las dos cosas después de parsear. Lo que falla va a reintento o revisión antes de entrar al sistema de pagos.",
+      "why_wrong": {
+        "0": "Confunde 'las citas que vienen son válidas' con 'siempre viene una cita'. Un valor sin cita no prueba que la cláusula falte.",
+        "1": "Citations con `output_config.format` devuelve 400.",
+        "2": "Custom content solo cambia la granularidad del chunking; no obliga a citar."
+      },
+      "rule": "Citas válidas ≠ citas presentes. Validá en tu código: valor + al menos una cita por campo.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/citations",
+      "source_quote": "Check that each field has a value and at least one citation. The API doesn’t guarantee either.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

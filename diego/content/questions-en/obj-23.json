@@ -1,0 +1,245 @@
+{
+  "objective": 23,
+  "questions": [
+    {
+      "id": "o23-q21",
+      "objective": 23,
+      "pool": "practice",
+      "scenario": "A platform team runs Claude-based code review from GitHub Actions. Two jobs share one script: a required pre-merge check that posts findings and blocks the merge until it finishes, and a nightly job that re-audits all 1,200 third-party dependencies for license and security risk. To cut spend, the team moved both jobs to the Message Batches API last week. The nightly audit is now 50% cheaper and nobody has complained about it. The pre-merge check, however, has left pull requests blocked for anywhere from 40 minutes to 6 hours, and developers have started adding `[skip-review]` to commit messages. Finance will not approve returning to the previous monthly budget, and the pre-merge check must stay required. What is the most effective change?",
+      "options": [
+        "Keep both jobs on batches but poll the pre-merge batch every 10 seconds instead of every 5 minutes, so results are posted as soon as it ends.",
+        "Keep both jobs on batches and submit each pull request as its own one-request batch, so it is never queued behind other work.",
+        "Move only the pre-merge check back to the synchronous Messages API and keep the nightly dependency audit on the Message Batches API.",
+        "Move both jobs back to the Messages API and add prompt caching to the shared review instructions to recover most of the savings."
+      ],
+      "correct": 2,
+      "why_correct": "El check pre-merge es un flujo bloqueante: alguien espera el resultado para mergear. La Message Batches API no tiene latencia garantizada (puede tardar hasta 24 horas), así que ese job va en la Messages API sincrónica. El audit nocturno sí tolera latencia, así que se queda en batches y conserva el 50% de ahorro.",
+      "why_wrong": {
+        "0": "Hacer polling más seguido no acelera el procesamiento: solo te enterás antes de algo que puede tardar horas. Trata el síntoma.",
+        "1": "Un batch de un solo request sigue siendo asíncrono y sin SLA de latencia. El tamaño del batch no convierte el procesamiento en sincrónico.",
+        "3": "Arregla la latencia, pero tira el 50% de descuento del audit nocturno, que no lo necesitaba. Con el presupuesto congelado, es peor que separar los jobs; el caching no garantiza recuperar ese ahorro."
+      },
+      "rule": "Bloqueante (alguien espera) → Messages API. Tolera horas → Message Batches API. Separá los workloads, no los mezcles.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "source_quote": "Batches might take up to 24 hours for processing, but many complete sooner. Actual processing time depends on the size of the batch, current demand, and your request volume.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o23-q22",
+      "objective": 23,
+      "pool": "practice",
+      "scenario": "An accounts-payable vendor extracts header fields from 8,000 supplier invoices per night. A script builds the batch from a list of file paths, submits it with the Message Batches API, and when `processing_status` is `ended` it reads the `.jsonl` results and writes line N to the invoice at position N of the original list. Each request already carries a `custom_id` such as `inv-000123`, but the loader ignores it. Auditors found that about 15% of invoices in the ERP show totals and vendor names from other documents, and the affected rows change from night to night. Reprocessing any affected invoice on its own always returns the correct values. The team cannot add manual review. Which change addresses the root cause?",
+      "options": [
+        "Join each result line to its source invoice by the custom_id in that line instead of by its position in the .jsonl file.",
+        "Sort the .jsonl lines by their processing timestamps before writing them, so they follow the order the requests were submitted in.",
+        "Split the night's work into eight batches of 1,000 invoices each, so the result order inside every batch stays stable.",
+        "Add the invoice file name to the prompt and ask Claude to echo it back in the JSON, so the loader can check each match."
+      ],
+      "correct": 0,
+      "why_correct": "Los resultados de un batch pueden volver en cualquier orden. El síntoma (datos cruzados que cambian cada noche y que se arreglan reprocesando de a uno) es justo eso. El campo `custom_id` existe para correlacionar cada resultado con su request: hay que joinear por `custom_id`, nunca por posición.",
+      "why_wrong": {
+        "1": "No hay ningún orden garantizado que reconstruir: reordenar por otro criterio sigue sin ser una correlación por id.",
+        "2": "El orden no está garantizado en ningún batch, chico o grande. Achicar el batch solo reduce la frecuencia del error.",
+        "3": "Funciona a medias: depende de que el modelo copie bien un valor, cuando la API ya te da un mecanismo determinístico (`custom_id`) para hacer el match."
+      },
+      "rule": "En Batches, el match resultado↔request es SIEMPRE por `custom_id`. El orden del `.jsonl` no significa nada.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "source_quote": "Batch results can be returned in any order, and might not match the ordering of requests when the batch was created.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o23-q23",
+      "objective": 23,
+      "pool": "practice",
+      "scenario": "A logistics company promises customers that every uploaded customs declaration is extracted and validated within 30 hours. Uploads arrive steadily around the clock. To save cost, extraction runs on the Message Batches API: a cron job collects all pending documents and submits one batch per day at 23:00. Most batches finish in under an hour, but last month 2% of documents breached the SLA. All of them had been uploaded shortly after 23:00 on days when that night's batch took more than 6 hours. Leadership wants to keep batch pricing and will not accept a synchronous path for routine documents. What should the team change?",
+      "options": [
+        "Keep the daily cron but submit at 06:00 instead of 23:00, because demand on the batch service is usually lower in the early morning.",
+        "Keep the daily cron and add a watchdog that cancels any batch still in_progress after 6 hours and resubmits it as a new batch.",
+        "Keep the daily cron and download results while the batch is still running, so finished documents can be loaded before the rest.",
+        "Submit a batch every 4 hours, so no document waits more than about 4 hours before its batch begins its up-to-24-hour processing."
+      ],
+      "correct": 3,
+      "why_correct": "El peor caso es espera hasta el próximo envío + hasta 24 horas de procesamiento. Con un envío diario, un documento que llega a las 23:05 espera casi 24 horas y después puede tardar 24 más: rompe el SLA de 30. Con envíos cada 4 horas, el peor caso es ~4 + 24 = 28 horas, dentro del SLA y con precio de batch.",
+      "why_wrong": {
+        "0": "Mover la hora no cambia el problema: el documento que llega justo después del envío sigue esperando un día entero. Y que la demanda baje a la madrugada no está documentado.",
+        "1": "Cancelar y reenviar reinicia el reloj del procesamiento, y la cancelación puede no ser inmediata: lo empeora.",
+        "2": "Los resultados se pueden acceder cuando terminaron todos los mensajes o a las 24 horas, lo que pase primero. No hay carga incremental mientras corre."
+      },
+      "rule": "SLA con Batches = frecuencia de envío + 24 h de procesamiento máximo. Calculá la ventana de envío a partir del SLA.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "source_quote": "You can access batch results when all messages have completed or after 24 hours, whichever comes first. Batches expire if processing does not complete within 24 hours.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o23-q24",
+      "objective": 23,
+      "pool": "practice",
+      "scenario": "A legal-tech firm extracts clause data from 10,000 contracts in a nightly batch. This morning's results: 9,620 `succeeded`, 260 `errored` with `invalid_request_error` (every one of them a contract longer than the model's context window), 90 `errored` with `api_error`, and 30 `expired`. The on-call runbook says 'if any request fails, resubmit the full batch', which doubles the cost on bad nights and delays the downstream report. The firm wants every contract processed by tonight without paying again for work that already succeeded. What is the most effective recovery?",
+      "options": [
+        "Resubmit all 380 failed and expired requests unchanged in a new batch, reusing the same custom_id values so the results merge cleanly.",
+        "Resubmit only the 380 failed and expired requests by custom_id, after splitting the 260 oversized contracts into smaller chunks.",
+        "Resubmit the full batch with a larger max_tokens value, since validation errors usually mean a response was cut off early.",
+        "Send the 380 failed and expired requests one by one through the Messages API with exponential backoff, keeping the bodies as they are."
+      ],
+      "correct": 1,
+      "why_correct": "Se reenvía solo lo que falló, identificado por `custom_id`. Pero no todo se reenvía igual: un `invalid_request_error` significa que el cuerpo del request está mal (acá, el contrato no entra en el contexto) y hay que arreglarlo antes, por ejemplo partiéndolo en chunks. Los `api_error` y los `expired` se pueden reenviar tal cual.",
+      "why_wrong": {
+        "0": "Casi: reenvía solo lo fallido, pero los 260 con `invalid_request_error` van a fallar otra vez porque el cuerpo no cambió.",
+        "2": "Paga de nuevo los 9,620 que salieron bien, y `max_tokens` controla la salida, no un input que no entra en el contexto.",
+        "3": "Los reintentos con backoff sirven para errores transitorios. Un request inválido falla igual en la Messages API."
+      },
+      "rule": "Falla de batch: reenviá solo por `custom_id`. `invalid_request_error` → arreglá el body; error de servidor o `expired` → reenviá directo.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "source_quote": "Request body must be fixed before re-sending request",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o23-q25",
+      "objective": 23,
+      "pool": "practice",
+      "scenario": "A healthcare analytics team generated a 50,000-request batch for discharge-summary extraction from a script that builds each `params` object, and submitted it on Friday night without trying it first. On Saturday morning `processing_status` was `ended` and every request had come back `errored` with `invalid_request_error`: the model ID in `params` had a typo. The team lost a full day of its processing window. Next week they will submit another 50,000-request batch with a new schema and a new system prompt, built by the same script. What should they add to their process to prevent the same kind of loss?",
+      "options": [
+        "Before submitting, send one request with exactly the same params shape through the synchronous Messages API and confirm it succeeds.",
+        "Submit the next batch in ten chunks of 5,000 and watch the first chunk's request counts, so the rest can be canceled if errors appear.",
+        "Rely on the batch create call to reject malformed params up front, and wrap that call in a try/except that pages on-call when it fails.",
+        "Pin the model ID in a shared constant and enable the SDK's automatic retries, so any failed request is resent without manual work."
+      ],
+      "correct": 0,
+      "why_correct": "La API valida el `params` de cada request de forma asíncrona y devuelve los errores de validación recién cuando termina todo el batch. Por eso la doc recomienda hacer un dry run de la forma del request con la Messages API antes de mandar el batch: en segundos sabés si el request es válido.",
+      "why_wrong": {
+        "1": "Funciona a medias: te enterás recién cuando termina el primer chunk, que también puede tardar horas, y complica la operación.",
+        "2": "Falso: la validación de cada `params` es asíncrona. El `create` puede aceptar el batch y los errores aparecen al final.",
+        "3": "Arregla este typo puntual, pero no protege contra el próximo error (schema o prompt nuevos). Y reintentar un request inválido no lo vuelve válido."
+      },
+      "rule": "Antes de un batch grande: dry run de UN request con la Messages API. Los errores de validación del batch llegan al final.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "source_quote": "The API validates the params object of each message request asynchronously, and returns validation errors when processing of the entire batch has ended. To check that you build your input correctly, verify your request shape with the Messages API first.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o23-s21",
+      "objective": 23,
+      "pool": "sim",
+      "scenario": "A fintech's platform group runs three Claude workloads from its CI system, all currently on the synchronous Messages API: (1) a required security review on every pull request, which must post results within 5 minutes or the merge queue stalls; (2) nightly generation of missing unit tests for about 3,000 files, which developers review the next morning; and (3) a weekly audit of 400 repositories for deprecated internal APIs, read by the architects on Mondays. The CFO requires a 35% cut in total Claude spend this quarter. Workload (1) is 25% of spend, (2) is 45%, and (3) is 30%. The team will not lower model quality. Which plan meets every requirement?",
+      "options": [
+        "Move all three workloads to the Message Batches API, and give the PR security review a 5-minute timeout that falls back to a synchronous call.",
+        "Keep all three workloads on the Messages API and switch the nightly and weekly jobs to a smaller model, which cuts their cost by over 35%.",
+        "Move the PR security review and the weekly audit to batches, and keep test generation synchronous so developers get the tests on time.",
+        "Keep the PR security review on the Messages API, and move nightly test generation and the weekly audit to the Message Batches API."
+      ],
+      "correct": 3,
+      "why_correct": "Los workloads (2) y (3) no requieren respuesta inmediata: son el caso de uso de Batches. Juntos son el 75% del gasto; con 50% de descuento ahorrás 37,5%, más que el 35% pedido. El (1) bloquea el merge con un límite de 5 minutos, así que se queda sincrónico.",
+      "why_wrong": {
+        "0": "El fallback a sincrónico paga dos veces muchos reviews y la mayoría de los PR igual esperaría 5 minutos: con Batches no hay latencia garantizada.",
+        "1": "Viola la restricción explícita de no bajar la calidad del modelo. Batches da el ahorro sin cambiar el modelo.",
+        "2": "Mete en batch justo el workload bloqueante (el review de PR) y deja sincrónico uno que tolera horas: está al revés."
+      },
+      "rule": "Batches = 50% menos para lo que no bloquea a nadie. Hacé la cuenta del gasto por workload antes de decidir.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "source_quote": "This approach is well-suited to tasks that do not require immediate responses, with most batches finishing in less than 1 hour while reducing costs by 50 percent and increasing throughput.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o23-s22",
+      "objective": 23,
+      "pool": "sim",
+      "scenario": "A procurement company classifies 20,000 contract clauses per week with the Message Batches API. Every request starts with the same 55,000-token clause-classification manual, followed by one short clause. A cost review shows the manual accounts for 96% of input tokens. One engineer proposes moving the job to the synchronous Messages API 'because prompt caching only works there'. Another proposes trimming the manual so each request carries only the section relevant to its clause type, which would require a new pre-classification step. Legal insists that every clause be judged against the full manual, and results are only needed by Friday. What is the most effective way to reduce cost?",
+      "options": [
+        "Move the job to the Messages API and add cache_control to the manual, because concurrent batch requests cannot use prompt caching.",
+        "Keep the job on batches and add a pre-classification pass, so each request only includes the manual section for its clause type.",
+        "Keep the job on batches and add cache_control to the shared manual prefix; both discounts stack, though cache hits are best-effort.",
+        "Keep the job on batches and pack all 20,000 clauses into a few very large requests, so the manual is only sent a handful of times."
+      ],
+      "correct": 2,
+      "why_correct": "Batches soporta prompt caching y los descuentos se suman. Como los requests se procesan en paralelo y en cualquier orden, los cache hits son best-effort, pero con un prefijo idéntico de 55k tokens el ahorro es grande y no perdés el 50% del batch ni cambiás el prompt.",
+      "why_wrong": {
+        "0": "La premisa es falsa: el caching funciona en batches. Y pasar a sincrónico tira el 50% de descuento sin necesidad.",
+        "1": "Rompe el requisito de Legal (manual completo para cada cláusula) y suma un paso nuevo que puede clasificar mal.",
+        "3": "Meter miles de cláusulas por request choca con los límites de salida, empeora la calidad por cláusula y perdés la correlación por `custom_id`."
+      },
+      "rule": "Prefijo grande repetido en un batch → `cache_control`. Batch y caching se combinan (hits best-effort).",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "source_quote": "The pricing discounts from prompt caching and Message Batches can stack, providing even greater cost savings when both features are used together. However, because batch requests are processed asynchronously and concurrently, cache hits are provided on a best-effort basis.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o23-s23",
+      "objective": 23,
+      "pool": "sim",
+      "scenario": "A telecom runs a customer-support resolution agent on the Messages API 24/7, with tools for billing lookups, plan changes, and escalation to human agents. Since the analytics team launched a job that re-tags 250,000 closed tickets every night using the same organization and the same Messages API endpoint, the live agent has returned 429 errors to 3–5% of customers between 01:00 and 04:00, which is peak time for the company's Asia region. The re-tagged data is only needed for a 09:00 report. Raising the organization's rate limits is not an option this quarter. What is the most effective fix?",
+      "options": [
+        "Add exponential backoff with jitter to the live agent, so 429 responses are retried until capacity frees up for the customer.",
+        "Submit the nightly re-tagging as a Message Batches job; Batches usage does not count against the Messages API rate limits.",
+        "Throttle the re-tagging job to a fixed number of requests per minute on the Messages API, leaving headroom for the live agent.",
+        "Move the nightly re-tagging window to 05:00–08:00, after the Asia peak, so the two workloads stop overlapping on the Messages API."
+      ],
+      "correct": 1,
+      "why_correct": "La causa es que un job que no necesita latencia compite por los rate limits de la Messages API con un agente en vivo. Pasarlo a la Message Batches API lo saca de esa competencia (Batches tiene sus propios límites y no afecta los de la Messages API), y de paso cuesta la mitad. Para las 09:00 llega de sobra.",
+      "why_wrong": {
+        "0": "Trata el síntoma del lado del cliente: el cliente sigue esperando reintentos y la causa (el job compitiendo) sigue ahí.",
+        "2": "Funciona a medias: siguen compartiendo los mismos límites, hay que tunear el ritmo a mano y 250,000 requests limitados pueden no llegar a las 09:00.",
+        "3": "Corre el problema a otra franja: el soporte es 24/7 y otra región puede tener su pico ahí. Siguen compartiendo límites y no ahorra costo."
+      },
+      "rule": "Job masivo que no es urgente y compite con tráfico en vivo → Message Batches API: no toca los rate limits de la Messages API.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "source_quote": "Usage of the Batches API does not affect rate limits in the Messages API.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o23-s24",
+      "objective": 23,
+      "pool": "sim",
+      "scenario": "A health-insurance company extracts structured fields from 1.2 million scanned claim forms per month with the synchronous Messages API, sending page images. Its agreement with Anthropic includes zero data retention (ZDR), and its compliance office requires that no vendor store claim data beyond what that agreement allows. To halve costs, an architect proposes moving the whole workload to the Message Batches API, since results are only needed the next business day. Before approving the migration, compliance asks the architecture team for a risk review. What is the most important finding the review should report?",
+      "options": [
+        "The Message Batches API is not eligible for ZDR: it stores requests and responses for up to 29 days, so the move would break the agreement.",
+        "The Message Batches API cannot process images, so every claim form would first have to be converted to text in a separate step.",
+        "Batch results are deleted 24 hours after the batch ends, so the loader must download them the same day or the claim data is lost.",
+        "Requests in a batch share a processing context, so one claimant's data could leak into another claimant's results unless split up."
+      ],
+      "correct": 0,
+      "why_correct": "Batches necesita guardar inputs y outputs del lado del servidor hasta que se completan y se descargan, y la doc lo marca como no elegible para ZDR, con retención de hasta 29 días. Para una empresa con ZDR y datos de salud, ese es el hallazgo que frena la migración.",
+      "why_wrong": {
+        "1": "Falso: Batches soporta vision, así que las imágenes se pueden mandar igual que en la Messages API.",
+        "2": "Confunde dos plazos: las 24 horas son el límite de procesamiento; los resultados quedan disponibles 29 días desde la creación del batch.",
+        "3": "Falso: cada request se procesa de forma independiente, sin fuga de datos entre requests."
+      },
+      "rule": "Antes de pasar a Batches por costo, chequeá data handling: Batches no es elegible para ZDR (retención de hasta 29 días).",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "source_quote": "Batch processing stores request and response data for up to 29 days after batch creation.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o23-s25",
+      "objective": 23,
+      "pool": "sim",
+      "scenario": "A bank submitted a 40,000-request batch to extract fields from loan documents. Each `custom_id` encodes the document type, for example `loan-…` for loan agreements and `cn-…` for credit notes. Two hours later, while the batch is still `in_progress`, a reviewer finds a prompt bug that affects only credit notes (about 6,000 requests): it swaps debit and credit amounts. The prompt template had never been tested on a sample of credit notes. Results are needed tomorrow morning, and the bank wants to avoid paying twice for loan documents that were processed correctly. What should the team do?",
+      "options": [
+        "Update the in-progress batch with the corrected prompt for the cn- requests, so the remaining credit notes are processed with the fix.",
+        "Let the batch finish, then post-process the cn- results in code by swapping the debit and credit fields back before loading them.",
+        "Cancel the batch, keep the succeeded loan- results, and resubmit the cn- requests plus any unprocessed loan- requests with the fix.",
+        "Cancel the batch and resubmit all 40,000 requests with the fixed prompt, because a canceled batch discards every result it produced."
+      ],
+      "correct": 2,
+      "why_correct": "Un batch enviado no se puede modificar: hay que cancelarlo y mandar uno nuevo. Un batch cancelado termina en `ended` y puede traer resultados parciales de lo que ya se procesó. Usás los `loan-` que salieron bien, y reenviás por `custom_id` los `cn-` y lo que no llegó a procesarse. La próxima vez, probá el prompt sobre una muestra de cada tipo antes del batch.",
+      "why_wrong": {
+        "0": "No existe la edición de un batch en curso: una vez enviado no se puede modificar.",
+        "1": "Trata el síntoma: asume que el error es siempre un swap limpio. El bug está en el prompt y los resultados de `cn-` no son confiables.",
+        "3": "Casi: cancelar es correcto, pero un batch cancelado conserva los resultados parciales. Reenviar todo paga dos veces lo que ya estaba bien."
+      },
+      "rule": "Batch en curso con bug: no se edita. Cancelá, rescatá los parciales buenos por `custom_id` y reenviá solo lo afectado.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "source_quote": "Canceled batches end up with a status of ended and might contain partial results for requests that were processed before cancellation.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

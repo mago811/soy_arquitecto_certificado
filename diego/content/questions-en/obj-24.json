@@ -1,0 +1,245 @@
+{
+  "objective": 24,
+  "questions": [
+    {
+      "id": "o24-q21",
+      "objective": 24,
+      "pool": "practice",
+      "scenario": "A payments company runs one Claude review prompt per pull request in CI. The prompt asks for security vulnerabilities, business-rule violations (fee rounding, settlement cut-offs) and REST API design issues, and it includes six examples: four API-design findings and two security findings. A sample audit of last quarter shows API-design recall at 88% but security recall at 41%, and three injection bugs reached staging. The team can afford up to three model calls per PR, the CI step must finish within 8 minutes, and calls can run in parallel. What is the most effective change?",
+      "options": [
+        "Keep the single prompt and add four more security examples, so the examples are balanced across the three concerns.",
+        "Split the review into three parallel passes, one per concern, each with its own focused instructions and 3–5 examples.",
+        "Keep the single prompt and move the security instructions to the top with an IMPORTANT marker so they get more weight.",
+        "Run the same combined prompt three times in parallel and keep only the findings that appear in at least two of the runs."
+      ],
+      "correct": 1,
+      "why_correct": "El problema es que tres temas compiten dentro de un mismo prompt, y los ejemplos tiran hacia diseño de API. Partir la tarea en subtareas, un prompt por tema con sus propios ejemplos, baja esa inconsistencia. Entran en las tres llamadas permitidas y, al correr en paralelo, en los 8 minutos.",
+      "why_wrong": {
+        "0": "Mejora un poco el balance, pero los tres temas siguen compitiendo en el mismo prompt. Trata el síntoma.",
+        "2": "Más énfasis en el texto no saca la competencia entre temas; es empujar con palabras lo que es un problema de diseño.",
+        "3": "Votar entre corridas del MISMO prompt mejora la consistencia, no el recall de seguridad. Y quedarte con lo repetido baja el recall todavía más."
+      },
+      "rule": "Varios temas de review en un prompt compiten entre sí → una pasada por tema, cada una con sus ejemplos.",
+      "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/increase-consistency",
+      "source_quote": "Break down complex tasks into smaller, consistent subtasks. Each prompt then covers a single subtask, reducing inconsistency errors across scaled workflows.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o24-q22",
+      "objective": 24,
+      "pool": "practice",
+      "scenario": "An e-commerce team already runs three separate review passes per pull request with Claude Opus 5 (security, business logic and API design), each with its own examples. Developers complained about noisy PR comments, so the team added this line to every pass: 'Be conservative. Only report high-severity issues.' Comment volume dropped 70%, but a postmortem found that two of the last five production incidents had been flagged as medium severity in earlier runs, before the change, and were now silently dropped. The team still wants short PR comments. What should they change?",
+      "options": [
+        "Remove the line from the security pass only, and keep it in the business-logic and API-design passes where noise matters more.",
+        "Replace the line with 'Report only issues you are at least 90% confident about' so the model filters by confidence, not severity.",
+        "Merge the three passes back into one pass that keeps the conservative line, so a single threshold applies to every concern.",
+        "Have each pass report every finding with a severity field, and apply the high-severity filter for PR comments in a separate step."
+      ],
+      "correct": 3,
+      "why_correct": "Con Opus 5, una instrucción tipo \"solo severidad alta\" o \"sé conservador\" se cumple al pie de la letra y el modelo reporta menos. La doc recomienda pedir que reporte todo y filtrar en una pasada aparte. Así el filtro es explícito y medible y los comentarios del PR siguen cortos.",
+      "why_wrong": {
+        "0": "Arregla solo una pasada: los incidentes de lógica de negocio o API se siguen perdiendo por la misma instrucción.",
+        "1": "Es el mismo patrón con otra métrica: el modelo sigue filtrando adentro de la pasada y baja el recall.",
+        "2": "Deshace la separación por tema, que era lo que estaba bien, y deja el filtro que causa el problema."
+      },
+      "rule": "No pidas \"solo lo grave\" adentro del review: pedí todo con severidad y filtrá en otro paso.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5",
+      "source_quote": "If your review prompt says “only report high-severity issues” or “be conservative,” the model might follow that instruction literally and report less; ask it to report everything and filter in a separate pass instead.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o24-q23",
+      "objective": 24,
+      "pool": "practice",
+      "scenario": "A SaaS company has a dedicated business-logic review pass that runs on every pull request in its Claude Code CI job. The pass's prompt includes four examples of good findings, all taken from the billing module and all about currency rounding. Since launch the pass catches rounding bugs reliably, but it misses business-rule violations in the shipping and entitlements modules (an audit measured 23% recall there), and it sometimes flags correct rounding code in unrelated modules as suspicious. The team does not want to add more model calls per PR. What is the most effective improvement?",
+      "options": [
+        "Replace the examples with 3–5 diverse ones covering billing, shipping and entitlement rules, wrapped in example tags.",
+        "Keep the four billing examples and add a sentence telling Claude that the examples are illustrative and not exhaustive.",
+        "Remove all the examples and rely on a longer, more detailed written description of every module's business rules instead.",
+        "Split the pass into one pass per module, each reusing the same four billing examples as a reference for the output format."
+      ],
+      "correct": 0,
+      "why_correct": "Los ejemplos son de lo que más dirige la salida, para bien y para mal: cuatro ejemplos iguales le enseñaron que \"lógica de negocio = redondeo\". La doc pide ejemplos relevantes y diversos que cubran los casos borde, de 3 a 5, envueltos en tags `<example>`. No suma llamadas.",
+      "why_wrong": {
+        "1": "Una aclaración no compensa cuatro ejemplos sesgados. El patrón no deseado sigue ahí.",
+        "2": "Sacar los ejemplos tira una de las formas más fiables de guiar formato y criterio. Una descripción abstracta suele rendir menos.",
+        "3": "Viola la restricción de no sumar llamadas, y cada pasada sigue viendo ejemplos que no representan su módulo."
+      },
+      "rule": "Few-shot de una pasada: 3–5 ejemplos diversos que cubran los casos reales, no cuatro copias del mismo caso.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Cover edge cases and vary enough that Claude doesn’t pick up unintended patterns.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o24-q24",
+      "objective": 24,
+      "pool": "practice",
+      "scenario": "A 40-developer team uses Claude Code in a monorepo. They created one subagent, `.claude/agents/reviewer.md`, whose system prompt covers security, performance and accessibility review in a single list of 60 checklist items, with tools limited to Read, Grep and Glob. Developers report that reviews of frontend changes are dominated by performance nitpicks and miss accessibility problems such as unlabeled inputs, while backend reviews skip authorization checks. The team wants each concern reviewed with its own focus and its own examples, and Claude should pick the right reviewer on its own. What should they do?",
+      "options": [
+        "Move the 60 checklist items into the project CLAUDE.md so every session sees them, and keep the single reviewer subagent.",
+        "Keep the single subagent but split its system prompt into three headed sections and order the items by priority within each.",
+        "Create separate security, performance and accessibility subagents, each with a focused prompt, its own examples and a specific description.",
+        "Keep the single subagent and give it Bash access, so it can run linters for performance and accessibility before writing its review."
+      ],
+      "correct": 2,
+      "why_correct": "En Claude Code, cada subagente tiene su propio system prompt y su propio contexto: un subagente por tema es la pasada especializada. Y Claude elige a quién delegar según la `description` de cada uno, así que una descripción específica por subagente cumple lo de \"elegir solo\".",
+      "why_wrong": {
+        "0": "Meter el checklist en `CLAUDE.md` lo carga en todas las sesiones y no separa los temas: siguen compitiendo en un mismo contexto.",
+        "1": "Ordenar mejor el mismo prompt no cambia que los tres temas compitan en una sola pasada.",
+        "3": "Los linters resuelven otro problema. No separan los temas ni arreglan la falta de foco del review."
+      },
+      "rule": "Review especializado en Claude Code → un subagente por tema, con prompt propio y `description` precisa para que Claude delegue bien.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "Claude uses each subagent's description to decide when to delegate tasks. When you create a subagent, write a clear description so Claude knows when to use it.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o24-q25",
+      "objective": 24,
+      "pool": "practice",
+      "scenario": "A platform team replaced its three-call review pipeline (security, business logic, API design) with one agentic call: Claude Opus 5 receives the diff and is told to 'review for all three concerns, delegating internally as needed', and the pipeline posts its final comment. Cost and latency are similar. But when developers dispute a finding, the team can no longer tell which concern produced it, and the weekly false-positive report, which used to be broken down per concern, now shows only a total of 31%. The team needs to tune each concern's prompt separately. What should they do?",
+      "options": [
+        "Keep the single call and ask Claude to prefix each finding with a concern tag such as [SEC], [BIZ] or [API] in the final comment.",
+        "Go back to separate chained calls per concern, so each pass's intermediate output can be logged, evaluated and tuned on its own.",
+        "Keep the single call and raise its effort level, since a more thorough review should lower the 31% false-positive rate overall.",
+        "Keep the single call and add a final instruction asking Claude to self-check every finding before it writes the comment."
+      ],
+      "correct": 1,
+      "why_correct": "La doc dice que encadenar llamadas explícitas sigue sirviendo cuando necesitás inspeccionar las salidas intermedias. Acá eso es justo lo que falta: medir y ajustar cada tema por separado. Con una llamada por tema, cada salida se loguea, se evalúa y se tunea con su propio prompt.",
+      "why_wrong": {
+        "0": "Casi: las etiquetas te dejan atribuir hallazgos, pero sigue habiendo un solo prompt. No podés tunear un tema sin tocar los otros ni ver qué hizo cada pasada.",
+        "2": "Más esfuerzo puede cambiar el total, pero no te devuelve la visibilidad por tema que necesitás para tunear.",
+        "3": "Un auto-chequeo dentro de la misma llamada no da salidas intermedias observables por tema."
+      },
+      "rule": "Si necesitás medir y tunear cada pasada → llamadas encadenadas explícitas, no un solo agente que hace todo adentro.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Explicit prompt chaining (breaking a task into sequential API calls) is still useful when you need to inspect intermediate outputs or enforce a specific pipeline structure.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o24-s21",
+      "objective": 24,
+      "pool": "sim",
+      "scenario": "A health-tech company split its PR review into three parallel API passes: security, business logic and API design. To keep a single prompt template, every pass receives the same examples block with nine findings, three per concern. After the split, security recall rose from 45% to 61%, still below the 80% target, and 22% of the security pass's findings turn out to be business-logic or API-style issues that duplicate comments from the other passes. Token cost per PR is acceptable, and the team does not want to add a fourth pass. What change best addresses the remaining problem?",
+      "options": [
+        "Give each pass only its own concern's examples, 3–5 per pass, so every prompt is focused on a single concern end to end.",
+        "Keep the shared examples block but add a line to each pass saying 'ignore any examples that do not belong to your concern'.",
+        "Add a deduplication step that drops security findings overlapping with the other two passes' findings before posting.",
+        "Merge the business-logic and API-design passes into one, so the security pass has fewer competing examples to imitate."
+      ],
+      "correct": 0,
+      "why_correct": "Separaron las pasadas pero no los ejemplos: la pasada de seguridad sigue viendo ejemplos de negocio y de API, y los imita. Cada pasada tiene que cubrir una sola subtarea de punta a punta, ejemplos incluidos. Con 3–5 ejemplos propios por tema se arregla el recall y el ruido cruzado.",
+      "why_wrong": {
+        "1": "Una instrucción para ignorar ejemplos pelea contra uno de los mecanismos que más dirige la salida. Funciona a medias.",
+        "2": "Trata el síntoma (duplicados) y no mejora el recall de seguridad, que sigue diluido por los ejemplos ajenos.",
+        "3": "No toca la pasada de seguridad, que sigue recibiendo los mismos nueve ejemplos mezclados."
+      },
+      "rule": "Una pasada por tema = instrucciones Y ejemplos propios. Ejemplos compartidos vuelven a mezclar los temas.",
+      "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/increase-consistency",
+      "source_quote": "Break down complex tasks into smaller, consistent subtasks. Each prompt then covers a single subtask, reducing inconsistency errors across scaled workflows.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o24-s22",
+      "objective": 24,
+      "pool": "sim",
+      "scenario": "A marketplace's CI runs three focused review passes per pull request with Claude (security, business logic, API design), and each pass is told to report every candidate finding. Recall is now above target for all three, but 28% of posted comments are false positives, mostly findings already handled elsewhere in the code (for example, input that is validated by a middleware the pass never read). Developers have started ignoring the bot. The team must keep recall where it is now. What should they add to the architecture?",
+      "options": [
+        "Add 'Avoid false positives; only report issues you are certain about' to each of the three review pass prompts.",
+        "Raise the minimum severity for posting to high in each pass's prompt, and drop all medium and low findings from the output.",
+        "Give each pass the entire repository as context instead of the diff, so it can see the middleware and validation code too.",
+        "Add a verification step that checks each candidate finding against the surrounding code and filters out false positives."
+      ],
+      "correct": 3,
+      "why_correct": "Es la arquitectura que usa el propio Code Review de Claude Code: varios agentes buscan en paralelo y después un paso de verificación contrasta cada hallazgo candidato con el código y descarta los falsos positivos. Las pasadas siguen reportando todo (recall intacto) y el filtro queda en un paso aparte.",
+      "why_wrong": {
+        "0": "Pedir certeza adentro de cada pasada hace que reporten menos: baja justo el recall que hay que mantener.",
+        "1": "Filtrar por severidad no ataca los falsos positivos (un hallazgo falso puede ser \"high\") y tira hallazgos reales medianos.",
+        "2": "Meter todo el repo en el contexto es caro, puede no entrar y diluye el foco. Lo que hace falta es verificar cada hallazgo contra el código relevante."
+      },
+      "rule": "Recall alto + muchos falsos positivos → agregá un paso de verificación de hallazgos, no restricciones dentro de cada pasada.",
+      "source_url": "https://code.claude.com/docs/en/code-review",
+      "source_quote": "Verify: a verification step checks the candidate findings against the code and filters out false positives.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o24-s23",
+      "objective": 24,
+      "pool": "sim",
+      "scenario": "A gaming company runs three focused review passes on every pull request with Claude Opus 5 at effort `xhigh`: security, gameplay business rules and public API design. Each pass reports everything, and a separate step filters what gets posted. Quality is excellent, but the review step now takes 14 minutes and the merge-queue SLA is 6 minutes. The team cannot drop any concern and does not want to merge the passes back into one prompt. What is the most effective way to meet the SLA without losing review coverage?",
+      "options": [
+        "Move the three passes to the Message Batches API at effort xhigh, which halves the cost and lets them all run in parallel at scale.",
+        "Run the passes at a lower effort at PR time to meet the SLA, and add a more thorough high-effort pass later, such as nightly.",
+        "Keep effort xhigh but limit each pass to the 20 most-changed files of the diff, so every call finishes faster and stays focused.",
+        "Keep effort xhigh and run only the security pass on every PR, rotating business rules and API design across alternating PRs."
+      ],
+      "correct": 1,
+      "why_correct": "La guía de Opus 5 dice que la precisión del review se mantiene con esfuerzo más bajo, y eso habilita una pasada rápida al momento del PR y una más exhaustiva después. Mantenés los tres temas en cada PR, entrás en el SLA y la pasada profunda corre fuera del camino crítico.",
+      "why_wrong": {
+        "0": "Batches no tiene latencia garantizada: meter un paso bloqueante del merge ahí rompe el SLA todavía más.",
+        "2": "Cortar el diff deja código sin revisar: pierde cobertura, que era la restricción.",
+        "3": "Rotar temas entre PRs deja la mitad de los PRs sin review de negocio o de API: pierde cobertura."
+      },
+      "rule": "Review en el camino crítico con SLA → pasada rápida con menos esfuerzo ahora y pasada profunda después.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5",
+      "source_quote": "Accuracy holds at lower effort settings, which supports a fast pass at review time and a more thorough pass later.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o24-s24",
+      "objective": 24,
+      "pool": "sim",
+      "scenario": "In Claude Code, a fintech team has a `security-reviewer` subagent that inspects each diff and usually produces 10–25 candidate findings. To cut false positives, the team wants every candidate finding double-checked against the code independently and in parallel, without the checks seeing each other's reasoning and without filling the reviewer's own context with file contents. Today the reviewer verifies findings one after another in its own context; on large PRs it hits automatic compaction and loses track of earlier findings. Which design best fits what the Claude Code documentation describes?",
+      "options": [
+        "Move the verification steps into the project CLAUDE.md as a checklist that the security-reviewer must follow before it reports.",
+        "Keep sequential verification in the reviewer and raise CLAUDE_AUTOCOMPACT_PCT_OVERRIDE, so compaction happens later on big PRs.",
+        "Have the security-reviewer dispatch a nested verifier subagent per finding, each in its own context, and wait for their reports.",
+        "Have the main conversation verify all findings after the reviewer returns, since it already holds the diff and the reviewer's notes."
+      ],
+      "correct": 2,
+      "why_correct": "La doc de subagentes da este caso como ejemplo de subagentes anidados: un reviewer que lanza un verificador por hallazgo. Cada verificador tiene su propio contexto (no ve el razonamiento de los otros ni llena el del reviewer), corren en paralelo y por defecto el reviewer espera sus reportes.",
+      "why_wrong": {
+        "0": "Un checklist en `CLAUDE.md` es guía: la verificación sigue siendo secuencial y en el mismo contexto que se llena.",
+        "1": "Posterga la compactación pero no aísla las verificaciones ni las paraleliza. Trata el síntoma.",
+        "3": "Mueve el problema al contexto principal, que se llena de contenidos de archivos, y las verificaciones siguen sin ser independientes."
+      },
+      "rule": "Pasada de verificación por hallazgo, aislada y en paralelo → subagentes anidados (un verificador por hallazgo).",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "Nested subagents suit a delegated task that itself splits into parallel subtasks, such as a reviewer subagent that dispatches a verifier per finding.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o24-s25",
+      "objective": 24,
+      "pool": "sim",
+      "scenario": "A consulting firm's multi-agent research system ends with a synthesis agent that writes a 12-page market report. The last step today is a single call: 'Review the report for factual accuracy against the sources, citation formatting and executive tone, then output the corrected report.' QA finds that tone edits are reliable, but 19% of reports still contain claims that contradict their cited source. When that happens, nobody can tell whether the review missed the claim or the rewrite reintroduced it. The firm now needs an audit trail for every correction. What is the most effective redesign?",
+      "options": [
+        "Split it into separate calls: review the draft against each criterion, then refine it based on the review, logging each step's output.",
+        "Keep the single call but ask Claude to append a change log listing every edit it made at the end of the corrected report.",
+        "Keep the single call and add few-shot examples of correctly cited claims, so the reviewer gets better at spotting contradictions.",
+        "Run the single review-and-rewrite call twice in a row, feeding the output of the first run into the second as the new draft."
+      ],
+      "correct": 0,
+      "why_correct": "Es el patrón de self-correction de la doc: borrador → review contra criterios → refinamiento, cada paso en una llamada aparte para poder loguear, evaluar o bifurcar. Así ves qué detectó el review y qué cambió el refinamiento: ese es el audit trail que piden.",
+      "why_wrong": {
+        "1": "El change log lo escribe el mismo modelo que hizo el cambio: no es una salida intermedia independiente y puede omitir justo el error.",
+        "2": "Puede mejorar la detección, pero no da trazabilidad: seguís sin saber si falló el review o el rewrite.",
+        "3": "Duplica una caja negra: no separa revisar de corregir ni deja salidas intermedias auditables."
+      },
+      "rule": "Si necesitás auditar cada corrección → separá review y refinamiento en llamadas distintas y logueá cada paso.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Each step is a separate API call so you can log, evaluate, or branch at any point.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

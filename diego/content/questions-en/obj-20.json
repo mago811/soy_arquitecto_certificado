@@ -1,0 +1,269 @@
+{
+  "objective": 20,
+  "questions": [
+    {
+      "id": "o20-q21",
+      "objective": 20,
+      "pool": "practice",
+      "scenario": "A payments team uses Claude Code for long exploration sessions in a large monorepo. Their security rule 'Never log card numbers, CVV, or full PAN; use the masked `last4` field' lives in `.claude/rules/payments-logging.md` with `paths: [\"src/payments/**\"]`. Early in a three-hour session Claude read several payments files and followed the rule. After automatic compaction, while answering design questions and drafting a logging helper in `src/shared/telemetry/`, Claude proposed logging `card.number`. `/context` shows the rule is no longer loaded. The security lead wants the rule in force for the whole session, including after compaction and in files outside `src/payments/`. What should the team do?",
+      "options": [
+        "Run `/compact focus on the payments logging rule` before each long task so the summary keeps the rule text intact.",
+        "Drop the `paths:` frontmatter or move the rule into the project-root CLAUDE.md, which is re-injected from disk after compaction.",
+        "Add a nested `src/payments/CLAUDE.md` containing the same rule, since nested CLAUDE.md files persist across compaction.",
+        "Lower the auto-compact window with `/autocompact` so compaction runs earlier and the rule is still recent when it is summarized."
+      ],
+      "correct": 1,
+      "why_correct": "Las reglas con `paths:` entran al historial cuando Claude toca un archivo que las dispara, así que la compactación las resume junto con todo lo demás. La doc lo dice directo: si una regla tiene que sobrevivir a la compactación, sacale el `paths:` o movela al CLAUDE.md raíz, que se re-inyecta desde disco.",
+      "why_wrong": {
+        "0": "El foco del resumen ayuda, pero sigue siendo un resumen: no garantiza la regla textual, y hay que acordarse cada vez.",
+        "2": "Los CLAUDE.md anidados se comportan igual que las reglas con `paths:`: se recargan bajo demanda, no después de compactar.",
+        "3": "Cambia cuándo compacta, no qué sobrevive; la regla igual se resume."
+      },
+      "rule": "¿Tiene que sobrevivir a la compactación? CLAUDE.md raíz o regla sin `paths:`. Lo condicional se recarga solo al tocar el archivo.",
+      "source_url": "https://code.claude.com/docs/en/context-window",
+      "source_quote": "Path-scoped rules and nested CLAUDE.md files load into message history when Claude reads, writes, or edits their trigger file, so compaction summarizes them away with everything else. If a rule must persist across compaction, drop the `paths:` frontmatter or move it to the project-root CLAUDE.md.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o20-q22",
+      "objective": 20,
+      "pool": "practice",
+      "scenario": "A developer at a tax-software company, working in PowerShell on Windows, is planning the removal of a legacy `TaxCalculator` class from a 2,400-file monorepo with Claude Code. She asked Claude to find every caller; Claude ran broad searches and read about 60 files in the main conversation. Since then, Claude's answers about the removal plan have become generic ('typical patterns are...') instead of naming the specific classes it found, and `/context` shows messages filling most of the window. She still needs to map three more legacy classes the same way and then spend two hours refining the plan in this session. What approach best keeps the main conversation coherent for the remaining exploration?",
+      "options": [
+        "Keep exploring in the main conversation and run `/compact focus on callers` after each class has been fully mapped.",
+        "Run `/clear` before mapping each class so that every new search starts from an empty main conversation.",
+        "Switch to a 1M-token model variant so the remaining searches and file reads fit without compaction for the rest of the session.",
+        "Delegate each class search to the Explore subagent and ask for a short summary of the callers with file paths and line references."
+      ],
+      "correct": 3,
+      "why_correct": "Explore busca y analiza el código en su propio contexto y devuelve solo el resumen, así los resultados de exploración no inundan la conversación principal. Es el patrón para las tres clases que faltan: el hilo principal queda para el plan.",
+      "why_wrong": {
+        "0": "Casi: ayuda a recortar después del daño, pero cada búsqueda vuelve a llenar el hilo y cada `/compact` resume (y puede perder) detalles del plan.",
+        "1": "`/clear` borra también el plan y las decisiones que necesita para las dos horas siguientes.",
+        "2": "Más ventana no evita la degradación: con más tokens baja la precisión del recuerdo; el problema es el contenido verboso en el hilo."
+      },
+      "rule": "Exploración verbosa → subagente (Explore) que devuelve resumen. El hilo principal guarda el entendimiento de alto nivel.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "Claude delegates to Explore when it needs to search or understand a codebase without making changes. This keeps exploration results out of your main conversation context.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o20-q23",
+      "objective": 20,
+      "pool": "practice",
+      "scenario": "A platform team asks Claude Code to audit 12 microservices for retry and timeout configuration before a migration. Claude spawns 12 subagents in parallel, one per service. Each returns a detailed report of about 6,000 tokens with config excerpts and reasoning, so roughly 72,000 tokens land in the main conversation at once. Afterwards the main session compacts, and its cross-service comparison misses three services entirely. The team wants to keep the parallel exploration but have the main conversation stay focused on comparing services, while the full details remain available for later review. Which change is most effective?",
+      "options": [
+        "Have each subagent write its full report to a file and return only a short summary with the file path to the main conversation.",
+        "Limit the run to three subagents at a time so fewer reports land in the main conversation at the same moment.",
+        "Use forked subagents so each one already shares the main context and therefore needs to explain less in its report.",
+        "Set `model: haiku` on the audit subagents so their reports are cheaper to generate and return to the main conversation."
+      ],
+      "correct": 0,
+      "why_correct": "Cuando muchos subagentes devuelven resultados detallados, consumen mucho contexto del hilo principal. La doc recomienda pedir resúmenes cortos para que veinte resultados no llenen tu contexto. Guardar el detalle en archivos mantiene todo disponible para revisar sin cargar el hilo.",
+      "why_wrong": {
+        "1": "Baja el pico pero el total que llega al hilo es el mismo: 72k tokens igual.",
+        "2": "Un fork hereda la conversación, pero su resultado igual vuelve al hilo principal; no achica los reportes.",
+        "3": "`haiku` baja el costo, no el largo de lo que vuelve; el contexto se llena igual."
+      },
+      "rule": "Subagentes en paralelo → resúmenes cortos de vuelta; el detalle a archivos (scratchpad).",
+      "source_url": "https://code.claude.com/docs/en/best-practices",
+      "source_quote": "Ask for short summaries back, so twenty results don't fill your context anyway.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o20-q24",
+      "objective": 20,
+      "pool": "practice",
+      "scenario": "A team of four engineers at a logistics company is reverse-engineering an undocumented routing engine with Claude Code over two weeks. Each engineer starts fresh sessions every morning, and every session spends 20–25 minutes rediscovering the same entry points, the same misleading legacy module, and the same queue topology. They already created a custom `routing-explorer` subagent. They want what one engineer's sessions learn about the codebase to be reused by later sessions, including teammates' sessions, and reviewed like any other change. What is the best configuration?",
+      "options": [
+        "Add `memory: user` to the `routing-explorer` subagent so its notes persist across conversations for whoever runs it.",
+        "Have each engineer reopen yesterday's session with `claude --continue` so all earlier file reads stay in context.",
+        "Add `memory: project` to the `routing-explorer` subagent and ask it to check and update its memory around each task.",
+        "Paste the previous day's full transcript into the project CLAUDE.md so that every session loads the complete exploration history."
+      ],
+      "correct": 2,
+      "why_correct": "El campo `memory` le da al subagente un directorio persistente que sobrevive entre conversaciones. El scope `project` es el recomendado y hace que ese conocimiento se comparta por control de versiones: lo ven los compañeros y se revisa como cualquier cambio.",
+      "why_wrong": {
+        "0": "Casi: `user` también persiste, pero queda en la máquina de cada uno; no se comparte con el equipo ni pasa por revisión.",
+        "1": "Sirve para una persona y un día, pero arrastra el contexto viejo y no llega a los compañeros.",
+        "3": "Mete miles de tokens de ruido en cada sesión de todos; CLAUDE.md es para instrucciones, no para transcripts."
+      },
+      "rule": "Conocimiento del subagente para el equipo → `memory: project` (se versiona). `user` = solo vos.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "`project` is the recommended default scope. It makes subagent knowledge shareable via version control.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o20-q25",
+      "objective": 20,
+      "pool": "practice",
+      "scenario": "A developer has spent two hours with Claude Code mapping an authentication module: Claude ran many searches, read long log files, and together they agreed on three invariants and several design decisions. `/context` now shows about 85% usage. Next she will start a long task implementing changes in the billing module, which depends on those invariants and decisions. An earlier automatic compaction in another session kept log details and dropped decisions she cared about. She wants to keep the invariants and decisions, drop the exploration noise, and stay in this session. What should she do right now?",
+      "options": [
+        "Run `/clear` and paste the three invariants into the first prompt of the new billing conversation before starting the task.",
+        "Run `/autocompact` with a higher token count so the automatic pass waits longer and keeps more of the auth discussion intact.",
+        "Run `/context` to see which categories are largest, then let automatic compaction trigger naturally during the billing work.",
+        "Run `/compact` with focus instructions to keep the auth invariants and design decisions, before starting the billing task."
+      ],
+      "correct": 3,
+      "why_correct": "La doc recomienda compactar con foco antes de una tarea nueva y larga: el resumen guarda lo que vos elegís en vez de lo que adivina la pasada automática. Es exactamente lo que necesita: conservar invariantes y decisiones y tirar el ruido de la exploración.",
+      "why_wrong": {
+        "0": "Funciona a medias: conserva los tres invariantes pero pierde las demás decisiones, y depende de que ella las reescriba a mano.",
+        "1": "Postergar la compactación no cambia qué se conserva; cuando corra, la pasada automática vuelve a adivinar.",
+        "2": "`/context` solo diagnostica; dejar que compacte sola repite el problema que ya vio."
+      },
+      "rule": "Antes de una tarea larga nueva: `/compact` con foco en lo que querés conservar.",
+      "source_url": "https://code.claude.com/docs/en/context-window",
+      "source_quote": "Compact with a focus: run `/compact` with instructions, like `/compact focus on the auth bug fix`, before starting a long new task. The summary keeps what you choose instead of what the automatic pass guesses is important.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o20-s21",
+      "objective": 20,
+      "pool": "sim",
+      "scenario": "A team of 40 developers uses Claude Code on Windows. A `SessionStart` hook with matcher `startup` runs `powershell.exe` with `.claude\\hooks\\module-map.ps1`, which generates a current map of service owners and module boundaries from the repo and prints it to stdout; the map changes several times a day as services move. In long exploration sessions, after automatic compaction, Claude stops using the module map and starts guessing ownership; several wrong-team PR assignments followed. The team wants the map back in context after every compaction, always reflecting the current repo state. What change is most effective?",
+      "options": [
+        "Move the generated module map into the project-root CLAUDE.md, since that file is re-injected from disk after compaction.",
+        "Register the same script under a `SessionStart` hook with the `compact` matcher so its output is re-added after each compaction.",
+        "Register the script as a `PostToolUse` hook on every tool, so the map is re-injected after each tool call during exploration.",
+        "Ask developers to run `/compact focus on the module map` manually so the summary carries the hook's output forward each time."
+      ],
+      "correct": 1,
+      "why_correct": "El contexto que agregaron hooks antes se resume con el resto de la conversación al compactar. La doc indica usar un `SessionStart` hook con matcher `compact` para re-inyectar contexto crítico después de cada compactación. Al ser el mismo script, el mapa sale siempre actualizado.",
+      "why_wrong": {
+        "0": "Casi: CLAUDE.md sí sobrevive, pero es texto estático; un mapa que cambia varias veces al día quedaría desactualizado o habría que regenerarlo a mano.",
+        "2": "Re-inyectar el mapa en cada tool call llena el contexto de copias repetidas: empeora justo lo que se quiere cuidar.",
+        "3": "Depende de que 40 personas se acuerden, y un resumen no garantiza el mapa completo."
+      },
+      "rule": "Contexto dinámico de hooks que se pierde al compactar → `SessionStart` con matcher `compact`.",
+      "source_url": "https://code.claude.com/docs/en/hooks-guide",
+      "source_quote": "Use a `SessionStart` hook with a `compact` matcher to re-inject critical context after every compaction.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o20-s22",
+      "objective": 20,
+      "pool": "sim",
+      "scenario": "After reading about context isolation, a team lead added this line to the project CLAUDE.md: 'Always delegate any file lookup or code question to a subagent, even small ones.' Now, during a debugging session where Claude has already read `invoice_service.py` and its tests, a quick follow-up like 'which function rounds the tax?' spawns a subagent that re-reads the same files. Developers report these follow-ups take about three times longer than before and `/usage` shows subagent tokens rising 40%. Wide searches across the repo still benefit from delegation. What is the best adjustment?",
+      "options": [
+        "Keep the rule but set `model: haiku` on the lookup subagent so each delegated follow-up returns faster and costs less.",
+        "Have delegated lookups run in the background so the main conversation keeps working while each one gathers its context.",
+        "Answer targeted questions about already-read code in the main conversation and delegate only wide searches or verbose output.",
+        "Route every lookup to Explore at the `quick` thoroughness level, including follow-ups about code that has already been read."
+      ],
+      "correct": 2,
+      "why_correct": "Un subagente nuevo primero tiene que juntar el contexto que tu conversación ya tenía, así que puede terminar siendo más lento que hacerlo donde estás. Los subagentes valen la pena para salida larga o búsquedas amplias, no para preguntas puntuales sobre código ya leído.",
+      "why_wrong": {
+        "0": "Abarata cada llamada, pero sigue re-leyendo archivos que ya están en contexto; no ataca la causa.",
+        "1": "En segundo plano igual tiene que juntar el contexto desde cero; la respuesta llega igual de tarde.",
+        "3": "`quick` reduce la profundidad, pero Explore también arranca sin el contexto del hilo y re-lee."
+      },
+      "rule": "Subagente = aislar ruido o paralelizar. Pregunta puntual sobre código ya leído → en el hilo principal.",
+      "source_url": "https://code.claude.com/docs/en/best-practices",
+      "source_quote": "a fresh subagent first has to gather context your conversation already had, so it can end up slower than doing the task where you are.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o20-s23",
+      "objective": 20,
+      "pool": "sim",
+      "scenario": "A fintech with 40 developers runs long Claude Code sessions to explore and refactor a legacy ledger service. Reviewing transcripts, the tech lead sees that automatic compaction summaries keep casual discussion but often drop recent test output and the list of files changed, so after compaction Claude re-runs tests and re-reads files it just edited. Some developers fix this by typing `/compact focus on test output and code changes` manually, but most sessions compact automatically. The lead wants every developer's compactions, including automatic ones, to prioritize test output and code changes. What should the team do?",
+      "options": [
+        "Ask every developer to run `/compact focus on test output and code changes` before auto-compaction triggers in long sessions.",
+        "Add a `SessionStart` hook with the `compact` matcher that prints 'focus on test output and code changes' after compaction.",
+        "Add a path-scoped rule under `.claude/rules/` with `paths: [\"tests/**\"]` that tells Claude what to preserve when compacting.",
+        "Add a 'Compact Instructions' section to the project-root CLAUDE.md that says to focus on test output and code changes."
+      ],
+      "correct": 3,
+      "why_correct": "La doc da dos formas de controlar qué conserva la compactación: una sección 'Compact Instructions' en CLAUDE.md o `/compact` con foco. La sección en el CLAUDE.md del proyecto vale para todo el equipo y también para las compactaciones automáticas, que es el requisito.",
+      "why_wrong": {
+        "0": "Casi: `/compact` con foco funciona, pero es manual y por persona; no cubre las pasadas automáticas.",
+        "1": "El hook agrega texto DESPUÉS de compactar; no cambia qué conservó el resumen.",
+        "2": "Una regla con `paths:` se carga solo al tocar esos archivos y ella misma se resume al compactar."
+      },
+      "rule": "Guiar la compactación para todo el equipo → 'Compact Instructions' en el CLAUDE.md raíz.",
+      "source_url": "https://code.claude.com/docs/en/how-claude-code-works",
+      "source_quote": "To control what's preserved during compaction, add a \"Compact Instructions\" section to CLAUDE.md or run `/compact` with a focus (like `/compact focus on the API changes`).",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o20-s24",
+      "objective": 20,
+      "pool": "sim",
+      "scenario": "An engineer is hunting an intermittent race condition across three services with Claude Code. Over a five-hour session, Claude forms and tests hypotheses (lock ordering, retry storm, clock skew), ruling some out with specific evidence such as log lines and timings. After two automatic compactions, Claude proposes re-testing 'lock ordering', which it had already disproved, and cannot recall the timing evidence that ruled out clock skew. The engineer wants hypotheses, their status, and the supporting evidence to survive compactions and to be readable in tomorrow's fresh session too. What is the most effective approach?",
+      "options": [
+        "Have Claude keep a research notes file with each hypothesis, its status, and the evidence, updated after each test and read before the next step.",
+        "Run `/compact focus on ruled-out hypotheses` whenever the context gets above 70%, so the summary keeps the list of what was disproved.",
+        "Switch to a 1M-token model variant so the whole five-hour investigation fits without automatic compaction running at all.",
+        "Add a `PostToolUse` hook that appends every Grep and Read output to a log file that Claude can re-read when it needs evidence."
+      ],
+      "correct": 0,
+      "why_correct": "La doc sugiere, para investigaciones complejas, actualizar un árbol de hipótesis o un archivo de notas para persistir información y dar transparencia. Un archivo en disco no se resume al compactar y la sesión de mañana lo puede leer: es el scratchpad que pide la tarea.",
+      "why_wrong": {
+        "1": "Ayuda dentro de la sesión, pero el resumen no garantiza la evidencia exacta y no sirve para la sesión nueva de mañana.",
+        "2": "Más ventana no resuelve la sesión de mañana, y con muchos tokens baja la calidad del recuerdo.",
+        "3": "Guarda todo el output crudo, no las conclusiones; releerlo es caro y el estado de cada hipótesis sigue sin estar escrito."
+      },
+      "rule": "Hallazgos que tienen que cruzar compactaciones y sesiones → archivo de notas (scratchpad) que se actualiza y se lee.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Update a hypothesis tree or research notes file to persist information and provide transparency.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o20-s25",
+      "objective": 20,
+      "pool": "sim",
+      "scenario": "A developer used a custom `schema-mapper` subagent in Claude Code to map 90 database tables to the services that read and write them. The subagent returned a summary, and the session continued with other work. Later the main conversation compacted, and now Claude can only recall the summary's headline numbers. The developer needs follow-up detail: which services write to `ledger_entries` and through which repository classes. Re-running the mapping would take about 15 minutes and repeat every file read. What is the most efficient way to get the detail?",
+      "options": [
+        "Run `/rewind` to a message before the compaction so the main conversation has the full subagent summary in context again.",
+        "Read the subagent's `.jsonl` transcript into the main conversation with the Read tool and search it for `ledger_entries`.",
+        "Spawn a new `schema-mapper` subagent focused only on `ledger_entries`, so it rebuilds that part of the mapping quickly.",
+        "Ask Claude to resume the `schema-mapper` subagent and ask it the follow-up, since its transcript is unaffected by the main compaction."
+      ],
+      "correct": 3,
+      "why_correct": "Los transcripts de los subagentes se guardan en archivos aparte y la compactación del hilo principal no los toca. Al reanudar el subagente, conserva todo su historial (tool calls, resultados, razonamiento) y puede responder el detalle sin rehacer el mapeo.",
+      "why_wrong": {
+        "0": "Rebobinar la conversación pierde el trabajo hecho después y solo trae el resumen, que no tenía el detalle.",
+        "1": "Mete en el hilo principal todo el ruido que el subagente estaba aislando.",
+        "2": "Funciona, pero repite lecturas que el subagente original ya hizo; reanudarlo es más barato."
+      },
+      "rule": "Compactó el hilo principal → el subagente sigue intacto. Reanudalo para el detalle.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "Main conversation compaction: when the main conversation compacts, subagent transcripts are unaffected. They're stored in separate files.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o20-s26",
+      "objective": 20,
+      "pool": "sim",
+      "scenario": "A developer-productivity team explores an SDK whose generated client, `src/gen/api-client.ts`, is about 1.2 MB. When asked how pagination works for the `listInvoices` endpoint, Claude's whole-file Read returns an error telling it to read a portion. One developer then raised `CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS` and asked Claude to read the file whole; the next answers were slow and the session compacted soon after, dropping earlier findings. The team wants Claude to answer questions about specific endpoints in generated files without flooding the context. What should they standardize on?",
+      "options": [
+        "Raise `CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS` for everyone so that generated files can always be read whole in one call.",
+        "Use Grep to find the `listInvoices` definition and its line numbers, then Read only that range with `offset` and `limit`.",
+        "Ask a subagent to read the whole generated file and return its full contents verbatim to the main conversation.",
+        "Mention the file with `@src/gen/api-client.ts` so its full contents are attached to the prompt instead of going through Read."
+      ],
+      "correct": 1,
+      "why_correct": "Para un archivo grande, el propio error de Read le indica a Claude leer una porción con `offset` y `limit`, o buscar el contenido con Grep. Lectura dirigida: Grep para ubicar el símbolo y Read del rango justo, sin meter 1,2 MB en el contexto.",
+      "why_wrong": {
+        "0": "Subir el límite resuelve el error pero mete el archivo entero en el contexto: es lo que provocó la compactación.",
+        "2": "Aislar en un subagente tiene sentido, pero pedirle el contenido completo de vuelta anula el aislamiento.",
+        "3": "Adjuntar el archivo entero vuelve a llenar el contexto; el `@` no evita el problema del tamaño."
+      },
+      "rule": "Archivo enorme → Grep para ubicar + Read con `offset`/`limit`. Nunca 'leelo entero'.",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "Whole file over 256 KB, or an `offset` or `limit` read over the token limit: an error telling it to read a portion with `offset` and `limit`, or to search for specific content with Grep instead",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}
