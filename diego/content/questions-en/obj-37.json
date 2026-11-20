@@ -1,0 +1,269 @@
+{
+  "objective": 37,
+  "questions": [
+    {
+      "id": "o37-q21",
+      "objective": 37,
+      "pool": "practice",
+      "scenario": "A customer-support resolution agent runs on `claude-sonnet-5-5` with `tool_choice: {\"type\": \"auto\"}` and three tools: `get_customer(email)` returns a `customer_id`, `get_orders(customer_id)` returns order ids, and `issue_refund(order_id, amount)`. In 6% of refund conversations, logs show `issue_refund` called with an order id like `ORD-10001` that never appeared in any `get_orders` result, when the customer had not given an order number. Switching to an Opus model is not an option because of cost. A teammate proposes forcing `{\"type\": \"tool\", \"name\": \"get_orders\"}` on the first request. What is the most effective change?",
+      "options": [
+        "Apply the teammate's proposal and force `get_orders` on the first request, then switch back to `auto` so the refund can follow in a later turn",
+        "Set `strict: true` on `issue_refund` so the API guarantees the inputs match the schema exactly and rejects any made-up `order_id` values",
+        "Tell the model in the system prompt to think before each tool call and to ask for, or look up, any required parameter it was not given",
+        "Change `order_id` in the `issue_refund` schema from required to optional so the model is no longer pushed to fill it in when it is missing"
+      ],
+      "correct": 2,
+      "why_correct": "La doc dice que si faltan parámetros requeridos, Opus tiende a pedirlos, pero Sonnet puede inferir un valor; Sonnet sí puede preguntar, sobre todo si se le pide pensar antes de emitir el tool request. Con el modelo fijo, la palanca documentada es esa instrucción: obtener el dato previo (lookup o pregunta) antes de la tool dependiente.",
+      "why_wrong": {
+        "0": "Suena al patrón de la guía, pero en Claude Sonnet 5.5 `tool_choice` `tool` o `any` devuelve un 400: este modelo rechaza el forced tool use.",
+        "1": "`strict` garantiza que el input cumpla el schema (tipos, campos requeridos). Un `order_id` inventado con formato válido lo cumple igual.",
+        "3": "Hacerlo opcional no hace que el modelo busque el dato previo; solo permite emitir reembolsos sin orden, que es peor."
+      },
+      "rule": "Tool dependiente llamada con un valor inventado en Sonnet → pedile que piense y pida/busque el parámetro antes; forzar no está disponible en Sonnet 5.5.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview",
+      "source_quote": "Claude Opus is much more likely to recognize that a parameter is missing and ask for it. Claude Sonnet might ask, especially when prompted to think before outputting a tool request. But it might also infer a reasonable value.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o37-q22",
+      "objective": 37,
+      "pool": "practice",
+      "scenario": "A travel company's booking agent runs on `claude-haiku-5-5`, which accepts forced tool use. Its tools are `get_fare_quote(route, date)`, which returns a `quote_id` valid for 15 minutes, `book_flight(quote_id, passenger)` and `send_itinerary(booking_id)`. With `tool_choice: {\"type\": \"auto\"}`, about 9% of conversations start with `book_flight` using a stale `quote_id` copied from earlier in the chat, and the airline API rejects the booking. Every booking must start from a fresh quote, but after that the model should decide freely between booking, asking the passenger for details, or answering questions. How should the team configure `tool_choice`?",
+      "options": [
+        "Force `{\"type\": \"tool\", \"name\": \"get_fare_quote\"}` on the first request only, return its result, then use `auto` on follow-up requests",
+        "Send every request in the booking loop with `tool_choice: {\"type\": \"tool\", \"name\": \"get_fare_quote\"}` so a fresh quote always precedes booking",
+        "Send the first request with `tool_choice: {\"type\": \"any\"}` so the model must start with a tool call rather than answering in plain text",
+        "Keep `auto` and move `get_fare_quote` to the first position in the `tools` array so the model considers it before the other two tools"
+      ],
+      "correct": 0,
+      "why_correct": "Es el patrón de la guía: usar `tool_choice` forzado para asegurar que una tool específica se llame primero, y procesar los pasos siguientes en turnos posteriores. Después del primer request, `auto` deja que el modelo decida entre reservar, preguntar o responder.",
+      "why_wrong": {
+        "1": "Casi correcta, pero si forzás `get_fare_quote` en TODOS los requests, el modelo nunca puede llamar a `book_flight` ni hablar con el pasajero: queda pidiendo cotizaciones para siempre.",
+        "2": "`any` garantiza que haya una tool call, pero no cuál: `book_flight` con el `quote_id` viejo sigue siendo una opción válida.",
+        "3": "El orden del array no es un mecanismo de secuenciación documentado; con `auto` el modelo sigue eligiendo."
+      },
+      "rule": "\"Esta tool tiene que ir primero\" → forzala solo en el primer request y volvé a `auto` para los siguientes.",
+      "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
+      "source_quote": "Using tool_choice forced selection to ensure a specific tool is called first (e.g., forcing extract_metadata before enrichment tools), then processing subsequent steps in follow-up turns",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o37-q23",
+      "objective": 37,
+      "pool": "practice",
+      "scenario": "An internal developer-productivity agent has `create_branch(repo, name)`, which returns a `branch_ref`, and `open_pull_request(repo, branch_ref, title)`. In about 1 out of 8 runs Claude emits both calls in the same response, filling `branch_ref` with a guessed value such as `refs/heads/feature-x`. The harness runs all tool calls with `Promise.all`; `open_pull_request` fails or, worse, targets an existing branch with the same name. The team wants to keep parallel execution for the agent's many read-only lookups, which cut latency by 40%. What is the most effective change to the harness and prompt?",
+      "options": [
+        "Set `disable_parallel_tool_use: true` inside `tool_choice` so Claude can only emit one tool call per response and dependent calls never appear together",
+        "Retry `open_pull_request` automatically with exponential backoff until `create_branch` has finished and the branch exists in the remote repository",
+        "Reject the whole response when it contains both tools, drop both calls without sending any `tool_result`, and send the original request again",
+        "Run dependent calls in order, stop at the first failure with `is_error: true` for skipped calls, and prompt Claude to batch only independent calls"
+      ],
+      "correct": 3,
+      "why_correct": "La doc lo trata en troubleshooting: si las calls de un batch dependen entre sí, ejecutarlas en orden y parar en la primera falla es válido, devolviendo `is_error: true` para las que no corriste; Claude reemite la call en el turno siguiente. Y para que aparezcan menos juntas, la frase exacta en el system prompt. Mantiene el paralelismo para lo independiente.",
+      "why_wrong": {
+        "0": "Casi correcta: evita que aparezcan juntas, pero apaga el paralelismo para TODO, incluidas las lecturas que bajaron 40% la latencia. Viola la restricción.",
+        "1": "Reintentar no arregla que el `branch_ref` sea inventado: aunque la rama exista, el valor no salió del resultado de `create_branch`.",
+        "2": "Cada `tool_use` necesita su `tool_result`; descartar calls sin resultado rompe el historial y reenviar el mismo request puede repetir el problema."
+      },
+      "rule": "Calls dependientes en el mismo batch → secuencial, cortar en la primera falla, `is_error` para lo salteado, y pedir batchear solo lo independiente.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
+      "source_quote": "To reduce dependent calls appearing together, add this to your system prompt: “Only batch tool calls that are independent of each other.”",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o37-q24",
+      "objective": 37,
+      "pool": "practice",
+      "scenario": "A billing agent follows a three-step sequence: `get_contract(customer_id)` returns contract terms, `create_invoice(contract_id, period)` returns an `invoice_id`, and `send_invoice(invoice_id)`. When the invoicing service is briefly unavailable, the harness returns `{\"type\": \"tool_result\", \"tool_use_id\": \"...\", \"content\": \"failed\"}` for `create_invoice`. In those cases Claude often continues with `send_invoice` using an `invoice_id` such as `INV-PENDING`, and the agent reports success to the customer. The outages are transient and usually clear within a minute, and the team does not want to add a separate workflow engine around the agent. Which change addresses the root cause?",
+      "options": [
+        "Remove `send_invoice` from the `tools` list for the request that follows any failed `create_invoice` call, so the model cannot reach the final step",
+        "Return `is_error: true` with an instructive message: invoice not created, retry `create_invoice` in 60 seconds, don't send without an `invoice_id`",
+        "Have the harness retry `create_invoice` silently up to five times and only return a `tool_result` after it succeeds or after the final retry fails",
+        "Force `tool_choice: {\"type\": \"tool\", \"name\": \"create_invoice\"}` on the request after a failure so the model has to retry invoice creation first"
+      ],
+      "correct": 1,
+      "why_correct": "La doc pide mensajes de error instructivos: en vez de \"failed\", decir qué pasó y qué debería intentar Claude después (su ejemplo es justo \"Retry after 60 seconds\"). Con `is_error` y el contexto, Claude sabe que no hay `invoice_id` y que el paso dependiente no puede ir todavía.",
+      "why_wrong": {
+        "0": "Sacar la tool evita el envío pero no explica el error: Claude puede reportar éxito igual o inventar otra salida. Además cambiar `tools` en medio del loop invalida caché.",
+        "2": "Reintentar en el harness es razonable para algo transitorio, pero si el último intento falla devuelve el mismo \"failed\" sin contexto, y la causa (error ambiguo) sigue.",
+        "3": "Forzar el reintento depende de que el modelo soporte forced tool use, y no le explica por qué no debe continuar: es un parche para un caso, no un error claro."
+      },
+      "rule": "Falla en un paso previo de la cadena → `is_error: true` con mensaje instructivo (qué pasó, qué hacer), no un \"failed\" pelado.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "source_quote": "Write instructive error messages. Instead of generic errors such as `\"failed\"`, include what went wrong and what Claude should try next (for example, `\"Rate limit exceeded. Retry after 60 seconds.\"`).",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o37-q25",
+      "objective": 37,
+      "pool": "practice",
+      "scenario": "A document-ingestion pipeline on `claude-haiku-5-5` processes vendor onboarding packets in five ordered steps: `extract_metadata`, `lookup_vendor`, `check_sanctions`, `score_risk`, `write_record`. To enforce the order, the harness sends each of the five requests with a different forced `tool_choice` (`{\"type\": \"tool\", \"name\": \"<step>\"}`). The system prompt and tool definitions are cached. After launch, cache reads on message content are close to zero and cost per packet is 40% above the estimate. Only the first step truly has to be forced; the other four depend on each other only through the data in earlier `tool_result` blocks. What is the most effective change?",
+      "options": [
+        "Move the tool definitions behind a separate cache breakpoint so they stay cached when `tool_choice` changes between the five steps",
+        "Combine all five tools into one large tool with a `step` enum parameter and force that single tool on every request in the pipeline",
+        "Force only the first step, then keep `tool_choice` at `auto`, letting each `tool_result` supply what the next step needs",
+        "Send all five forced requests in parallel to save latency, since each step's `tool_choice` already guarantees which tool is called"
+      ],
+      "correct": 2,
+      "why_correct": "La doc avisa: cambiar `tool_choice` invalida los bloques de mensajes cacheados (tools y system prompt siguen cacheados). Al cambiarlo en cada paso, el contenido se reprocesa siempre. Forzar solo el primer paso y dejar `auto` estable mantiene el caché; las dependencias se resuelven con los `tool_result`.",
+      "why_wrong": {
+        "0": "Las tool definitions y el system prompt YA siguen cacheados cuando cambia `tool_choice`; lo que se pierde es el contenido de los mensajes. Este cambio no toca la causa.",
+        "1": "Una mega-tool con enum es un rediseño que empeora las descriptions y igual tiene que encadenar datos entre pasos; no aporta nada que `auto` no dé.",
+        "3": "Los pasos dependen de datos de los anteriores: en paralelo no hay de dónde sacar esos datos. Forzar una tool no le da el resultado de otra."
+      },
+      "rule": "Forzar una tool distinta en cada paso rompe el caché de mensajes → forzá solo el primero y dejá `auto`.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "source_quote": "When using prompt caching, changes to the `tool_choice` parameter will invalidate cached message blocks. Tool definitions and system prompts remain cached, but message content must be reprocessed.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o37-s21",
+      "objective": 37,
+      "pool": "sim",
+      "scenario": "A multi-agent research system runs its retrieval subagent on `claude-opus-5-5`. The subagent has `search_corpus(query)`, which returns document ids, `fetch_document(doc_id)`, and `record_citation(doc_id, quote)`. Sometimes it calls `fetch_document` with ids recalled from earlier tasks instead of searching first. To fix this, an engineer set `tool_choice: {\"type\": \"tool\", \"name\": \"search_corpus\"}` on each task's first request; since that deploy, every first request fails with HTTP 400. The team cannot change the subagent's model. What should they do to keep \"search first\" while avoiding the error?",
+      "options": [
+        "Switch the first request to `tool_choice: {\"type\": \"any\"}`, which only requires some tool call instead of forcing one specific tool by name",
+        "Use `auto`, state in the prompt that each task starts with `search_corpus`, and reject `fetch_document` ids that no search returned",
+        "Disable thinking on the first request, because forced tool use fails only when thinking is enabled on the request, and keep the forced `search_corpus` call",
+        "Use `tool_choice: {\"type\": \"none\"}` on the first request and let the harness call `search_corpus` itself before handing results to the model"
+      ],
+      "correct": 1,
+      "why_correct": "Claude Opus 5.5 rechaza el forced tool use con 400: `any` y `tool` fallan, `auto` y `none` funcionan. Con `auto`, el prompt sigue influyendo qué tool elige, y el harness puede rechazar con `is_error` un `doc_id` que no vino de una búsqueda, devolviendo el orden a la cadena.",
+      "why_wrong": {
+        "0": "`any` también es forced tool use: en Opus 5.5 devuelve el mismo 400.",
+        "2": "En estos modelos el rechazo es independiente del thinking: lo rechazan en cualquier request. Apagar thinking no lo arregla.",
+        "3": "Es casi correcta como diseño (el harness podría precargar la búsqueda), pero con `none` en ese request el modelo no puede hacer la búsqueda con SU query; le estás quitando la decisión de qué buscar, que es el trabajo del subagente."
+      },
+      "rule": "Opus 5.5 / Sonnet 5.5 no aceptan `any` ni `tool` → `auto` + instrucción en el prompt + validación en el harness.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "source_quote": "Where it isn’t supported, `tool_choice: {\"type\": \"any\"}` and `tool_choice: {\"type\": \"tool\", \"name\": \"...\"}` fail, whereas `tool_choice: {\"type\": \"auto\"}` (the default) and `tool_choice: {\"type\": \"none\"}` still work",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o37-s22",
+      "objective": 37,
+      "pool": "sim",
+      "scenario": "An accounts-payable team processes 40,000 invoices per night through the Message Batches API to get the batch discount. Each request includes two client tools: `get_vendor_record(tax_id)`, which queries the company's vendor database, and `submit_invoice(vendor_id, lines)`. The team expected each batch request to end with a submitted invoice. Instead, every result comes back with `stop_reason: \"tool_use\"` and a single `get_vendor_record` call, and nothing is ever submitted. Results can arrive any time before 6 a.m., and the team wants to keep the batch pricing. What should they change?",
+      "options": [
+        "Set `tool_choice: {\"type\": \"any\"}` on each batch request so the model is required to call both tools before it ends the turn",
+        "Move processing to the synchronous Messages API with an agentic loop, because tool use is not supported inside Message Batches requests",
+        "Set `disable_parallel_tool_use: false` so the model can emit both tool calls together in the same response and finish in a single request",
+        "Run the lookups yourself, then submit a follow-up batch whose requests add the assistant turn and a user turn with the `tool_result`"
+      ],
+      "correct": 3,
+      "why_correct": "Las client tools requieren que tu aplicación maneje el loop: cada tool call es un viaje de ida y vuelta (el modelo pide, vos ejecutás, devolvés el resultado, el modelo sigue). Batches no ejecuta tu base de datos. Se arma un segundo batch con el historial más el `tool_result`, y se mantiene el descuento.",
+      "why_wrong": {
+        "0": "`any` garantiza que haya alguna tool call, no dos; y aunque las hubiera, el `vendor_id` sale del resultado de la primera, que nadie ejecutó.",
+        "1": "Funcionaría, pero la premisa es falsa: Batches sí soporta tool use. Perderían el descuento sin necesidad.",
+        "2": "El paralelismo ya está habilitado por defecto, y emitir las dos juntas no sirve: `submit_invoice` necesita el `vendor_id` que devuelve la primera."
+      },
+      "rule": "Client tools en Batches: cada tool call es un round trip → ejecutás vos y mandás otro batch con el `tool_result`.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
+      "source_quote": "Client-executed tools (both user-defined and Anthropic-schema) require your application to drive a loop. The model can’t run your code, so every tool call is a round trip: the model asks, you execute, you report back, the model continues.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o37-s23",
+      "objective": 37,
+      "pool": "sim",
+      "scenario": "An e-commerce support agent can place replacement orders. In one response Claude often emits `reserve_inventory(sku, qty)` and `charge_card(customer_id, amount)` together, along with independent `get_shipping_options` and `get_loyalty_points` reads. The harness runs every call with `asyncio.gather`. Twice this week, `reserve_inventory` failed because stock ran out, but the card was charged anyway, and support had to refund manually. Product wants to keep the latency gains from parallel reads, and the card must never be charged unless the reservation succeeded. Which change is most effective?",
+      "options": [
+        "Keep reads parallel, run `reserve_inventory` before `charge_card`, and if the reservation fails skip the charge and return `is_error: true` for it",
+        "Set `disable_parallel_tool_use: true` inside `tool_choice` so Claude emits at most one tool call per response and the charge can only follow a reservation",
+        "Add to the `charge_card` tool description that it must only be called after `reserve_inventory` has succeeded in a previous turn of the conversation",
+        "Keep running all calls concurrently, but have the harness issue an automatic refund whenever `charge_card` succeeds while `reserve_inventory` fails"
+      ],
+      "correct": 0,
+      "why_correct": "La API no impone orden de ejecución: lo elegís vos. Lecturas independientes en paralelo; tools con efectos o requisitos de orden, en secuencia. Si salteás una call porque falló la anterior, igual devolvés su `tool_result` con `is_error: true` y una explicación. Así el cobro nunca ocurre sin reserva.",
+      "why_wrong": {
+        "1": "Casi correcta: con una call por respuesta el orden queda en manos del modelo y se pierde el paralelismo de lecturas que producto quiere mantener.",
+        "2": "Es guidance en una description: mejora la tendencia pero no GARANTIZA que nunca se cobre sin reserva, que es el requisito.",
+        "3": "Reembolsar después trata el síntoma; el cliente igual ve el cargo y la operación sigue mal ordenada."
+      },
+      "rule": "Tools con efectos y orden → el harness las corre en secuencia y corta en la falla; lo independiente sigue en paralelo.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
+      "source_quote": "Choose the strategy based on what your tools do. Independent, read-only operations are usually safe to run in parallel for lower latency. Tools with side effects, shared state, or ordering requirements might be better run sequentially.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o37-s24",
+      "objective": 37,
+      "pool": "sim",
+      "scenario": "A structured-data extraction service still runs on `claude-sonnet-4-6`, a model that accepts manual extended thinking. To improve how the model plans a multi-step flow (`classify_document`, then `extract_fields`, then `validate_totals`), an engineer enabled manual extended thinking with `thinking: {\"type\": \"enabled\", \"budget_tokens\": 4000}`. The first request also forces `classify_document` with `tool_choice: {\"type\": \"tool\", \"name\": \"classify_document\"}`, as it did before. Since the change, every first request returns an error. The team wants to keep thinking on that first step. What should they do?",
+      "options": [
+        "Replace the forced `tool` with `tool_choice: {\"type\": \"any\"}` on the first request, which still guarantees a tool call while thinking is enabled",
+        "Move the thinking configuration to the second and third requests only, and keep forcing `classify_document` with thinking disabled on the first",
+        "Use `tool_choice: {\"type\": \"auto\"}` on the first request and say in the prompt that the first step is to call `classify_document`",
+        "Raise `budget_tokens` above `max_tokens` so the model has enough room to finish its thinking before the forced `classify_document` call starts"
+      ],
+      "correct": 2,
+      "why_correct": "Con thinking manual (`type: enabled`) solo se admiten `auto` o `none`; `any` y `tool` dan error porque fuerzan el uso de tools. La doc indica el camino: para que el modelo piense antes de llamar a la tool, `auto` y decir en el prompt cuándo usarla.",
+      "why_wrong": {
+        "0": "`any` también fuerza el uso de tools: con thinking manual falla igual que `tool`.",
+        "1": "Apaga el thinking justo en el paso donde el equipo lo quiere. Y ojo: todo el turno corre en un solo modo de thinking, no se puede prender y apagar en medio del loop de tools.",
+        "3": "El presupuesto de thinking no tiene que ver con la incompatibilidad; y no puede superar `max_tokens`. El error es por forzar tools con thinking manual."
+      },
+      "rule": "Thinking manual + `tool_choice` `any`/`tool` = error → `auto` + instrucción en el prompt.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
+      "source_quote": "tool use with manual extended thinking (`thinking: {type: \"enabled\"}`) only supports `tool_choice: {\"type\": \"auto\"}` (the default) or `tool_choice: {\"type\": \"none\"}`.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o37-s25",
+      "objective": 37,
+      "pool": "sim",
+      "scenario": "A CI pipeline uses the Claude API on `claude-haiku-5-5` (adaptive thinking on by default) to triage failing builds. The first step must call `plan_investigation(failure_summary)`, whose `steps` array decides which of `fetch_logs`, `diff_dependencies` and `rerun_test` are called next and in what order. The harness forces `plan_investigation` with `tool_choice: {\"type\": \"tool\", \"name\": \"plan_investigation\"}`. Responses are valid, but the plans are shallow: 30% skip `diff_dependencies` even when the failure summary mentions a lockfile change, and no thinking blocks appear in those responses. What change most improves the plans?",
+      "options": [
+        "Raise the effort level for the first request so the model reasons more deeply before it emits the forced `plan_investigation` tool call",
+        "Use `auto` on the first request with a prompt instruction to call `plan_investigation` first, so the model can think before the call",
+        "Switch the first request to `tool_choice: {\"type\": \"any\"}` with `strict: true`, so the plan is schema-valid while still guaranteeing a tool call",
+        "Add few-shot examples of plans to the `plan_investigation` description and keep forcing the tool, since the missing step is a knowledge gap"
+      ],
+      "correct": 1,
+      "why_correct": "Forzar una tool salta el thinking en todos los modelos que lo aceptan: la respuesta arranca con el `tool_use` y no hay bloque `thinking`. Para que el modelo piense antes de llamar (y planifique mejor la secuencia), la doc dice: `auto` con una instrucción en el prompt.",
+      "why_wrong": {
+        "0": "El effort no destraba el thinking si la respuesta forzada empieza directo con el `tool_use`: no hay espacio para pensar antes.",
+        "2": "`any` también es forced tool use, así que también saltea el thinking; `strict` mejora la validez del schema, que ya no era el problema.",
+        "3": "Los ejemplos pueden ayudar algo, pero el síntoma (sin thinking blocks, planes superficiales) viene de forzar la tool. Es casi correcta pero no ataca la causa."
+      },
+      "rule": "Forzar una tool = sin thinking antes de la call. Si el paso necesita razonamiento → `auto` + instrucción.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "source_quote": "Forcing a tool also skips thinking on every model that accepts forced tool use: the response starts with the `tool_use` block and has no `thinking` block. To let the model think before it calls the tool, use `auto` with a prompt instruction in the same way.",
+      "status": "no_verificado",
+      "verification": null
+    },
+    {
+      "id": "o37-s26",
+      "objective": 37,
+      "pool": "sim",
+      "scenario": "A developer-productivity agent chains `find_service_owner(service)` and `open_ticket(owner_team, title)`. After running `find_service_owner`, the harness builds the next user message as `[{\"type\": \"text\", \"text\": \"Now open the ticket for this team.\"}, {\"type\": \"tool_result\", \"tool_use_id\": \"toolu_01...\", \"content\": \"team-payments\"}]` to nudge Claude toward the second step. Every such request fails with HTTP 400, so `open_ticket` is never reached and the on-call engineer has to open tickets by hand. Product insists on keeping the nudge text, because without it the model sometimes stops after the lookup and just reports the owner. What is the correct fix?",
+      "options": [
+        "Send the nudge text as a separate user message right after the assistant's `tool_use` message, and send the `tool_result` in the next user message",
+        "Move the nudge into the `tool_result` block's `content` as a second line, and remove the text block from the user message entirely",
+        "Remove the nudge and set `tool_choice` to force `open_ticket` on the follow-up request, so the second step happens without any text",
+        "Keep both blocks in the same user message but put the `tool_result` block first and the nudge text after it in the content array"
+      ],
+      "correct": 3,
+      "why_correct": "En el mensaje user que lleva los resultados, los bloques `tool_result` tienen que ir PRIMERO en el array de content; cualquier texto va DESPUÉS. Con ese orden, el request es válido y el texto de empujón se mantiene, como quiere el equipo.",
+      "why_wrong": {
+        "0": "Peor: no puede haber mensajes entre el `tool_use` del assistant y el mensaje con el `tool_result`; el resultado tiene que seguir inmediatamente.",
+        "1": "Mezcla una instrucción dentro del resultado de la tool, ensuciando el dato que el modelo usa para `owner_team`; además el equipo pidió mantener el texto como texto.",
+        "2": "Saca el texto que el equipo quiere mantener, y forzar depende del modelo; no arregla el orden de bloques, que es la causa del 400."
+      },
+      "rule": "Mensaje con `tool_result`: los resultados primero, el texto después, y nada entre el `tool_use` y su resultado.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "source_quote": "In the user message containing tool results, the `tool_result` blocks must come FIRST in the content array. Any text must come AFTER all tool results.",
+      "status": "no_verificado",
+      "verification": null
+    }
+  ]
+}

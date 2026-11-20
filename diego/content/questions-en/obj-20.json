@@ -223,17 +223,17 @@
       "pool": "sim",
       "scenario": "A developer used a custom `schema-mapper` subagent in Claude Code to map 90 database tables to the services that read and write them. The subagent returned a summary, and the session continued with other work. Later the main conversation compacted, and now Claude can only recall the summary's headline numbers. The developer needs follow-up detail: which services write to `ledger_entries` and through which repository classes. Re-running the mapping would take about 15 minutes and repeat every file read. What is the most efficient way to get the detail?",
       "options": [
-        "Run `/rewind` to a message before the compaction so the main conversation has the full subagent summary in context again.",
+        "Ask Claude to resume the `schema-mapper` subagent and ask it the follow-up, since its transcript is unaffected by the main compaction.",
         "Read the subagent's `.jsonl` transcript into the main conversation with the Read tool and search it for `ledger_entries`.",
         "Spawn a new `schema-mapper` subagent focused only on `ledger_entries`, so it rebuilds that part of the mapping quickly.",
-        "Ask Claude to resume the `schema-mapper` subagent and ask it the follow-up, since its transcript is unaffected by the main compaction."
+        "Run `/rewind` to a message before the compaction so the main conversation has the full subagent summary in context again."
       ],
-      "correct": 3,
+      "correct": 0,
       "why_correct": "Los transcripts de los subagentes se guardan en archivos aparte y la compactación del hilo principal no los toca. Al reanudar el subagente, conserva todo su historial (tool calls, resultados, razonamiento) y puede responder el detalle sin rehacer el mapeo.",
       "why_wrong": {
-        "0": "Rebobinar la conversación pierde el trabajo hecho después y solo trae el resumen, que no tenía el detalle.",
         "1": "Mete en el hilo principal todo el ruido que el subagente estaba aislando.",
-        "2": "Funciona, pero repite lecturas que el subagente original ya hizo; reanudarlo es más barato."
+        "2": "Funciona, pero repite lecturas que el subagente original ya hizo; reanudarlo es más barato.",
+        "3": "Rebobinar la conversación pierde el trabajo hecho después y solo trae el resumen, que no tenía el detalle."
       },
       "rule": "Compactó el hilo principal → el subagente sigue intacto. Reanudalo para el detalle.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
