@@ -8,7 +8,7 @@
       "scenario": "A data platform team built an internal MCP server, `warehouse`, for a developer-productivity assistant. It exposes only tools: `list_datasets`, `describe_dataset(name)`, and `run_query(sql)`. Telemetry over 1,200 questions shows the agent makes 6 to 9 calls per question before the first `run_query`, almost all of them `list_datasets` and `describe_dataset` on tables it ends up not using; median latency is 48 seconds. The 140 dataset schemas change about once a week. The team wants the agent to know what data exists without spending calls discovering it. What should they change in the server?",
       "options": [
         "Add a `get_all_schemas` tool that returns all 140 schemas in one call, and tell the agent in the system prompt to call it at the start of every question.",
-        "Expose the dataset catalog and each schema as MCP resources, so the host application can provide them as context instead of the model discovering them through tool calls.",
+        "Expose the dataset catalog and each schema as MCP resources, so the host provides them as context instead of the model discovering them with tool calls.",
         "Paste the full catalog of datasets and their columns into the `run_query` tool description, so the model sees every table before deciding what to query.",
         "Raise the agent's turn limit and allow parallel tool calls, so the exploratory `describe_dataset` calls run at the same time and stop adding latency."
       ],
@@ -22,8 +22,12 @@
       "rule": "Catálogos, schemas y documentación = resources (los controla la app). Acciones = tools (las controla el modelo).",
       "source_url": "https://modelcontextprotocol.io/docs/learn/server-concepts",
       "source_quote": "Passive data sources that provide read-only access to information for context, such as file contents, database schemas, or API documentation.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Doc MCP server-concepts: resources pasivos de solo lectura (schemas). Cita textual. Se acortó la correcta B (era la más larga: 170 vs 149–153)."
+      }
     },
     {
       "id": "o34-q22",
@@ -33,7 +37,7 @@
       "options": [
         "Increase `MCP_TIMEOUT` on the runner, because in headless runs the resource is fetched before the server finishes connecting and the attachment comes back empty.",
         "Ask the SRE team to declare the `subscribe` capability on the server so headless clients receive the runbook content through change notifications.",
-        "Replace the `@` mention with an instruction to read the `file://oncall/escalation` resource from the `runbooks` server, using the resource-reading tool Claude Code provides.",
+        "Replace the `@` mention with an instruction to read the `file://oncall/escalation` resource from `runbooks` with Claude Code's resource-reading tool.",
         "Quote the mention as `@\"runbooks:file://oncall/escalation\"` so the headless prompt parser treats the whole URI as one resource reference."
       ],
       "correct": 2,
@@ -46,8 +50,12 @@
       "rule": "En `claude -p`, `@server:uri` es texto plano: pedí leer el resource con la tool de lectura de resources.",
       "source_url": "https://code.claude.com/docs/en/mcp",
       "source_quote": "With `claude -p`, a resource mention stays plain text.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Doc mcp: con `claude -p` la mención de resource queda texto plano; Claude Code da tools para listar/leer resources. Cita textual. Se acortó la correcta C (173 vs 137–161)."
+      }
     },
     {
       "id": "o34-q23",
@@ -70,8 +78,12 @@
       "rule": "Cambió el contenido de un resource → `subscribe` + `notifications/resources/updated`. Cambió la lista → `listChanged`.",
       "source_url": "https://modelcontextprotocol.io/specification/2025-11-25/server/resources",
       "source_quote": "The protocol supports optional subscriptions to resource changes. Clients can subscribe to specific resources and receive notifications when they change",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Spec resources 2025-11-25: subscribe + notifications/resources/updated vs listChanged (lista). Cita textual."
+      }
     },
     {
       "id": "o34-q24",
@@ -94,8 +106,12 @@
       "rule": "Si la app debe decidir qué contexto entra (embeddings, filtros), exponé los datos como resource directo.",
       "source_url": "https://modelcontextprotocol.io/docs/learn/server-concepts",
       "source_quote": "Applications can access this information directly and decide how to use it - whether that's selecting relevant portions, searching with embeddings, or passing it all to the model.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc server-concepts: la app decide cómo usar los resources (porciones, embeddings). Cita textual."
+      }
     },
     {
       "id": "o34-q25",
@@ -103,7 +119,7 @@
       "pool": "practice",
       "scenario": "A product analytics team built an MCP server for Claude Code so developers can ask about feature usage. Each dashboard is exposed as a resource with URI `ui://dashboards/<name>` and media type `text/html;profile=mcp-app`. The server declares the `resources` capability and implements `resources/list` and `resources/read`. Developers report that typing `@` shows none of the dashboards, and when they ask Claude to list the server's resources, it says the list is empty. The team's goal is for Claude to read the usage numbers, not to render the dashboards. What should they change?",
       "options": [
-        "Also expose the usage data as regular resources, for example `analytics://usage/<feature>` with `application/json`, alongside the UI pages meant for the host to render.",
+        "Also expose the usage data as regular resources, such as `analytics://usage/<feature>` with `application/json`, next to the UI pages for the host.",
         "Declare the `listChanged` capability so Claude Code refreshes the resource list after startup and the dashboards appear in the `@` autocomplete menu.",
         "Convert each dashboard into a resource template, `ui://dashboards/{name}`, so Claude Code discovers them through the templates list instead of the plain list.",
         "Add the `audience: [\"assistant\"]` annotation to each dashboard resource so Claude Code treats them as content for the model rather than for the user."
@@ -118,8 +134,12 @@
       "rule": "`ui://` / `text/html;profile=mcp-app` = página para el host. Datos para Claude = resource común.",
       "source_url": "https://code.claude.com/docs/en/mcp",
       "source_quote": "MCP Apps UI resources are entries with a `ui://` URI or the `text/html;profile=mcp-app` media type: pages for a host application to render rather than content for Claude to read.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Doc mcp: UI resources ui:// o text/html;profile=mcp-app no aparecen en @ ni en la lista. Cita textual. Se acortó la correcta A (168 vs 149–158)."
+      }
     },
     {
       "id": "o34-s21",
@@ -142,8 +162,12 @@
       "rule": "¿Los agentes gastan llamadas en averiguar qué hay? Ese catálogo va como resource.",
       "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
       "source_quote": "Exposing content catalogs as MCP resources to give agents visibility into available data without requiring exploratory tool calls",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Guía del examen: catálogos como resources para evitar tool calls exploratorias. Cita textual."
+      }
     },
     {
       "id": "o34-s22",
@@ -166,8 +190,12 @@
       "rule": "Si leerlo cambia algo, no es un resource: es una tool.",
       "source_url": "https://modelcontextprotocol.io/docs/learn/server-concepts",
       "source_quote": "Functions that your LLM can actively call, and decides when to use them based on user requests. Tools can write to databases, call external APIs, modify files, or trigger other logic.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc server-concepts: tools model-controlled, pueden escribir/llamar APIs; priority es annotation de la spec. Cita textual."
+      }
     },
     {
       "id": "o34-s23",
@@ -190,8 +218,12 @@
       "rule": "Resources directos → `resources/list`. Templates parametrizados → `resources/templates/list`.",
       "source_url": "https://modelcontextprotocol.io/specification/2025-11-25/server/resources",
       "source_quote": "Resource templates allow servers to expose parameterized resources using URI templates.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Spec resources: templates parametrizados vía resources/templates/list. Cita textual."
+      }
     },
     {
       "id": "o34-s24",
@@ -214,8 +246,12 @@
       "rule": "Resources en Claude Code = `ListMcpResourcesTool` + `ReadMcpResourceTool`. Si el subagente tiene allowlist, nombralas.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "| `ReadMcpResourceTool` | Reads a specific MCP resource by URI | No |",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc tools-reference: ListMcpResourcesTool/ReadMcpResourceTool built-in; mcp: referencia por nombre en mcpServers comparte conexión. Cita textual."
+      }
     },
     {
       "id": "o34-s25",
@@ -238,8 +274,12 @@
       "rule": "Contenido que el usuario elige (schemas, docs) → resource referenciable con `@server:uri`.",
       "source_url": "https://code.claude.com/docs/en/mcp",
       "source_quote": "Resources are automatically fetched and included as attachments when referenced",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc mcp: resources referenciados se adjuntan solos; resultado >50.000 caracteres a archivo y MAX_MCP_OUTPUT_TOKENS no cambia el umbral; maxResultSizeChars existe. Cita textual."
+      }
     },
     {
       "id": "o34-s26",
@@ -250,7 +290,7 @@
         "Have the server also return the full contract text alongside each link, so the host can fall back to the embedded text whenever validation discards a link.",
         "Have the server register every contract it might return as a direct resource, so `resources/list` always contains every URI that a search could produce.",
         "Switch the host validation to compare against `resources/templates/list` instead, since links returned by tools are always instances of a declared template.",
-        "Drop the host check that requires links to appear in `resources/list`, and fetch each returned link by its URI, since links from tools aren't guaranteed to be listed."
+        "Drop the host check against `resources/list` and fetch each returned link by its URI, since links returned by tools aren't guaranteed to be listed."
       ],
       "correct": 3,
       "why_correct": "La spec de MCP lo aclara: una tool PUEDE devolver links a resources, y los resource links que devuelven las tools no tienen garantía de aparecer en `resources/list`. La validación del host asume algo que el protocolo no promete; el cliente lee el link directamente por su URI.",
@@ -262,8 +302,12 @@
       "rule": "Un `resource_link` devuelto por una tool se lee por su URI; no tiene por qué estar en `resources/list`.",
       "source_url": "https://modelcontextprotocol.io/specification/2025-11-25/server/tools",
       "source_quote": "Resource links returned by tools are not guaranteed to appear in the results of a `resources/list` request.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Spec tools 2025-11-25: resource links de tools no garantizados en resources/list. Cita casi textual (en la página está partida por el `>` de la nota markdown). Se acortó la correcta D (166 vs 152–156)."
+      }
     }
   ]
 }

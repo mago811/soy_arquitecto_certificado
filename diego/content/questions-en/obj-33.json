@@ -22,8 +22,12 @@
       "rule": "Cada subagente con las tools de su rol; para una necesidad cruzada frecuente, una tool acotada, no la tool genérica completa.",
       "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
       "source_quote": "Providing scoped cross-role tools for high-frequency needs (e.g., a verify_fact tool for the synthesis agent) while routing complex cases through the coordinator",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Guía del examen: tools cruzadas acotadas (verify_fact) y casos complejos vía coordinador. Cita textual."
+      }
     },
     {
       "id": "o33-q22",
@@ -46,8 +50,12 @@
       "rule": "`tools` decide qué tiene el subagente; `allowedTools`/permisos deciden qué corre sin pedir. Son dos cosas distintas.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "Array of allowed tool names; listing one doesn't pre-approve it.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc agent-sdk/subagents: `tools` no pre-aprueba; el ejemplo usa `Bash(npm test *)` en allowedTools. agent-sdk/permissions documenta el síntoma: en modo `default` se deniega toda call que necesite aprobación sin allow rule/hook/canUseTool; acceptEdits no cubre npm test. La correcta no depende de comportamiento no documentado. Cita textual."
+      }
     },
     {
       "id": "o33-q23",
@@ -70,8 +78,12 @@
       "rule": "Tool sensible para un solo rol: server MCP inline en el `mcpServers` de ese subagente, no en `.mcp.json` compartido.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "To keep an MCP server out of the main conversation entirely and avoid its tool descriptions consuming context there, define it inline here rather than in `.mcp.json`. The subagent gets the tools; the parent conversation doesn't.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc sub-agents: server inline en mcpServers → el subagente tiene las tools, el padre no; deny en settings aplica a todos. Cita textual."
+      }
     },
     {
       "id": "o33-q24",
@@ -94,8 +106,12 @@
       "rule": "`Agent(tipo1, tipo2)` restringe tipos solo en el hilo principal (`--agent`); en un subagente, el paréntesis se ignora.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "The `Agent(agent_type)` allowlist syntax applies only to an agent running as the main thread with `claude --agent`.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc sub-agents: Agent(tipo) solo como hilo principal con --agent; en subagente el paréntesis se ignora; Task es alias viejo. Cita textual."
+      }
     },
     {
       "id": "o33-q25",
@@ -105,7 +121,7 @@
       "options": [
         "`[\"Bash\", \"Read\", \"Grep\", \"Edit\"]`, so it can run the suite and still apply small fixes to the test files when the failure is obviously in the test itself.",
         "`[\"Read\", \"Grep\", \"Glob\"]`, the read-only analysis set, and let the coordinator run the suite and pass the raw output to the subagent for analysis.",
-        "`[\"Bash\", \"Read\", \"Grep\"]`, so it can run the suite and analyze the output, with no tools that modify files.",
+        "`[\"Bash\", \"Read\", \"Grep\"]`, so it can run the integration suite itself and analyze the output, while having no tool that edits or writes files.",
         "Omit `tools` so it inherits every tool available to subagents, and add to its prompt that it must never modify any file under `tests/`."
       ],
       "correct": 2,
@@ -118,8 +134,12 @@
       "rule": "Ejecutar tests = `Bash`, `Read`, `Grep`. Si el rol no modifica, no le des `Edit`/`Write`.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "| Test execution | `Bash`, `Read`, `Grep` | Can run commands and analyze output |",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Doc agent-sdk/subagents: tabla Test execution = Bash, Read, Grep. Cita textual. Se alargó la opción C (era 108 caracteres vs 135–155, la delataba por corta)."
+      }
     },
     {
       "id": "o33-s21",
@@ -142,8 +162,12 @@
       "rule": "`memory` en un subagente le suma `Read`/`Write`/`Edit`; si necesitás read-only real, acotá con un hook `PreToolUse`.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "Read, Write, and Edit tools are automatically enabled so the subagent can manage its memory files.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc sub-agents: memory habilita Read/Write/Edit automáticamente; PreToolUse en frontmatter para permitir parte de una tool. Cita textual."
+      }
     },
     {
       "id": "o33-s22",
@@ -152,7 +176,7 @@
       "scenario": "A telecom's customer support agent is a single Agent SDK agent connected to four vendor MCP servers (CRM, billing, provisioning, knowledge base) with 72 tools in total. Two symptoms appear in a week of logs: 17% of contact updates go to `billing_update_customer` instead of `crm_update_contact`, and the agent issued 9 refunds during simple plan inquiries, without the eligibility checks the refund team performs. The servers belong to vendors, so their tools cannot be merged or renamed. Refunds must still be possible for eligible cases. Which change addresses both symptoms?",
       "options": [
         "Enable tool search so the agent loads only the tools relevant to each turn, which keeps selection accuracy high even with dozens of tools from several servers.",
-        "Split the work into specialist subagents, each with only the tools of its domain, and give the refund-tools only to a refund subagent the coordinator delegates to.",
+        "Split the work into specialist subagents, each with only the tools of its domain, and give the refund tools only to a refund subagent the coordinator delegates to.",
         "Add a deny rule for the billing server's refund tool in the settings, so refunds can no longer be issued by mistake during unrelated plan inquiries.",
         "Rewrite the system prompt with explicit routing rules for contact updates and a reminder to verify eligibility before calling any of the refund tools."
       ],
@@ -166,8 +190,12 @@
       "rule": "Muchas tools + uso fuera de rol → subagentes especializados con solo sus tools.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool",
       "source_quote": "Claude’s ability to pick the right tool degrades once you exceed 30–50 available tools.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Cita textual en tool-search-tool (degradación pasado 30–50 tools); subagentes por especialidad atacan ambos síntomas. Typo corregido en B (\"refund-tools\" → \"refund tools\")."
+      }
     },
     {
       "id": "o33-s23",
@@ -190,8 +218,12 @@
       "rule": "En `tools`, nombres exactos (`Read`, `Grep`, `Edit`). Si nada resuelve, el subagente no arranca.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "When nothing in the `tools` list resolves to a tool, for example because every entry is misspelled or names a tool that isn't available to subagents, Claude Code usually refuses to launch the subagent",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc sub-agents: si nada en tools resuelve, Claude Code suele negarse a lanzar el subagente y el error nombra las entradas; tool names son strings exactos. Cita textual."
+      }
     },
     {
       "id": "o33-s24",
@@ -208,14 +240,18 @@
       "why_correct": "Cuando necesitás permitir parte de una tool y bloquear otra parte según el contenido, la doc recomienda un hook `PreToolUse` que valide la operación antes de ejecutarla (su ejemplo es justo un `db-reader` que bloquea `INSERT`/`UPDATE`/`DELETE` con exit 2). Es enforcement y deja los `SELECT` libres.",
       "why_wrong": {
         "1": "Una entrada de `disallowedTools` con especificador saca la tool `Bash` ENTERA del subagente, no solo esos comandos: el analista ya no podría correr ni un `SELECT`.",
-        "2": "Las reglas de permisos matchean patrones sobre el texto del comando: un `update` en minúsculas, un `WITH ... UPDATE` o un `psql -f archivo.sql` no calzan con esos patrones. Es una lista de casos conocidos, frágil, cuando la doc ofrece validar el contenido con un hook. Y además aplica a todos los agentes.",
+        "2": "La doc avisa que las reglas de Bash que intentan acotar argumentos son frágiles: un `WITH ... UPDATE`, un `psql -f archivo.sql` o el mismo comando escrito de otra forma no calzan con esos patrones. Es una lista de casos conocidos cuando la doc ofrece validar el contenido con un hook. Y además aplica a todos los agentes.",
         "3": "Guidance: ya pasó una vez y la restricción pide imposibilidad."
       },
       "rule": "Permitir parte de una tool según su input = hook `PreToolUse` que valida y sale con 2; `disallowedTools` saca la tool entera.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "For more dynamic control over tool usage, use `PreToolUse` hooks to validate operations before they execute. This is useful when you need to allow some operations of a tool while blocking others.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Doc sub-agents: PreToolUse para permitir parte de una tool (ejemplo db-reader); disallowedTools con especificador saca la tool entera. Cita textual. Se sacó del why_wrong de C la afirmación de que las reglas distinguen mayúsculas/minúsculas (la doc no lo dice para Bash); se reemplazó por la advertencia documentada de que las reglas que acotan argumentos son frágiles."
+      }
     },
     {
       "id": "o33-s25",
@@ -238,8 +274,12 @@
       "rule": "Server con `__` en el nombre: en `tools`, `mcp__<nombre-completo>__*`; en `disallowedTools`, el prefijo corto se lleva también al otro server.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "write `mcp__` followed by the server's whole name and `__*`, as in `mcp__reports__v2__*`. Without the trailing `__*`, `mcp__reports__v2` matches none of that server's tools.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc sub-agents: server con __ → `mcp__reports__v2__*`; en disallowedTools el prefijo corto se lleva al otro server. Cita textual."
+      }
     },
     {
       "id": "o33-s26",
@@ -255,15 +295,19 @@
       "correct": 3,
       "why_correct": "Con un denylist heredás todo lo que no nombraste; en Windows eso incluye la tool `PowerShell`, que es con la que editó. Un allowlist con `Read`, `Grep`, `Glob` y las tools de los dos servers MCP le deja solo lo que su rol necesita. La doc lo plantea así: ese límite lo hace cumplir Claude Code, no un pedido en el prompt.",
       "why_wrong": {
-        "0": "Casi: saca `Bash`, pero en Windows la tool `PowerShell` es otra tool distinta y sigue heredada. Justo la que usó.",
+        "0": "Casi: saca `Bash`, pero un denylist sigue heredando todo lo que no nombraste, como `NotebookEdit` y la tool `PowerShell`, que es una tool aparte (la doc documenta que negar `Bash` apaga `PowerShell` para reglas de settings y `--disallowedTools`, no para el `disallowedTools` de un subagente). El allowlist no depende de acordarse de cada una.",
         "1": "Guidance: ya lo hizo 6 veces. El requisito es enforcement.",
         "2": "Saca todas las MCP (incluidas Jira y Confluence, que necesita) y deja `PowerShell` y `Bash`, que siguen pudiendo modificar archivos."
       },
       "rule": "Para read-only real, allowlist (`tools: Read, Grep, Glob` + las MCP que necesite); un denylist siempre se olvida de algo, como `PowerShell` en Windows.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "Give a custom subagent in `.claude/agents/` only `tools: Read, Grep, Glob`. Now it's a reviewer that can't edit anything, and that limit is enforced by Claude Code rather than requested in a prompt.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Cita textual en best-practices (allowlist Read/Grep/Glob, enforced por Claude Code). Doc tools-reference: PowerShell on por defecto en Windows con Git Bash. Se reescribió el why_wrong de A: la doc dice que negar Bash apaga PowerShell solo para reglas de settings y --disallowedTools; ahora se apoya en que el denylist sigue heredando NotebookEdit y PowerShell."
+      }
     }
   ]
 }

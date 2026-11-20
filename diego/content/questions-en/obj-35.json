@@ -22,8 +22,12 @@
       "rule": "`${VAR}` en `.mcp.json` se expande del entorno del proceso `claude`; si no está, va el texto literal y `claude mcp list` avisa.",
       "source_url": "https://code.claude.com/docs/en/mcp",
       "source_quote": "If a referenced environment variable isn't set and has no default value, the config still loads: Claude Code reports a missing-variable warning for that server in `claude mcp list` output and uses the unexpanded `${VAR}` text as-is.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc mcp: variable faltante → warning en claude mcp list y texto ${VAR} literal; precedencia local > project > user. Cita textual."
+      }
     },
     {
       "id": "o35-q22",
@@ -46,8 +50,12 @@
       "rule": "Scopes MCP: local > project > user, y gana la entrada entera (no se mezclan campos).",
       "source_url": "https://code.claude.com/docs/en/mcp",
       "source_quote": "When the same server is defined in more than one place, Claude Code connects to it once, using the definition from the highest-precedence source. The entire server entry from that source is used; fields are not merged across scopes.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc mcp: gana la entrada entera de mayor precedencia, sin merge; local > project > user. Cita textual."
+      }
     },
     {
       "id": "o35-q23",
@@ -70,8 +78,12 @@
       "rule": "CI con PRs no confiables: `--strict-mcp-config` + `--mcp-config` con la lista cerrada de servers.",
       "source_url": "https://code.claude.com/docs/en/mcp",
       "source_quote": "Start the session with `--strict-mcp-config`. Claude Code then loads the servers you pass with `--mcp-config` and skips the ones configured in places such as `.mcp.json`.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc mcp: en -p se cargan servers de proyecto sin preguntar; --strict-mcp-config + --mcp-config; disabledMcpjsonServers solo por nombre. Cita textual."
+      }
     },
     {
       "id": "o35-q24",
@@ -94,8 +106,12 @@
       "rule": "`claude mcp add`: nunca el nombre justo después de `--env`; el comando del server va después de `--`.",
       "source_url": "https://code.claude.com/docs/en/mcp",
       "source_quote": "If the server name comes directly after `--env`, the CLI reads the name as another pair and rejects it, so place at least one other option, such as `--transport stdio`, between `--env` and the server name.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc mcp: nombre justo después de --env se lee como otro par; poner otra opción como --transport stdio. Cita textual."
+      }
     },
     {
       "id": "o35-q25",
@@ -118,8 +134,12 @@
       "rule": "`Added ...` solo significa \"guardado\". Verificá en `/mcp` (estado + cantidad de tools) antes de culpar al modelo.",
       "source_url": "https://code.claude.com/docs/en/mcp",
       "source_quote": "The `claude mcp add` command saves the configuration without validating credentials, so a placeholder value is accepted here but the server fails to connect later.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc mcp: claude mcp add guarda sin validar credenciales; verificar en /mcp. Cita textual."
+      }
     },
     {
       "id": "o35-s21",
@@ -142,8 +162,12 @@
       "rule": "Warning de whitespace en `claude mcp list` = editá la config; Claude Code no recorta valores.",
       "source_url": "https://code.claude.com/docs/en/mcp",
       "source_quote": "Claude Code doesn't trim the whitespace and uses the values exactly as written, so edit the configuration to remove it.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc mcp: warning de whitespace oculto, Claude Code no lo recorta. Cita textual."
+      }
     },
     {
       "id": "o35-s22",
@@ -166,8 +190,12 @@
       "rule": "Headers de server remoto con `NPM_TOKEN`, `ANTHROPIC_API_KEY`, etc. → se leen vacíos. Usá una variable con nombre propio.",
       "source_url": "https://code.claude.com/docs/en/mcp",
       "source_quote": "A covered name reads as empty whether or not you have set the variable, and a `:-default` fallback on it is ignored.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc mcp: NPM_TOKEN entre las variables que se leen vacías en url/headers remotos, :-default ignorado; copiar a nombre propio. Cita textual."
+      }
     },
     {
       "id": "o35-s23",
@@ -190,8 +218,12 @@
       "rule": "Permisos MCP con el nombre completo tal como aparece en el init: `mcp__<server_normalizado>__*`.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/mcp",
       "source_quote": "Characters in the server name such as `.` and spaces are replaced by `_`.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc agent-sdk/mcp: `.` se reemplaza por `_` (ejemplo my.server); acceptEdits no aprueba MCP. Cita textual."
+      }
     },
     {
       "id": "o35-s24",
@@ -214,8 +246,12 @@
       "rule": "Equipo → project + `${VAR}`. Personal en todos lados → user. Personal/experimental en un repo → local.",
       "source_url": "https://code.claude.com/docs/en/mcp",
       "source_quote": "Use local scope for personal development servers, experimental configurations, or servers with credentials you don't want in version control.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc mcp: local para personal/experimental con credenciales; user para todos los proyectos; project + ${VAR} para equipo. Cita textual."
+      }
     },
     {
       "id": "o35-s25",
@@ -238,8 +274,12 @@
       "rule": "Init del SDK: `failed`/`needs-auth` = no usable; `pending` no es un error en sí.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/mcp",
       "source_quote": "In the init message, don't treat `\"pending\"` as a failure on its own.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc agent-sdk/mcp: no tratar pending como fallo por sí solo; failed/needs-auth; alwaysLoad espera con tope. Cita textual."
+      }
     },
     {
       "id": "o35-s26",
@@ -262,8 +302,12 @@
       "rule": "Tokens que vencen → `headersHelper` (se re-ejecuta en 401/403). En servers de proyecto, que lea la credencial de un archivo o credential store.",
       "source_url": "https://code.claude.com/docs/en/mcp",
       "source_quote": "If a tool call returns `401 Unauthorized` or `403 Forbidden`, Claude Code automatically re-runs the helper under the same rule, reconnects with the fresh headers, and retries the call once.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc mcp: headersHelper se re-ejecuta en 401/403 y reintenta una vez; helpers de .mcp.json de proyecto corren sin variables con TOKEN en el nombre (leer de credential store). Cita textual."
+      }
     }
   ]
 }

@@ -22,8 +22,12 @@
       "rule": "¿Buscás texto adentro de archivos? `Grep` (con `glob`/`type` para acotar). ¿Buscás archivos por nombre? `Glob`. Después, `Read` solo de lo que encontraste.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "Claude can scope results by file with the `glob` parameter, such as `**/*.tsx`, or by language with the `type` parameter, such as `py` or `rust`.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc tools-reference: Grep con `glob`, Read no lee directorios, LSP inactivo sin plugin; en Windows Glob/Grep están por defecto. Cita textual."
+      }
     },
     {
       "id": "o32-q22",
@@ -46,8 +50,12 @@
       "rule": "Archivo no UTF-8 que tiene que quedar en su encoding: ni `Edit` ni `Write`; comando de shell que preserve el encoding (o preguntar antes de convertir).",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "tells it to make the change with a shell command that keeps the file's encoding, or to ask you about converting it to UTF-8 first.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc: Edit rechaza no-UTF-8 (Windows-1252), el error sugiere shell que preserve encoding; Write guarda como UTF-8. Cita textual."
+      }
     },
     {
       "id": "o32-q23",
@@ -70,8 +78,12 @@
       "rule": "`Grep` saltea lo que está en `.gitignore` (pasale la ruta directa); `Glob` no lo saltea por defecto.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "Grep respects `.gitignore`, so gitignored files are skipped. To search a gitignored file, Claude passes its path directly.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc: Grep respeta .gitignore (ruta directa), Glob no por defecto; CLAUDE_CODE_GLOB_NO_IGNORE=false hace que Glob lo respete. Cita textual."
+      }
     },
     {
       "id": "o32-q24",
@@ -94,8 +106,12 @@
       "rule": "Archivo enorme: `Grep` para ubicar, `Read` con `offset`/`limit` para leer solo esa zona.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "an error telling it to read a portion with `offset` and `limit`, or to search for specific content with Grep instead",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc: archivo >256 KB → error que sugiere offset/limit o Grep; allow_large existe desde v2.1.296 pero consume contexto. Cita textual."
+      }
     },
     {
       "id": "o32-q25",
@@ -118,8 +134,12 @@
       "rule": "En `Grep`, escapá metacaracteres de regex y, si necesitás números, usá `output_mode: \"count\"`.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "`count`: match count per file, followed by a total across all matching files. The total covers every match even when the tool's `head_limit` or `offset` parameters truncate the listed per-file entries.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc: Grep usa regex de ripgrep (escapar), error con diagnóstico; modo count con total completo aunque head_limit trunque. Cita textual."
+      }
     },
     {
       "id": "o32-s21",
@@ -142,8 +162,12 @@
       "rule": "En Linux/macOS/WSL las búsquedas van por `Bash` salvo que pidas `Glob`/`Grep` con `--tools`/`--allowedTools` (o saques `Bash`); una allow rule no alcanza.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "On macOS, Linux, and WSL, Claude Code leaves Glob and Grep out of the default tool set, and Claude searches with `find` and `grep` through the Bash tool instead.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc: en Linux Glob/Grep fuera del set por defecto, vuelven con --tools/--allowedTools; una allow rule en settings no alcanza; deny scoped no saca Bash. Cita textual."
+      }
     },
     {
       "id": "o32-s22",
@@ -166,8 +190,12 @@
       "rule": "PDF de más de 10 páginas = `Read` con `pages`, que depende de `pdftoppm` instalado. El error es de entorno, no de prompt.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "On Windows and other platforms, install a poppler build that puts `pdftoppm` on your `PATH`. Without it, a page-range read fails with `pdftoppm is not installed`.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc: PDFs >10 páginas por rangos con pdftoppm; en Windows instalar poppler en PATH; allow_large no aplica a PDFs. Cita textual."
+      }
     },
     {
       "id": "o32-s23",
@@ -184,14 +212,18 @@
       "why_correct": "`Read` rechaza extensiones que trata como binarias, como `.xlsx`. El error mismo sugiere una skill para ese formato si existe, o un comando/script que lea el formato. Acá ya tenés `Bash(python3 *)` y `openpyxl`: leer con un script es elegir la tool correcta para la naturaleza del archivo, y marcar las celdas vacías evita inventar valores.",
       "why_wrong": {
         "0": "Si hacés `@` de un archivo que `Read` rechaza, Claude recibe la ruta pero no el contenido. Sigue sin datos.",
-        "1": "Un `.xlsx` es un archivo comprimido: cambiarle la extensión no lo convierte en CSV. `Read` lo aceptaría y devolvería basura binaria.",
+        "1": "Un `.xlsx` es un archivo comprimido: cambiarle la extensión no lo convierte en CSV. El contenido sigue siendo binario, así que Claude seguiría sin poder leer las celdas como texto.",
         "2": "`Grep` busca líneas de texto; el contenido de un `.xlsx` no es texto plano. No vas a ubicar celdas así."
       },
       "rule": "Formato binario (xlsx, parquet, zip): `Read` no; script o skill que entienda el formato.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "Read refuses a file whose extension it treats as binary, such as `.xlsx`, `.parquet`, `.heic`, or `.zip`. Claude keeps working after a refusal: the error suggests a skill for that file type if one is available, or else a shell command or script that reads the format.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Doc: Read rechaza .xlsx, el error sugiere skill o script; @ de archivo rechazado da solo la ruta. Cita textual. Se suavizó el why_wrong de B (no afirmar qué devolvería Read)."
+      }
     },
     {
       "id": "o32-s24",
@@ -214,8 +246,12 @@
       "rule": "Wrapper con alias: leé qué exporta y hacé `Grep` por cada nombre; no busques solo el nombre original.",
       "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
       "source_quote": "Tracing function usage across wrapper modules by first identifying all exported names, then searching for each name across the codebase",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Guía del examen (PDF): rastrear wrappers identificando nombres exportados y buscando cada uno. Cita textual."
+      }
     },
     {
       "id": "o32-s25",
@@ -238,8 +274,12 @@
       "rule": "`Glob` corta en 100 con flag de truncado: si aparece, achicá el patrón; nunca reportes el 100 como total.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "Results are sorted by modification time and capped at 100 files. If the cap is hit, Claude sees a truncation flag in the result and can narrow the pattern.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc: Glob ordena por mtime, tope 100 con flag de truncado, achicar patrón; Read no lee directorios. Cita textual."
+      }
     },
     {
       "id": "o32-s26",
@@ -255,15 +295,19 @@
       "correct": 3,
       "why_correct": "Cuando `old_string` aparece más de una vez, `Edit` pide o un texto más largo que lo haga único o `replace_all: true` para reemplazar todas. Acá querés todas: `Edit` con `replace_all` por archivo hace cambios puntuales sin reescribir 2.000 líneas, y cada llamada pasa por el hook `Edit|Write` que exige SOC 2.",
       "why_wrong": {
-        "0": "El reemplazo por shell funciona, pero no es una llamada a `Edit` ni a `Write`: el hook de auditoría no se dispara. Además `Set-Content` en PowerShell 5.1 puede cambiar el encoding.",
+        "0": "El reemplazo por shell funciona, pero no es una llamada a `Edit` ni a `Write`: el hook de auditoría con matcher `Edit|Write` no se dispara, y la restricción pide que cada archivo pase por él.",
         "1": "Read + Write es un fallback válido cuando no hay ancla única, y el hook correría, pero reescribe archivos enteros de 2.000 líneas: la restricción dice que eso se quiere evitar, y `replace_all` lo resuelve sin riesgo.",
         "2": "`Edit` hace reemplazo exacto de texto: no usa regex ni matching difuso. Buscaría literalmente `fetchUser\\(` y no lo encontraría."
       },
       "rule": "Muchas ocurrencias del mismo texto: `Edit` con `replace_all: true`. `Edit` nunca usa regex.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "Uniqueness: `old_string` must appear exactly once. When it appears more than once, Claude either supplies a longer string with enough surrounding context to pin down one occurrence, or sets `replace_all: true` to replace them all.",
-      "status": "no_verificado",
-      "verification": null
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Doc: Edit sin regex; old_string único o replace_all. Cita textual. Se quitó del why_wrong de A la afirmación no documentada sobre el encoding de Set-Content en PowerShell 5.1."
+      }
     }
   ]
 }
