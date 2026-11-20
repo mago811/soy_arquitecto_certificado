@@ -3,6 +3,7 @@ import { type PlanTask, getPlan, getObjective, getLesson, getLab, practiceQuesti
 import { planChecks, allAnswers, dueReviews } from "@/lib/progress";
 import { formatDate, todayISO } from "@/lib/dates";
 import { TaskCheck } from "./TaskCheck";
+import { diagAttempts } from "@/lib/diag";
 
 const ICON: Record<string, string> = {
   lesson: "📖", lab: "🛠️", practice: "✍️", review: "🔁", sim: "⏱️", errors: "🧾", progress: "📊", rules: "📌", text: "🎯",
@@ -12,7 +13,10 @@ export async function DayView({ n, isToday }: { n: number; isToday: boolean }) {
   const plan = getPlan();
   const day = plan.days.find((d) => d.day === n);
   if (!day) return <p>Ese día no existe.</p>;
-  const [checks, answers, due] = await Promise.all([planChecks(), allAnswers(), dueReviews()]);
+  const [checks, answers, due, diags] = await Promise.all([planChecks(), allAnswers(), dueReviews(), isToday ? diagAttempts() : Promise.resolve([])]);
+  const diagDone = diags.some((a) => a.finished_at);
+  const diagOpen = diags.find((a) => !a.finished_at);
+  const pastPending = plan.days.filter((d) => d.date < todayISO() && d.tasks.some((t) => !checks.has(t.id)));
   const answeredIds = new Set(answers.filter((a) => a.mode !== "sim").map((a) => a.question_id));
   const done = day.tasks.filter((t) => checks.has(t.id)).length;
   const isFuture = day.date > todayISO();
@@ -43,6 +47,25 @@ export async function DayView({ n, isToday }: { n: number; isToday: boolean }) {
       <h1 className="mt-1 text-2xl font-bold leading-snug">{day.topic}</h1>
       {isToday && isFuture && <p className="mt-2 rounded-lg bg-accent-soft p-2.5 text-sm text-accent">El plan arranca mañana. Si querés, podés ir mirando el día 1.</p>}
       {isFuture && !isToday && <p className="mt-2 text-sm text-muted">Este día todavía no llegó. Podés mirarlo, pero lo ideal es ir de a uno.</p>}
+
+      {isToday && !diagDone && (
+        <div className="mt-4 rounded-xl border-2 border-accent bg-accent-soft p-4">
+          <p className="font-bold text-accent">📋 Antes de seguir: test de nivel</p>
+          <p className="mt-1 text-sm">
+            Queremos saber cómo venís con lo que viste hasta hoy. Primero marcás qué hiciste de cada día y después respondés hasta 30
+            preguntas (60 min). Te da un puntaje estimado y te dice qué repasar.
+          </p>
+          <Link href={diagOpen ? `/diagnostico/${diagOpen.id}` : "/diagnostico"} className="btn mt-3 inline-block">
+            {diagOpen ? "Continuar el test" : "Hacer el test de nivel"}
+          </Link>
+        </div>
+      )}
+      {isToday && diagDone && pastPending.length > 0 && (
+        <p className="mt-4 rounded-lg bg-warn-soft p-2.5 text-sm text-warn">
+          Tenés tareas sin tildar en {pastPending.length === 1 ? "el día" : "los días"} {pastPending.map((d) => d.day).join(", ")}.{" "}
+          <Link href="/plan" className="underline">Marcá lo que ya hiciste</Link> así el plan refleja dónde estás.
+        </p>
+      )}
 
       {day.objectives.length > 0 && (
         <div className="mt-4 flex flex-col gap-1.5 text-sm">

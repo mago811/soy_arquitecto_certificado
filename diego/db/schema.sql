@@ -36,3 +36,15 @@ CREATE TABLE IF NOT EXISTS rule_reviews (
   objective   int PRIMARY KEY,
   reviewed_at timestamptz NOT NULL DEFAULT now()
 );
+
+CREATE TABLE IF NOT EXISTS diag_attempts (
+  id          bigserial PRIMARY KEY,
+  started_at  timestamptz NOT NULL DEFAULT now(),
+  finished_at timestamptz,
+  upto_day    int NOT NULL,
+  questions   jsonb NOT NULL,
+  self_report jsonb NOT NULL DEFAULT '{}'::jsonb,
+  answers     jsonb NOT NULL DEFAULT '{}'::jsonb,
+  score_pct   numeric,
+  scaled      int
+);

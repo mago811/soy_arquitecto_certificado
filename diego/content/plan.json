@@ -295,22 +295,10 @@
           "label": "Preguntas de práctica del objetivo 1"
         },
         {
-          "id": "d5-o37-leccion",
+          "id": "d5-o37-repaso",
           "type": "lesson",
           "objective": 37,
-          "label": "Leer la lección del objetivo 37"
-        },
-        {
-          "id": "d5-o37-lab",
-          "type": "lab",
-          "objective": 37,
-          "label": "Hacer el laboratorio del objetivo 37"
-        },
-        {
-          "id": "d5-o37-practica",
-          "type": "practice",
-          "objective": 37,
-          "label": "Preguntas de práctica del objetivo 37"
+          "label": "Repaso rápido: lección y regla del objetivo 37 (la viste completa el día 4)"
         },
         {
           "id": "d5-srs",

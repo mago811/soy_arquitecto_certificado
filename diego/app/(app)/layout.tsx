@@ -8,6 +8,7 @@ const NAV = [
   { href: "/", label: "Hoy" },
   { href: "/plan", label: "Plan" },
   { href: "/practica", label: "Práctica" },
+  { href: "/diagnostico", label: "Test de nivel" },
   { href: "/simulacros", label: "Simulacros" },
   { href: "/progreso", label: "Progreso" },
   { href: "/errores", label: "Errores" },
