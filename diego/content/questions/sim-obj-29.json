@@ -22,11 +22,11 @@
       "rule": "Claves desconocidas en structured outputs → array de `{key, value}`, no un dict.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "If you don’t know the keys in advance, use an array instead.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en structured-outputs (Objects with arbitrary keys); la página confirma que el SDK de Python manda un dict con properties vacío, que additionalProperties distinto de false da 400 y el límite de 24 opcionales."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en structured-outputs (Objects with arbitrary keys); la página confirma que el SDK de Python manda un dict con properties vacío, que additionalProperties distinto de false da 400 y el límite de 24 opcionales. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "Nullable solo donde el dato puede faltar: los tipos unión tienen límite (16 por request).",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "Total parameters that use `anyOf` or type arrays (for example, `\"type\": [\"string\", \"null\"]`) across all strict schemas.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual de la tabla de límites (16 parámetros con union types en todos los schemas estrictos del request; 24 opcionales). La nota de la página confirma que el límite es combinado (W2)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual de la tabla de límites (16 parámetros con union types en todos los schemas estrictos del request; 24 opcionales). La nota de la página confirma que el límite es combinado (W2). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "Documento largo → primero citas textuales, después los campos a partir de las citas (o `null`).",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
       "source_quote": "For tasks involving long documents (>20k tokens), ask Claude to extract word-for-word quotes first before performing its task.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "Cita textual en reduce-hallucinations; long-form data at the top confirmado en claude-prompting-best-practices. Corregido W2: el 400 es con schema crudo; los SDK quitan minimum/maximum del schema enviado y validan después (structured-outputs, How SDK transformation works)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en reduce-hallucinations; long-form data at the top confirmado en claude-prompting-best-practices. Corregido W2: el 400 es con schema crudo; los SDK quitan minimum/maximum del schema enviado y validan después (structured-outputs, How SDK transformation works). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,151 @@
       "rule": "Normalización: explicá el porqué del formato de salida + ejemplos variados; Claude generaliza.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Claude can generalize from the explanation.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en claude-prompting-best-practices (motivación de la instrucción, Claude generaliza). Corregido W1: el 400 aplica al schema crudo; los SDK transforman esas restricciones (structured-outputs). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o29-s21",
+      "objective": 29,
+      "pool": "sim",
+      "scenario": "A travel-management company classifies 40,000 expense receipts a month into an enum `category` (`client_entertainment`, `team_meal`, `travel_meal`, `other`) with structured outputs. The system prompt contains a long paragraph defining each category. Agreement with the finance team's labels is 96% on clear cases but only 61% on ambiguous ones, such as a dinner with one client and three colleagues, or a breakfast at the airport hotel the morning of a client visit. The same ambiguous receipt sometimes gets different categories on different runs. Finance wants consistent decisions in the gray zone without rewriting the category definitions, which were approved by the auditors. What is the most effective change?",
+      "options": [
+        "Add 2–4 few-shot examples of the ambiguous cases, each with the chosen category and a short note on why it beats the plausible alternative.",
+        "Add 25 more few-shot examples covering clear cases for every category, so the model sees many more instances of each label before classifying.",
+        "Extend each category definition with detailed rules and exceptions, so the system prompt spells out every edge case finance has run into so far.",
+        "Add an `uncertain` value to the enum and route those receipts to finance, so ambiguous cases are no longer forced into the four categories."
+      ],
+      "correct": 0,
+      "why_correct": "Las definiciones ya funcionan en lo claro; falla la zona gris. Pocos ejemplos dirigidos justo a esos casos, con la razón de por qué gana una categoría sobre la alternativa plausible, enseñan el criterio y el modelo lo generaliza a casos parecidos. Una explicación corta, no un volcado de razonamiento.",
+      "why_wrong": {
+        "1": "Más ejemplos de lo que ya sale bien no enseñan nada sobre lo ambiguo: suman tokens sin mover el 61%.",
+        "2": "Choca con la restricción, y es la vía que la guía marca como insuficiente: las instrucciones detalladas solas dan resultados inconsistentes.",
+        "3": "Esconde el problema: manda a finance buena parte de los casos ambiguos en vez de decidirlos de forma consistente."
+      },
+      "rule": "Zona gris inconsistente → 2–4 few-shot de los casos ambiguos, con el porqué de la elección.",
+      "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
+      "source_quote": "Creating 2-4 targeted few-shot examples for ambiguous scenarios that show reasoning for why one action was chosen over plausible alternatives",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la guía oficial del examen (PDF everpath) (2-4 few-shot para ambiguos con el porqué). D (enum uncertain) es práctica real pero no decide la zona gris como pide finance: casi-correcta legítima."
+      }
+    },
+    {
+      "id": "o29-s22",
+      "objective": 29,
+      "pool": "sim",
+      "scenario": "A wholesaler ingests invoices from 300 suppliers in the US, the UK and Argentina. The extraction schema already declares `invoice_date` with `\"format\": \"date\"`, and every output is a well-formed ISO date. Reconciliation, however, shows that 7% of invoices from UK and Argentine suppliers have day and month swapped: \"03/04/2026\" became `2026-03-04` instead of `2026-04-03`. Each request already includes the supplier record, which has a `country` field. Auditors want the date exactly as printed preserved for disputed cases. What is the most effective change?",
+      "options": [
+        "Replace `\"format\": \"date\"` with a `pattern` that only accepts `YYYY-MM-DD`, so the model is held to the ISO layout more strictly.",
+        "Ask the model to return dates in each supplier's native format instead of ISO, and let the ERP parse each country's format on import.",
+        "Add a rule keyed on the supplier's `country` (day-first outside the US), an `invoice_date_text` field with the printed date, and an ambiguous-date example.",
+        "Add an instruction telling the model to be especially careful with dates, and to double-check the day and the month before it writes `invoice_date` to the output."
+      ],
+      "correct": 2,
+      "why_correct": "`format: date` garantiza la *forma* ISO, no que el día y el mes estén en su lugar. Una regla de normalización explícita según el país del proveedor resuelve la ambigüedad, el texto original queda para auditoría y el ejemplo muestra el caso '03/04'.",
+      "why_wrong": {
+        "0": "Es el mismo error que ya tienen: más control de forma, cero control de significado. `2026-03-04` cumple cualquier patrón ISO.",
+        "1": "Pasa el problema al ERP y pierde la normalización: cada país en un formato distinto es justo la inconsistencia que querés evitar.",
+        "3": "'Tené cuidado' no le dice cuál es la regla; sin saber que UK y Argentina van con el día primero, el modelo sigue adivinando."
+      },
+      "rule": "El schema garantiza la forma, no el significado. La normalización necesita una regla explícita (y el texto original al lado).",
+      "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
+      "source_quote": "Including format normalization rules in prompts alongside strict output schemas to handle inconsistent source formatting",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
         "verdict": "corregida",
-        "notes": "Cita textual en claude-prompting-best-practices (motivación de la instrucción, Claude generaliza). Corregido W1: el 400 aplica al schema crudo; los SDK transforman esas restricciones (structured-outputs)."
+        "notes": "Respuesta correcta. Cambié la cita genérica (\"Be specific about the output format...\") por la textual de la guía oficial sobre reglas de normalización junto al schema."
+      }
+    },
+    {
+      "id": "o29-s23",
+      "objective": 29,
+      "pool": "sim",
+      "scenario": "A university's research-synthesis system uses a subagent to extract study metadata (`sample_size`, `study_design`, `population`) from 3,000 papers with structured outputs. The papers vary widely: some report the sample size in the abstract, others only deep in the methodology, and many cite earlier studies inline (\"a prior trial of 12,000 patients [14]\"). Audits found that 18% of `sample_size` values were taken from a cited prior study instead of the paper being processed. `sample_size` is already nullable, and the prompt already says to use only the given paper. Which change is most effective?",
+      "options": [
+        "Add a pre-processing step that keeps only the section titled \"Methods\" or \"Methodology\" and sends just that section to the extraction subagent.",
+        "Remove `sample_size` from the schema for papers without an explicit \"N =\" statement, and fill it in later from a public clinical trials registry.",
+        "Add an instruction stating that the sample size must describe the current study, written in capital letters at the top of the system prompt.",
+        "Add few-shot examples from varied paper structures, including one whose inline citation mentions a larger trial that must be ignored."
+      ],
+      "correct": 3,
+      "why_correct": "El error viene de estructuras variadas: el número citado se parece mucho al propio. Few-shot que muestran justo esa trampa (cita inline con un N más grande que no corresponde) y de dónde sale el valor correcto enseñan la distinción, y el modelo la generaliza a otros layouts.",
+      "why_wrong": {
+        "0": "Muchos papers no tienen una sección con ese título o reportan el N en el abstract; y las secciones de métodos también citan estudios previos. Recortás información y la trampa sigue.",
+        "1": "Trae datos de afuera del documento y cambia el schema según el paper: más inconsistencia, y el registro no siempre coincide con el estudio.",
+        "2": "La instrucción ya existe con otras palabras ('usá solo el paper'). Las mayúsculas no le enseñan a distinguir un N citado del propio."
+      },
+      "rule": "Estructuras variadas que confunden → few-shot que muestran la trampa concreta y la extracción correcta.",
+      "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
+      "source_quote": "Using few-shot examples to demonstrate correct handling of varied document structures (inline citations vs bibliographies, methodology sections vs embedded details)",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la guía oficial del examen (PDF everpath) (few-shot con estructuras variadas: citas inline vs. métodos). Recorte por sección pierde datos. Única correcta D."
+      }
+    },
+    {
+      "id": "o29-s24",
+      "objective": 29,
+      "pool": "sim",
+      "scenario": "A procurement platform extracts supplier details from scanned invoices, including `vat_number` and `bank_iban`, both nullable. For invoices from very large, well-known vendors, auditors found that when the scan was cropped and the VAT number was missing from the page, the output still contained the vendor's publicly known VAT number. It was usually correct, but in two cases it belonged to a different subsidiary than the one issuing the invoice. The compliance team requires every value to come from the document itself. The prompt currently says only: \"Extract the supplier's VAT number and IBAN.\" Which change best meets the compliance requirement?",
+      "options": [
+        "Instruct Claude to use only information in the provided document, not its general knowledge, and to return null when a field isn't on the page.",
+        "Remove the vendor name from the input image before extraction, so the model can't recognize famous vendors and recall their known VAT numbers.",
+        "Keep the current behavior for well-known vendors, since the recalled VAT numbers are usually correct, and validate them against the national VAT registry.",
+        "Add a confidence score from 0 to 1 for each field and send any value with a confidence below 0.8 to a human reviewer before it is saved."
+      ],
+      "correct": 0,
+      "why_correct": "El modelo completa con conocimiento general. La doc tiene la técnica exacta: restringir explícitamente a la información de los documentos provistos. Con el campo nullable y permiso de devolver null cuando el dato no está en la página, la salida queda atada al documento, como exige compliance.",
+      "why_wrong": {
+        "1": "Tapa el síntoma y destruye un dato que también necesitás extraer (el proveedor); además, el modelo podría reconocerlo por otros datos de la factura.",
+        "2": "Choca con la restricción: compliance exige que el valor salga del documento, y ya viste que el número 'recordado' puede ser de otra subsidiaria.",
+        "3": "Un valor recordado de memoria puede venir con confianza alta: la confianza autoinformada no detecta que el dato no está en la página."
+      },
+      "rule": "Datos que deben salir del documento → 'usá solo el documento, no tu conocimiento general' + null permitido.",
+      "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
+      "source_quote": "External knowledge restriction: Explicitly instruct Claude to only use information from provided documents and not its general knowledge.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en reduce-hallucinations (External knowledge restriction). Confianza autoinformada y validación externa no cumplen \"del documento\"."
+      }
+    },
+    {
+      "id": "o29-s25",
+      "objective": 29,
+      "pool": "sim",
+      "scenario": "An HR platform extracts fields from employment contracts using 12 few-shot examples. All 12 come from the same law firm's template, every field is filled in, and the examples are pasted into the prompt as plain paragraphs mixed in with the instructions. On real traffic, two problems appear: when a contract has no probation clause, the output still says `\"probation_months\": 3`, the value used in nearly every example; and in 2% of outputs the employer name is \"Brightline Legal LLP\", the firm from the examples, even though it appears nowhere in the contract. What is the most effective change?",
+      "options": [
+        "Delete the examples entirely and rely on the JSON schema with nullable fields, since the examples are exactly what the model is copying values from.",
+        "Replace them with fewer, diverse examples from different templates, including one with no probation clause, each wrapped in `<example>` tags.",
+        "Keep the 12 examples but add the instruction \"Never copy values from the examples\" right below them, so the model treats them as format only.",
+        "Add 12 more examples from the same law firm's template with different employer names, so no single name appears often enough to be copied."
+      ],
+      "correct": 1,
+      "why_correct": "Dos síntomas, una causa: ejemplos todos iguales (el modelo aprende 'probation = 3' como patrón) y sin delimitar (se mezclan con las instrucciones). Ejemplos diversos, con un caso que da null, y envueltos en `<example>` para que se distingan de las instrucciones y del input.",
+      "why_wrong": {
+        "0": "Tirás la técnica más confiable para formato y consistencia; el problema no son los ejemplos sino que no son diversos ni están delimitados.",
+        "2": "Parche parcial: puede bajar las copias literales, pero el sesgo de 'siempre hay probation' sigue, porque ningún ejemplo muestra el caso sin cláusula.",
+        "3": "Más del mismo template refuerza el patrón; cambiar nombres no muestra el caso sin probation."
+      },
+      "rule": "Few-shot: relevantes, diversos (incluí el caso null) y delimitados con `<example>`.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Diverse: Cover edge cases and vary enough that Claude doesn’t pick up unintended patterns.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Citas textuales en prompting best practices (ejemplos diversos y envueltos en <example>). Correcta B combina ambas causas; C y D parciales."
       }
     }
   ]

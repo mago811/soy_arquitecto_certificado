@@ -22,11 +22,11 @@
       "rule": "Misrouting entre tools parecidas → arreglá las descripciones (qué hace, cuándo sí, cuándo no).",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
       "source_quote": "**Provide extremely detailed descriptions.** This is by far the most important factor in tool performance.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "Cita textual (define-tools). Opción correcta reformulada: 'cuándo usarla y cuándo no' en vez de 'cuándo usar la otra' (la doc pide el 'when it shouldn't', no nombrar la tool vecina); why_correct ajustado."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual (define-tools). Opción correcta reformulada: 'cuándo usarla y cuándo no' en vez de 'cuándo usar la otra' (la doc pide el 'when it shouldn't', no nombrar la tool vecina); why_correct ajustado. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "Parámetros mal o faltantes → descripciones más detalladas, con formato.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
       "source_quote": "The best approach during development is to try the request again with more-detailed `description` values in your tool definitions.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "handle-tool-calls (Invalid tool name): reintentar con descriptions más detalladas; alternativa tool_result con el error."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "handle-tool-calls (Invalid tool name): reintentar con descriptions más detalladas; alternativa tool_result con el error. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "Tools de varios servicios → prefijo por servicio en el nombre.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
       "source_quote": "When your tools span multiple services or resources, prefix names with the service (for example, `github_list_prs`, `slack_send_message`). This makes tool selection unambiguous as your library grows",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual (namespacing por servicio)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual (namespacing por servicio). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,11 @@
       "rule": "Muchas operaciones relacionadas → una tool con parámetro action.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
       "source_quote": "Fewer, more capable tools reduce selection ambiguity and make your tool surface easier for Claude to navigate.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual (consolidar con parámetro action)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual (consolidar con parámetro action). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -134,11 +134,11 @@
       "rule": "Descripciones MCP en Claude Code: concisas y con lo crítico al principio.",
       "source_url": "https://code.claude.com/docs/en/mcp",
       "source_quote": "Keep descriptions and instructions concise, and put critical details near the start.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "code.claude.com/mcp: corte a 4.096 para tools upfront e instrucciones; poner lo crítico al principio."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "code.claude.com/mcp: corte a 4.096 para tools upfront e instrucciones; poner lo crítico al principio. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -162,11 +162,151 @@
       "rule": "Input complejo o con formato estricto → descripción + input_examples.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
       "source_quote": "for tools with complex inputs, nested objects, or format-sensitive parameters, you can use the `input_examples` field to provide schema-validated examples.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual (input_examples para inputs complejos, priorizando descripciones). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o36-q21",
+      "objective": 36,
+      "pool": "practice",
+      "scenario": "A telecom's customer support agent uses two MCP tools owned by different backend teams. `lookup_customer(query)` is described as \"Finds a customer.\" and `find_account(query)` as \"Finds an account record.\" `lookup_customer` expects an email address; `find_account` expects a 10-digit account number and returns billing status. Logs show 22% of calls send an email to `find_account` or an account number to `lookup_customer`, each followed by a \"not found\" reply to the customer. The two teams cannot merge the tools this quarter. What is the most effective fix?",
+      "options": [
+        "Add `input_examples` to both tools, one with an email for `lookup_customer` and one with a 10-digit number for `find_account`, so Claude sees the expected formats.",
+        "Add a routing rule to the system prompt: \"If the customer gives an email, use lookup_customer; if they give an account number, use find_account.\"",
+        "Rewrite both descriptions to state what each tool returns, the exact input format it accepts, when to use it, and when to use the other tool instead.",
+        "Rename the tools to `customer_lookup_by_email` and `account_lookup_by_number` and leave the descriptions as they are, since the names now carry the format."
+      ],
+      "correct": 2,
+      "why_correct": "Las descripciones son el mecanismo principal con el que el modelo elige tools, y la doc dice que son por lejos el factor más importante. Una buena descripción explica qué hace, cuándo usarla (y cuándo no), qué significa cada parámetro y sus límites. Decir el formato de entrada y nombrar la tool alternativa elimina el solapamiento.",
+      "why_wrong": {
+        "0": "Casi: los ejemplos ayudan con el formato, pero la doc los plantea como complemento de una buena descripción, no reemplazo. Con \"Finds a customer.\" sigue sin quedar claro qué devuelve cada una ni cuándo NO usarla.",
+        "1": "Funcionaría a medias: es una regla aparte que puede chocar con otras instrucciones y no viaja con la tool. El problema está en las descripciones, y ahí se arregla.",
+        "3": "Renombrar ayuda, pero la guía del examen combina renombrar CON actualizar la descripción; con una línea vaga, el modelo sigue sin saber qué devuelve cada una."
+      },
+      "rule": "Tools parecidas: descripción con qué hace, formato de entrada, qué devuelve, cuándo sí y cuándo usar la otra.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "source_quote": "Provide extremely detailed descriptions. This is by far the most important factor in tool performance.",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
         "verdict": "ok",
-        "notes": "Cita textual (input_examples para inputs complejos, priorizando descripciones)."
+        "notes": "Doc define-tools: descripciones detalladas como factor principal; input_examples como complemento para inputs sensibles al formato. Cita textual."
+      }
+    },
+    {
+      "id": "o36-q22",
+      "objective": 36,
+      "pool": "practice",
+      "scenario": "An insurance company's support agent has an `escalate_case` tool with parameters `case_id` and `severity` (`\"low\" | \"medium\" | \"high\"`, required). The tool description says \"Escalates a case.\" and `severity` has no description. In development, 9% of calls omitted `severity`, so a developer enabled strict tool use; now every call includes it, but 41% of escalations for minor billing typos are marked `high`, flooding the on-call queue. The on-call team says real high-severity cases are about 3% of escalations. The model cannot be changed. Which change addresses the root cause?",
+      "options": [
+        "Keep strict tool use and add `\"default\": \"low\"` to the `severity` property in the schema, so that unclear cases are assigned the least disruptive value.",
+        "Expand the tool and parameter descriptions to define each severity level with concrete criteria and examples of the cases that belong in it.",
+        "Turn off strict tool use and validate `severity` in the backend, returning an error so that Claude retries the call whenever the field is missing.",
+        "Split `escalate_case` into three tools, `escalate_low`, `escalate_medium`, and `escalate_high`, so the model chooses the severity by choosing the tool."
+      ],
+      "correct": 1,
+      "why_correct": "Si Claude usa mal una tool (por ejemplo, le faltan parámetros), suele ser porque no tenía información suficiente para usarla bien; la doc recomienda volver a probar con `description` más detalladas. Strict garantiza la FORMA (el campo siempre está), no el criterio para elegir el valor. Definir qué es cada nivel ataca la causa.",
+      "why_wrong": {
+        "0": "Un default no le explica al modelo cuándo un caso es alto; strict ya hace que lo complete, y seguiría eligiendo `high` sin criterio.",
+        "2": "Vuelve al síntoma original (campo faltante) y suma reintentos, sin darle al modelo el criterio que le falta.",
+        "3": "Multiplica tools casi idénticas: más ambigüedad de selección, y la decisión de severidad sigue sin criterio documentado."
+      },
+      "rule": "Strict asegura el formato; el criterio para elegir valores lo da la descripción.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "source_quote": "The best approach during development is to try the request again with more-detailed `description` values in your tool definitions.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Doc handle-tool-calls: reintentar con descriptions más detalladas. Cita textual. Se acortó la correcta B (era la más larga) para emparejar largos."
+      }
+    },
+    {
+      "id": "o36-q23",
+      "objective": 36,
+      "pool": "practice",
+      "scenario": "An online retailer's support agent first calls `search_orders(email)`, which returns objects like `{\"order_number\": \"A-48213\", \"order_uuid\": \"5f2c…\", \"status\": \"shipped\"}`. It then calls `cancel_order(order_id)` when customers ask to cancel. The `cancel_order` description is \"Cancels an order.\" and `order_id` is described as \"The order ID.\" Logs show 35% of cancellations fail with `order not found`, because Claude passes the customer-facing `A-48213` instead of the UUID. Every failed cancellation means a manual follow-up by a human agent. The API cannot change this sprint. What is the best fix?",
+      "options": [
+        "Describe `order_id` as the `order_uuid` returned by `search_orders`, not the customer-facing `order_number`, and note that the tool follows a search.",
+        "Add an `input_examples` entry to `cancel_order` with a sample UUID, so Claude learns from the example that the parameter is a UUID rather than an order number.",
+        "Add `\"pattern\"` with a UUID regex to `order_id` in the schema, so the API rejects calls with an order number before they reach the cancellation backend.",
+        "Add a system prompt rule telling Claude to never show `order_uuid` values to customers and to always pass them, not order numbers, to any tool."
+      ],
+      "correct": 0,
+      "why_correct": "La doc pide explicar qué significa cada parámetro y cómo afecta el comportamiento. Acá el parámetro tiene una relación con otra tool: viene del campo `order_uuid` de `search_orders`. Decirlo en la descripción resuelve el formato Y de dónde sale el valor, que es lo que el modelo no sabía.",
+      "why_wrong": {
+        "1": "Casi: el ejemplo muestra el formato, pero no dice que el valor sale de `order_uuid` en el resultado de `search_orders`. La doc dice que los ejemplos complementan; la descripción es lo primero.",
+        "2": "Convierte un error de negocio en un error de validación, pero el modelo sigue sin saber cuál campo usar: trata el síntoma.",
+        "3": "Es una regla global, lejos de la tool, y mezcla dos cosas (privacidad y formato). La información pertenece a la descripción del parámetro."
+      },
+      "rule": "Si un parámetro sale de otra tool, decí de cuál y de qué campo en su descripción.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "source_quote": "What each parameter means and how it affects the tool’s behavior",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Doc define-tools: explicar qué significa cada parámetro. Cita textual (comilla tipográfica). Se acortó la correcta A (171 vs 143–159)."
+      }
+    },
+    {
+      "id": "o36-q24",
+      "objective": 36,
+      "pool": "practice",
+      "scenario": "A developer-productivity team connected an internal `codesearch` MCP server to Claude Code. Its `search_symbols` tool queries a semantic index across 140 repositories, including ones not cloned locally, and returns definitions, callers, and owning teams. Its description is \"Searches code.\" Developers on Windows ask questions like \"Who calls `PaymentGateway.charge` across the company?\", and in 80% of sessions Claude uses the built-in Grep on the current repository only, missing most callers. The team does not want to disable Grep, which is useful for local edits. What should they change?",
+      "options": [
+        "Add a `permissions.deny` rule for `Grep` in the project settings, so Claude has to use `search_symbols` for any search across the code base.",
+        "Add a line to `CLAUDE.md` asking Claude to prefer the `codesearch` MCP server over built-in tools whenever a question involves other repositories.",
+        "Set `alwaysLoad: true` on the `codesearch` server, so its tool definitions are always in context and Claude considers them before the built-in tools.",
+        "Expand the `search_symbols` description to say it covers all 140 repositories, returns callers and owners, and when to prefer it over Grep."
+      ],
+      "correct": 3,
+      "why_correct": "La guía del examen lo plantea textual: mejorar las descripciones de las tools MCP explicando en detalle capacidades y salidas, para que el agente no prefiera tools built-in (como `Grep`) sobre tools MCP más capaces. Con \"Searches code.\" el modelo no tiene cómo saber que cubre 140 repos y devuelve callers.",
+      "why_wrong": {
+        "0": "Rompe el uso local de `Grep` que el equipo quiere mantener. Es enforcement donde el problema es de información.",
+        "1": "Ayuda algo, pero es guidance lejos de la tool; la descripción sigue sin decir qué hace la tool, que es lo que el modelo usa para elegir.",
+        "2": "Que la definición esté cargada no sirve si la definición dice \"Searches code.\": el modelo la ve y sigue sin saber que es mejor que `Grep`."
+      },
+      "rule": "Si el agente prefiere `Grep` a tu tool MCP, tu descripción no está contando lo que la tool hace mejor.",
+      "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
+      "source_quote": "Enhancing MCP tool descriptions to explain capabilities and outputs in detail, preventing the agent from preferring built-in tools (like Grep) over more capable MCP tools",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Guía del examen: mejorar descripciones MCP para que no se prefiera Grep. Cita textual. Se acortó la correcta D (era la más larga)."
+      }
+    },
+    {
+      "id": "o36-q25",
+      "objective": 36,
+      "pool": "practice",
+      "scenario": "A subscription company's support agent uses `get_customer(customer_id)`, described as \"Returns the customer's profile and account details.\" It returns name, plan, and address, but not payment methods, which live in `get_payment_methods(customer_id)`. When customers ask \"Which card will you charge?\", the agent calls `get_customer`, finds no card, and in 12% of cases states a card that doesn't exist, such as \"your Visa ending in 4242.\" QA wants the agent to stop inventing card details. Which change best addresses why the agent picks the wrong tool?",
+      "options": [
+        "Add `payment_methods` to the `get_customer` response with a null value, so the agent sees explicitly that the field is empty and stops filling it in.",
+        "Add to the system prompt that the agent must never mention card details unless they appear verbatim in a tool result returned in the same turn.",
+        "State in `get_customer`'s description that it doesn't return payment methods and that `get_payment_methods` covers cards and billing.",
+        "Merge both tools into `get_customer(customer_id, include)` with an `include` enum, so the agent requests the payment methods in the same call."
+      ],
+      "correct": 2,
+      "why_correct": "La doc pide incluir en la descripción las advertencias y límites, como qué información NO devuelve la tool. \"Account details\" sugiere que incluye pagos; aclarar que no y apuntar a `get_payment_methods` arregla la elección de tool, que es lo que causa el invento.",
+      "why_wrong": {
+        "0": "Ayuda a no inventar en esa respuesta, pero el agente sigue eligiendo la tool equivocada y no llega a los datos reales de la tarjeta.",
+        "1": "Ataca el síntoma (inventar) pero no la causa (elegir mal la tool): el cliente sigue sin su respuesta.",
+        "3": "Consolidar es una práctica válida en general, pero no es la causa raíz acá: con `include` mal documentado, el agente puede seguir sin pedir los pagos. Y requiere cambiar el backend."
+      },
+      "rule": "Decí en la descripción qué NO devuelve la tool y cuál sí lo devuelve.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "source_quote": "Any important caveats or limitations, such as what information the tool does not return if the tool name is unclear.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Doc define-tools: caveats, qué no devuelve la tool. Cita textual. Se acortó la correcta C (era la más larga)."
       }
     }
   ]

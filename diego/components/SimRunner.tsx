@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { finishSim, saveSimAnswer, finishDiag, saveDiagAnswer } from "@/app/actions";
+import { Md } from "@/components/Md";
 
 const L = ["A", "B", "C", "D"];
 type Q = { id: string; scenario: string; options: string[] };
@@ -63,13 +64,13 @@ export function SimRunner({ simId, attemptId, questions, initialAnswers, deadlin
             {marked.has(q.id) ? "★ Marcada para revisar" : "☆ Marcar para revisar"}
           </button>
         </div>
-        <p className="whitespace-pre-line leading-relaxed">{q.scenario}</p>
+        <p className="whitespace-pre-line leading-relaxed"><Md text={q.scenario} /></p>
         <ol className="mt-4 flex flex-col gap-2">
           {q.options.map((opt, k) => (
             <li key={k}>
               <button onClick={() => choose(k)}
                 className={`flex w-full gap-3 rounded-xl border p-3 text-left ${answers[q.id] === k ? "border-accent bg-accent-soft" : "border-line hover:border-accent"}`}>
-                <span className="font-bold">{L[k]}</span><span>{opt}</span>
+                <span className="font-bold">{L[k]}</span><span><Md text={opt} /></span>
               </button>
             </li>
           ))}

@@ -22,11 +22,11 @@
       "rule": "Orden crítico → pasos numerados; camino impredecible → objetivo con criterios. Y lo que debe cumplirse siempre, con enforcement.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Provide instructions as sequential steps using numbered lists or bullet points when the order or completeness of steps matters.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en prompting best practices. El hook como enforcement aparece solo en la explicación como agregado, no cambia la respuesta."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en prompting best practices. El hook como enforcement aparece solo en la explicación como agregado, no cambia la respuesta. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "Para tener control con delegación por objetivo, instrumentá la ejecución en vez de rigidizar las instrucciones.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "Messages from within a subagent's context include a `parent_tool_use_id` field.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Confirmado: parent_tool_use_id y agent_id (TS) en agent-sdk/subagents; SubagentStart/SubagentStop existen en agent-sdk/hooks."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Confirmado: parent_tool_use_id y agent_id (TS) en agent-sdk/subagents; SubagentStart/SubagentStop existen en agent-sdk/hooks. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "Para que un subagente elija mejor, dale heurísticas (qué es una buena fuente), no una receta fija.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "Adding source quality heuristics to our prompts helped resolve this issue.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual del post de ingeniería de Anthropic (SEO content farms → heurísticas de calidad de fuentes)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual del post de ingeniería de Anthropic (SEO content farms → heurísticas de calidad de fuentes). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,11 @@
       "rule": "Prompt para orientar cuándo delegar, límites para garantizar cuánto se puede delegar.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "Either instruction only steers Claude, so set the limits as well.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Confirmado en \"Run Opus 5 with subagents\": preset agrega una línea, Agent tool sigue disponible; con prompt propio hay que sumar la instrucción y fijar límites. allowedTools no saca tools (agent-sdk/permissions)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Confirmado en \"Run Opus 5 with subagents\": preset agrega una línea, Agent tool sigue disponible; con prompt propio hay que sumar la instrucción y fijar límites. allowedTools no saca tools (agent-sdk/permissions). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -134,11 +134,11 @@
       "rule": "Delegar por objetivo no es delegar vago: objetivo + formato de salida + tools/fuentes + límites claros.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "Each subagent needs an objective, an output format, guidance on the tools and sources to use, and clear task boundaries.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual del post de ingeniería (objetivo, formato, guía de tools/fuentes, límites claros)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual del post de ingeniería (objetivo, formato, guía de tools/fuentes, límites claros). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -162,11 +162,207 @@
       "rule": "En búsqueda: empezar amplio y después acotar; enseñale el criterio al subagente, no la lista de consultas.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "We counteracted this tendency by prompting agents to start with short, broad queries, evaluate what’s available, then progressively narrow focus.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual del post de ingeniería (start wide, then narrow down). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o04-s21",
+      "objective": 4,
+      "pool": "sim",
+      "scenario": "A utility company's Customer Support Resolution Agent uses a coordinator that delegates billing disputes to goal-oriented subagents: \"Resolve this billing dispute within policy.\" Subagents adapt well, but each returns free text such as \"Resolved, credit applied\" or \"Couldn't resolve.\" The coordinator must decide at runtime whether to escalate to a human, and supervisors cannot tell which records a subagent checked. Escalation decisions are now inconsistent, with both missed escalations and unnecessary ones. What change keeps the adaptability and restores coordinator control?",
+      "options": [
+        "Switch to procedural step lists for every dispute type so the coordinator knows exactly which checks were executed in each case.",
+        "Let subagents message the escalation team directly when they cannot resolve a dispute, bypassing the coordinator.",
+        "Keep goal-based delegation but require an output format: what was checked, evidence, actions, open items and confidence.",
+        "Turn on full production tracing so engineers can inspect each subagent's tool calls and decisions after the fact."
+      ],
+      "correct": 2,
+      "why_correct": "Por objetivo no significa sin estructura: la buena delegación define cómo trabajar juntos, incluido qué tiene que devolver cada uno. Un formato de salida obligatorio (qué revisó, evidencia, acciones, pendientes, confianza) le da al coordinador lo que necesita para decidir escalamientos en tiempo de ejecución, sin quitarle adaptabilidad al subagente.",
+      "why_wrong": {
+        "0": "Casi: da visibilidad, pero a costa de la adaptabilidad que funciona bien. El problema es lo que devuelven, no cómo trabajan.",
+        "1": "Saltear al coordinador pierde visibilidad y manejo de errores consistente; empeora el control.",
+        "3": "El tracing sirve para diagnosticar después; el coordinador necesita la información en tiempo de ejecución."
+      },
+      "rule": "Por objetivo + formato de salida definido = adaptabilidad para el subagente y control para el coordinador.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "Each subagent needs an objective, an output format, guidance on the tools and sources to use, and clear task boundaries.",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Cambié la cita por otra textual de la misma página que respalda directamente el formato de salida (la anterior, 'frameworks for collaboration', era genérica). Correcta y distractores ok."
+      }
+    },
+    {
+      "id": "o04-s22",
+      "objective": 4,
+      "pool": "sim",
+      "scenario": "A fintech's security team runs a Developer Productivity agent that audits a TypeScript monorepo. The coordinator delegates: \"Run grep for 'eval(' in src/, read each match, and report those that use user input.\" The subagent follows it exactly and reports 3 findings. A penetration test later found 7 more injection paths through `new Function(...)`, `setTimeout` with string arguments and a template engine compiling user-supplied strings, none of which match the pattern. The team wants the audit to catch variants nobody listed in advance. What delegation should the coordinator use?",
+      "options": [
+        "Extend the instruction with a longer list of patterns (eval(, new Function(, setTimeout(, compile() to grep for and read, one by one.",
+        "Run two subagents with the same grep instruction in parallel and merge their reports to reduce missed findings.",
+        "Keep the grep instruction but add \"think thoroughly\" so the subagent reasons harder about each match.",
+        "Delegate the goal: find where user-controlled input reaches dynamic code execution, with finding criteria and a report format."
+      ],
+      "correct": 3,
+      "why_correct": "El procedimiento fijo solo encuentra lo que ya anticipaste. Delegando el objetivo con criterios y formato, el subagente planifica, evalúa resultados y ajusta su búsqueda: Anthropic describe que así los subagentes se adaptan mejor a cualquier tarea. Eso es lo que hace falta para variantes no listadas.",
+      "why_wrong": {
+        "0": "Casi: cubre las variantes de este pentest, pero la próxima variante tampoco va a estar en la lista. Sigue siendo procedural.",
+        "1": "Dos agentes con el mismo guion repiten los mismos puntos ciegos.",
+        "2": "Pensar más sobre los mismos matches no encuentra caminos que el grep nunca devolvió."
+      },
+      "rule": "Si querés encontrar lo que no sabés listar, delegá el objetivo y los criterios, no el procedimiento.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "Subagents also plan, then use interleaved thinking after tool results to evaluate quality, identify gaps, and refine their next query. This makes subagents more effective in adapting to any task.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Amplié la cita (textual, misma página) para que se entienda qué es lo que hace adaptarse a los subagentes; sola no respaldaba la correcta. Decisión parecida a o04-q21 pero escenario distinto (auditoría de seguridad vs paywalls)."
+      }
+    },
+    {
+      "id": "o04-s23",
+      "objective": 4,
+      "pool": "sim",
+      "scenario": "A market-research company runs a Multi-Agent Research System on the Agent SDK with goal-oriented subagents. On obscure topics, subagents keep searching for sources that do not exist; one query last week cost $41. The coordinator prompt already says \"Use at most 15 tool calls per subagent and stop when sources are exhausted\", but this is ignored on about 5% of queries. Finance now requires a hard cap of $5 per query, without changing how subagents are delegated on normal queries. What should the team do?",
+      "options": [
+        "Strengthen the effort-budget instruction in the coordinator and subagent prompts, marked IMPORTANT and repeated at the end.",
+        "Set maxBudgetUsd (max_budget_usd in Python) to 5 on the query and keep the effort guidance in the prompts.",
+        "Set CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH to 1 so the coordinator cannot build deep trees of subagents.",
+        "Switch to procedural delegation with a fixed list of searches so each subagent's cost is predictable."
+      ],
+      "correct": 1,
+      "why_correct": "Las instrucciones de esfuerzo en el prompt solo orientan a Claude. La doc lo dice: poné también los límites, que Claude Code hace cumplir sin importar cómo delegue. `maxBudgetUsd` corta el gasto: no deja crear más subagentes, frena los que siguen en background y termina con `error_max_budget_usd`. Es el control duro que pide finanzas.",
+      "why_wrong": {
+        "0": "Casi: es guidance, y el escenario ya muestra que se ignora un 5% de las veces. Un tope duro no se arregla con mayúsculas.",
+        "2": "Limita el anidamiento, no la plata: un subagente de primer nivel puede seguir gastando sin tope.",
+        "3": "Cambia la delegación de todas las queries por un problema del 5%, y tampoco garantiza el tope de costo."
+      },
+      "rule": "Guidance orienta, enforcement garantiza: presupuesto de esfuerzo en el prompt + `maxBudgetUsd` como límite real.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "source_quote": "Either instruction only steers Claude, so set the limits as well. Claude Code enforces them however Claude decides to delegate.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
         "verdict": "ok",
-        "notes": "Cita textual del post de ingeniería (start wide, then narrow down)."
+        "notes": "Cita textual confirmada en agent-sdk/subagents; maxBudgetUsd/max_budget_usd, Budget limit reached y error_max_budget_usd confirmados en la tabla de límites."
+      }
+    },
+    {
+      "id": "o04-s24",
+      "objective": 4,
+      "pool": "sim",
+      "scenario": "A Developer Productivity team built an internal research agent that answers \"how do other teams do X?\" questions by searching the company wiki and code search. Subagents are delegated by goal. Logs show subagents issue very long, specific queries such as \"kafka consumer group rebalancing timeout configuration payments team 2025 incident\", which return zero or one result; they then conclude \"no internal guidance exists\", while the wiki has several relevant pages. The team does not want to maintain a list of queries per topic. What change best fits goal-based delegation?",
+      "options": [
+        "Add a search heuristic to the subagent prompts: start with short, broad queries, see what exists, then narrow down.",
+        "Give the subagents a fixed list of approved queries for each topic so results are predictable and comparable across runs.",
+        "Increase the number of results per query from 10 to 50 so long queries still surface relevant pages.",
+        "Spawn twice as many subagents per question so that more distinct queries are attempted in parallel."
+      ],
+      "correct": 0,
+      "why_correct": "Anthropic cuenta que los agentes tienden a queries largas y específicas que devuelven poco, y lo contrarrestaron pidiendo empezar con queries cortas y amplias para después ir acotando. Es una heurística, coherente con delegar por objetivo: no le dicta qué buscar, le enseña cómo buscar.",
+      "why_wrong": {
+        "1": "Vuelve a lo procedural: queries fijas por tema no sirven para preguntas que nadie anticipó.",
+        "2": "Una query que devuelve cero resultados sigue devolviendo cero aunque pidas 50.",
+        "3": "Más agentes con la misma mala estrategia multiplican el costo, no la calidad."
+      },
+      "rule": "Delegar por objetivo no es dejar sin criterio: se pasan heurísticas (ej. \"empezá amplio, después acotá\"), no guiones.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "Start wide, then narrow down. Search strategy should mirror expert human research: explore the landscape before drilling into specifics.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita confirmada en el post de ingeniería de Anthropic (Start wide, then narrow down); sin equivalente en docs."
+      }
+    },
+    {
+      "id": "o04-s25",
+      "objective": 4,
+      "pool": "sim",
+      "scenario": "A team doing Code Generation with Claude Code uses the Agent SDK to run a coordinator that delegates migration tasks to goal-oriented subagents with `maxTurns: 30`. On large modules, subagents sometimes stop partway through. The coordinator treats every Agent tool result as finished, reports \"migration complete\", and CI later fails on unconverted files in about 1 out of 8 modules. The team wants to keep the turn limit as a safety net and avoid re-doing work already done. What should the coordinator do?",
+      "options": [
+        "Remove maxTurns so subagents keep running until they decide on their own that the migration is complete.",
+        "Replace goal-based delegation with a procedural file-by-file checklist so progress is explicit for each file.",
+        "Ask each subagent to append the word DONE to its final message when it finishes, and treat a missing DONE as an unfinished run.",
+        "Check whether the Agent tool result is marked as partial and, if so, resume that subagent so it continues where it stopped."
+      ],
+      "correct": 3,
+      "why_correct": "Cuando un subagente llega a `maxTurns`, Claude Code devuelve su output marcado como parcial, y se lo puede retomar para que siga. El coordinador mantiene control y visibilidad sin perder la delegación por objetivo: lee la marca, retoma, y solo reporta \"completo\" cuando no es parcial.",
+      "why_wrong": {
+        "0": "Saca la red de seguridad que el equipo quiere conservar; abre la puerta a corridas sin fin.",
+        "1": "Pierde la adaptabilidad y no resuelve que el coordinador no distinga parcial de completo.",
+        "2": "Casi: es una convención por prompt que el modelo puede olvidar; la marca de parcial ya la pone Claude Code de forma confiable."
+      },
+      "rule": "Delegación por objetivo con control: `maxTurns` como tope, leer la marca de parcial y retomar el subagente.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "source_quote": "When the agent reaches the limit, Claude Code returns its output marked as partial, and you can [resume the agent](#resume-subagents) to continue.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Cita confirmada en agent-sdk/subagents (maxTurns marca parcial y se retoma). Cambio: saqué los 'always' de las opciones A y B."
+      }
+    },
+    {
+      "id": "o04-s26",
+      "objective": 4,
+      "pool": "sim",
+      "scenario": "A Multi-Agent Research System at a consultancy was changed so the `searcher` subagent sends its results directly to the `synthesizer` subagent with SendMessage, to save one hop through the coordinator. Since then, the coordinator no longer knows when a search came back thin, so it never launches follow-up searches; failures are handled differently by each subagent, and traces of what went where are hard to follow. Report completeness scores dropped 18%, and the on-call engineer could not explain two failed runs. What should the team do?",
+      "options": [
+        "Give the synthesizer SendMessage permission to ask the searcher for more results whenever it detects a gap.",
+        "Route results back through the coordinator, which evaluates them, decides on more searches and briefs the synthesizer.",
+        "Merge the searcher and the synthesizer into one subagent so that no handoff between agents is needed at all during a run.",
+        "Keep direct messaging but copy the coordinator on every SendMessage so it can watch the exchange."
+      ],
+      "correct": 1,
+      "why_correct": "Encadenar subagentes pasando por el coordinador le da visibilidad, manejo de errores consistente y control del flujo de información. La doc describe ese patrón: cada subagente devuelve resultados a Claude, que pasa el contexto relevante al siguiente. Además el coordinador puede decidir si hace falta investigar más.",
+      "why_wrong": {
+        "0": "Agrega más comunicación lateral y deja al coordinador todavía más afuera.",
+        "2": "Pierde la especialización y el aislamiento de contexto; el problema era de ruteo, no de que existan dos agentes.",
+        "3": "Casi: el coordinador ve algo, pero sigue sin ser quien decide ni quien maneja los errores. Mirar no es controlar."
+      },
+      "rule": "Toda comunicación entre subagentes pasa por el coordinador: observabilidad, errores consistentes y control.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "Each subagent completes its task and returns results to Claude, which then passes relevant context to the next subagent.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita confirmada en sub-agents (Chain subagents)."
+      }
+    },
+    {
+      "id": "o04-s27",
+      "objective": 4,
+      "pool": "sim",
+      "scenario": "A medical-device company uses a Multi-Agent Research System to assess regulatory risk before launches. For \"What are the EU regulatory risks of launching our AI-assisted glucose monitor?\", the coordinator decomposed the question into three narrow subtasks (GDPR fines, CE marking paperwork, VAT rates) and synthesized right after the subagents returned. Regulatory reviewers found that the report omitted AI-specific regulation and post-market surveillance obligations. The team wants better coverage without hand-writing the decomposition for every question, and without paying for extra subagents on simple questions. What should change?",
+      "options": [
+        "Have a regulatory expert write a fixed list of subtasks for each product category, which the coordinator then follows.",
+        "Spawn ten subagents for every question so the decomposition is wide enough to cover any regulatory area.",
+        "Give the coordinator coverage criteria, and have it check for gaps and launch more subagents before it synthesizes.",
+        "Increase each subagent's maxTurns so the three existing subagents explore their assigned topics more deeply."
+      ],
+      "correct": 2,
+      "why_correct": "El problema es una descomposición demasiado estrecha y una síntesis sin chequear cobertura. En el sistema de Anthropic, el líder sintetiza y decide si hace falta más investigación: puede crear subagentes adicionales o refinar su estrategia. Con criterios de cobertura explícitos el coordinador detecta los huecos solo.",
+      "why_wrong": {
+        "0": "Procedural y caro de mantener; no se adapta a productos o regulaciones nuevas, que es lo que el equipo quiere evitar.",
+        "1": "Más agentes no garantizan las áreas correctas y desperdician esfuerzo en preguntas simples.",
+        "3": "Profundiza tres temas mal elegidos; no agrega los que faltan."
+      },
+      "rule": "Descomposición dinámica: criterios de cobertura + evaluar huecos y lanzar más subagentes antes de sintetizar.",
+      "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "source_quote": "decides whether more research is needed—if so, it can create additional subagents or refine its strategy.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Cita confirmada en el post de ingeniería de Anthropic. Cambio: saqué los 'always' de las opciones A y B."
       }
     }
   ]

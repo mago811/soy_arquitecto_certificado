@@ -22,11 +22,11 @@
       "rule": "Crash recovery = estado por etapa en lugar conocido + manifiesto que dice qué está hecho.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "Instead, we built systems that can resume from where the agent was when the errors occurred.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual del post (resume from where the agent was); el patrón de manifiesto lo respalda además la guía del examen (TS 5.4)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual del post (resume from where the agent was); el patrón de manifiesto lo respalda además la guía del examen (TS 5.4). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "Muchos jobs o usuarios → guardá el `session_id` y usá `resume`; `continue` es solo 'la más reciente'.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
       "source_quote": "Required when you have multiple sessions (for example, one per user in a multi-user app) or want to return to one that isn't the most recent.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en agent-sdk/sessions (Continue vs Resume)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en agent-sdk/sessions (Continue vs Resume). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "Sesiones = archivos locales. Otro host → session store, o estado de la app inyectado en sesión nueva.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
       "source_quote": "Capture the results you need (analysis output, decisions, file diffs) as application state and pass them into a fresh session's prompt. This is often more robust than shipping transcript files around.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual; la doc lista session store, mover el archivo o no depender del resume para otro host."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual; la doc lista session store, mover el archivo o no depender del resume para otro host. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,11 @@
       "rule": "Run cortado por límite → `resume` con el `session_id` y un límite mayor, no relanzar de cero.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
       "source_quote": "Recover from a limit. The first run ended with `error_max_turns` or `error_max_budget_usd`",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual ('Recover from a limit'); `session_id` presente en todo result 'regardless of success or error'."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual ('Recover from a limit'); `session_id` presente en todo result 'regardless of success or error'. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -134,11 +134,11 @@
       "rule": "Probar alternativas desde la misma base → `resume` + `fork_session=True`.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
       "source_quote": "Forking creates a new session that starts with a copy of the original's history but diverges from that point.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual sobre fork en agent-sdk/sessions; el fork tiene ID propio y el original sigue."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual sobre fork en agent-sdk/sessions; el fork tiene ID propio y el original sigue. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -162,11 +162,11 @@
       "rule": "Fork = rama de conversación. Archivos compartidos siguen compartidos.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
       "source_quote": "Forking branches the conversation history, not the filesystem. If a forked agent edits files, those changes are real and visible to any session working in the same directory.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual ('Forking branches the conversation history, not the filesystem')."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual ('Forking branches the conversation history, not the filesystem'). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -190,11 +190,11 @@
       "rule": "Contexto viejo (código cambió) → sesión nueva + resumen estructurado + qué cambió.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
       "source_quote": "Don't rely on session resume. Capture the results you need (analysis output, decisions, file diffs) as application state and pass them into a fresh session's prompt.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "Cita textual en agent-sdk/sessions, pero su contexto es retomar en otro host; ajusté why_correct para no atribuirle a la doc el caso de código cambiado. Respuesta sigue siendo la única defendible (guía del examen TS 1.7/5.4 respalda inyectar resúmenes)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en agent-sdk/sessions, pero su contexto es retomar en otro host; ajusté why_correct para no atribuirle a la doc el caso de código cambiado. Respuesta sigue siendo la única defendible (guía del examen TS 1.7/5.4 respalda inyectar resúmenes). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -218,11 +218,11 @@
       "rule": "Plan y estado importantes → afuera del contexto (archivo o memoria externa), y se releen al retomar.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "The LeadResearcher begins by thinking through the approach and saving its plan to Memory to persist the context, since if the context window exceeds 200,000 tokens it will be truncated and it is important to retain the plan.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual del post (LeadResearcher guarda el plan en Memory)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual del post (LeadResearcher guarda el plan en Memory). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -246,11 +246,11 @@
       "rule": "Estado de tareas → JSON con estados explícitos; prosa solo para notas.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "When tracking structured information (such as test results or task status), use JSON or other structured formats to make schema requirements explicit to Claude.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual; la misma sección dice 'Use unstructured text for progress notes'."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual; la misma sección dice 'Use unstructured text for progress notes'. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -274,11 +274,151 @@
       "rule": "Retomar no re-ejecuta lo interrumpido: tu estado tiene que decir qué verificar y relanzar.",
       "source_url": "https://code.claude.com/docs/en/sessions",
       "source_quote": "Interrupted tool calls: a tool that was still running when the previous process ended, for example in a crash, doesn't get rerun when you resume.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en code.claude.com/docs/en/sessions ('What a resumed session restores'). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o09-q21",
+      "objective": 9,
+      "pool": "practice",
+      "scenario": "A market-intelligence firm runs a multi-agent research system on the Claude Agent SDK. A coordinator spawns eight regional search subagents in parallel and then a synthesis subagent. The pipeline runs as a Kubernetes Job on spot instances, and about 1 in 6 runs is preempted midway. Current recovery logic stores the coordinator's `session_id` in Redis and, when the Job restarts on a replacement pod, calls `query()` with `resume` set to that ID. Logs from the new pod show the session cannot be found, so the coordinator starts from zero and re-runs all eight regional searches, including the five that had already finished (each costs roughly $4 in tokens). The team wants recovery that skips completed regions and does not depend on which node the Job lands on. What is the most effective change?",
+      "options": [
+        "Set `continue_conversation=True` on the restarted coordinator so the SDK picks up the most recent session without needing the stored ID.",
+        "Persist each subagent's findings as application state in durable storage with a manifest of completed regions, and inject it into a fresh coordinator prompt.",
+        "Raise `max_turns` on the coordinator and wrap `query()` in retry logic so a preempted run is retried with the same stored `session_id`.",
+        "Restart with `resume` plus `fork_session=True` so the new pod receives its own copy of the original session history to continue from."
+      ],
+      "correct": 1,
+      "why_correct": "Los archivos de sesión viven en el disco de la máquina que los creó: en un pod nuevo no existen. La doc recomienda no depender del resume: guardar los resultados (lo que ya terminó cada subagente) como estado de la aplicación y pasarlos al prompt de una sesión nueva. Con un manifest de regiones completas, el coordinador relanza solo las que faltan.",
+      "why_wrong": {
+        "0": "`continue_conversation` busca la sesión más reciente en el directorio de ESTA máquina; en el pod nuevo no hay ninguna, así que falla igual.",
+        "2": "El problema no es un límite de turnos ni un error transitorio: el archivo de sesión no está en el host nuevo. Reintentar con el mismo ID da el mismo 'not found'.",
+        "3": "Un fork copia el historial de una sesión existente; si el archivo de sesión no está en el host, no hay nada que copiar."
+      },
+      "rule": "Pipeline en hosts efímeros: el estado que importa va a storage durable (manifest + resultados) y se inyecta en una sesión nueva; no confíes en el `resume` local.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
+      "source_quote": "Don't rely on session resume. Capture the results you need (analysis output, decisions, file diffs) as application state and pass them into a fresh session's prompt. This is often more robust than shipping transcript files around.",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
         "verdict": "ok",
-        "notes": "Cita textual en code.claude.com/docs/en/sessions ('What a resumed session restores')."
+        "notes": "Revisada contra https://code.claude.com/docs/en/agent-sdk/sessions. Sessions SDK: archivos de sesión locales al host; 'Don't rely on session resume' textual. continue/fork no sirven sin el archivo en el host nuevo. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
+    },
+    {
+      "id": "o09-q22",
+      "objective": 9,
+      "pool": "practice",
+      "scenario": "A platform team built an internal dependency-audit service on the Claude Agent SDK (Python). Each request audits one monorepo package with `max_turns=40`, and many audits run concurrently from the same working directory on one server. About 25% of runs end with result subtype `error_max_turns` after the agent has already read 200–300 files. Today the error handler discards the run and starts a brand-new `query()` with `max_turns=80`, which repeats all the file reading and roughly doubles cost for those audits. Finance wants the retry to reuse the analysis already done. The service has the `ResultMessage` available in the error path. Which change best achieves this?",
+      "options": [
+        "Catch the error result, keep its `session_id`, and call `query()` again with `resume` set to that ID and a higher `max_turns`.",
+        "Catch the error and call `query()` again with `continue_conversation=True` and a higher `max_turns` to pick up the interrupted audit.",
+        "Capture `session_id` only on `success` results, then resume failed audits from the most recent successful session for that package.",
+        "Split each audit into one `query()` per subdirectory with `max_turns=40`, so no single run can reach the turn limit again."
+      ],
+      "correct": 0,
+      "why_correct": "La doc lista justamente este caso: si la corrida terminó con `error_max_turns`, se reanuda esa sesión con un límite más alto. El `session_id` viene en el result message aunque sea un error, y como hay muchas auditorías en paralelo, hay que reanudar por ID específico.",
+      "why_wrong": {
+        "1": "`continue_conversation` toma la sesión más reciente del directorio; con auditorías concurrentes en el mismo directorio puede reanudar la de otro paquete. Para varias sesiones la doc pide `resume` con el ID.",
+        "2": "El `session_id` está en todos los result messages, éxito o error. Reanudar una sesión exitosa vieja no recupera el trabajo de la corrida que falló.",
+        "3": "Cambia el diseño y puede ayudar a futuro, pero descarta lo ya leído en la corrida fallida: vuelve a repetir el trabajo que Finanzas quiere evitar."
+      },
+      "rule": "`error_max_turns` / `error_max_budget_usd` → `resume` con el `session_id` de ese resultado y un límite más alto. Varias sesiones a la vez → ID, nunca `continue`.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
+      "source_quote": "Recover from a limit. The first run ended with `error_max_turns` or `error_max_budget_usd` (see Handle the result); resume with a higher limit.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://code.claude.com/docs/en/agent-sdk/sessions. Sessions SDK: 'Recover from a limit' textual; continue toma la más reciente del directorio (choque con concurrencia); session_id presente en todo result. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
+    },
+    {
+      "id": "o09-q23",
+      "objective": 9,
+      "pool": "practice",
+      "scenario": "A fintech's platform team uses an Agent SDK agent to plan a refactor of its payments service. Session A holds two hours of analysis: call graphs, invariants, and risk notes. The architect wants to explore two competing strategies from that same baseline at the same time, event sourcing and a transactional outbox, with each agent editing code and running tests. The team launched two `query()` calls with `resume=A` and `fork_session=True`, both using the same repository checkout as `cwd`. The forks have separate session IDs and their conversations look independent, yet the outbox agent's test runs fail on files containing event-sourcing changes it never made, and its diffs mix both designs. What is the root cause and fix?",
+      "options": [
+        "Forking copies history only partially; resume session A once without forking and give each strategy its own instructions in separate prompts.",
+        "Enable file checkpointing on the outbox fork and call `rewind_files()` before it starts, so it always begins from a clean working tree.",
+        "Forks branch conversation history, not the filesystem; give each fork its own working copy, such as a separate git worktree used as its `cwd`.",
+        "Fork the original session A as well, so neither strategy writes into A's history and the baseline files stay protected from both forks."
+      ],
+      "correct": 2,
+      "why_correct": "El fork bifurca la conversación, no el disco. Si los dos forks trabajan en el mismo directorio, las ediciones de uno son reales y visibles para el otro. Para explorar en paralelo hay que aislar también los archivos, por ejemplo con un worktree por fork.",
+      "why_wrong": {
+        "0": "El fork sí copia el historial completo. Reanudar A dos veces sin fork mezcla las dos conversaciones y no arregla el problema de los archivos compartidos.",
+        "1": "Los checkpoints quedan atados a la sesión que los creó y solo siguen las ediciones de esa sesión. No deshacen lo que el otro fork sigue escribiendo en paralelo.",
+        "3": "Hacer fork de A no cambia nada en el disco: ninguna sesión, forkeada o no, aísla el filesystem."
+      },
+      "rule": "`fork_session` = rama de conversación, no de archivos. Agentes en paralelo que editan → un directorio de trabajo por agente.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
+      "source_quote": "Forking branches the conversation history, not the filesystem. If a forked agent edits files, those changes are real and visible to any session working in the same directory.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://code.claude.com/docs/en/agent-sdk/sessions. Sessions SDK: 'Forking branches the conversation history, not the filesystem' textual; checkpoints no aíslan forks paralelos. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
+    },
+    {
+      "id": "o09-q24",
+      "objective": 9,
+      "pool": "practice",
+      "scenario": "A developer on Windows 11 uses Claude Code in PowerShell to run a three-step data migration for a SaaS product: (1) backfill a new `tenant_region` column, (2) verify counts, (3) drop the legacy column. Claude launched `npm run migrate:backfill` through the PowerShell tool; the backfill normally takes about 40 minutes. Twenty minutes in, Windows Update rebooted the laptop. The developer reopened the session with `claude --resume region-migration`. In the transcript, the backfill tool call shows no result, and Claude now says: 'The backfill step was started earlier, so next I'll verify counts and drop the legacy column.' Dropping the column early would lose data for tenants that weren't backfilled. What should the developer do first?",
+      "options": [
+        "Run `claude --continue --fork-session` so the forked process starts clean and replays the pending backfill call automatically.",
+        "Let Claude proceed with verification, because a resumed session reruns interrupted tool calls before the next turn starts.",
+        "Use `/rewind` to restore the checkpoint from before the backfill, then let Claude continue with the verification step.",
+        "Tell Claude the interrupted command was not rerun on resume, and have it check the backfill state in the database before continuing."
+      ],
+      "correct": 3,
+      "why_correct": "Al reanudar, una tool que estaba corriendo cuando se cayó el proceso no se vuelve a ejecutar. El backfill quedó a medias y Claude no tiene su resultado. Lo primero es decírselo y confirmar el estado real en la base antes de cualquier paso destructivo.",
+      "why_wrong": {
+        "0": "Un fork copia la conversación, pero no vuelve a correr las tool calls interrumpidas: el backfill sigue sin terminar.",
+        "1": "Es justo al revés: la doc dice que una tool interrumpida por un crash no se re-ejecuta al reanudar.",
+        "2": "Los checkpoints de Claude Code siguen ediciones de archivos, no el estado de una base de datos. Rebobinar no te dice cuántas filas se rellenaron."
+      },
+      "rule": "Resume después de un crash: lo que estaba corriendo NO se re-ejecuta. Verificá el estado real antes de seguir.",
+      "source_url": "https://code.claude.com/docs/en/sessions",
+      "source_quote": "Interrupted tool calls: a tool that was still running when the previous process ended, for example in a crash, doesn't get rerun when you resume.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://code.claude.com/docs/en/sessions. Sessions (Claude Code): tool interrumpida no se re-ejecuta al reanudar, textual; checkpoints solo cubren ediciones de archivos. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
+    },
+    {
+      "id": "o09-q25",
+      "objective": 9,
+      "pool": "practice",
+      "scenario": "A developer-productivity team at a logistics company uses Claude Code to map a legacy billing module (about 140 files) before a rewrite. The lead asks Claude to 'explore the billing module and list every place that computes tax', and Claude delegates to the built-in Explore agent, which returns a good summary. An hour later, in the same session, she asks Claude to 'continue that exploration and now trace where the computed tax is persisted'. Claude launches a brand-new exploration that re-reads most of the 140 files, taking another 12 minutes. The team runs this explore-then-follow-up pattern several times a day and wants follow-ups to continue the earlier subagent's work instead of starting over. What should they change?",
+      "options": [
+        "Ask Claude to invoke Explore at the `very thorough` level so the first pass covers the module completely and no follow-up is needed.",
+        "Define a custom read-only exploration subagent, or use `general-purpose`, so Claude gets an agent ID it can resume for follow-ups.",
+        "Quit and run `claude --resume` on the same session, since subagent transcripts persist and Explore is then resumed automatically.",
+        "Ask Explore to return its complete raw file listing and excerpts so the main conversation keeps everything for later follow-ups."
+      ],
+      "correct": 1,
+      "why_correct": "Explore y Plan pueden terminar sin darle a Claude un ID para reanudarlos, así que cada follow-up arranca de cero. Para trabajo que vas a continuar, la doc dice que uses `general-purpose` o un subagente propio: Claude recibe el agent ID y lo reanuda con todo su historial.",
+      "why_wrong": {
+        "0": "Más profundidad en la primera pasada no evita que cada pregunta nueva necesite seguir trabajando; Explore sigue siendo de una sola pasada.",
+        "2": "Reanudar la sesión principal no le da a Claude un ID de Explore para retomarlo: el problema es el tipo de subagente, no el proceso.",
+        "3": "Traer todo el material crudo al hilo principal es justo lo que el subagente evita: llena el contexto con contenido verboso."
+      },
+      "rule": "¿Vas a continuar el trabajo de un subagente? Usá `general-purpose` o uno propio (tienen agent ID); Explore y Plan son de una pasada.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "For work you'll continue later, use `general-purpose` or a custom subagent. The built-in Explore and Plan agents can finish without giving Claude an ID to resume them with.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://code.claude.com/docs/en/sub-agents. Sub-agents: Explore/Plan pueden terminar sin ID para reanudar; usar general-purpose o custom. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
       }
     }
   ]

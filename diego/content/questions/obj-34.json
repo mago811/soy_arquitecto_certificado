@@ -22,11 +22,11 @@
       "rule": "Catálogos y schemas para orientarse → resources, no tools exploratorias.",
       "source_url": "https://modelcontextprotocol.io/docs/learn/server-concepts",
       "source_quote": "Passive data sources that provide read-only access to information for context, such as file contents, database schemas, or API documentation.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "Cita textual (server-concepts). why_correct reescrito para apoyarse solo en lo documentado: schemas = ejemplo de resource pasivo de solo lectura, resources application-driven, adjuntables con @ en Claude Code (la 'reducción de tool calls exploratorias' solo la dice la guía)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual (server-concepts). why_correct reescrito para apoyarse solo en lo documentado: schemas = ejemplo de resource pasivo de solo lectura, resources application-driven, adjuntables con @ en Claude Code (la 'reducción de tool calls exploratorias' solo la dice la guía). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "Acción con efectos → tool. Dato de solo lectura para contexto → resource.",
       "source_url": "https://modelcontextprotocol.io/docs/learn/server-concepts",
       "source_quote": "Functions that your LLM can actively call, and decides when to use them based on user requests. Tools can write to databases, call external APIs, modify files, or trigger other logic.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "server-concepts: tools model-controlled con efectos; resources solo lectura; prompts user-controlled."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "server-concepts: tools model-controlled con efectos; resources solo lectura; prompts user-controlled. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "Claude Code: resource MCP = @server:protocolo://ruta en el prompt.",
       "source_url": "https://code.claude.com/docs/en/mcp",
       "source_quote": "Use the format `@server:protocol://resource/path` to reference a resource",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "code.claude.com/mcp: formato @server:protocol://resource/path; /mcp gestiona servers."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "code.claude.com/mcp: formato @server:protocol://resource/path; /mcp gestiona servers. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,11 @@
       "rule": "Flujo que el humano dispara a mano → prompt MCP (/server:prompt).",
       "source_url": "https://modelcontextprotocol.io/docs/learn/server-concepts",
       "source_quote": "They are user-controlled, requiring explicit invocation rather than automatic triggering.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "server-concepts: prompts user-controlled; Claude Code los lista como /servername:promptname (MCP) con args separados por espacio."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "server-concepts: prompts user-controlled; Claude Code los lista como /servername:promptname (MCP) con args separados por espacio. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -134,11 +134,11 @@
       "rule": "Dato de solo lectura parametrizable → resource template con URI template.",
       "source_url": "https://modelcontextprotocol.io/docs/learn/server-concepts",
       "source_quote": "Resource Templates include metadata such as title, description, and expected MIME type, making them discoverable and self-documenting.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "server-concepts: Resource Templates con title/description/MIME type."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "server-concepts: Resource Templates con title/description/MIME type. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -162,11 +162,11 @@
       "rule": "@-mention de un resource = se adjunta solo; podés poner varios en el mismo prompt.",
       "source_url": "https://code.claude.com/docs/en/mcp",
       "source_quote": "Resources are automatically fetched and included as attachments when referenced",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "code.claude.com/mcp: ejemplo literal 'Compare @postgres:schema://users with @docs:file://database/user-model'; se adjuntan automáticamente."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "code.claude.com/mcp: ejemplo literal 'Compare @postgres:schema://users with @docs:file://database/user-model'; se adjuntan automáticamente. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -190,11 +190,11 @@
       "rule": "Server con resources → declarar la capability resources.",
       "source_url": "https://modelcontextprotocol.io/specification/2025-11-25/server/resources",
       "source_quote": "Servers that support resources **MUST** declare the `resources` capability",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Spec 2025-11-25 resources: MUST declarar capability resources; https:// solo si el cliente lo trae solo."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Spec 2025-11-25 resources: MUST declarar capability resources; https:// solo si el cliente lo trae solo. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -218,11 +218,11 @@
       "rule": "Tool que encuentra contenido pesado → devolvé resource links, no el contenido entero.",
       "source_url": "https://modelcontextprotocol.io/specification/2025-11-25/server/tools",
       "source_quote": "A tool **MAY** return links to Resources, to provide additional context or data.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Spec 2025-11-25 tools: 'A tool MAY return links to Resources'; Claude Code corta descripciones largas."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Spec 2025-11-25 tools: 'A tool MAY return links to Resources'; Claude Code corta descripciones largas. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -246,11 +246,11 @@
       "rule": "Pistas de uso de un resource → annotations audience y priority.",
       "source_url": "https://modelcontextprotocol.io/specification/2025-11-25/server/resources",
       "source_quote": "Resources, resource templates and content blocks support optional annotations that provide hints to clients about how to use or display the resource",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Spec 2025-11-25 resources: annotations audience (user/assistant) y priority 0.0–1.0."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Spec 2025-11-25 resources: annotations audience (user/assistant) y priority 0.0–1.0. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -274,11 +274,151 @@
       "rule": "Datos de referencia grandes → resource; descripción de tool corta y con lo crítico al principio.",
       "source_url": "https://code.claude.com/docs/en/mcp",
       "source_quote": "Claude Code cuts a tool description or server instructions that run past these default limits, and Claude sees only the text before the cut",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "code.claude.com/mcp: límites 4.096 (upfront/instrucciones) y 16.384 (tool search); 30.000 caracteres excede ambos. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o34-q21",
+      "objective": 34,
+      "pool": "practice",
+      "scenario": "A data platform team built an internal MCP server, `warehouse`, for a developer-productivity assistant. It exposes only tools: `list_datasets`, `describe_dataset(name)`, and `run_query(sql)`. Telemetry over 1,200 questions shows the agent makes 6 to 9 calls per question before the first `run_query`, almost all of them `list_datasets` and `describe_dataset` on tables it ends up not using; median latency is 48 seconds. The 140 dataset schemas change about once a week. The team wants the agent to know what data exists without spending calls discovering it. What should they change in the server?",
+      "options": [
+        "Add a `get_all_schemas` tool that returns all 140 schemas in one call, and tell the agent in the system prompt to call it at the start of every question.",
+        "Expose the dataset catalog and each schema as MCP resources, so the host provides them as context instead of the model discovering them with tool calls.",
+        "Paste the full catalog of datasets and their columns into the `run_query` tool description, so the model sees every table before deciding what to query.",
+        "Raise the agent's turn limit and allow parallel tool calls, so the exploratory `describe_dataset` calls run at the same time and stop adding latency."
+      ],
+      "correct": 1,
+      "why_correct": "Los resources son fuentes de datos pasivas, de solo lectura, para dar contexto (el ejemplo de la doc incluye schemas de bases de datos), y los controla la aplicación, no el modelo. Exponer el catálogo como resources le da al agente visibilidad de los datos disponibles sin tool calls exploratorias, que es exactamente lo que describe la guía del examen.",
+      "why_wrong": {
+        "0": "Baja de 6–9 calls a una, pero sigue siendo una tool call exploratoria en cada pregunta y mete los 140 schemas enteros siempre. Es parchear con otra tool algo que es contenido.",
+        "2": "Mezcla datos con la descripción de una acción: infla cada request y, en clientes como Claude Code, las descripciones largas se cortan. La descripción es para explicar la tool, no para cargar un catálogo.",
+        "3": "Trata el síntoma (latencia) y deja las mismas llamadas exploratorias."
+      },
+      "rule": "Catálogos, schemas y documentación = resources (los controla la app). Acciones = tools (las controla el modelo).",
+      "source_url": "https://modelcontextprotocol.io/docs/learn/server-concepts",
+      "source_quote": "Passive data sources that provide read-only access to information for context, such as file contents, database schemas, or API documentation.",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Doc MCP server-concepts: resources pasivos de solo lectura (schemas). Cita textual. Se acortó la correcta B (era la más larga: 170 vs 149–153)."
+      }
+    },
+    {
+      "id": "o34-q22",
+      "objective": 34,
+      "pool": "practice",
+      "scenario": "A SaaS company runs a nightly incident-summary job on a Linux CI runner: `claude -p \"Using @runbooks:file://oncall/escalation, summarize last night's alerts\"`. The `runbooks` MCP server, owned by the SRE team, exposes the runbooks only as resources, and `claude mcp list` on the runner shows it as `✔ Connected`. The summaries never follow the escalation runbook, and when asked, Claude says it was given no runbook content. The same prompt works perfectly in interactive sessions on developers' laptops. The SRE team will not add tools to their server. What should the job change?",
+      "options": [
+        "Increase `MCP_TIMEOUT` on the runner, because in headless runs the resource is fetched before the server finishes connecting and the attachment comes back empty.",
+        "Ask the SRE team to declare the `subscribe` capability on the server so headless clients receive the runbook content through change notifications.",
+        "Replace the `@` mention with an instruction to read the `file://oncall/escalation` resource from `runbooks` with Claude Code's resource-reading tool.",
+        "Quote the mention as `@\"runbooks:file://oncall/escalation\"` so the headless prompt parser treats the whole URI as one resource reference."
+      ],
+      "correct": 2,
+      "why_correct": "En modo interactivo, un `@server:protocol://path` se busca y se adjunta solo. Pero con `claude -p`, la mención de un resource queda como texto plano. Claude Code igual le da a Claude tools para listar y leer resources MCP (`ListMcpResourcesTool`, `ReadMcpResourceTool`), así que pedirle que lea el resource por URI funciona sin tocar el server.",
+      "why_wrong": {
+        "0": "El server figura conectado; no es un problema de tiempo. En `-p` la mención directamente no se resuelve.",
+        "1": "Las suscripciones avisan cuando un resource cambia; no hacen que una mención en texto plano se convierta en adjunto.",
+        "3": "No hay una sintaxis de comillas documentada que cambie esto: en `-p` la mención queda como texto."
+      },
+      "rule": "En `claude -p`, `@server:uri` es texto plano: pedí leer el resource con la tool de lectura de resources.",
+      "source_url": "https://code.claude.com/docs/en/mcp",
+      "source_quote": "With `claude -p`, a resource mention stays plain text.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Doc mcp: con `claude -p` la mención de resource queda texto plano; Claude Code da tools para listar/leer resources. Cita textual. Se acortó la correcta C (173 vs 137–161)."
+      }
+    },
+    {
+      "id": "o34-q23",
+      "objective": 34,
+      "pool": "practice",
+      "scenario": "An airline built its own customer support host application with an MCP client. A `policies` MCP server exposes each fare-rule document as a resource (for example, `policy://fares/basic-economy`). Agents keep sessions open for a full shift, and the host reads the relevant policy resources at the start of each session. When the legal team updated the change-fee rules at 11:00, sessions opened earlier kept quoting the old fee until 18:00, generating 230 incorrect quotes. The server already declares `listChanged`. What is the most effective fix?",
+      "options": [
+        "Have the host rely on the existing `listChanged` capability and re-read every policy resource whenever a list-changed notification arrives from the server.",
+        "Have the server declare `subscribe`, have the host subscribe to the policy resources it loaded, and re-read a resource when its update notification arrives.",
+        "Convert the policies into a `get_policy` tool so the model fetches a fresh copy every time it needs one, instead of relying on context loaded at session start.",
+        "Force agents to restart their sessions every hour so the host reloads the policy resources and the quotes never lag more than an hour behind changes."
+      ],
+      "correct": 1,
+      "why_correct": "MCP tiene suscripciones opcionales: el cliente se suscribe a resources específicos con `resources/subscribe` y recibe `notifications/resources/updated` cuando cambian. Eso resuelve el caso exacto: el documento cambió, la lista no.",
+      "why_wrong": {
+        "0": "Casi: `listChanged` avisa cuando cambia la LISTA de resources disponibles (se agregan o quitan), no cuando cambia el contenido de uno existente. Acá la lista es la misma.",
+        "2": "Funcionaría a medias: vuelve exploratorio algo que es contenido y depende de que el modelo se acuerde de llamarla cada vez. Es usar una tool para leer datos.",
+        "3": "Achica la ventana de error pero no la elimina, y le corta el trabajo a los agentes. Trata el síntoma."
+      },
+      "rule": "Cambió el contenido de un resource → `subscribe` + `notifications/resources/updated`. Cambió la lista → `listChanged`.",
+      "source_url": "https://modelcontextprotocol.io/specification/2025-11-25/server/resources",
+      "source_quote": "The protocol supports optional subscriptions to resource changes. Clients can subscribe to specific resources and receive notifications when they change",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
         "verdict": "ok",
-        "notes": "code.claude.com/mcp: límites 4.096 (upfront/instrucciones) y 16.384 (tool search); 30.000 caracteres excede ambos."
+        "notes": "Spec resources 2025-11-25: subscribe + notifications/resources/updated vs listChanged (lista). Cita textual."
+      }
+    },
+    {
+      "id": "o34-q24",
+      "objective": 34,
+      "pool": "practice",
+      "scenario": "An accounts-payable company extracts line items from 8,000 invoices a day with an agent built on the API and its own MCP client. To normalize vendor names, the model calls the `lookup_vendor(name)` tool on the master-data server for each line, averaging 12 calls per invoice. The vendor master has 2,100 entries and changes weekly. The host application already embeds invoice text for routing. The team wants fewer exploratory calls and wants the application, not the model, to decide which vendors are relevant for each invoice. Which design should they adopt?",
+      "options": [
+        "Expose a resource template `vendor://{name}` so the model reads one vendor per line through the resource interface instead of through a tool call.",
+        "Keep `lookup_vendor` but allow parallel tool calls, so the 12 lookups for each invoice run together in one turn instead of sequentially.",
+        "Cache each `lookup_vendor` result in the conversation history so repeated vendors on later invoices of the same batch don't need a new call.",
+        "Expose the vendor master as a resource; the host reads it, selects the entries relevant to each invoice with its embeddings, and passes them as context."
+      ],
+      "correct": 3,
+      "why_correct": "Los resources son application-driven: la aplicación puede acceder a la información y decidir cómo usarla, ya sea seleccionando porciones relevantes, buscando con embeddings o pasándola entera al modelo. Eso es justo lo que pide el equipo: el host elige los proveedores relevantes y el modelo ya los tiene en contexto, sin 12 lookups.",
+      "why_wrong": {
+        "0": "Un template parametrizado sigue siendo una lectura por proveedor y supone que alguien ya sabe el nombre exacto: no gana visibilidad, solo cambia la interfaz.",
+        "1": "Baja la latencia, no la cantidad de llamadas exploratorias. Trata el síntoma.",
+        "2": "Ayuda con repetidos dentro de un batch, pero sigue siendo el modelo descubriendo datos por tool calls e infla el historial."
+      },
+      "rule": "Si la app debe decidir qué contexto entra (embeddings, filtros), exponé los datos como resource directo.",
+      "source_url": "https://modelcontextprotocol.io/docs/learn/server-concepts",
+      "source_quote": "Applications can access this information directly and decide how to use it - whether that's selecting relevant portions, searching with embeddings, or passing it all to the model.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc server-concepts: la app decide cómo usar los resources (porciones, embeddings). Cita textual."
+      }
+    },
+    {
+      "id": "o34-q25",
+      "objective": 34,
+      "pool": "practice",
+      "scenario": "A product analytics team built an MCP server for Claude Code so developers can ask about feature usage. Each dashboard is exposed as a resource with URI `ui://dashboards/<name>` and media type `text/html;profile=mcp-app`. The server declares the `resources` capability and implements `resources/list` and `resources/read`. Developers report that typing `@` shows none of the dashboards, and when they ask Claude to list the server's resources, it says the list is empty. The team's goal is for Claude to read the usage numbers, not to render the dashboards. What should they change?",
+      "options": [
+        "Also expose the usage data as regular resources, such as `analytics://usage/<feature>` with `application/json`, next to the UI pages for the host.",
+        "Declare the `listChanged` capability so Claude Code refreshes the resource list after startup and the dashboards appear in the `@` autocomplete menu.",
+        "Convert each dashboard into a resource template, `ui://dashboards/{name}`, so Claude Code discovers them through the templates list instead of the plain list.",
+        "Add the `audience: [\"assistant\"]` annotation to each dashboard resource so Claude Code treats them as content for the model rather than for the user."
+      ],
+      "correct": 0,
+      "why_correct": "Los resources de MCP Apps (URI `ui://` o `text/html;profile=mcp-app`) son páginas para que la aplicación host las renderice, no contenido para que Claude lea. Claude Code los saca de las sugerencias de `@` y de la tool que lista resources; un server con solo UI resources muestra la lista vacía. Si querés que Claude lea los números, exponelos como resources de datos comunes.",
+      "why_wrong": {
+        "1": "`listChanged` sirve para avisar que la lista cambió; no hace que los UI resources pasen a aparecer.",
+        "2": "Siguen siendo `ui://`: el problema es qué tipo de resource son, no si son directos o templates.",
+        "3": "Las annotations son pistas para el cliente, pero no convierten una página para renderizar en contenido de datos ni cambian el filtro de Claude Code."
+      },
+      "rule": "`ui://` / `text/html;profile=mcp-app` = página para el host. Datos para Claude = resource común.",
+      "source_url": "https://code.claude.com/docs/en/mcp",
+      "source_quote": "MCP Apps UI resources are entries with a `ui://` URI or the `text/html;profile=mcp-app` media type: pages for a host application to render rather than content for Claude to read.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Doc mcp: UI resources ui:// o text/html;profile=mcp-app no aparecen en @ ni en la lista. Cita textual. Se acortó la correcta A (168 vs 149–158)."
       }
     }
   ]

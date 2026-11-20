@@ -22,11 +22,11 @@
       "rule": "Fallas relacionadas → un solo mensaje con todos los casos (entrada, actual, esperado) + un check que Claude pueda correr.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "If you name the file, describe the symptom, and say what \"fixed\" looks like up front, you usually save yourself a round of corrections later.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en best-practices. La doc respalda pedido específico (síntoma + cómo se ve arreglado); juntar fallas que interactúan sale del enunciado del objetivo (guía oficial), no de la página: la explicación no se lo atribuye a la doc. Distinto de o12-q03 (ahí es ping-pong ya ocurrido con /clear)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en best-practices. La doc respalda pedido específico (síntoma + cómo se ve arreglado); juntar fallas que interactúan sale del enunciado del objetivo (guía oficial), no de la página: la explicación no se lo atribuye a la doc. Distinto de o12-q03 (ahí es ping-pong ya ocurrido con /clear). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "Si querés la versión completa, decí el alcance de entrada: por defecto Claude construye lo mínimo que cumple el pedido.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "Claude tends to read a request conservatively and build the smallest thing that satisfies it, since it can't see how much you were hoping for.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual (best-practices, sección be ambitious). La doc confirma que think step by step/be thorough son texto común que no supera el effort. Distractores sin respaldo."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual (best-practices, sección be ambitious). La doc confirma que think step by step/be thorough son texto común que no supera el effort. Distractores sin respaldo. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "Para atrapar inconsistencias, encadená: la salida de Claude entra a un prompt siguiente que la verifica y corrige.",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
       "source_quote": "Use Claude’s outputs as inputs for follow-up prompts, asking it to verify or expand on previous statements. This can catch and correct inconsistencies.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual de Iterative refinement en reduce-hallucinations; Best-of-N (W2) también está en la página. Relacionada con o12-q07 pero el escenario (contradicciones entre secciones) es distinto."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual de Iterative refinement en reduce-hallucinations; Best-of-N (W2) también está en la página. Relacionada con o12-q07 pero el escenario (contradicciones entre secciones) es distinto. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,11 @@
       "rule": "Pedido inicial = síntoma + dónde mirar + test que falle reproduciéndolo + arreglo.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "write a failing test that reproduces it, then fix it",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual: es el ejemplo de prompt específico de best-practices (síntoma + carpeta + test que falle). Sin otra opción defendible."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual: es el ejemplo de prompt específico de best-practices (síntoma + carpeta + test que falle). Sin otra opción defendible. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -134,11 +134,179 @@
       "rule": "Preferencia entre dos enfoques razonables → decila de entrada, con el archivo o patrón a seguir.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "Claude can't read that from the code, so if you care which one it picks, say so up front.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual (best-practices: preferencia entre dos enfoques razonables, decilo de entrada). Correcta única. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o12-s21",
+      "objective": 12,
+      "pool": "sim",
+      "scenario": "An accounts-payable team is iterating on the prompt of an extraction service that sends supplier invoices to Claude through the Messages API and returns line items with a `normalized_description` field. The prompt explains in four paragraphs how descriptions should be normalized: expand unit abbreviations, drop internal SKU prefixes, keep brand names, title-case the result. After three prompt revisions, a QA sample of 500 lines still shows 22% that differ from what the finance analysts expect, and the errors change from one revision to the next: one version keeps the SKU prefix, the next one drops the brand. The output is already returned through a tool with a JSON schema, and the schema validation passes on 100% of responses. The team cannot change the model. What is the most effective next refinement?",
+      "options": [
+        "Add two or three line-item examples to the prompt, each pairing a raw description with the exact normalized string, including a brand-plus-SKU case",
+        "Set `strict: true` on the extraction tool and add a regex `pattern` to `normalized_description` so the schema itself rejects descriptions that keep SKU prefixes",
+        "Expand the four paragraphs into an exhaustive rule table that covers every abbreviation and prefix seen in the QA sample, and mark the brand rule as mandatory",
+        "Split the extraction into two calls, one that extracts raw line items and a second that normalizes them, so each prompt is shorter and more focused"
+      ],
+      "correct": 0,
+      "why_correct": "El formato ya está garantizado (schema 100% válido); lo que falla es la TRANSFORMACIÓN, y la prosa se interpreta distinto en cada versión. La guía: ejemplos concretos de entrada/salida son lo más efectivo cuando la prosa da resultados inconsistentes, y recomienda 2–3. Incluir el caso marca+SKU cubre el borde que oscila.",
+      "why_wrong": {
+        "1": "Es tentadora pero ataca otra cosa: `strict` y el schema garantizan forma, no semántica. Un regex podría rechazar algunos SKU, pero no expresa \"conservá la marca\" ni la expansión de abreviaturas, y convierte errores de contenido en fallas de request.",
+        "2": "Una tabla exhaustiva es más prosa, y sobreajusta a la muestra de QA. Ya hubo tres vueltas de descripciones cada vez más largas con errores que van cambiando.",
+        "3": "Partir en dos llamadas no le dice al modelo qué salida querés: el paso de normalización recibiría la misma descripción en prosa que hoy se interpreta mal."
+      },
+      "rule": "Schema válido pero transformación inconsistente → el fix son ejemplos de entrada/salida, no más schema ni más prosa.",
+      "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
+      "source_quote": "Providing 2-3 concrete input/output examples to clarify transformation requirements when natural language descriptions produce inconsistent results",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
         "verdict": "ok",
-        "notes": "Cita textual (best-practices: preferencia entre dos enfoques razonables, decilo de entrada). Correcta única."
+        "notes": "Cita textual en la Exam Guide. Schema 100% válido aísla el problema de transformación; strict/pattern resuelve forma, no semántica."
+      }
+    },
+    {
+      "id": "o12-s22",
+      "objective": 12,
+      "pool": "sim",
+      "scenario": "A payments company is building a currency-rounding module with Claude Code. Requirements: banker's rounding, zero-decimal currencies such as JPY and CLP, three-decimal currencies such as KWD, and a budget of 2 ms per 10,000 amounts. Their current loop is: Claude writes the module, then writes tests for it, then runs them. The tests always pass, yet a reviewer found that JPY amounts are rounded to two decimals and that the KWD path is never exercised; the generated tests encode the same wrong assumptions as the code. The team lead wants progressive improvement that does not depend on a human spotting each mistake. Which workflow change addresses the root cause?",
+      "options": [
+        "After Claude writes the module and tests, run `/code-review` so a fresh subagent that never saw the conversation reviews the diff for bugs",
+        "Ask Claude, in the same session, to re-read its own module and tests and list any requirement it may have missed before running the suite again",
+        "Add the full requirement list to CLAUDE.md so every session that touches the rounding module loads it at startup before writing code",
+        "Write the test suite first (expected behavior, zero- and three-decimal cases, the 2 ms budget), then iterate on the code by sharing the failures"
+      ],
+      "correct": 3,
+      "why_correct": "La causa raíz es que los tests salen del mismo razonamiento que el código, así que comparten sus errores. La guía describe test-driven iteration: escribir primero tests que cubran comportamiento esperado, casos borde y performance, y después iterar compartiendo las fallas. Ahí los tests definen \"correcto\" de forma independiente.",
+      "why_wrong": {
+        "0": "`/code-review` en un subagente fresco es útil y casi correcto, porque no lo contamina el razonamiento original. Pero revisa el diff buscando bugs en general; no le da al loop una definición ejecutable de los requisitos (KWD, 2 ms), así que la mejora sigue dependiendo de que alguien detecte cada caso.",
+        "1": "Pedirle a la misma sesión que se revise a sí misma es lo menos efectivo: comparte el contexto y los supuestos que produjeron el error.",
+        "2": "Tener los requisitos en CLAUDE.md ayuda como contexto, pero no le da a Claude algo que corra y devuelva pass/fail. Los tests seguirían escribiéndose después del código."
+      },
+      "rule": "Tests escritos después del código heredan sus errores → escribí primero la suite (comportamiento, bordes, performance) e iterá con las fallas.",
+      "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
+      "source_quote": "Writing test suites covering expected behavior, edge cases, and performance requirements before implementation, then iterating by sharing test failures",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la Exam Guide (test-driven iteration). Verificado en best-practices que /code-review revisa el diff en un subagente fresco: distractor plausible pero sin definición ejecutable de requisitos."
+      }
+    },
+    {
+      "id": "o12-s23",
+      "objective": 12,
+      "pool": "sim",
+      "scenario": "A platform team reviews a large refactor that Claude Code made to an internal developer portal. The review lists nine findings. Seven are independent and local: a typo in a log message, a missing docstring, an unused import in three different modules, a hard-coded timeout, and a wrong HTTP status in one handler. Two are coupled: the new pagination cursor format and the cache key that embeds that cursor must change together, or cached pages will be served for the wrong cursor. The developer pasted all nine findings into a single message; Claude fixed six, skipped two of the small ones without comment, and changed the cursor format without updating the cache key. How should the developer structure the next round?",
+      "options": [
+        "Paste all nine findings again in one numbered message, and ask Claude to confirm each number explicitly in its summary when it finishes",
+        "Send the two coupled findings together, explaining how cursor and cache key interact, and handle the seven independent ones one at a time",
+        "Send each of the nine findings as a separate message in the order they appear in the review, waiting for Claude to finish one before sending the next",
+        "Ask Claude to open a subagent per finding so that each of the nine fixes happens in an isolated context and cannot interfere with the others"
+      ],
+      "correct": 1,
+      "why_correct": "La guía distingue cuándo dar todos los problemas en un mensaje (problemas que interactúan) y cuándo ir de a uno (independientes). Cursor y cache key interactúan: van juntos y con la explicación de la dependencia. Los siete locales son independientes: secuencial, verificando cada uno.",
+      "why_wrong": {
+        "0": "Repetir el paquete de nueve mezcla otra vez lo acoplado con lo trivial. Pedir confirmación por número ayuda a no saltear ítems, pero no explica la dependencia cursor-cache que fue lo que salió mal.",
+        "2": "Ir de a uno con los nueve es correcto para los independientes, pero separa justo los dos que interactúan: arreglar el cursor solo vuelve a romper el caché.",
+        "3": "Aislar cada fix impide que el que toca el cursor vea el cache key. Para los acoplados es exactamente lo contrario de lo que hace falta."
+      },
+      "rule": "Mezcla de problemas: los que interactúan juntos y explicados; los independientes, secuenciales.",
+      "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
+      "source_quote": "When to provide all issues in a single message (interacting problems) versus fixing them sequentially (independent problems)",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la Exam Guide. Mezcla de acoplados/independientes; ningún distractor es defendible."
+      }
+    },
+    {
+      "id": "o12-s24",
+      "objective": 12,
+      "pool": "sim",
+      "scenario": "A data team uses Claude Code to port a 4,000-line report generator from an old Python 2 codebase to Python 3. The output CSV must be byte-identical to the legacy output, because a downstream reconciliation job compares files with a checksum. After every change Claude reports \"the port is complete\", the developer runs the legacy and new versions by hand, finds a difference (decimal formatting, line endings, column order), and describes it in the next message. They have done this five times. A golden output file from the legacy system for a fixed input already exists in `fixtures/`. The developer wants to stop being the test harness. What is the most effective change?",
+      "options": [
+        "Describe each difference in more detail in the next message, including the exact byte offset, so Claude does not have to guess what changed",
+        "Add a `Stop` hook that runs the project's linter and blocks Claude from finishing its turn while the linter reports any warnings on the port",
+        "Give Claude a script that diffs the new output against the golden fixture, and tell it to iterate until the diff is empty and show the output",
+        "Ask Claude to compare the two codebases function by function and produce a written equivalence report before declaring the port complete"
+      ],
+      "correct": 2,
+      "why_correct": "Sin algo que devuelva pass/fail, Claude para cuando el trabajo \"parece\" terminado y el dev termina siendo la suite de tests. La doc lista justo \"un script que compara la salida contra un fixture\" como check. Con eso Claude cierra el loop solo, y pedirle la salida del comando da evidencia.",
+      "why_wrong": {
+        "0": "Más detalle por vuelta mejora cada corrección, pero el dev sigue siendo el que detecta cada diferencia. No cambia el loop.",
+        "1": "Un `Stop` hook es enforcement real, pero con el check equivocado: el linter no sabe nada de que el CSV sea idéntico byte a byte. Bloquearía por warnings y dejaría pasar diferencias de formato.",
+        "3": "Un informe escrito de equivalencia no es un check ejecutable: Claude puede convencerse de que dos funciones son equivalentes y que igual difieran en un salto de línea."
+      },
+      "rule": "Si sos vos el que encuentra cada error, falta un check pass/fail que Claude pueda correr (ej. diff contra fixture).",
+      "source_url": "https://code.claude.com/docs/en/best-practices",
+      "source_quote": "If you give it something that comes back pass or fail, Claude can close that loop itself. It makes the change, runs the check, and if something broke it reads the output and fixes it before running the check again.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en best-practices; la misma página lista 'A script that diffs output against a fixture' como check. Stop hook con linter correctamente descartado."
+      }
+    },
+    {
+      "id": "o12-s25",
+      "objective": 12,
+      "pool": "sim",
+      "scenario": "A research firm runs a multi-agent system: search subagents collect sources and a synthesis agent writes the final market brief through the Messages API. Today the synthesis prompt says \"write the brief, then double-check it for unsupported claims and contradictions before you answer\", all in one call. Analysts still find, in about one brief out of five, a growth figure that contradicts a table two sections earlier, and engineering cannot tell whether the model skipped the check or performed it and missed the issue. The team wants an iterative refinement process whose intermediate steps can be logged and evaluated separately. Latency is not a constraint; briefs are generated overnight. What should they implement?",
+      "options": [
+        "Chain separate API calls: draft the brief, review the draft against explicit criteria, then refine it using that review, logging each step",
+        "Keep the single call but move the double-check instruction to the top of the system prompt and raise `max_tokens` so the model has room to check thoroughly",
+        "Run the same single-call prompt three times for each brief and keep the version that the search subagents' sources support best",
+        "Ask the synthesis agent to output a self-reported confidence score for each section and send briefs with any section below 7 back to the analysts"
+      ],
+      "correct": 0,
+      "why_correct": "El patrón de encadenamiento más común es la autocorrección: borrador → revisión contra criterios → refinamiento, cada paso en una llamada aparte para poder loguear, evaluar o bifurcar. Eso responde a las dos necesidades: mejora iterativa y pasos intermedios observables.",
+      "why_wrong": {
+        "1": "Mover la instrucción y subir `max_tokens` deja todo en una sola llamada: seguís sin ver si el chequeo ocurrió. `max_tokens` además no hace que el modelo revise mejor.",
+        "2": "Correr tres veces y elegir una es muestreo, no refinamiento: ninguna versión se mejora a partir de una revisión, y elegir \"la mejor\" requiere justo el criterio que falta.",
+        "3": "La confianza autorreportada por el modelo está mal calibrada; además solo rutea a humanos, no mejora el borrador."
+      },
+      "rule": "Refinamiento observable por API → cadena draft → review contra criterios → refine, una llamada por paso.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "The most common chaining pattern is self-correction: generate a draft → have Claude review it against criteria → have Claude refine based on the review. Each step is a separate API call so you can log, evaluate, or branch at any point.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en claude-prompting-best-practices (self-correction chaining). Distractores no defendibles."
+      }
+    },
+    {
+      "id": "o12-s26",
+      "objective": 12,
+      "pool": "sim",
+      "scenario": "A SaaS team uses Claude Code to rewrite 180 backend error messages into user-facing copy. To steer the style, the developer gave Claude one example: a timeout error rewritten as \"We couldn't reach the server. Please try again in a few minutes.\" Claude then rewrote the first 40 messages. Almost all of them now have two sentences and end with \"Please try again\", including validation errors where retrying cannot help (\"Your file is larger than 10 MB. Please try again.\") and permission errors. The copywriter confirms the tone is right; only the structure is being copied where it does not fit. What is the most effective refinement before Claude continues?",
+      "options": [
+        "Add a second example of a network error rewritten in the same style, so Claude sees that the pattern is consistent and applies it more reliably",
+        "Provide three to five varied examples that cover different error classes, such as validation, permission and timeout, with the exact copy expected for each",
+        "Remove the example and replace it with a prose style guide describing tone, sentence length and when to suggest retrying, since the example is being over-copied",
+        "Keep the single example and add a rule in capital letters saying that 'Please try again' must only be used for transient errors"
+      ],
+      "correct": 1,
+      "why_correct": "Con un solo ejemplo, Claude copia rasgos que no querías (largo, cierre con \"try again\"). La doc pide ejemplos diversos que cubran casos borde y varíen lo suficiente para que no aprenda patrones no deseados, y recomienda 3–5. Cubrir validación, permisos y timeout le muestra qué cambia según la clase de error.",
+      "why_wrong": {
+        "0": "Otro ejemplo de red refuerza justo el patrón equivocado: Claude va a creer todavía más que todo termina en \"try again\".",
+        "2": "Volver a la prosa tira lo que sí funcionaba (el tono) y vuelve al mecanismo menos confiable. El problema no es usar ejemplos sino usar uno solo.",
+        "3": "La regla en mayúsculas corrige una frase puntual, pero deja el ejemplo único que empuja la estructura de dos oraciones en todos los casos."
+      },
+      "rule": "Claude copia de más un ejemplo → no lo saques: agregá 3–5 ejemplos diversos que cubran los bordes.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Diverse: Cover edge cases and vary enough that Claude doesn’t pick up unintended patterns.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en claude-prompting-best-practices; la página recomienda 3–5 ejemplos diversos. Correcta única."
       }
     }
   ]

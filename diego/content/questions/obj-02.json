@@ -22,11 +22,11 @@
       "rule": "Sesión puntual (no la última) → `--resume <nombre o id>`; `--continue` es solo la más reciente.",
       "source_url": "https://code.claude.com/docs/en/cli-reference",
       "source_quote": "Set a display name for the session, shown in `/resume` and the terminal title. You can resume a named session with `claude --resume <name>`.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "cli-reference: --name/-n y quote textual; sessions: --continue = más reciente del directorio, --resume <name> directo; /clear [name] etiqueta la conversación que dejás; --session-id exige UUID."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "cli-reference: --name/-n y quote textual; sessions: --continue = más reciente del directorio, --resume <name> directo; /clear [name] etiqueta la conversación que dejás; --session-id exige UUID. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "Resume + \"cambiaron estos archivos, releé solo esos\" = re-análisis dirigido.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
       "source_quote": "Returning to a session means the agent has full context from before: files it already read, analysis it already performed, decisions it already made.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "agent-sdk/sessions: quote textual (línea 11) + \"Sessions persist the conversation, not the filesystem\"; sessions: lo restaurado incluye tool calls y results; fork copia el historial (\"not the filesystem\"); /compact resume el historial existente. El aviso dirigido de archivos cambiados es la práctica de la guía (re-análisis dirigido); ningún distractor cumple \"sin repetir trabajo\"."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "agent-sdk/sessions: quote textual (línea 11) + \"Sessions persist the conversation, not the filesystem\"; sessions: lo restaurado incluye tool calls y results; fork copia el historial (\"not the filesystem\"); /compact resume el historial existente. El aviso dirigido de archivos cambiados es la práctica de la guía (re-análisis dirigido); ningún distractor cumple \"sin repetir trabajo\". · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "Sesión en otro host sin store → estado propio inyectado en una sesión nueva.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
       "source_quote": "Capture the results you need (analysis output, decisions, file diffs) as application state and pass them into a fresh session's prompt. This is often more robust than shipping transcript files around.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "agent-sdk/sessions \"Resume across hosts\": quote textual. Se suavizó \"el más robusto\" (la doc dice \"often more robust\") y se mencionan las tres opciones documentadas."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "agent-sdk/sessions \"Resume across hosts\": quote textual. Se suavizó \"el más robusto\" (la doc dice \"often more robust\") y se mencionan las tres opciones documentadas. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,11 @@
       "rule": "Dos caminos desde la misma base → `fork_session=True` (TS: `forkSession: true`).",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
       "source_quote": "Forking creates a new session that starts with a copy of the original's history but diverges from that point. The fork gets its own session ID; the original's ID and history stay unchanged.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "agent-sdk/sessions: quote textual del fork; continue_conversation = sesión más reciente del directorio; fork_session=True (Py) / forkSession (TS) confirmados en los ejemplos."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "agent-sdk/sessions: quote textual del fork; continue_conversation = sesión más reciente del directorio; fork_session=True (Py) / forkSession (TS) confirmados en los ejemplos. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -134,11 +134,11 @@
       "rule": "Tool results mayormente viejos → sesión nueva + resumen inyectado; pocos cambios → resume + aviso.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Claude’s latest models are extremely effective at discovering state from the local filesystem.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "prompting best practices (\"Choose between starting fresh and compacting\"): quote textual. Se ajustó why_correct para reflejar el contexto real de la cita (ventana nueva vs. compactar) y sus ejemplos. sessions: fork copia historial; /compact resume historial."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "prompting best practices (\"Choose between starting fresh and compacting\"): quote textual. Se ajustó why_correct para reflejar el contexto real de la cita (ventana nueva vs. compactar) y sus ejemplos. sessions: fork copia historial; /compact resume historial. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -162,11 +162,151 @@
       "rule": "Mismo punto de partida, trabajo en paralelo → fork; nunca la misma sesión en dos terminales.",
       "source_url": "https://code.claude.com/docs/en/sessions",
       "source_quote": "If you resume the same session in two terminals without forking, messages from both interleave into one transcript.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "sessions: quote textual (línea \"If you resume the same session in two terminals...\"); /branch y --fork-session dan IDs propios. why_wrong de la opción 2 reformulado: ya no afirma como dato que --session-id \"no copia el historial\" (la doc no lo dice), sino que no es el mecanismo documentado para copiar. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o02-q21",
+      "objective": 2,
+      "pool": "practice",
+      "scenario": "A developer on a fintech team (Code Generation with Claude Code, Windows 11 and PowerShell) spent yesterday in a session named `billing-audit`: Claude read 40 files under `src\\billing` and produced an agreed refactoring plan. Overnight a teammate merged a PR that touched 6 of those files. This morning the developer runs `claude --resume billing-audit` and asks Claude to implement the plan. Edits fail on three files because the text Claude expects is no longer there, and one edit silently reintroduces a function the PR had renamed. Re-reading all 40 files takes about 25 minutes, and most of yesterday's analysis is still valid. What should the developer do?",
+      "options": [
+        "Start a new session and ask Claude to explore src\\billing again from scratch, so that nothing in its context is stale.",
+        "Resume the session and run /compact first, so the old file contents are summarized before Claude implements the plan.",
+        "Resume the session, tell Claude which files changed (git diff --name-only ORIG_HEAD HEAD) and ask it to re-read only those before editing.",
+        "Resume with --fork-session so the implementation runs in a clean branch of the conversation that does not include yesterday's tool results."
+      ],
+      "correct": 2,
+      "why_correct": "Una sesión guarda la conversación, no el filesystem: lo que Claude leyó ayer quedó viejo para esos 6 archivos. Como casi todo el análisis sigue valiendo, conviene retomar y decirle puntualmente qué archivos cambiaron para que re-analice solo esos. Es más barato que re-explorar todo y corrige la causa (contenido desactualizado).",
+      "why_wrong": {
+        "0": "Funciona, pero tira el análisis válido y paga los 25 minutos de re-exploración. Empezar de cero conviene cuando la mayoría del contexto quedó viejo, no acá.",
+        "1": "Resumir contenido viejo sigue siendo contenido viejo. `/compact` no vuelve a leer los archivos modificados.",
+        "3": "Un fork copia el historial hasta ese punto, incluidos los tool results viejos. No arranca \"limpio\"."
+      },
+      "rule": "Retomás si el contexto sigue mayormente válido, pero le avisás qué archivos cambiaron para re-análisis dirigido.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
+      "source_quote": "Sessions persist the **conversation**, not the filesystem.",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "sessions: quote textual (línea \"If you resume the same session in two terminals...\"); /branch y --fork-session dan IDs propios. why_wrong de la opción 2 reformulado: ya no afirma como dato que --session-id \"no copia el historial\" (la doc no lo dice), sino que no es el mecanismo documentado para copiar."
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita confirmada en agent-sdk/sessions; fork copia el historial; /compact no relee archivos. Complementaria (no duplicada) con o02-s21."
+      }
+    },
+    {
+      "id": "o02-q22",
+      "objective": 2,
+      "pool": "practice",
+      "scenario": "A platform team runs Claude Code for Continuous Integration on a self-hosted Linux runner. Each PR triggers three concurrent matrix jobs (security, performance, API compatibility) in the same workspace. Step 1 of each job runs `claude -p \"Start the <area> review\" --output-format json`; step 2 runs `claude -p --continue \"Now write the summary for the PR comment\"`. About one PR in five gets a summary that describes the wrong area, for example the security job posting the performance findings. The jobs must keep running concurrently to stay inside the 10-minute CI budget. What is the most effective fix?",
+      "options": [
+        "Capture session_id from step 1's JSON output and run step 2 with --resume \"$session_id\" instead of --continue.",
+        "Add --fork-session to step 2 so each job continues in its own copy of the conversation.",
+        "Keep --continue but serialize the three matrix jobs so only one review session exists at a time.",
+        "Write each step-1 result into CLAUDE.md under a heading per area so step 2 reads the findings for its own area."
+      ],
+      "correct": 0,
+      "why_correct": "`--continue` toma la conversación más reciente del directorio; con tres jobs concurrentes en el mismo workspace, \"la más reciente\" puede ser la de otro job. `--resume` con el `session_id` capturado del JSON apunta a la sesión exacta de cada job y mantiene la concurrencia.",
+      "why_wrong": {
+        "1": "Forkear la sesión más reciente sigue partiendo de la sesión equivocada. `--fork-session` crea un ID nuevo, no elige la correcta.",
+        "2": "Arregla la mezcla pero rompe el presupuesto de 10 minutos, que es la restricción.",
+        "3": "CLAUDE.md es contexto persistente compartido, no un canal entre pasos: con jobs concurrentes se pisan y queda basura para el próximo run."
+      },
+      "rule": "Más de una sesión a la vez → `--resume <session_id>`. `--continue` es \"la más reciente\" y nada más.",
+      "source_url": "https://code.claude.com/docs/en/headless",
+      "source_quote": "Use `--continue` to continue the most recent conversation, or `--resume` with a session ID to continue a specific conversation.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita confirmada en headless; --continue = más reciente, --resume con ID = específica. Decisión parecida a o02-q23 pero escenario distinto (CI concurrente vs bot multiusuario en SDK)."
+      }
+    },
+    {
+      "id": "o02-q23",
+      "objective": 2,
+      "pool": "practice",
+      "scenario": "An internal tools team builds a Developer Productivity assistant on the Agent SDK in TypeScript. Each engineer chats with it from Slack; the backend runs one `query()` per message in the same working directory. For follow-up messages the code passes `continue: true`. With 3 users the pilot looked fine. After rollout to 60 engineers, people report the assistant \"remembering\" files and decisions from someone else's conversation, and sometimes forgetting their own previous question. The team needs each engineer's follow-ups to build on that engineer's own history. What should they change?",
+      "options": [
+        "Pass forkSession: true together with continue: true on every follow-up, so each message branches off instead of writing to a shared session.",
+        "Set persistSession: false so no transcript is written to disk and conversations cannot leak between users.",
+        "Keep continue: true and prepend the engineer's Slack user ID to every prompt so the agent filters context per user.",
+        "Store the session_id from each engineer's result message and pass it to resume on that engineer's next message."
+      ],
+      "correct": 3,
+      "why_correct": "`continue` busca la sesión más reciente del directorio: sirve cuando hay una sola conversación a la vez. Con muchos usuarios hay que trackear el ID: la doc dice que `resume` es obligatorio cuando tenés varias sesiones, por ejemplo una por usuario en una app multiusuario. El `session_id` sale del result message.",
+      "why_wrong": {
+        "0": "Forkear la más reciente sigue partiendo del historial de quien escribió último, y además cada mensaje pierde los anteriores del mismo usuario.",
+        "1": "Sin persistencia no hay historial que retomar: se termina la fuga, pero también los follow-ups.",
+        "2": "El historial que se carga sigue siendo el de otro; un ID en el texto no filtra contexto."
+      },
+      "rule": "Multiusuario o sesión que no es la última → guardar `session_id` y usar `resume`. `continue` es para una conversación a la vez.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/sessions",
+      "source_quote": "Required when you have multiple sessions (for example, one per user in a multi-user app) or want to return to one that isn't the most recent.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita confirmada en agent-sdk/sessions (resume obligatorio con varias sesiones, p.ej. una por usuario); persistSession existe solo en TS. Cercana a o02-q22 en la decisión pero distinto escenario y API."
+      }
+    },
+    {
+      "id": "o02-q24",
+      "objective": 2,
+      "pool": "practice",
+      "scenario": "A research group runs a Multi-Agent Research System as long `claude -p` jobs under a process supervisor on Linux. During a nightly host rotation, the supervisor sends SIGTERM to running jobs (exit code 143) and later resumes each one with `claude -p --resume <session-id> \"continue\"`. Operators notice the resumed runs often do not finish the step that was in progress: Claude treats \"continue\" as a new, vague request and sometimes starts a fresh outline. They want resumed jobs to carry on with the interrupted turn itself, without hand-writing a recovery prompt for every job. What should they do?",
+      "options": [
+        "Replace SIGTERM with SIGINT in the supervisor so Claude Code ends the turn cleanly and records a result before stopping.",
+        "Set CLAUDE_CODE_RESUME_INTERRUPTED_TURN=1 in the environment of the resumed runs so Claude Code continues the interrupted turn.",
+        "Resume with --fork-session so the interrupted turn is replayed in a new session ID while the original stays intact.",
+        "Rerun the original prompt with a new claude -p call, since a resumed session reruns interrupted tool calls automatically anyway."
+      ],
+      "correct": 1,
+      "why_correct": "Al retomar, Claude Code deja el turno interrumpido como está y tu próximo prompt maneja la conversación; por eso un \"continue\" vago desvía. La doc tiene la variable `CLAUDE_CODE_RESUME_INTERRUPTED_TURN=1` justo para que al retomar continúe el turno interrumpido.",
+      "why_wrong": {
+        "0": "Casi: SIGINT termina el turno en vez de dejarlo a medias, pero termina; no hace que al retomar se siga el trabajo que estaba en curso.",
+        "2": "Forkear copia la conversación con otro ID; no hace que se continúe el turno interrumpido.",
+        "3": "Falso doble: una tool interrumpida NO se vuelve a correr al retomar, y relanzar el prompt original repite todo el trabajo."
+      },
+      "rule": "Retomar no continúa solo el turno cortado: lo maneja tu próximo prompt, salvo `CLAUDE_CODE_RESUME_INTERRUPTED_TURN=1`.",
+      "source_url": "https://code.claude.com/docs/en/headless",
+      "source_quote": "When you resume the session, Claude Code leaves the interrupted turn as it is, and your next prompt drives the conversation. To have Claude Code continue the interrupted turn on resume instead, set `CLAUDE_CODE_RESUME_INTERRUPTED_TURN=1`.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Confirmado en headless (Stop a run with SIGTERM): exit 143, SIGINT termina el turno, comando en curso queda registrado como killed, CLAUDE_CODE_RESUME_INTERRUPTED_TURN=1."
+      }
+    },
+    {
+      "id": "o02-q25",
+      "objective": 2,
+      "pool": "practice",
+      "scenario": "A developer on Windows (PowerShell) started a Code Generation with Claude Code session with `claude --mcp-config .\\tmp-ci-tools.json --add-dir ..\\shared-lib` to investigate a flaky integration test. The MCP config points to a temporary server the team does not want committed to the repo. After a reboot, the developer runs `claude --continue`. The conversation history is all there, but Claude now answers that it has no `ci_logs` tools and cannot read files under `..\\shared-lib`, even though both were used yesterday in that same conversation. What is the correct way to resume?",
+      "options": [
+        "Resume with claude --continue --fork-session so the new branch re-runs the original launch configuration.",
+        "Run /resume from inside a fresh session, which restores the session's flags as well as its history.",
+        "Run claude --continue --mcp-config .\\tmp-ci-tools.json --add-dir ..\\shared-lib, passing those launch flags again.",
+        "Move the server definition into the project's .mcp.json and the directory into CLAUDE.md so they load on every resume."
+      ],
+      "correct": 2,
+      "why_correct": "Retomar restaura el historial (y otras cosas como el modelo y el permission mode), pero no todos los flags de arranque. La doc lista `--mcp-config`, `--add-dir`, `--settings` y otros como flags que hay que volver a pasar. Por eso la solución es repetir esos flags en el `--continue`.",
+      "why_wrong": {
+        "0": "`--fork-session` solo crea un ID nuevo para la conversación retomada; no recupera flags de lanzamiento.",
+        "1": "El picker cambia de sesión, pero los flags de arranque no se restauran por elegir la sesión desde ahí.",
+        "3": "Commitear el server viola la restricción del equipo, y CLAUDE.md no agrega directorios de trabajo: es contexto, no configuración."
+      },
+      "rule": "Al retomar se recupera la conversación, no los flags: `--mcp-config`, `--add-dir`, `--settings`… se vuelven a pasar.",
+      "source_url": "https://code.claude.com/docs/en/sessions",
+      "source_quote": "For any other `claude --continue` or `claude --resume`, pass flags such as these again, because Claude Code doesn't restore them:",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Confirmado en sessions (Flags to pass again when you resume): --mcp-config y --add-dir no se restauran; la excepción de background sessions no aplica."
       }
     }
   ]

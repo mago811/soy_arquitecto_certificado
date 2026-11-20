@@ -36,7 +36,7 @@ Set-Content -Encoding utf8 -Path sql\limpieza.sql -Value 'DELETE FROM clientes W
 Set-Content -Encoding utf8 -Path sql\reporte.sql -Value 'SELECT * FROM pedidos;'
 ```
 
-Si PowerShell bloquea `Activate.ps1` por la execution policy, corré `Set-ExecutionPolicy -Scope Process RemoteSigned` y repetí la activación. `$env:ANTHROPIC_API_KEY` dura solo esa ventana: corré todo el lab en la misma.
+Si PowerShell bloquea `Activate.ps1` por la execution policy, corré una sola vez `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` y repetí la activación. `$env:ANTHROPIC_API_KEY` dura solo esa ventana: corré todo el lab en la misma.
 
 2. Creá `coord.py` con el editor (`code coord.py` o `notepad coord.py`) y pegá la versión SANA:
 

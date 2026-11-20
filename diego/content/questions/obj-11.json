@@ -22,11 +22,11 @@
       "rule": "Claude Code en CI siempre con `-p`: sin eso espera una persona que no existe.",
       "source_url": "https://code.claude.com/docs/en/headless",
       "source_quote": "Add the -p (or --print) flag to any claude command to run it non-interactively.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "cli-reference: `claude \"query\"` = \"Start interactive session with initial prompt\"; `-p` = sin modo interactivo. La doc no describe que el job quede colgado hasta el timeout: se reformuló el escenario y los rationales para no afirmar ese comportamiento."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "cli-reference: `claude \"query\"` = \"Start interactive session with initial prompt\"; `-p` = sin modo interactivo. La doc no describe que el job quede colgado hasta el timeout: se reformuló el escenario y los rationales para no afirmar ese comportamiento. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "Tope que se tiene que cumplir = `--max-turns` / `--max-budget-usd` (enforcement), nunca un texto en CLAUDE.md.",
       "source_url": "https://code.claude.com/docs/en/cli-reference",
       "source_quote": "Stop the run once estimated spend on API calls reaches this amount (print mode only).",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "cli-reference: `--max-turns` y `--max-budget-usd` existen, print mode only; best-practices los pone en la columna determinística. Distractores (CLAUDE.md, medir costo, haiku) no limitan."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "cli-reference: `--max-turns` y `--max-budget-usd` existen, print mode only; best-practices los pone en la columna determinística. Distractores (CLAUDE.md, medir costo, haiku) no limitan. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "Antes de leer `.result`, chequeá `.subtype == \"success\"`; si pegó contra un tope, no hay resultado.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
       "source_quote": "The result field holds the final text output and is only present on the success variant, so always check the subtype before reading it.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "Cita textual en agent-sdk/agent-loop (tabla de subtypes: error_max_turns sin result). Ojo: `subtype`/`error_max_turns` están documentados en las páginas del Agent SDK, no en cli-reference/headless; headless presenta `claude -p` como el Agent SDK vía CLI y dice que el stream termina en un mensaje `result`. Se aclaró eso en why_correct."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en agent-sdk/agent-loop (tabla de subtypes: error_max_turns sin result). Ojo: `subtype`/`error_max_turns` están documentados en las páginas del Agent SDK, no en cli-reference/headless; headless presenta `claude -p` como el Agent SDK vía CLI y dice que el stream termina en un mensaje `result`. Se aclaró eso en why_correct. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,11 @@
       "rule": "`--max-budget-usd` es un freno, no un límite exacto: dejá margen debajo de tu techo real.",
       "source_url": "https://code.claude.com/docs/en/cli-reference",
       "source_quote": "Spend from subagents counts toward the cap. Spend can pass the cap, so leave headroom.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "cli-reference --max-budget-usd: estimación client-side, subagentes cuentan, 'Spend can pass the cap, so leave headroom'. agent-loop#budget-headroom: se compara tras cada respuesta, que se completa. Distractores contradicen la doc."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "cli-reference --max-budget-usd: estimación client-side, subagentes cuentan, 'Spend can pass the cap, so leave headroom'. agent-loop#budget-headroom: se compara tras cada respuesta, que se completa. Distractores contradicen la doc. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -134,11 +134,11 @@
       "rule": "En `-p`, lo que no está pre-aprobado se niega: aprobá lo justo con `--allowedTools`.",
       "source_url": "https://code.claude.com/docs/en/headless",
       "source_quote": "In a Manual mode claude -p run, a call that needs approval is denied unless something approves it, such as a PermissionRequest hook or a --permission-prompt-tool.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "headless: Manual mode en -p niega lo que necesita aprobación; permission-modes: arranque en Manual 'In Claude Code v2.1.302 or later' (antes podía arrancar en auto). Se agregó la versión al why_correct. `permission_denials` documentado en headless como campo del mensaje final."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "headless: Manual mode en -p niega lo que necesita aprobación; permission-modes: arranque en Manual 'In Claude Code v2.1.302 or later' (antes podía arrancar en auto). Se agregó la versión al why_correct. `permission_denials` documentado en headless como campo del mensaje final. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -162,11 +162,11 @@
       "rule": "CI cerrado = `--allowedTools` justo + `--permission-mode dontAsk`.",
       "source_url": "https://code.claude.com/docs/en/permission-modes",
       "source_quote": "Use this mode for CI pipelines or restricted environments where you pre-define what Claude may do; the session never waits for input.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "permission-modes#dontAsk: niega lo que pediría permiso, corren lecturas y allow rules, 'Use this mode for CI pipelines...'. Tabla de modos confirma acceptEdits/plan/bypassPermissions como más permisivos o bloqueantes."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "permission-modes#dontAsk: niega lo que pediría permiso, corren lecturas y allow rules, 'Use this mode for CI pipelines...'. Tabla de modos confirma acceptEdits/plan/bypassPermissions como más permisivos o bloqueantes. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -190,11 +190,11 @@
       "rule": "En la GitHub Action v1, todo flag del CLI (`--max-turns`, `--model`, `--allowedTools`) va en `claude_args`.",
       "source_url": "https://code.claude.com/docs/en/github-actions",
       "source_quote": "Move CLI options such as max_turns and model into claude_args.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "github-actions 'Upgrade from beta': mover max_turns/model a claude_args; quitar input `mode`. Timeout de workflow figura solo como red extra ('Set workflow-level timeouts to avoid runaway jobs'), no reemplaza --max-turns."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "github-actions 'Upgrade from beta': mover max_turns/model a claude_args; quitar input `mode`. Timeout de workflow figura solo como red extra ('Set workflow-level timeouts to avoid runaway jobs'), no reemplaza --max-turns. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -218,11 +218,11 @@
       "rule": "Costo por corrida en scripts = `--output-format json` → `total_cost_usd`.",
       "source_url": "https://code.claude.com/docs/en/headless",
       "source_quote": "With --output-format json, the response payload includes total_cost_usd and a per-model cost breakdown, so scripted callers can track spend without consulting the usage dashboard.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "headless: con --output-format json viene total_cost_usd y desglose por modelo. 'Incluso con error' respaldado en agent-sdk/agent-loop ('All result subtypes carry total_cost_usd')."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "headless: con --output-format json viene total_cost_usd y desglose por modelo. 'Incluso con error' respaldado en agent-sdk/agent-loop ('All result subtypes carry total_cost_usd'). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -246,11 +246,11 @@
       "rule": "Corridas reproducibles en CI = `--bare` + configuración explícita por flags.",
       "source_url": "https://code.claude.com/docs/en/headless",
       "source_quote": "Bare mode is useful for CI and scripts where you need the same result on every machine.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "headless#bare: saltea hooks/MCP/CLAUDE.md, cita textual, flags --mcp-config/--settings en la tabla, requiere ANTHROPIC_API_KEY o apiKeyHelper. Distractores no evitan la carga."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "headless#bare: saltea hooks/MCP/CLAUDE.md, cita textual, flags --mcp-config/--settings en la tabla, requiere ANTHROPIC_API_KEY o apiKeyHelper. Distractores no evitan la carga. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -274,11 +274,151 @@
       "rule": "Resultado único al final = `json`. Eventos en vivo = `stream-json` + `--verbose`.",
       "source_url": "https://code.claude.com/docs/en/headless",
       "source_quote": "Use --output-format stream-json with --verbose and --include-partial-messages to receive tokens as they're generated.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "headless 'Stream responses': stream-json + --verbose (+ --include-partial-messages); cli-reference: --include-partial-messages requiere stream-json. Última línea = result con costo y sesión. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o11-q21",
+      "objective": 11,
+      "pool": "practice",
+      "scenario": "An e-commerce team runs Claude Code in a disposable Docker container in GitLab CI to apply dependency patch bumps and run the test suite. The image runs as root. The job step is `claude -p \"Bump patch versions and run npm test\" --dangerously-skip-permissions --max-turns 25`. Since the image was rebuilt last week, every job fails within a second with `--dangerously-skip-permissions cannot be used with root/sudo privileges for security reasons`. Security also asked that the job be limited to exactly what it needs: reading and editing files, `npm install`, and `npm test`. The image can't be rebuilt again this sprint. What should the team change?",
+      "options": [
+        "Set `skipDangerousModePermissionPrompt: true` in the image's `~/.claude/settings.json` so the root check is skipped at startup.",
+        "Replace the flag with `permissions.defaultMode: bypassPermissions` in the repo's `.claude/settings.json`, avoiding the CLI check.",
+        "Use `--permission-mode dontAsk` with `--allowedTools \"Read,Edit,Bash(npm install *),Bash(npm test *)\"`, keeping `--max-turns 25`.",
+        "Swap the flag for `--allow-dangerously-skip-permissions`, which keeps bypass available but doesn't trigger the root refusal."
+      ],
+      "correct": 2,
+      "why_correct": "En Linux, Claude Code se niega a arrancar en `bypassPermissions` como root o con sudo (fuera de un sandbox reconocido). Pero este job no necesita bypass: `dontAsk` deniega todo lo que pediría aprobación y deja correr solo lo pre-aprobado. Es el modo que la doc recomienda para CI bloqueado, y con `--allowedTools` exacto cumple el pedido de seguridad. `--max-turns` sigue cortando corridas desbocadas.",
+      "why_wrong": {
+        "0": "Ese setting solo saltea el diálogo de advertencia de bypass en sesiones interactivas. No tiene nada que ver con el chequeo de root.",
+        "1": "`bypassPermissions` puesto en `.claude/settings.json` no toma efecto: la sesión arranca en Manual. Y aunque funcionara, seguiría sin restringir nada.",
+        "3": "Ese flag solo hace que bypass quede seleccionable más tarde en una sesión. No restringe tools ni resuelve el pedido de seguridad."
+      },
+      "rule": "CI: `dontAsk` + `--allowedTools` exacto + `--max-turns`. Bypass solo en contenedores aislados y nunca como root.",
+      "source_url": "https://code.claude.com/docs/en/permission-modes",
+      "source_quote": "Use this mode for CI pipelines or restricted environments where you pre-define what Claude may do.",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
         "verdict": "ok",
-        "notes": "headless 'Stream responses': stream-json + --verbose (+ --include-partial-messages); cli-reference: --include-partial-messages requiere stream-json. Última línea = result con costo y sesión."
+        "notes": "permission-modes: rechazo de bypass como root en Linux/macOS; dontAsk para CI con allowlist; bypassPermissions en .claude/settings.json no toma efecto (arranca en Manual); skipDangerousModePermissionPrompt solo saltea el diálogo. Cita textual."
+      }
+    },
+    {
+      "id": "o11-q22",
+      "objective": 11,
+      "pool": "practice",
+      "scenario": "A fintech's GitHub Actions job lets Claude fix failing unit tests with `claude -p \"Fix failing unit tests\" --permission-mode dontAsk --allowedTools \"Read,Edit,Bash(npm run test*)\"`. A security review of the transcript found that in one run Claude executed `npm run test-and-publish`, a package script that publishes a canary build to the internal registry. Nobody wants this job to publish anything. The team still needs Claude to run `npm run test` with arbitrary arguments, such as `npm run test -- --watch=false src/cart`, and doesn't want to rename any package scripts. Which change fixes the allowlist?",
+      "options": [
+        "Change the rule to `Bash(npm run test *)`, with a space before `*`, so it matches `npm run test` with or without arguments only.",
+        "Change the rule to `Bash(npm run test)`, which matches that exact command plus any argument list appended after it.",
+        "Keep the rule and add `don't run publish scripts` to the prompt, since `dontAsk` mode already denies anything risky on its own.",
+        "Switch to `--permission-mode acceptEdits`, which auto-approves only filesystem commands and blocks package scripts."
+      ],
+      "correct": 0,
+      "why_correct": "Las reglas de `--allowedTools` usan la sintaxis de permisos. Con ` *` (espacio y asterisco) la regla matchea el comando con o sin argumentos. Sin el espacio, `test*` es un prefijo de texto y también matchea `test-and-publish`, igual que en el ejemplo de la doc donde `Bash(git diff*)` matchea `git diff-index`.",
+      "why_wrong": {
+        "1": "Sin ` *`, la regla es exacta: no cubre `npm run test -- --watch=false src/cart`, que el equipo necesita.",
+        "2": "El prompt es guidance. Y `dontAsk` deniega lo que pediría aprobación, pero lo que matchea el allowlist corre igual: el agujero está en la regla.",
+        "3": "`acceptEdits` no aprueba scripts de npm, pero tampoco aprobaría `npm run test` sin una regla de allow. Y no arregla el patrón mal escrito."
+      },
+      "rule": "En reglas de Bash, el espacio antes de `*` importa: `cmd *` es \"cmd con argumentos\"; `cmd*` es \"cualquier cosa que empiece así\".",
+      "source_url": "https://code.claude.com/docs/en/headless",
+      "source_quote": "The space before * is important: without it, Bash(git diff*) would also match git diff-index.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "headless + permissions: espacio antes de * (con espacio matchea comando pelado y con args; sin espacio es prefijo). Cita textual."
+      }
+    },
+    {
+      "id": "o11-q23",
+      "objective": 11,
+      "pool": "practice",
+      "scenario": "A data team runs a nightly migration, calling `claude -p \"Migrate $file to the new logger API and commit. Reply OK or FAIL.\" --permission-mode dontAsk --allowedTools \"Read,Edit,Bash(git add *),Bash(git commit *)\" --max-turns 4` once per file. They chose 4 because each file needs exactly four tool steps: read, edit, stage, commit. Commits land correctly, but every run exits with a non-zero code and prints no OK or FAIL, so the wrapper marks all 300 files as failed. The team wants to keep a tight limit against runaway runs. What is the root cause and the fix?",
+      "options": [
+        "The commit step is slow; raise `BASH_DEFAULT_TIMEOUT_MS` so the commit finishes inside the fourth turn and the reply gets printed.",
+        "Replace `--max-turns` with `--max-budget-usd 0.50`, since turn limits also count tool results and end runs unpredictably.",
+        "Add `--output-format json` and read `.result`, which carries the final reply even when the run stops at the turn limit.",
+        "Set `--max-turns 5`: the final text-only response counts as a turn, so with 4 the run ends at `error_max_turns` with no reply."
+      ],
+      "correct": 3,
+      "why_correct": "Hay que contar cada turno con tool calls y sumar uno para la respuesta final de solo texto. Con 4, la corrida hace los cuatro pasos (por eso los commits están) y se corta antes de responder: termina en `error_max_turns`, sin respuesta final y con exit code distinto de cero. Con 5 sigue habiendo un límite ajustado.",
+      "why_wrong": {
+        "0": "No hay ningún timeout: los commits terminan bien. Lo que falta es el turno de la respuesta final.",
+        "1": "Cambiar a presupuesto pierde la cota de turnos y no explica el síntoma. Los resultados de tools no son turnos extra.",
+        "2": "El campo `result` solo existe en la variante `success`. En `error_max_turns` no hay respuesta final para leer."
+      },
+      "rule": "`--max-turns` = turnos con tools + 1 para la respuesta final. Si no, `error_max_turns` sin respuesta.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
+      "source_quote": "Count each turn with tool calls, plus one for the final text-only response. Without that extra turn, the run ends with a ResultMessage of subtype error_max_turns and no final response.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "agent-loop: contar turnos con tools + 1 para la respuesta final, si no error_max_turns sin respuesta; aplica igual a --max-turns de -p (cli-reference). Cita textual."
+      }
+    },
+    {
+      "id": "o11-q24",
+      "objective": 11,
+      "pool": "practice",
+      "scenario": "A regulated company runs Claude Code on shared self-hosted Linux runners. To make results identical across runners, an engineer added `--bare` to the job's `claude -p` call. Compliance requires that every Bash command Claude runs in CI be appended to an audit log by a `PostToolUse` hook. After the change, the audit log stays empty. The engineer first moved the hook into a JSON file passed with `--settings ./ci/audit-settings.json`, then into a plugin loaded with `--plugin-dir ./ci/audit-plugin`; neither produced any log entries. The job must keep the audit hook working. What should they do?",
+      "options": [
+        "Keep `--bare` and register the hook in the project's `.claude/settings.json`, since bare mode still reads the settings files.",
+        "Remove `--bare` from this job: in bare mode, hooks don't run, even when passed with `--settings` or from a flag-loaded plugin.",
+        "Keep `--bare` and add `--append-system-prompt` telling Claude to append each command to the audit log after running it.",
+        "Keep `--bare` and attach the hook as an `mcp_tool` hook through `--mcp-config`, since bare mode connects command-line servers."
+      ],
+      "correct": 1,
+      "why_correct": "La doc es explícita: en bare mode los hooks no corren, ni los que pasás con `--settings` ni los de un plugin cargado con flag, y dice que no uses bare para una corrida que los necesite. Si la compliance exige el hook, este job no puede usar `--bare`; la reproducibilidad se busca por otro lado.",
+      "why_wrong": {
+        "0": "Casi: bare sí lee los settings files y sus reglas de permisos, pero un hook de settings no corre en bare mode.",
+        "2": "Es guidance para un requisito de compliance: Claude puede olvidarse. El hook existe justamente para no depender del modelo.",
+        "3": "`--mcp-config` conecta servers en bare, pero el hook sigue siendo un hook, y en bare mode los hooks no corren."
+      },
+      "rule": "`--bare` = ni hooks, ni skills, ni plugins, ni MCP, ni CLAUDE.md. Si el job necesita un hook, no uses `--bare`.",
+      "source_url": "https://code.claude.com/docs/en/headless",
+      "source_quote": "Hooks still don't run in bare mode when you pass them with --settings, or in the hooks/hooks.json or hooks manifest key of a plugin you load with a flag. Don't use bare mode for a run that needs them.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "headless: bare lee settings pero no corre hooks, ni con --settings ni de plugins por flag; 'no uses bare si los necesitás'. A es el casi-correcto bien descartado. Cita textual."
+      }
+    },
+    {
+      "id": "o11-q25",
+      "objective": 11,
+      "pool": "practice",
+      "scenario": "An open-source maintainer team runs the Claude Code GitHub Action on `pull_request` `synchronize` events, with `claude_args: \"--max-turns 8 --max-budget-usd 1.50\"`. A contributor pushed 26 small commits to one PR in ten minutes. 26 workflow runs started in parallel, each reviewing a slightly different head, and the API spend jumped by about $35 in one afternoon. Each individual run stayed inside its turn and budget caps, and no run hit a timeout. The team wants to keep reviewing every PR without lowering the quality of each review. What is the most effective change?",
+      "options": [
+        "Add a GitHub `concurrency` group keyed on the PR number with `cancel-in-progress`, so only the latest push's run continues.",
+        "Lower `--max-turns` to 3 so each of the parallel runs finishes sooner and spends less on every push to the pull request.",
+        "Lower `--max-budget-usd` to 0.25, because the cap is shared across all workflow runs triggered by the same pull request.",
+        "Set a workflow-level `timeout-minutes` of 5, so runs that pile up behind each other are cancelled before they spend."
+      ],
+      "correct": 0,
+      "why_correct": "Cada corrida respetó sus límites: el problema es la cantidad de corridas en paralelo, no una corrida desbocada. La doc recomienda los controles de concurrencia de GitHub para limitar corridas paralelas. Agrupando por PR, solo sigue la del último push y no se baja la calidad de cada review.",
+      "why_wrong": {
+        "1": "Baja la calidad de cada review y siguen corriendo 26 en paralelo.",
+        "2": "`--max-budget-usd` es por corrida, no un pozo compartido entre corridas del mismo PR.",
+        "3": "Los timeouts frenan corridas individuales que se cuelgan. Acá eran 26 corridas normales en paralelo, y ninguna llegaba al timeout."
+      },
+      "rule": "Límites por corrida (`--max-turns`, `--max-budget-usd`, timeout) ≠ límites de cuántas corridas: para eso, `concurrency`.",
+      "source_url": "https://code.claude.com/docs/en/github-actions",
+      "source_quote": "Use GitHub's concurrency controls to limit parallel runs",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "github-actions: usar concurrency de GitHub para limitar corridas paralelas; --max-budget-usd es por corrida. Cita textual."
       }
     }
   ]

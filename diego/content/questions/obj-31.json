@@ -22,11 +22,11 @@
       "rule": "\"Solo lo importante\" → listá categorías a incluir y a excluir.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Claude responds well to clear, explicit instructions. Being specific about the output you want can help enhance results.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en best practices."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en best practices. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "Reviewer que siempre encuentra algo → excluí explícitamente lo que no querés (\"skip style\").",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "A reviewer that's asked to find problems will always find something.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "best-practices: 'report gaps that affect correctness and skip style' y 'will always find something' textuales."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "best-practices: 'report gaps that affect correctness and skip style' y 'will always find something' textuales. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "Exclusión verificable: nombrá la categoría (\"formato, nombres\"), no \"lo menor\".",
       "source_url": "https://code.claude.com/docs/en/memory",
       "source_quote": "Write instructions that are concrete enough to verify",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "memory: 'concrete enough to verify' + ejemplo 2-space; `/code-review` lee CLAUDE.md (code-review-local)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "memory: 'concrete enough to verify' + ejemplo 2-space; `/code-review` lee CLAUDE.md (code-review-local). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,11 @@
       "rule": "Categoría poco confiable → límite explícito: \"no infieras, devolvé null\".",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
       "source_quote": "Explicitly give Claude permission to admit uncertainty. This technique can drastically reduce false information.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "w3 afirmaba que la confianza autodeclarada 'no está calibrada' (no está en la doc); reformulado."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "w3 afirmaba que la confianza autodeclarada 'no está calibrada' (no está en la doc); reformulado. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -134,11 +134,11 @@
       "rule": "Categoría útil con falsos positivos → pedí evidencia, no la excluyas.",
       "source_url": "https://code.claude.com/docs/en/code-review-customize",
       "source_quote": "Findings that turn out to be wrong: require evidence before a class of finding is posted.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Receta `file:line` textual en code-review-customize."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Receta `file:line` textual en code-review-customize. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -162,11 +162,151 @@
       "rule": "Excluí por categoría lo que no querés; para severidad, reportá todo y filtrá aparte.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5",
       "source_quote": "If your review prompt says “only report high-severity issues” or “be conservative,” the model might follow that instruction literally and report less; ask it to report everything and filter in a separate pass instead.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita literal de Prompting Opus 5, tomada literal. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o31-q21",
+      "objective": 31,
+      "pool": "practice",
+      "scenario": "A developer-tools company runs an automated PR reviewer over the Messages API. One of its checks is phrased \"Check that code comments are accurate.\" Developers report that 70% of the comment-related findings are about wording, missing punctuation, outdated TODO owners, or comments that \"could be clearer,\" and they have started ignoring the reviewer. Yet the team had two incidents where a comment claimed a function was idempotent when the code wasn't, and that is exactly the class of problem they want caught. What is the most effective change to this check?",
+      "options": [
+        "Rephrase it to flag a comment only when the behavior it claims contradicts what the code does, and to skip wording, style and TODO metadata.",
+        "Keep the check but add \"only report comment issues you are highly confident about\", so that the low-value wording findings get filtered out.",
+        "Have the reviewer score each comment finding from 1 to 10, and post only the findings scored 8 or higher on the pull request.",
+        "Turn the comment check off entirely, since its false positives are hurting trust in the reviewer's other, more accurate checks."
+      ],
+      "correct": 0,
+      "why_correct": "El criterio vago ('que sean precisos') deja al modelo decidir qué cuenta, y elige estilo. Definir explícitamente qué entra (un comentario que contradice el comportamiento real del código) y qué no (redacción, estilo, TODOs) apunta justo al tipo de bug que causó los incidentes.",
+      "why_wrong": {
+        "1": "La guía lo dice: 'solo alta confianza' no mejora la precisión frente a criterios categóricos concretos. El modelo puede estar muy seguro de que falta una coma.",
+        "2": "Es filtrado por confianza autoinformada: está mal calibrada y no cambia qué *categoría* de problema se busca.",
+        "3": "Recuperás confianza pero perdés exactamente los hallazgos que el equipo necesita (el comentario de idempotencia)."
+      },
+      "rule": "Criterio vago → decide el modelo. Escribí qué se reporta y qué se saltea, por categoría.",
+      "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
+      "source_quote": "The importance of explicit criteria over vague instructions (e.g., \"flag comments only when claimed behavior contradicts actual code behavior\" vs \"check that comments are accurate\")",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
         "verdict": "ok",
-        "notes": "Cita literal de Prompting Opus 5, tomada literal."
+        "notes": "Cita textual en la guía oficial del examen (PDF everpath) (Task 4.1, ejemplo de comentarios). Confianza autoinformada y \"high confidence\" descartados por la misma guía."
+      }
+    },
+    {
+      "id": "o31-q22",
+      "objective": 31,
+      "pool": "practice",
+      "scenario": "A fintech's review bot classifies each finding as `critical`, `major` or `minor` through an enum in a strict tool schema. The prompt defines the levels as \"critical: serious problems; major: significant problems; minor: small problems.\" An audit of 500 findings shows the same kind of issue landing in different buckets across PRs: an unchecked `null` from the payments API was `critical` in one PR and `minor` in another, and only `critical` findings page the on-call engineer. The enum is enforced and every output is schema-valid. What is the most effective change?",
+      "options": [
+        "Add a fourth enum value, `blocker`, above `critical`, so the most dangerous issues get their own bucket and stop being mixed with the rest.",
+        "Run each review three times and assign the severity chosen by the majority, so that one-off misclassifications are voted out.",
+        "Ask the model to include a confidence score with each severity, and page on-call only for critical findings with high confidence.",
+        "Define each severity with explicit criteria and a code example per level, such as an unchecked null from the payments API being critical."
+      ],
+      "correct": 3,
+      "why_correct": "El enum garantiza que el valor sea uno de los tres, no qué *significa* cada uno. Con definiciones vagas ('serio', 'significativo') cada corrida interpreta distinto. Criterios explícitos más un ejemplo de código por nivel fijan la frontera y la clasificación se vuelve consistente.",
+      "why_wrong": {
+        "0": "Más buckets con las mismas definiciones vagas suman otra frontera ambigua.",
+        "1": "Triplica el costo y solo promedia la ambigüedad: si el criterio es vago, la mayoría también puede estar equivocada.",
+        "2": "Suma un número mal calibrado encima de una clasificación inconsistente; sigue sin definir qué es critical."
+      },
+      "rule": "Severidad consistente = criterios explícitos + un ejemplo de código por nivel. El enum solo garantiza la forma.",
+      "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
+      "source_quote": "Defining explicit severity criteria with concrete code examples for each severity level to achieve consistent classification",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la guía oficial del examen (PDF everpath) (criterios de severidad con ejemplos de código). El enum solo garantiza la forma."
+      }
+    },
+    {
+      "id": "o31-q23",
+      "objective": 31,
+      "pool": "practice",
+      "scenario": "A subscription retailer's support agent writes a structured summary after each chat, with the fields `issue_type`, `resolution` and `churn_risk` (`low`/`medium`/`high`). The retention team calls every customer rated `high`. An audit of 800 chats found that `churn_risk` matched actual cancellations only 31% of the time; the model inferred it from tone, emojis or the number of messages. Meanwhile, some customers who wrote \"I want to cancel\" were rated `medium`. The other fields are accurate. Retention still needs a reliable trigger for its outreach calls. What is the most effective change?",
+      "options": [
+        "Add few-shot examples of high, medium and low churn-risk chats, so the model learns which tones and message patterns predict a cancellation.",
+        "Replace `churn_risk` with a `cancellation_requested` boolean that is true only when the customer states an intent to cancel or downgrade.",
+        "Keep `churn_risk` but add a `confidence` field, and call only the customers rated `high` with a confidence above 0.8 to reduce wasted calls.",
+        "Add an instruction to be careful and conservative when rating churn risk, and to choose `medium` whenever the signals in the chat are mixed."
+      ],
+      "correct": 1,
+      "why_correct": "Predecir churn por el tono es una categoría donde el modelo no es confiable (31%). En vez de seguir pidiéndola, se reemplaza por algo con frontera explícita y verificable en el texto: ¿el cliente dijo que quiere cancelar o bajar de plan? Retention recibe un disparador confiable.",
+      "why_wrong": {
+        "0": "Le enseña a adivinar mejor algo que no está en el texto; el dato que importa (pidió cancelar) no depende del tono.",
+        "2": "La confianza autoinformada sobre una inferencia poco confiable no la vuelve confiable, y los 'I want to cancel' en `medium` siguen escapando.",
+        "3": "Vago: 'conservador' empuja todo a `medium`, incluidos los que pidieron cancelar."
+      },
+      "rule": "Categoría donde el modelo no es confiable → sacala o reemplazala por un criterio explícito y verificable.",
+      "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
+      "source_quote": "The importance of explicit criteria over vague instructions",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Respuesta correcta. La cita (\"Be specific about the output format...\") respaldaba poco; la cambié por la textual de la guía oficial (Task 4.1) sobre criterios explícitos."
+      }
+    },
+    {
+      "id": "o31-q24",
+      "objective": 31,
+      "pool": "practice",
+      "scenario": "A consulting firm's research system has a synthesis subagent that writes market briefs from findings returned by search subagents. The coordinator tells it: \"Focus on high-quality, recent sources.\" Client reviews found that 22% of cited claims came from vendor press releases, forum posts, or reports older than 2022, all of which the firm's methodology excludes, while some recent government statistics were dropped as \"less relevant.\" Clients have also asked to see what was left out of each brief and why. What is the most effective change to the subagent's instructions?",
+      "options": [
+        "Ask the subagent to rate each source's quality from 1 to 5 and to include only the sources rated 4 or 5 in the final brief.",
+        "Replace the instruction with \"Use only the most authoritative and up-to-date sources available\", written at the top of the subagent's prompt.",
+        "Define explicit inclusion criteria (source types, published 2022 or later) and exclusion criteria, and list each excluded source with its reason.",
+        "Remove all sources older than 2022 in code before synthesis, and keep the current instruction for judging which of the remaining sources are high-quality."
+      ],
+      "correct": 2,
+      "why_correct": "'Alta calidad, reciente' deja al modelo decidir, y decide distinto que la metodología. Criterios explícitos de inclusión (tipos de fuente, desde 2022) y de exclusión, más la lista de fuentes excluidas con la regla que no cumplieron, alinean el resultado y le dan al cliente la trazabilidad que pidió.",
+      "why_wrong": {
+        "0": "Un puntaje de 1 a 5 sin definición es otro criterio vago, con filtrado por confianza encima.",
+        "1": "Cambiar un adjetivo vago por otro ('autoritativo') no define la frontera.",
+        "3": "Casi: el filtro por fecha en código es determinístico y está bien, pero los tipos de fuente (press releases, foros) siguen librados a 'alta calidad', y no hay lista de excluidas."
+      },
+      "rule": "Fronteras explícitas de inclusión y exclusión, y lo excluido listado con su motivo.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Claude responds well to clear, explicit instructions. Being specific about the output you want can help enhance results.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en prompting best practices (\"clear, explicit instructions\"). D es casi-correcta legítima (filtro de fecha determinístico pero tipos de fuente siguen vagos y no lista excluidas)."
+      }
+    },
+    {
+      "id": "o31-q25",
+      "objective": 31,
+      "pool": "practice",
+      "scenario": "A legal-ops team extracts an `obligations` array from supplier contracts with structured outputs; each item has `party`, `action` and `deadline`. The prompt says \"Extract all obligations.\" Precision is 42%: the array fills up with definitions (\"'Services' means...\"), recitals (\"WHEREAS the Supplier...\"), permissions (\"The Customer may terminate...\"), and governing-law boilerplate. Recall on real obligations is fine. Lawyers want a list they can rely on without re-reading the contract, and some genuine obligations are phrased with \"agrees to\" or \"will\" rather than \"shall\". What is the most effective change?",
+      "options": [
+        "Define what counts (a party committed to act: \"shall\", \"must\", \"agrees to\", \"will\") and what doesn't: definitions, recitals, \"may\" permissions, boilerplate.",
+        "Post-filter the array in code, keeping only items whose source sentence contains \"shall\" or \"must\", and drop everything else before the lawyers see the list.",
+        "Change the instruction to \"Extract only the important obligations\" so the model leaves out minor clauses and boilerplate on its own.",
+        "Add an `is_obligation` boolean and a `confidence` score to each item, and show lawyers only the items marked true with confidence above 0.9."
+      ],
+      "correct": 0,
+      "why_correct": "'Todas las obligaciones' es una frontera vaga y el modelo la estira. Definir qué entra (un compromiso de una parte, con sus formas reales: shall, must, agrees to, will) y qué queda afuera (definiciones, considerandos, permisos con 'may', boilerplate) sube la precisión sin perder las obligaciones redactadas distinto.",
+      "why_wrong": {
+        "1": "Determinístico pero ciego: tira las obligaciones con 'agrees to' o 'will', que el equipo sabe que existen.",
+        "2": "'Importantes' es todavía más vago: cambia una frontera difusa por otra y puede bajar el recall.",
+        "3": "Filtrar por confianza autoinformada no define qué es una obligación; el modelo puede estar muy seguro de que un considerando lo es."
+      },
+      "rule": "Precisión baja en una extracción → definí explícitamente qué entra y qué queda afuera, con las variantes reales.",
+      "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
+      "source_quote": "Writing specific review criteria that define which issues to report (bugs, security) versus skip (minor style, local patterns) rather than relying on confidence-based filtering",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la guía oficial del examen (PDF everpath) (criterios de qué reportar vs. saltear en vez de filtrar por confianza), aplicada a extracción. Post-filtro por \"shall/must\" pierde \"agrees to/will\". Nota: mismo patrón de decisión que o31-s25 pero escenario distinto (contratos vs. epicrisis)."
       }
     }
   ]

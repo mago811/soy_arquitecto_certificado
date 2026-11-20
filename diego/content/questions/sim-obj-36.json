@@ -1,117 +1,285 @@
 {
- "objective": 36,
- "questions": [
-  {
-   "id": "o36-s01",
-   "objective": 36,
-   "pool": "sim",
-   "scenario": "Una aseguradora tiene en su server MCP `open_claim` y `update_claim`. Cada descripción tiene cuatro frases: qué hace la tool, qué devuelve y qué significa cada parámetro. Ninguna dice cuándo NO usarla. Cuando un asegurado vuelve a escribir por un siniestro que ya tiene número, Claude llama `open_claim` y crea un duplicado. Por auditoría, las dos tools tienen que seguir separadas, con permisos distintos. ¿Qué cambio ataca la causa?",
-   "options": [
-    "Unificarlas en una tool `claim_action` con un parámetro `action`, para reducir la ambigüedad al elegir.",
-    "Agregar al system prompt \"si el siniestro ya tiene número, usá update_claim\" y no tocar las descripciones.",
-    "Agregar `input_examples` a `open_claim` con llamadas bien armadas, para que Claude vea cuándo corresponde.",
-    "Sumar a cada descripción cuándo no usarla (siniestro nuevo o existente) y qué tool corresponde en ese caso."
-   ],
-   "correct": 3,
-   "why_correct": "La doc pide que cada descripción diga qué hace la tool y también cuándo usarla y cuándo no. Estas descripciones cubren lo primero, pero no el límite entre las dos. Si cada una marca cuándo no aplica y cuál corresponde en ese caso, Claude tiene en la descripción misma el dato para elegir.",
-   "why_wrong": {
-    "0": "Consolidar es una buena práctica en otros casos, pero acá viola la restricción de auditoría: tienen que seguir separadas.",
-    "1": "Puede ayudar, pero deja la causa en las descripciones y separa la regla de la tool a la que se refiere.",
-    "2": "`input_examples` muestra cómo armar bien los inputs de tools complejas. No le dice a Claude cuándo elegir una tool u otra."
-   },
-   "rule": "Tools parecidas → cada descripción dice cuándo SÍ, cuándo NO y cuál usar en su lugar.",
-   "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
-   "source_quote": "When it should be used (and when it shouldn’t)",
-   "status": "verificada",
-   "verification": {
-    "date": "2026-11-13",
-    "verdict": "corregida",
-    "notes": "Era casi igual a o36-q01 (dos tools de e-commerce con descripciones de una línea, misma respuesta y distractores). Reescrito: descripciones ya detalladas a las que les falta 'cuándo no', distractor nuevo con input_examples, y cita 'When it should be used (and when it shouldn’t)'. Nombrar la tool alternativa es la forma concreta de expresar el 'cuándo no' que pide la doc."
-   }
-  },
-  {
-   "id": "o36-s02",
-   "objective": 36,
-   "pool": "sim",
-   "scenario": "Una empresa usa Claude Code con unos 200 tools MCP y tool search activado. Su tool de reembolsos tiene una descripción de 9.000 caracteres: los primeros 5.000 son contexto legal e historia del sistema, y recién después dice que procesa reembolsos de tarjetas. Cuando un usuario pide \"reembolsá el cargo duplicado\", Claude nunca encuentra esa tool. No quieren perder el detalle legal. ¿Qué cambian?",
-   "options": [
-    "Reducir la descripción a una línea, \"Procesa reembolsos.\", para que entre seguro en el límite de búsqueda.",
-    "Poner al principio qué hace la tool y las palabras con que se la buscaría, y dejar el detalle legal para después.",
-    "Marcarla para que cargue de entrada (sin diferir), así está siempre en contexto con su descripción completa.",
-    "Repetir \"reembolso\" en el nombre y en cada parámetro, porque la búsqueda solo compara nombres de tools."
-   ],
-   "correct": 1,
-   "why_correct": "Cuando tool search compara el pedido con la descripción, lee solo lo que entra en el límite más corto. Si lo importante está después del texto legal, no lo ve. La doc pide poner primero lo crítico y las palabras con que se buscaría la tool. El detalle legal puede seguir, más abajo.",
-   "why_wrong": {
-    "0": "Pierde el detalle que quieren conservar y va contra la recomendación de descripciones detalladas.",
-    "2": "Una tool que carga de entrada tiene el límite corto (4.096 caracteres): Claude vería solo texto legal.",
-    "3": "Tool search compara contra la descripción, no solo contra el nombre."
-   },
-   "rule": "Tool search lee el principio de la descripción: lo que hace la tool y sus palabras clave, arriba.",
-   "source_url": "https://code.claude.com/docs/en/mcp",
-   "source_quote": "When tool search matches Claude's query against a tool's description, it reads only the part within the shorter limit, so put the words Claude would search for near the start too.",
-   "status": "verificada",
-   "verification": {
-    "date": "2026-11-13",
-    "verdict": "ok",
-    "notes": "Cita textual en mcp; límites confirmados (4.096 para carga upfront, 16.384 diferidas; la búsqueda lee solo el límite corto). Distinta de o36-q05 (tool diferida + búsqueda)."
-   }
-  },
-  {
-   "id": "o36-s03",
-   "objective": 36,
-   "pool": "sim",
-   "scenario": "Una empresa publicó un server MCP de facturación electrónica con 30 tools bien descriptas. Sus clientes lo usan en Claude Code con tool search activado. Reportan que, ante pedidos como \"emití la nota de crédito de la factura 1520\", Claude a veces contesta que no tiene cómo hacerlo, sin buscar ninguna tool del server. Al arrancar la sesión, de ese server solo se cargan los nombres de las tools. ¿Qué agregan al server?",
-   "options": [
-    "Server instructions: qué tipo de tareas resuelven sus tools, cuándo buscarlas y qué capacidades tienen.",
-    "Un prompt de MCP `ayuda` que liste las 30 tools, para que Claude lo invoque al arrancar cada sesión.",
-    "Un resource con el catálogo completo de tools, para que Claude lo lea antes de cada pedido de facturación.",
-    "Descripciones de tools mucho más largas, para que la búsqueda tenga más texto contra el cual comparar."
-   ],
-   "correct": 0,
-   "why_correct": "Con tool search, al arrancar solo se cargan los nombres de las tools y las server instructions. Las instructions le dicen a Claude cuándo buscar las tools del server, como las descripciones de las skills. Si faltan, Claude no sabe que existe una tool para \"notas de crédito\".",
-   "why_wrong": {
-    "1": "Los prompts de MCP los invoca el usuario; Claude no los corre solo al arrancar.",
-    "2": "Claude tendría que decidir leerlo, y el problema es justamente que no sabe que el server sirve para esto.",
-    "3": "Las descripciones ya están bien. Si Claude no inicia una búsqueda, alargarlas no cambia nada, y la búsqueda solo lee el principio."
-   },
-   "rule": "Con tool search, las server instructions le dicen a Claude cuándo buscar tus tools.",
-   "source_url": "https://code.claude.com/docs/en/mcp",
-   "source_quote": "Server instructions help Claude understand when to search for your tools, similar to how skills work.",
-   "status": "verificada",
-   "verification": {
-    "date": "2026-11-13",
-    "verdict": "ok",
-    "notes": "Cita textual en mcp: con tool search solo cargan nombres y server instructions; las instructions dicen cuándo buscar."
-   }
-  },
-  {
-   "id": "o36-s04",
-   "objective": 36,
-   "pool": "sim",
-   "scenario": "Un SaaS de cobranzas tiene `get_invoice(id)` y `get_payment(id)` en su server MCP; en los dos casos `id` es un string sin descripción. Las facturas tienen formato `INV-000123` y los pagos `PAY-000123`, pero los usuarios suelen decir \"la 123\". Claude pasa números de factura a `get_payment` y al revés. Los nombres de las tools y su forma no se pueden cambiar, porque otros clientes ya las usan. ¿Qué hacen?",
-   "options": [
-    "Consolidarlas en `get_record(type, id)`, porque menos tools reducen la ambigüedad a la hora de elegir.",
-    "Forzar `tool_choice` a `get_invoice` cada vez que el mensaje del usuario mencione la palabra \"factura\".",
-    "Describir cada tool y su `id`: formato esperado, qué ID recibe y que para el otro tipo va la otra tool.",
-    "Agregar un `enum` con todos los IDs válidos en cada schema, para que Claude no pueda mandar uno equivocado."
-   ],
-   "correct": 2,
-   "why_correct": "La doc pide que la descripción explique qué significa cada parámetro y cuándo usar (y no usar) la tool. Con el formato de cada ID y la referencia a la otra tool, Claude puede mapear \"la 123\" a la tool correcta, o preguntar cuál es, sin tocar nombres ni forma.",
-   "why_wrong": {
-    "0": "Cambia la forma de las tools, y la restricción lo prohíbe.",
-    "1": "Es lógica frágil por palabra clave, y forzar no funciona en modelos como Opus 5.5 o Sonnet 5.5 (devuelven 400). No arregla la causa.",
-    "3": "Un `enum` con todos los IDs de facturas y pagos es inmanejable y cambia todo el tiempo."
-   },
-   "rule": "IDs que se confunden entre tools → describí el formato del parámetro y qué tool corresponde a cada tipo.",
-   "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
-   "source_quote": "What each parameter means and how it affects the tool's behavior",
-   "status": "verificada",
-   "verification": {
-    "date": "2026-11-13",
-    "verdict": "ok",
-    "notes": "Cita textual en define-tools (qué significa cada parámetro; cuándo usar y cuándo no). Confirmado: tool_choice forzado da 400 en Opus 5.5 y Sonnet 5.5."
-   }
-  }
- ]
+  "objective": 36,
+  "questions": [
+    {
+      "id": "o36-s01",
+      "objective": 36,
+      "pool": "sim",
+      "scenario": "Una aseguradora tiene en su server MCP `open_claim` y `update_claim`. Cada descripción tiene cuatro frases: qué hace la tool, qué devuelve y qué significa cada parámetro. Ninguna dice cuándo NO usarla. Cuando un asegurado vuelve a escribir por un siniestro que ya tiene número, Claude llama `open_claim` y crea un duplicado. Por auditoría, las dos tools tienen que seguir separadas, con permisos distintos. ¿Qué cambio ataca la causa?",
+      "options": [
+        "Unificarlas en una tool `claim_action` con un parámetro `action`, para reducir la ambigüedad al elegir.",
+        "Agregar al system prompt \"si el siniestro ya tiene número, usá update_claim\" y no tocar las descripciones.",
+        "Agregar `input_examples` a `open_claim` con llamadas bien armadas, para que Claude vea cuándo corresponde.",
+        "Sumar a cada descripción cuándo no usarla (siniestro nuevo o existente) y qué tool corresponde en ese caso."
+      ],
+      "correct": 3,
+      "why_correct": "La doc pide que cada descripción diga qué hace la tool y también cuándo usarla y cuándo no. Estas descripciones cubren lo primero, pero no el límite entre las dos. Si cada una marca cuándo no aplica y cuál corresponde en ese caso, Claude tiene en la descripción misma el dato para elegir.",
+      "why_wrong": {
+        "0": "Consolidar es una buena práctica en otros casos, pero acá viola la restricción de auditoría: tienen que seguir separadas.",
+        "1": "Puede ayudar, pero deja la causa en las descripciones y separa la regla de la tool a la que se refiere.",
+        "2": "`input_examples` muestra cómo armar bien los inputs de tools complejas. No le dice a Claude cuándo elegir una tool u otra."
+      },
+      "rule": "Tools parecidas → cada descripción dice cuándo SÍ, cuándo NO y cuál usar en su lugar.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "source_quote": "When it should be used (and when it shouldn’t)",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Era casi igual a o36-q01 (dos tools de e-commerce con descripciones de una línea, misma respuesta y distractores). Reescrito: descripciones ya detalladas a las que les falta 'cuándo no', distractor nuevo con input_examples, y cita 'When it should be used (and when it shouldn’t)'. Nombrar la tool alternativa es la forma concreta de expresar el 'cuándo no' que pide la doc. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o36-s02",
+      "objective": 36,
+      "pool": "sim",
+      "scenario": "Una empresa usa Claude Code con unos 200 tools MCP y tool search activado. Su tool de reembolsos tiene una descripción de 9.000 caracteres: los primeros 5.000 son contexto legal e historia del sistema, y recién después dice que procesa reembolsos de tarjetas. Cuando un usuario pide \"reembolsá el cargo duplicado\", Claude nunca encuentra esa tool. No quieren perder el detalle legal. ¿Qué cambian?",
+      "options": [
+        "Reducir la descripción a una línea, \"Procesa reembolsos.\", para que entre seguro en el límite de búsqueda.",
+        "Poner al principio qué hace la tool y las palabras con que se la buscaría, y dejar el detalle legal para después.",
+        "Marcarla para que cargue de entrada (sin diferir), así está siempre en contexto con su descripción completa.",
+        "Repetir \"reembolso\" en el nombre y en cada parámetro, porque la búsqueda solo compara nombres de tools."
+      ],
+      "correct": 1,
+      "why_correct": "Cuando tool search compara el pedido con la descripción, lee solo lo que entra en el límite más corto. Si lo importante está después del texto legal, no lo ve. La doc pide poner primero lo crítico y las palabras con que se buscaría la tool. El detalle legal puede seguir, más abajo.",
+      "why_wrong": {
+        "0": "Pierde el detalle que quieren conservar y va contra la recomendación de descripciones detalladas.",
+        "2": "Una tool que carga de entrada tiene el límite corto (4.096 caracteres): Claude vería solo texto legal.",
+        "3": "Tool search compara contra la descripción, no solo contra el nombre."
+      },
+      "rule": "Tool search lee el principio de la descripción: lo que hace la tool y sus palabras clave, arriba.",
+      "source_url": "https://code.claude.com/docs/en/mcp",
+      "source_quote": "When tool search matches Claude's query against a tool's description, it reads only the part within the shorter limit, so put the words Claude would search for near the start too.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en mcp; límites confirmados (4.096 para carga upfront, 16.384 diferidas; la búsqueda lee solo el límite corto). Distinta de o36-q05 (tool diferida + búsqueda). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o36-s03",
+      "objective": 36,
+      "pool": "sim",
+      "scenario": "Una empresa publicó un server MCP de facturación electrónica con 30 tools bien descriptas. Sus clientes lo usan en Claude Code con tool search activado. Reportan que, ante pedidos como \"emití la nota de crédito de la factura 1520\", Claude a veces contesta que no tiene cómo hacerlo, sin buscar ninguna tool del server. Al arrancar la sesión, de ese server solo se cargan los nombres de las tools. ¿Qué agregan al server?",
+      "options": [
+        "Server instructions: qué tipo de tareas resuelven sus tools, cuándo buscarlas y qué capacidades tienen.",
+        "Un prompt de MCP `ayuda` que liste las 30 tools, para que Claude lo invoque al arrancar cada sesión.",
+        "Un resource con el catálogo completo de tools, para que Claude lo lea antes de cada pedido de facturación.",
+        "Descripciones de tools mucho más largas, para que la búsqueda tenga más texto contra el cual comparar."
+      ],
+      "correct": 0,
+      "why_correct": "Con tool search, al arrancar solo se cargan los nombres de las tools y las server instructions. Las instructions le dicen a Claude cuándo buscar las tools del server, como las descripciones de las skills. Si faltan, Claude no sabe que existe una tool para \"notas de crédito\".",
+      "why_wrong": {
+        "1": "Los prompts de MCP los invoca el usuario; Claude no los corre solo al arrancar.",
+        "2": "Claude tendría que decidir leerlo, y el problema es justamente que no sabe que el server sirve para esto.",
+        "3": "Las descripciones ya están bien. Si Claude no inicia una búsqueda, alargarlas no cambia nada, y la búsqueda solo lee el principio."
+      },
+      "rule": "Con tool search, las server instructions le dicen a Claude cuándo buscar tus tools.",
+      "source_url": "https://code.claude.com/docs/en/mcp",
+      "source_quote": "Server instructions help Claude understand when to search for your tools, similar to how skills work.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en mcp: con tool search solo cargan nombres y server instructions; las instructions dicen cuándo buscar. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o36-s04",
+      "objective": 36,
+      "pool": "sim",
+      "scenario": "Un SaaS de cobranzas tiene `get_invoice(id)` y `get_payment(id)` en su server MCP; en los dos casos `id` es un string sin descripción. Las facturas tienen formato `INV-000123` y los pagos `PAY-000123`, pero los usuarios suelen decir \"la 123\". Claude pasa números de factura a `get_payment` y al revés. Los nombres de las tools y su forma no se pueden cambiar, porque otros clientes ya las usan. ¿Qué hacen?",
+      "options": [
+        "Consolidarlas en `get_record(type, id)`, porque menos tools reducen la ambigüedad a la hora de elegir.",
+        "Forzar `tool_choice` a `get_invoice` cada vez que el mensaje del usuario mencione la palabra \"factura\".",
+        "Describir cada tool y su `id`: formato esperado, qué ID recibe y que para el otro tipo va la otra tool.",
+        "Agregar un `enum` con todos los IDs válidos en cada schema, para que Claude no pueda mandar uno equivocado."
+      ],
+      "correct": 2,
+      "why_correct": "La doc pide que la descripción explique qué significa cada parámetro y cuándo usar (y no usar) la tool. Con el formato de cada ID y la referencia a la otra tool, Claude puede mapear \"la 123\" a la tool correcta, o preguntar cuál es, sin tocar nombres ni forma.",
+      "why_wrong": {
+        "0": "Cambia la forma de las tools, y la restricción lo prohíbe.",
+        "1": "Es lógica frágil por palabra clave, y forzar no funciona en modelos como Opus 5.5 o Sonnet 5.5 (devuelven 400). No arregla la causa.",
+        "3": "Un `enum` con todos los IDs de facturas y pagos es inmanejable y cambia todo el tiempo."
+      },
+      "rule": "IDs que se confunden entre tools → describí el formato del parámetro y qué tool corresponde a cada tipo.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "source_quote": "What each parameter means and how it affects the tool's behavior",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en define-tools (qué significa cada parámetro; cuándo usar y cuándo no). Confirmado: tool_choice forzado da 400 en Opus 5.5 y Sonnet 5.5. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o36-s21",
+      "objective": 36,
+      "pool": "sim",
+      "scenario": "A consulting firm's multi-agent research system gives its search subagent two MCP tools: `analyze_content(query)`, which searches the public web and summarizes results, and `analyze_document(query)`, which searches the firm's internal knowledge base of client deliverables. Their descriptions are \"Analyzes content for the query.\" and \"Analyzes documents for the query.\" In an audit of 300 reports, 27% of findings about the firm's own methodology came from public blog posts, while questions about competitors' announcements sometimes returned only internal slides. The tools' backends work correctly. What is the most effective fix?",
+      "options": [
+        "Add a coordinator step that classifies each question as internal or external and passes the classification to the subagent before it chooses a tool.",
+        "Rename them `search_public_web` and `search_internal_kb`, with descriptions giving each one's source, what it returns, and when to use the other.",
+        "Keep the names and expand both descriptions to four sentences each, describing in detail how the analysis and summarization of results is performed.",
+        "Merge both into a single `analyze(query, source)` tool with a `source` enum of `web` or `internal`, so the subagent has only one tool to choose."
+      ],
+      "correct": 1,
+      "why_correct": "Nombres y descripciones casi idénticos (el ejemplo de la guía es justo `analyze_content` vs. `analyze_document`) causan misrouting. La guía recomienda renombrar para eliminar el solapamiento y actualizar las descripciones con el propósito, las entradas, las salidas y cuándo usar cada una frente a la alternativa.",
+      "why_wrong": {
+        "0": "Agrega un paso y costo para compensar descripciones malas: trata el síntoma.",
+        "2": "Más largas, pero describen lo que tienen EN COMÚN (analizar y resumir) y no lo que las distingue: la fuente. El largo no reemplaza los límites.",
+        "3": "Consolidar puede servir, pero con `source` sin documentar el subagente vuelve a la misma decisión ambigua, solo que en un parámetro."
+      },
+      "rule": "Tools con nombres y descripciones parecidas → renombrá por función y escribí los límites entre ellas.",
+      "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
+      "source_quote": "Renaming tools and updating descriptions to eliminate functional overlap (e.g., renaming analyze_content to extract_web_results with a web-specific description)",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Guía del examen: renombrar y actualizar descripciones para eliminar solapamiento (analyze_content). Cita textual. Se acortó la correcta B (era la más larga)."
+      }
+    },
+    {
+      "id": "o36-s22",
+      "objective": 36,
+      "pool": "sim",
+      "scenario": "An e-commerce company's support agent has well-written tool descriptions: `search_policies` for general store policies and `get_order` for the details and eligibility of a specific order. Last month someone added this line to the system prompt: \"Whenever the customer mentions a policy, refund, or return, search the policies first.\" Since then, for messages like \"Can I return order 88172? It arrived broken,\" the agent calls `search_policies` and answers with generic rules in 46% of cases, without checking the order's actual eligibility. Tool descriptions were not changed. What should the team do first?",
+      "options": [
+        "Add `input_examples` to `get_order` showing order numbers taken from return requests, so Claude associates return messages that cite an order with that tool.",
+        "Expand the `get_order` description to say it must be used for any message that mentions an order number, including returns and refunds of that order.",
+        "Review the system prompt and rewrite the keyword-triggered instruction so it no longer forces `search_policies` whenever certain words appear in a message.",
+        "Rename `search_policies` to `search_general_policies` so its name no longer matches the words \"policy\", \"refund\", and \"return\" in customer messages."
+      ],
+      "correct": 2,
+      "why_correct": "La guía del examen marca este caso: instrucciones del system prompt sensibles a palabras clave pueden crear asociaciones no buscadas con tools y pisar descripciones bien escritas. Las descripciones no cambiaron; el problema empezó con esa línea. Primero se revisa y corrige el prompt.",
+      "why_wrong": {
+        "0": "Agrega señales a una tool que ya estaba bien descrita, compitiendo contra una orden explícita del prompt.",
+        "1": "Mejora la descripción, pero el prompt sigue ordenando \"buscá las políticas primero\": la instrucción explícita sigue ganando.",
+        "3": "El disparador es la palabra del cliente en el prompt, no el nombre de la tool; renombrar no saca la instrucción."
+      },
+      "rule": "Si una tool bien descrita igual se elige mal, revisá el system prompt buscando reglas por palabra clave.",
+      "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
+      "source_quote": "Reviewing system prompts for keyword-sensitive instructions that might override well-written tool descriptions",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Guía del examen: revisar system prompts con instrucciones por palabra clave. Cita textual."
+      }
+    },
+    {
+      "id": "o36-s23",
+      "objective": 36,
+      "pool": "sim",
+      "scenario": "A SaaS company's internal assistant, built on the API with tool search enabled, has 260 tools from GitHub, Jira, Slack, and PagerDuty integrations. Several services expose tools named `search`, `list_items`, and `get_item`, each with a decent description that doesn't mention the service. Logs show that for \"find the Jira ticket about the login outage,\" tool search loads GitHub and Slack `search` tools 31% of the time, and Claude then searches the wrong system. Disabling tool search is not an option because of the context budget. Which change most directly fixes the selection?",
+      "options": [
+        "Prefix every tool name with its service, such as `jira_search` and `github_search`, and make each description state which system and records it searches.",
+        "Consolidate every service's `search`, `list_items`, and `get_item` into one generic `query(service, action)` tool, so tool search has one candidate.",
+        "Mark the Jira tools to always load upfront, since Jira questions are the most common ones and loading them first avoids the confusion with other services.",
+        "Add one `input_examples` entry per tool with a realistic query for its service, so tool search matches requests against the examples as well."
+      ],
+      "correct": 0,
+      "why_correct": "La doc recomienda namespacing con el prefijo del servicio (`github_list_prs`, `slack_send_message`) cuando las tools cruzan varios servicios: hace la selección inequívoca a medida que crece la biblioteca, y es especialmente importante con tool search. Sumado a descripciones que digan qué sistema buscan, la búsqueda deja de mezclar.",
+      "why_wrong": {
+        "1": "Mueve la ambigüedad a un parámetro `service` y junta cuatro integraciones distintas en una tool genérica gigante. La doc recomienda consolidar operaciones relacionadas de un mismo recurso; para tools que cruzan servicios, lo que pide es el prefijo por servicio.",
+        "2": "Resuelve un servicio y gasta contexto en cada turno; las búsquedas en GitHub o Slack siguen confundiéndose.",
+        "3": "La doc no dice que tool search busque en `input_examples`; y los nombres siguen siendo iguales entre servicios."
+      },
+      "rule": "Tools de varios servicios: prefijo por servicio en el nombre (más importante con tool search).",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "source_quote": "When your tools span multiple services or resources, prefix names with the service (for example, `github_list_prs`, `slack_send_message`). This makes tool selection unambiguous as your library grows, and is especially important when using tool search.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Doc define-tools: namespacing por servicio, especialmente con tool search. Cita textual. Se cambió el distractor B: la doc también recomienda consolidar operaciones con un parámetro `action` para reducir ambigüedad, así que la versión anterior era defendible; ahora es una tool genérica que cruza servicios, con why_wrong ajustado."
+      }
+    },
+    {
+      "id": "o36-s24",
+      "objective": 36,
+      "pool": "sim",
+      "scenario": "A research organization's fact-checking pipeline gives an agent one MCP tool, `analyze_document(doc_id, instructions)`, described as \"Analyzes a document according to the instructions.\" The agent uses it for three different jobs: pulling figures into a table, summarizing sections, and checking whether a claim is supported by a source. Outputs are inconsistent: 18% of claim checks return a summary instead of a verdict, and downstream code fails to parse them because each job needs a different output shape. The team controls the server. What design change addresses this?",
+      "options": [
+        "Keep the single tool but add an `output_format` enum parameter with `table`, `summary`, and `verdict` values, documented in the tool's description.",
+        "Keep the single tool and add three `input_examples`, one per job, showing the instructions and expected output so Claude learns each pattern.",
+        "Keep the single tool and post-process its output with a classifier that detects which job was intended and reformats the result into the expected shape.",
+        "Split it into `extract_data_points`, `summarize_content`, and `verify_claim_against_source`, each with a description and a defined input/output contract."
+      ],
+      "correct": 3,
+      "why_correct": "La guía del examen tiene este ejemplo exacto: partir una tool genérica `analyze_document` en tools con propósito específico (`extract_data_points`, `summarize_content`, `verify_claim_against_source`) con contratos de entrada y salida definidos. Cada tool tiene una descripción que dice para qué sirve, y la salida de cada una tiene forma fija.",
+      "why_wrong": {
+        "0": "Casi: un enum ayuda, pero la tool sigue siendo genérica, su contrato de salida depende de un parámetro, y la descripción tiene que explicar tres trabajos a la vez.",
+        "1": "Los ejemplos de input no fijan el formato de salida; y la tool sigue sin propósito claro.",
+        "2": "Repara después lo que salió mal antes: trata el síntoma y suma otra pieza que puede fallar."
+      },
+      "rule": "Una tool genérica que hace muchas cosas → varias tools con propósito y contrato propio.",
+      "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
+      "source_quote": "Splitting generic tools into purpose-specific tools with defined input/output contracts",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Guía del examen: partir tools genéricas en tools con contrato de entrada/salida (analyze_document). Cita textual."
+      }
+    },
+    {
+      "id": "o36-s25",
+      "objective": 36,
+      "pool": "sim",
+      "scenario": "An accounts-payable platform extracts data from uploaded documents with the Messages API. Each request offers two extraction tools, `extract_invoice` and `extract_receipt`, with `tool_choice: {\"type\": \"any\"}`. Descriptions are \"Extracts invoice data.\" and \"Extracts receipt data.\" On a labeled set of 2,000 documents, 18% of receipts (proof of a completed payment, no due date) are sent to `extract_invoice`, which then returns `null` for its required-in-practice `due_date` and `invoice_number`. Cost rules allow only one API call per document. What is the most effective change?",
+      "options": [
+        "Switch to `tool_choice: {\"type\": \"tool\", \"name\": \"extract_receipt\"}` for documents under one page, since most receipts are short and invoices are usually longer.",
+        "Add a separate classification call before extraction, and force the matching extraction tool with `tool_choice` set to the tool chosen in the first call.",
+        "Make `due_date` and `invoice_number` required in the `extract_invoice` schema, so the model can't choose that tool for a document that lacks those fields.",
+        "Rewrite both descriptions to state the document characteristics each one covers, such as a payment request with a due date versus proof of a completed payment."
+      ],
+      "correct": 3,
+      "why_correct": "Con `tool_choice: any` el modelo elige entre las dos tools según sus descripciones. \"Extracts invoice data.\" no le dice qué distingue una factura de un recibo. Describir las características de cada documento y cuándo NO usar cada tool corrige la selección dentro de la misma llamada, respetando el costo.",
+      "why_wrong": {
+        "0": "Una heurística por largo que la API no conoce: va a forzar facturas cortas al extractor de recibos.",
+        "1": "Funciona, y forzar con `tool_choice` es legítimo, pero son dos llamadas por documento: viola la regla de costo.",
+        "2": "Hacerlos obligatorios no impide elegir la tool: empuja al modelo a inventar fecha y número para cumplir el schema. Es el principio de \"el modelo inventa datos\"."
+      },
+      "rule": "Con `tool_choice: any`, lo que decide cuál tool es la descripción: escribí qué la distingue de la otra.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "source_quote": "When it should be used (and when it shouldn’t)",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc define-tools: cuándo usar la tool y cuándo no; tool_choice any decide por descripción; restricción de una llamada. Cita textual."
+      }
+    },
+    {
+      "id": "o36-s26",
+      "objective": 36,
+      "pool": "sim",
+      "scenario": "A furniture retailer's support agent has `update_customer_profile(customer_id, fields)`, described as \"Updates customer information such as name, phone, and address.\" and `update_shipping_address(order_id, address)`, described as \"Changes where an order ships.\" When customers ask to send an already-placed order to a new address, the agent calls `update_customer_profile` in 29% of cases, which only changes the default for future orders; the order ships to the old address. Both tools work as designed and must stay separate because they write to different systems. Which change most directly prevents this misrouting?",
+      "options": [
+        "Remove `address` from the fields `update_customer_profile` accepts, so the agent can no longer change any address through the profile tool at all.",
+        "State in `update_customer_profile`'s description that it doesn't change placed orders, and that `update_shipping_address` changes their destination.",
+        "Add a post-call check that compares the customer's open orders with the new profile address and warns the agent when a placed order still has the old address.",
+        "Add `input_examples` to `update_shipping_address` showing an order id and a new address, so Claude recognizes requests about a specific order more often."
+      ],
+      "correct": 1,
+      "why_correct": "Las dos descripciones hablan de \"address\" sin marcar el límite entre ellas. La práctica documentada es que la descripción diga cuándo usar la tool y cuándo no, y sus limitaciones. Aclarar que el perfil no toca pedidos ya hechos y nombrar la tool correcta para ese caso corta el misrouting en la elección.",
+      "why_wrong": {
+        "0": "Rompe un uso legítimo (cambiar la dirección por defecto) para tapar un problema de descripción.",
+        "2": "Detecta el error después de cometerlo: trata el síntoma y suma llamadas.",
+        "3": "Ayuda con el formato de la otra tool, pero no dice que el perfil NO cambia pedidos existentes, que es la confusión real."
+      },
+      "rule": "En tools que se pisan, la descripción marca la frontera: qué no hace y qué tool hace eso.",
+      "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "source_quote": "The more context you can give Claude about your tools, the better it will be at determining when and how to use them.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Doc define-tools: más contexto sobre tools → mejor elección. Cita textual. Se acortó la correcta B (170 vs 146–158)."
+      }
+    }
+  ]
 }

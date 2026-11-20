@@ -22,11 +22,11 @@
       "rule": "Restricción de rol que tiene que cumplirse → sacá la tool del set, no lo pidas en el prompt.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "Tools the subagent can use, as a comma-separated string such as `Read, Grep, Bash` or a YAML list. Inherits every tool available to subagents if omitted.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "sub-agents: tools omitido = hereda todo; allowlist saca Edit/Write."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "sub-agents: tools omitido = hereda todo; allowlist saca Edit/Write. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "Demasiadas tools en un agente → especialistas por rol con pocas tools cada uno.",
       "source_url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool",
       "source_quote": "Claude’s ability to pick the right tool degrades once you exceed 30–50 available tools.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "tool-search-tool: precisión degrada pasando 30–50 tools; ninguna otra opción ataca la cantidad de tools por agente."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "tool-search-tool: precisión degrada pasando 30–50 tools; ninguna otra opción ataca la cantidad de tools por agente. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "Bloquear un comando puntual → permissions.deny; disallowedTools saca la tool entera.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "A `disallowedTools` entry with a specifier, such as `Bash(git push *)`, still removes the whole tool from the subagent, not only the matching commands.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual; la doc indica Bash(git push *) en permissions.deny, que aplica a subagentes."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual; la doc indica Bash(git push *) en permissions.deny, que aplica a subagentes. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,11 @@
       "rule": "Heredar todo menos un server MCP → disallowedTools: mcp__server.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "MCP server-level patterns are also accepted: `mcp__server` or `mcp__server__*` removes every tool from that server, and `mcp__*` removes every MCP tool from any server",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "sub-agents: tabla de patrones MCP en tools/disallowedTools."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "sub-agents: tabla de patrones MCP en tools/disallowedTools. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -134,11 +134,11 @@
       "rule": "Server MCP que usa un solo subagente → inline en su mcpServers, no en .mcp.json.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "To keep an MCP server out of the main conversation entirely and avoid its tool descriptions consuming context there, define it inline here rather than in `.mcp.json`.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual (mcpServers inline en el subagente)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual (mcpServers inline en el subagente). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -162,11 +162,11 @@
       "rule": "AgentDefinition sin tools = hereda todo. Rol de análisis → tools de lectura.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "A `doc-reviewer` subagent might only have access to Read and Grep tools, ensuring it can analyze but never accidentally modify your documentation files.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "agent-sdk/subagents: ejemplo doc-reviewer con Read y Grep; tools omitido hereda todo."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "agent-sdk/subagents: ejemplo doc-reviewer con Read y Grep; tools omitido hereda todo. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -190,11 +190,11 @@
       "rule": "tools + disallowedTools: primero se saca, después se filtra; en ambos = afuera.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "If both are set, `disallowedTools` is applied first, then `tools` is resolved against the remaining pool. A tool listed in both is removed.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual: disallowedTools primero, luego tools; tool en ambos se remueve."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual: disallowedTools primero, luego tools; tool en ambos se remueve. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -218,11 +218,11 @@
       "rule": "Set de tools = lo mínimo que el rol necesita: tests → Bash, Read, Grep.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "| Test execution | `Bash`, `Read`, `Grep` | Can run commands and analyze output |",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Tabla de combinaciones del SDK: Test execution = Bash, Read, Grep."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Tabla de combinaciones del SDK: Test execution = Bash, Read, Grep. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -246,11 +246,11 @@
       "rule": "Tool fuera del set del subagente = invisible: ni prompt, ni error, ni uso.",
       "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "source_quote": "A tool you leave out isn't in the subagent's session at all: Claude works without it, with no permission prompt or error.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual (agent-sdk/subagents)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual (agent-sdk/subagents). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -274,11 +274,151 @@
       "rule": "Ruteo entre subagentes = description clara de cuándo usar cada uno.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "Claude uses each subagent's description to decide when to delegate tasks. When you create a subagent, write a clear description so Claude knows when to use it.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual: Claude usa la description para delegar. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o33-q21",
+      "objective": 33,
+      "pool": "practice",
+      "scenario": "A market-intelligence firm runs a multi-agent research system built on the Agent SDK: a coordinator delegates to `web-searcher`, `analyst`, and `synthesizer` subagents. None of the `AgentDefinition` entries sets `tools`. Reviews of 200 reports show the synthesizer launched its own broad web searches in 31% of runs, adding sources nobody vetted and doubling cost. However, in about a third of runs the synthesizer legitimately needs to confirm a single figure (for example, a market-size number) before writing, and routing every such check through the coordinator added roughly 40 seconds per report. Which configuration best fits the synthesizer's role?",
+      "options": [
+        "Add `disallowedTools: [\"WebSearch\"]` to the synthesizer and keep everything else it inherits, so it can no longer launch broad searches while keeping its other tools.",
+        "Give the synthesizer a `tools` allowlist with only its synthesis tools plus a narrow `verify_fact` tool, and keep routing open-ended research through the coordinator.",
+        "Give the synthesizer a `tools` allowlist with only its synthesis tools, and route every fact check, however small, back through the coordinator to the web-searcher.",
+        "Keep the inherited tools but add to the synthesizer's `prompt` that it must never search the web and should only use the findings it received from the coordinator."
+      ],
+      "correct": 1,
+      "why_correct": "Un agente con tools fuera de su especialidad tiende a usarlas mal (el ejemplo de la guía es justo un sintetizador buscando en la web). La solución es un allowlist con lo que su rol necesita, más una tool cruzada acotada para la necesidad frecuente (`verify_fact`), y que lo complejo siga pasando por el coordinador. Resuelve el mal uso sin pagar la latencia en cada chequeo.",
+      "why_wrong": {
+        "0": "Un denylist de una sola tool deja todo lo demás que heredó: `WebFetch`, tools MCP de búsqueda, etc. Sigue teniendo herramientas fuera de su rol.",
+        "2": "Elimina el mal uso pero ignora la restricción: cada chequeo chico vuelve a costar 40 segundos. La guía recomienda una tool cruzada acotada para lo frecuente.",
+        "3": "Es guidance, no enforcement: el modelo sigue viendo y pudiendo llamar las tools. Restringir el set de tools es lo que garantiza."
+      },
+      "rule": "Cada subagente con las tools de su rol; para una necesidad cruzada frecuente, una tool acotada, no la tool genérica completa.",
+      "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
+      "source_quote": "Providing scoped cross-role tools for high-frequency needs (e.g., a verify_fact tool for the synthesis agent) while routing complex cases through the coordinator",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
         "verdict": "ok",
-        "notes": "Cita textual: Claude usa la description para delegar."
+        "notes": "Guía del examen: tools cruzadas acotadas (verify_fact) y casos complejos vía coordinador. Cita textual."
+      }
+    },
+    {
+      "id": "o33-q22",
+      "objective": 33,
+      "pool": "practice",
+      "scenario": "A fintech's CI pipeline uses the TypeScript Agent SDK. The main `query()` options set `allowedTools: [\"Read\", \"Grep\", \"Glob\", \"Agent\"]`, and a `test-runner` subagent is defined with `tools: [\"Bash\", \"Read\", \"Grep\"]` and a prompt to run `npm test` and summarize failures. In every run, the summary says the subagent could not execute the tests, and the transcript shows its Bash calls were not permitted. A developer argues that listing `Bash` in the subagent's `tools` should already be enough. Security requires that the pipeline allow only the test command, nothing broader. What change fixes this?",
+      "options": [
+        "Remove the `tools` field from `test-runner` so it inherits every tool available to subagents, which also carries over the main session's permission to use Bash.",
+        "Set `permissionMode: \"acceptEdits\"` on the `test-runner` definition so its command-line calls are approved automatically while edits remain under review.",
+        "Add `\"Bash(npm test *)\"` to the main `allowedTools`, because the subagent's `tools` list selects which tools exist but does not pre-approve them.",
+        "Set `permissionMode: \"bypassPermissions\"` on the main query so the subagent's Bash calls stop being blocked during the unattended CI run."
+      ],
+      "correct": 2,
+      "why_correct": "En `AgentDefinition`, `tools` define qué tools tiene el subagente, pero listarlas no las pre-aprueba. La aprobación va por las reglas de permisos, como `allowedTools`. Con `Bash(npm test *)` aprobás exactamente el comando de tests, que es lo que pide seguridad (es el mismo patrón que muestra la doc del SDK).",
+      "why_wrong": {
+        "0": "Heredar todas las tools no aprueba nada y además le da al subagente tools que su rol no necesita.",
+        "1": "`acceptEdits` auto-acepta ediciones y comandos comunes de filesystem; `npm test` no es eso. Y no apunta al problema: falta una regla de permiso.",
+        "3": "Funcionaría, pero apaga casi todos los chequeos de seguridad de la corrida: viola la restricción de permitir solo el comando de tests."
+      },
+      "rule": "`tools` decide qué tiene el subagente; `allowedTools`/permisos deciden qué corre sin pedir. Son dos cosas distintas.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "source_quote": "Array of allowed tool names; listing one doesn't pre-approve it.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc agent-sdk/subagents: `tools` no pre-aprueba; el ejemplo usa `Bash(npm test *)` en allowedTools. agent-sdk/permissions documenta el síntoma: en modo `default` se deniega toda call que necesite aprobación sin allow rule/hook/canUseTool; acceptEdits no cubre npm test. La correcta no depende de comportamiento no documentado. Cita textual."
+      }
+    },
+    {
+      "id": "o33-q23",
+      "objective": 33,
+      "pool": "practice",
+      "scenario": "An e-commerce company built a customer support system with Claude Code: the main conversation triages tickets and delegates to subagents. Refunds must be issued only by the `refund-specialist` subagent, whose prompt checks the refund policy first. The Stripe MCP server is configured in the project's `.mcp.json`, and the team added `disallowedTools: mcp__stripe` to the other two subagents. An audit still found 14 refunds in a week issued directly by the main triage conversation, skipping the policy check. The team wants the specialist to keep its Stripe tools and the change to be enforced, not requested. What should they do?",
+      "options": [
+        "Add `mcp__stripe` to `permissions.deny` in the project settings, so no agent in the session can call Stripe tools and refunds are blocked outside the specialist.",
+        "Also add `disallowedTools: mcp__stripe` to the main conversation's agent file, so that it loses the Stripe tools the same way the other two subagents already did.",
+        "Add a rule to `CLAUDE.md` saying that only `refund-specialist` may call `mcp__stripe__*` tools, and require the triage step to delegate every refund it detects.",
+        "Remove Stripe from `.mcp.json` and define it inline in `refund-specialist`'s `mcpServers` field, so the subagent gets the tools and the main conversation does not."
+      ],
+      "correct": 3,
+      "why_correct": "Un server en `.mcp.json` lo ve la conversación principal. Definirlo inline en el `mcpServers` del subagente hace que solo ese subagente tenga sus tools: el padre ni siquiera las ve (y además no gasta contexto en sus descripciones). Es enforcement por diseño del reparto de tools.",
+      "why_wrong": {
+        "0": "Una deny rule en settings aplica a la conversación principal y a los subagentes: el especialista también se queda sin Stripe.",
+        "1": "La conversación principal normal no es un agent file con `disallowedTools`; ese campo es del frontmatter de subagentes. Y aunque corrieras la principal con `--agent`, seguiría siendo un denylist sobre un server que todos heredan.",
+        "2": "`CLAUDE.md` es guidance: el modelo puede no seguirlo. Ya tenés evidencia de que lo saltea."
+      },
+      "rule": "Tool sensible para un solo rol: server MCP inline en el `mcpServers` de ese subagente, no en `.mcp.json` compartido.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "To keep an MCP server out of the main conversation entirely and avoid its tool descriptions consuming context there, define it inline here rather than in `.mcp.json`. The subagent gets the tools; the parent conversation doesn't.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc sub-agents: server inline en mcpServers → el subagente tiene las tools, el padre no; deny en settings aplica a todos. Cita textual."
+      }
+    },
+    {
+      "id": "o33-q24",
+      "objective": 33,
+      "pool": "practice",
+      "scenario": "A platform team uses Claude Code for code generation. In the interactive main conversation, developers delegate to a `planner` subagent defined in `.claude/agents/planner.md` with `tools: Agent(test-writer), Read, Grep`. The intent is that `planner` can only hand work to `test-writer`. Transcripts show `planner` also spawning `general-purpose` and `Explore` subagents, which then edit files outside the planned scope. The team wants a hard restriction on which subagent types `planner` can spawn, without banning those types for the rest of the developers' work. Which change achieves this?",
+      "options": [
+        "Run `planner` as the main session with `claude --agent planner`, because the `Agent(type)` allowlist in `tools` only applies to an agent running as the main thread.",
+        "Rewrite the entry as `Task(test-writer)`, since `Agent(...)` is a newer alias that only some Claude Code versions enforce inside subagent definitions.",
+        "Add `Agent(general-purpose)` and `Agent(Explore)` to `permissions.deny` in the project settings, so `planner` can no longer spawn those two types.",
+        "Remove `Agent` from `planner`'s `tools` entirely, so the subagent cannot spawn other subagents and must do the test writing itself."
+      ],
+      "correct": 0,
+      "why_correct": "La sintaxis `Agent(agent_type)` como allowlist solo funciona en un agente que corre como hilo principal con `claude --agent`. Dentro de una definición de subagente, `Agent` en `tools` habilita lanzar subagentes, pero la lista entre paréntesis se ignora. Correr `planner` como sesión principal hace valer el allowlist sin tocar el resto del proyecto.",
+      "why_wrong": {
+        "1": "Es al revés: `Task` es el nombre viejo y sigue funcionando como alias de `Agent`. Cambiar el nombre no cambia que la lista se ignora en un subagente.",
+        "2": "Bloquea esos dos tipos para todos los developers (la restricción lo prohíbe) y es un denylist: cualquier otro tipo nuevo seguiría permitido.",
+        "3": "Saca la delegación por completo: `planner` ya no puede pasarle trabajo a `test-writer`, que era el objetivo."
+      },
+      "rule": "`Agent(tipo1, tipo2)` restringe tipos solo en el hilo principal (`--agent`); en un subagente, el paréntesis se ignora.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "The `Agent(agent_type)` allowlist syntax applies only to an agent running as the main thread with `claude --agent`.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Doc sub-agents: Agent(tipo) solo como hilo principal con --agent; en subagente el paréntesis se ignora; Task es alias viejo. Cita textual."
+      }
+    },
+    {
+      "id": "o33-q25",
+      "objective": 33,
+      "pool": "practice",
+      "scenario": "A logistics company's nightly pipeline uses the Agent SDK. A coordinator delegates to a `test-auditor` subagent whose job is to run the integration suite and report failing tests with their error messages to the release manager. Its definition is `tools: [\"Read\", \"Edit\", \"Write\", \"Grep\", \"Glob\"]`, copied from the team's code-modification template. Two problems appear: the subagent reports that it cannot run the suite, and in three runs it \"fixed\" failing tests by changing their assertions, hiding real regressions. The team wants the auditor to stay strictly within its role. Which tool set should `test-auditor` have?",
+      "options": [
+        "`[\"Bash\", \"Read\", \"Grep\", \"Edit\"]`, so it can run the suite and still apply small fixes to the test files when the failure is obviously in the test itself.",
+        "`[\"Read\", \"Grep\", \"Glob\"]`, the read-only analysis set, and let the coordinator run the suite and pass the raw output to the subagent for analysis.",
+        "`[\"Bash\", \"Read\", \"Grep\"]`, so it can run the integration suite itself and analyze the output, while having no tool that edits or writes files.",
+        "Omit `tools` so it inherits every tool available to subagents, and add to its prompt that it must never modify any file under `tests/`."
+      ],
+      "correct": 2,
+      "why_correct": "La tabla de combinaciones comunes del SDK describe justo este rol: ejecutar tests = `Bash`, `Read`, `Grep`, que puede correr comandos y analizar la salida. Sin `Edit`/`Write` no puede \"arreglar\" asserts, y con `Bash` sí puede correr la suite.",
+      "why_wrong": {
+        "0": "Deja `Edit`, que es la herramienta con la que tapó regresiones. \"Arreglos chicos\" está fuera del rol de auditor.",
+        "1": "No modifica nada, pero le saca al subagente la capacidad central de su rol (correr la suite) y le carga al coordinador output verboso que el subagente debía aislar.",
+        "3": "Heredar todo le vuelve a dar `Edit`/`Write`; la prohibición en el prompt es guidance, no enforcement."
+      },
+      "rule": "Ejecutar tests = `Bash`, `Read`, `Grep`. Si el rol no modifica, no le des `Edit`/`Write`.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "source_quote": "| Test execution | `Bash`, `Read`, `Grep` | Can run commands and analyze output |",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Doc agent-sdk/subagents: tabla Test execution = Bash, Read, Grep. Cita textual. Se alargó la opción C (era 108 caracteres vs 135–155, la delataba por corta)."
       }
     }
   ]

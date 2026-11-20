@@ -22,11 +22,11 @@
       "rule": "`No entries at this offset` = te pasaste de la última coincidencia, no 'el patrón no existe'.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "When the tool's `offset` parameter points past the last match for a pattern that has matches, Grep returns `No entries at this offset`, so Claude widens or resets the offset instead of concluding the pattern doesn't match.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "tools-reference: cita textual de `No entries at this offset` y count. Se aclaró en el escenario que Grep/Glob están porque se nombran en `allowedTools` (en Linux/macOS no vienen por defecto)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "tools-reference: cita textual de `No entries at this offset` y count. Se aclaró en el escenario que Grep/Glob están porque se nombran en `allowedTools` (en Linux/macOS no vienen por defecto). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "Pedido vago → escaneo amplio. Nombrá la función y el archivo para que la exploración arranque en el lugar justo.",
       "source_url": "https://code.claude.com/docs/en/costs",
       "source_quote": "Vague requests like \"improve this codebase\" trigger broad scanning. Specific requests like \"add input validation to the login function in auth.ts\" let Claude work efficiently with minimal file reads.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "costs.md: cita textual (Vague requests...). Distinto de o17-q01 (prompt de leer todo vs pedido vago)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "costs.md: cita textual (Vague requests...). Distinto de o17-q01 (prompt de leer todo vs pedido vago). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "Code intelligence (LSP) acelera la exploración, pero en sesiones en la nube queda inactivo.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "Claude Code doesn't start plugin language servers, so the LSP tool stays inactive there.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "tools-reference: 'In cloud sessions, Claude Code doesn't start plugin language servers, so the LSP tool stays inactive there'; el binario lo instala uno. Distractores sin respaldo. `memory` es campo de subagentes (sub-agents). Distinto de o17-q07."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "tools-reference: 'In cloud sessions, Claude Code doesn't start plugin language servers, so the LSP tool stays inactive there'; el binario lo instala uno. Distractores sin respaldo. `memory` es campo de subagentes (sub-agents). Distinto de o17-q07. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,11 @@
       "rule": "Índice que se pone viejo + contexto lleno → navegación just-in-time con Glob/Grep/Read sobre el repo vivo.",
       "source_url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
       "source_quote": "primitives like glob and grep allow it to navigate its environment and retrieve files just-in-time, effectively bypassing the issues of stale indexing and complex syntax trees.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Blog de ingeniería de Anthropic (effective context engineering): cita textual sobre glob/grep just-in-time y stale indexing. En el Agent SDK darle Glob/Grep = nombrarlas en las opciones."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Blog de ingeniería de Anthropic (effective context engineering): cita textual sobre glob/grep just-in-time y stale indexing. En el Agent SDK darle Glob/Grep = nombrarlas en las opciones. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -134,11 +134,179 @@
       "rule": "Primera pasada: rutas (`files_with_matches`) acotadas; contenido solo de los archivos que valen la pena.",
       "source_url": "https://code.claude.com/docs/en/tools-reference",
       "source_quote": "`files_with_matches`: file paths only, no line content. This is the default.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "tools-reference: files_with_matches es el default; Glob capado a 100 por mtime; multiline cruza líneas. Subagente con tools Read, Grep, Glob y sin Bash => Grep/Glob disponibles en Linux/macOS. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o17-s21",
+      "objective": 17,
+      "pool": "sim",
+      "scenario": "A fintech runs an impact-analysis job on every pull request: `claude -p \"List every module affected by this diff\" --output-format json` on an Ubuntu GitHub Actions runner. The security team installed a PreToolUse hook that blocks every Bash call, because the job must never execute shell commands. Logs show Claude repeatedly attempting `find` and `grep` through Bash, each one blocked by the hook, and the job ends with \"Unable to search the repository.\" An engineer added `\"permissions\": { \"allow\": [\"Read\", \"Grep\", \"Glob\"] }` to the project's `.claude/settings.json`, but the next run shows exactly the same blocked Bash calls. The hook must stay in place. Which change fixes the job?",
+      "options": [
+        "Allow `Bash(find *)` and `Bash(grep *)` in the settings file and exempt those two commands from the hook, since they only read files.",
+        "Name the tools on the command line, for example `--allowedTools \"Read,Grep,Glob\"`, so the Grep and Glob tools become part of the session.",
+        "Move the `allow` rule from `.claude/settings.json` to `.claude/settings.local.json`, because local settings take precedence over project settings.",
+        "Install ripgrep on the runner image and add it to `PATH`, so that Claude Code can register its Grep tool when the session starts."
+      ],
+      "correct": 1,
+      "why_correct": "En Linux, Claude Code deja `Glob` y `Grep` fuera del set por defecto y busca con `find`/`grep` vía Bash, que el hook bloquea. Nombrarlos en `--allowedTools` (o en `--tools`) al arrancar los devuelve. Una regla `allow` en un archivo de settings no tiene ese efecto: por eso el primer intento no cambió nada.",
+      "why_wrong": {
+        "0": "Rompe la restricción: el job no debe ejecutar shell. Además abre un agujero en un control de seguridad para algo que se resuelve con un flag.",
+        "2": "El problema no es la precedencia: ninguna regla `allow` en un archivo de settings devuelve esas tools. Cambiarla de archivo da el mismo resultado.",
+        "3": "Que la tool Grep esté disponible no depende de instalar ripgrep sino de cómo arrancás la sesión; en Linux sigue fuera del set por defecto."
+      },
+      "rule": "Linux/macOS/CI: `Glob` y `Grep` vuelven nombrándolos en `--tools` o `--allowedTools`, no con un `allow` en settings.",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "With `--tools` you get the ones you list, and naming either tool in `--allowedTools` restores both. An allow rule in a settings file doesn't have this effect.",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
         "verdict": "ok",
-        "notes": "tools-reference: files_with_matches es el default; Glob capado a 100 por mtime; multiline cruza líneas. Subagente con tools Read, Grep, Glob y sin Bash => Grep/Glob disponibles en Linux/macOS."
+        "notes": "Cita textual en code.claude.com/docs/en/tools-reference: en Linux Glob/Grep quedan fuera del set por defecto; nombrarlos en --allowedTools/--tools los devuelve y un allow en settings no. Distractores verificados (precedencia, ripgrep)."
+      }
+    },
+    {
+      "id": "o17-s22",
+      "objective": 17,
+      "pool": "sim",
+      "scenario": "An e-commerce company has about 220 React test files. Before deprecating its internal `@acme/billing` package, the tech lead asks Claude Code to list every test file that imports it. Claude ran Glob for `**/*.test.tsx`; the result came back sorted by modification time with a truncation flag at 100 files, and Claude then read 30 of them looking for the import. Its final list had 11 files, but a manual check found 27. Many of the matching tests have names like `checkout-flow.test.tsx` or `invoice-pdf.test.tsx`, with nothing billing-related in the filename. The lead wants a complete list without loading the test files into context. What is the most effective approach?",
+      "options": [
+        "Narrow the Glob to `**/*billing*.test.tsx`, so the result stays under the 100-file cap and every file it returns is relevant to billing.",
+        "Run the Glob in several passes, one per top-level folder, so no single result hits the cap, then Read each test file to check for the import.",
+        "Grep for the `@acme/billing` import with the `glob` parameter set to `**/*.test.tsx`, using the default `files_with_matches` output mode.",
+        "Grep for `@acme/billing` in `content` mode across the whole repository, then filter the matching lines to keep only paths ending in `.test.tsx`."
+      ],
+      "correct": 2,
+      "why_correct": "La pregunta es por *contenido* (quién importa el paquete), así que es trabajo de `Grep`. Con el parámetro `glob` lo limitás a los tests y en `files_with_matches` (el modo por defecto) recibís solo rutas: lista completa sin leer archivos.",
+      "why_wrong": {
+        "0": "`Glob` busca por nombre, y muchos tests que importan billing no tienen 'billing' en el nombre: seguís perdiendo archivos.",
+        "1": "Esquiva el tope de 100, pero leer cientos de tests para buscar un import es caro y lento; es un trabajo de búsqueda de contenido.",
+        "3": "Llega al resultado correcto, pero trae al contexto líneas de todo el repo (docs, código de producción) cuando el parámetro `glob` hace ese filtro en la búsqueda misma."
+      },
+      "rule": "¿Qué archivos *contienen* X? → `Grep` (con `glob` para acotar). ¿Qué archivos se *llaman* X? → `Glob`.",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "Claude can scope results by file with the `glob` parameter, such as `**/*.tsx`, or by language with the `type` parameter, such as `py` or `rust`.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en code.claude.com/docs/en/tools-reference (parámetro glob de Grep; files_with_matches es el modo por defecto; Glob corta en 100 por mtime). D llega pero carga contexto: casi-correcta legítima."
+      }
+    },
+    {
+      "id": "o17-s23",
+      "objective": 17,
+      "pool": "sim",
+      "scenario": "A logistics company wants an inventory of every async method protected by its custom retry decorator before upgrading the retry library. In their Python codebase the decorator always sits on the line above the method, as in `@retry(max_attempts=3)` followed by `async def sync_carrier_rates(...)`. Claude Code ran Grep with the pattern `@retry\\(.*\\)\\s*async def` and got `No files found`, even though developers can open dozens of files with exactly this structure. A second attempt with just `@retry` returned 312 matches, mostly on synchronous functions and in docstrings. The team wants a precise list without having Claude open every candidate file. What should Claude change?",
+      "options": [
+        "Keep the decorator-plus-`async def` pattern and set `multiline: true` on the Grep call, so that the pattern can match across the line break.",
+        "Use the `@retry` pattern in `content` mode with a few lines of context after each match, then scan that output for `async def`.",
+        "Run Grep for `async def` with the `type` parameter set to `py`, then Read each matching file to check whether the method above it is decorated with `@retry`.",
+        "Escape the `@` and the parentheses differently, because ripgrep treats `@` as a special character in patterns that include `\\s`."
+      ],
+      "correct": 0,
+      "why_correct": "Por defecto, los patrones de `Grep` matchean dentro de una sola línea; el decorador y el `async def` están en líneas distintas, por eso daba cero. Con `multiline: true` el mismo patrón cruza el salto de línea y te da la lista exacta en una sola llamada.",
+      "why_wrong": {
+        "1": "Funciona a medias: trae 312 matches con contexto (mucho texto al contexto) y después hay que filtrar a mano. El parámetro correcto resuelve la búsqueda en la herramienta.",
+        "2": "Trae todos los métodos async, muchos sin decorador, y después leer cada archivo es justo lo que el equipo quiere evitar.",
+        "3": "`@` no es especial en ripgrep y los paréntesis ya están bien escapados; lo que falla es que el patrón cruza líneas."
+      },
+      "rule": "Patrón que cruza líneas → `Grep` con `multiline: true`.",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "By default, patterns match within a single line. Claude can set `multiline: true` to match across line boundaries.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en code.claude.com/docs/en/tools-reference (patrones de una línea por defecto; multiline: true). D falso: @ no es metacaracter."
+      }
+    },
+    {
+      "id": "o17-s24",
+      "objective": 17,
+      "pool": "sim",
+      "scenario": "A team of 15 developers uses Claude Code on Windows laptops for a Next.js monorepo. When someone asks Claude to \"find the components that render prices,\" it starts with Glob for `**/*.tsx`. Because developers run `npm run build` constantly, the first 100 results (the cap) are mostly fresh files from `.next/` and `node_modules/`, sorted by modification time, so Claude ends up reading compiled output instead of source. Both folders are already listed in `.gitignore`, and the team confirmed that Grep searches skip them correctly. The lead wants Glob to stop returning gitignored files without changing the repository layout or the build. What should each developer do?",
+      "options": [
+        "Add `.next/` and `node_modules/` to `.gitignore` again at the top of the file, because Glob only reads the first matching ignore rules.",
+        "Set `$env:CLAUDE_CODE_GLOB_NO_IGNORE = \"false\"` in PowerShell before launching `claude`, so that Glob respects `.gitignore` the way Grep does.",
+        "Add a line to `CLAUDE.md` telling Claude never to read files under `.next/` or `node_modules/` when it explores the codebase.",
+        "Run `npm run clean` before each Claude session, so build output no longer has the newest modification times and drops out of the first 100 Glob results."
+      ],
+      "correct": 1,
+      "why_correct": "A diferencia de `Grep`, `Glob` no respeta `.gitignore` por defecto. La doc da el interruptor: `CLAUDE_CODE_GLOB_NO_IGNORE=false` antes de lanzar Claude Code. En PowerShell es `$env:...` en la misma ventana donde después corrés `claude`.",
+      "why_wrong": {
+        "0": "Las carpetas ya están ignoradas; el problema es que `Glob` no mira `.gitignore` por defecto. Repetir reglas no cambia nada.",
+        "2": "Es guidance: Claude puede evitar *leerlos*, pero `Glob` los sigue devolviendo y ocupando el tope de 100, así que el código fuente sigue quedando afuera del resultado.",
+        "3": "Trata el síntoma y choca con la restricción de no tocar el build; además `node_modules/` sigue ahí y vuelve a aparecer."
+      },
+      "rule": "`Glob` no respeta `.gitignore` por defecto (`Grep` sí). El interruptor es `CLAUDE_CODE_GLOB_NO_IGNORE=false`.",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "To make Glob respect `.gitignore`, set `CLAUDE_CODE_GLOB_NO_IGNORE=false` before launching Claude Code.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en code.claude.com/docs/en/tools-reference: Glob no respeta .gitignore por defecto; CLAUDE_CODE_GLOB_NO_IGNORE=false antes de lanzar. Windows → Glob disponible. CLAUDE.md es guidance y no saca resultados."
+      }
+    },
+    {
+      "id": "o17-s25",
+      "objective": 17,
+      "pool": "sim",
+      "scenario": "A consultancy built an Agent SDK coordinator to map a 2-million-line legacy Java system before a cloud migration. Phase 1 discovers module boundaries, phase 2 traces how orders flow between modules, and phase 3 lists the database tables each flow touches. Today a single agent runs all three phases with Read, Grep and Glob, on a model with a 1M-token context window. By phase 3 its answers turn inconsistent: it cites \"a typical repository layer\" instead of the `OrderLedgerDao` class it found in phase 1, and two runs give different table lists. The client caps spend per run, so the team cannot simply repeat phases. Which redesign best addresses the problem?",
+      "options": [
+        "Run each phase in a forked subagent that inherits the full parent conversation, so every phase sees everything discovered so far without re-reading files.",
+        "Keep the single agent but tell it in the system prompt to re-read the key phase 1 files before answering any question in phase 3.",
+        "Give each phase a fresh subagent with Read, Grep and Glob, and have the coordinator paste the complete raw output of the previous phase into its prompt.",
+        "Have the coordinator summarize the key findings of each phase and inject that summary into the initial prompt of fresh subagents for the next phase."
+      ],
+      "correct": 3,
+      "why_correct": "El síntoma es degradación de contexto: el agente habla de 'patrones típicos' en vez de las clases que encontró. Subagentes nuevos por fase, que arrancan con un resumen de los hallazgos clave (clases, rutas, flujos), conservan lo importante sin arrastrar el ruido de toda la exploración.",
+      "why_wrong": {
+        "0": "Un fork hereda toda la conversación del padre, incluido el ruido que causó la degradación: es el mismo contexto cargado, en otro lado.",
+        "1": "Releer archivos de la fase 1 cuesta lo que el cliente no quiere pagar y mete todavía más output en un contexto que ya está degradado.",
+        "2": "Casi, pero pegar el output crudo completo vuelve a meter todo el ruido en el contexto del subagente. Lo que se pasa es un resumen de hallazgos."
+      },
+      "rule": "Exploración por fases: resumen de hallazgos clave → subagentes nuevos con ese resumen en el prompt inicial.",
+      "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
+      "source_quote": "Summarizing key findings from one exploration phase before spawning sub-agents for the next phase, injecting summaries into initial context",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la guía oficial del examen (PDF everpath) (Task 5.x, resúmenes entre fases). Fork hereda toda la conversación (confirmado en sub-agents). Sin dos correctas."
+      }
+    },
+    {
+      "id": "o17-s26",
+      "objective": 17,
+      "pool": "sim",
+      "scenario": "A media company plans to replace `moment` with `date-fns`. A nightly CI job runs `claude -p` with `--allowedTools \"Read,Grep,Glob\"` on a Linux runner and asks for a JSON estimate: the number of call sites and the 10 files with the most usages. The latest run used Grep with the pattern `moment\\(` in `content` mode with `head_limit: 50`, then reported \"50 call sites\" and a top-10 built from those lines. A developer's local search finds about 1,900 call sites spread over 410 files. The job must stay cheap: the team does not want thousands of matching lines loaded into context just to count them. Which change produces an accurate estimate?",
+      "options": [
+        "Keep `content` mode but raise `head_limit` to 5,000, so every matching line is returned and Claude can count the call sites per file.",
+        "Switch to `files_with_matches` mode, count the returned paths as call sites, and pick the 10 most recently modified files as the top 10.",
+        "Switch to `count` mode, which returns per-file match counts plus a total across all matching files, and build the estimate from those numbers.",
+        "Use Glob for `**/*.{js,ts}` to list candidate files, then Read each one and count `moment(` occurrences, so no call site is missed because of the pattern."
+      ],
+      "correct": 2,
+      "why_correct": "Para contar no hace falta ver las líneas. `count` devuelve cuántos matches hay por archivo y un total de todo el repo, y ese total cubre todos los matches aunque `head_limit` corte la lista. Estimación exacta y barata.",
+      "why_wrong": {
+        "0": "Daría el número, pero metiendo unas 1.900 líneas al contexto: justo lo que el equipo quiere evitar.",
+        "1": "`files_with_matches` da archivos, no ocurrencias: confunde 410 archivos con 1.900 llamadas. Y 'más recientes' no es 'con más usos'.",
+        "3": "Leer cientos de archivos para contar es lo más caro posible; además `Glob` corta en 100 resultados."
+      },
+      "rule": "¿Cuántos? → `Grep` en modo `count`. ¿Dónde? → `files_with_matches`. ¿Qué dice? → `content`.",
+      "source_url": "https://code.claude.com/docs/en/tools-reference",
+      "source_quote": "`count`: match count per file, followed by a total across all matching files. The total covers every match even when the tool's `head_limit` or `offset` parameters truncate the listed per-file entries.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en code.claude.com/docs/en/tools-reference: count da total que cubre todos los matches aunque head_limit trunque. --allowedTools restaura Grep en Linux."
       }
     }
   ]

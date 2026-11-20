@@ -22,11 +22,11 @@
       "rule": "Subtareas independientes + latencia → paralelo, no en serie.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "(1) the lead agent spins up 3-5 subagents in parallel rather than serially; (2) the subagents use 3+ tools in parallel.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "multi-agent-research-system: quote textual y \"cut research time by up to 90% for complex queries\". Se quitó \"en la misma respuesta\" de la opción correcta (no está en la doc) y se corrigió why_wrong 0: afirmaba que un solo agente hace las búsquedas en serie, pero la doc de prompting dice que los modelos actuales corren tool calls independientes en paralelo."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "multi-agent-research-system: quote textual y \"cut research time by up to 90% for complex queries\". Se quitó \"en la misma respuesta\" de la opción correcta (no está en la doc) y se corrigió why_wrong 0: afirmaba que un solo agente hace las búsquedas en serie, pero la doc de prompting dice que los modelos actuales corren tool calls independientes en paralelo. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "Huecos en el informe con subagentes \"bien\" → revisá la descomposición del coordinador.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "Without detailed task descriptions, agents duplicate work, leave gaps, or fail to find necessary information.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "multi-agent-research-system: quote textual (\"agents duplicate work, leave gaps...\")."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "multi-agent-research-system: quote textual (\"agents duplicate work, leave gaps...\"). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "Hay dependencia → secuencia; dentro de una etapa con ítems independientes → paralelo.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "Each subagent explores its area independently, then Claude synthesizes the findings. This works best when the research paths don't depend on each other.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "sub-agents (\"Run parallel research\"): quote textual; la sección \"Chain subagents\" respalda la secuencia cuando hay dependencia."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "sub-agents (\"Run parallel research\"): quote textual; la sección \"Chain subagents\" respalda la secuencia cuando hay dependencia. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,11 @@
       "rule": "Comunicación entre subagentes → a través del coordinador (hub-and-spoke), no directo entre ellos.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "Each subagent completes its task and returns results to Claude, which then passes relevant context to the next subagent.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "sub-agents (\"Chain subagents\"): quote textual. El manejo centralizado de errores es inferencia de diseño (patrón de la guía), no cita; se ató why_correct a lo que dice la doc y se suavizó \"siempre\" en la regla. agent-sdk/subagents confirma que el subagente solo recibe el prompt del Agent tool (contexto aislado), lo que respalda why_wrong 2."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "sub-agents (\"Chain subagents\"): quote textual. El manejo centralizado de errores es inferencia de diseño (patrón de la guía), no cita; se ató why_correct a lo que dice la doc y se suavizó \"siempre\" en la regla. agent-sdk/subagents confirma que el subagente solo recibe el prompt del Agent tool (contexto aislado), lo que respalda why_wrong 2. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -134,11 +134,11 @@
       "rule": "Escalá el esfuerzo a la consulta: lo simple, un agente; lo amplio, coordinador con varios.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "Simple fact-finding requires just 1 agent with 3-10 tool calls, direct comparisons might need 2-4 subagents with 10-15 calls each, and complex research might use more than 10 subagents with clearly divided responsibilities.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "multi-agent-research-system: quote textual de las reglas de escala (\"Scale effort to query complexity\")."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "multi-agent-research-system: quote textual de las reglas de escala (\"Scale effort to query complexity\"). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -162,11 +162,151 @@
       "rule": "Mucha dependencia y contexto compartido → un agente o secuencia; paralelo solo para lo independiente.",
       "source_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "source_quote": "some domains that require all agents to share the same context or involve many dependencies between agents are not a good fit for multi-agent systems today.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "multi-agent-research-system: quote textual + \"most coding tasks involve fewer truly parallelizable tasks than research\". · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o10-q21",
+      "objective": 10,
+      "pool": "practice",
+      "scenario": "Your multi-agent research system receives the query \"How will EV adoption affect electricity grids in Latin America by 2035?\". The coordinator's log shows three subtasks: \"EV sales forecasts for Brazil\", \"EV sales forecasts for Mexico\" and \"EV sales forecasts for Chile\". The search, document-analysis and synthesis subagents all complete successfully and every citation checks out, but grid operators reviewing the report note that it says nothing about charging load, distribution upgrades, tariff policy or generation mix. What is the most likely root cause, and the fix?",
+      "options": [
+        "The coordinator's decomposition is too narrow; partition the topic into distinct subtopics such as demand, infrastructure, policy and supply.",
+        "The search subagent's queries are too specific; instruct it to start with broad queries and then progressively narrow its focus.",
+        "The synthesis subagent lacks a gap-detection step; instruct it to add a section listing the important angles that the findings do not cover yet.",
+        "The analysis subagent filters too aggressively; relax its relevance criteria so it keeps sources about grids and infrastructure."
+      ],
+      "correct": 0,
+      "why_correct": "Los logs muestran la causa: el coordinador partió \"impacto en la red eléctrica\" en tres pronósticos de ventas por país. Los subagentes hicieron bien lo que les tocó; el problema es lo que se les asignó. La guía del examen nombra este riesgo: una descomposición demasiado angosta deja sin cubrir un tema amplio.",
+      "why_wrong": {
+        "1": "Buscar amplio y después angostar es una buena práctica, pero cada buscador investigó bien SU subtarea. Ninguno tenía asignado \"carga de recarga\" ni \"tarifas\".",
+        "2": "Documentar los huecos es transparente, pero no los cubre: el reporte sigue sin la mitad del tema.",
+        "3": "El analista solo recibe lo que trajeron las búsquedas sobre ventas por país; no hay fuentes de red que esté filtrando."
+      },
+      "rule": "Huecos en el reporte con subagentes que hicieron bien su parte → la culpa es de cómo partió el coordinador.",
+      "source_url": "https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification",
+      "source_quote": "Risks of overly narrow task decomposition by the coordinator, leading to incomplete coverage of broad research topics",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
         "verdict": "ok",
-        "notes": "multi-agent-research-system: quote textual + \"most coding tasks involve fewer truly parallelizable tasks than research\"."
+        "notes": "Cita textual verificada en el PDF de la guía del examen (linkeado desde Skilljar); la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
+    },
+    {
+      "id": "o10-q22",
+      "objective": 10,
+      "pool": "practice",
+      "scenario": "Your developer-productivity assistant (Claude Agent SDK) sends every question through a fixed pipeline: a codebase-explorer, a dependency-analyst, a docs-writer and a reviewer subagent, in that order. Telemetry over 2,000 requests shows that 70% are lookups like \"which port does the auth service listen on?\", which take a median of 85 seconds and about 40 tool calls, while complex questions such as \"what would break if we drop Redis?\" genuinely benefit from the full pipeline. The team wants much faster lookups without hurting the quality of complex answers. What is the most effective change?",
+      "options": [
+        "Run the four pipeline subagents in parallel instead of in sequence, so every request finishes in the time of the slowest one.",
+        "Switch every subagent in the pipeline to a smaller and faster model, while keeping the same four-stage structure for all requests.",
+        "Have the coordinator assess each request's complexity and invoke only the subagents it needs, answering simple lookups directly.",
+        "Cache the pipeline's final answers by question text, so that repeated lookups are served without invoking any subagent at all."
+      ],
+      "correct": 2,
+      "why_correct": "El coordinador tiene que analizar qué pide la consulta y elegir qué subagentes invocar, en vez de mandar todo por el pipeline completo. Una búsqueda de un dato se resuelve con un agente y pocas tool calls; lo complejo sigue usando las cuatro etapas.",
+      "why_wrong": {
+        "0": "Las etapas dependen entre sí (el analista usa lo que encontró el explorador) y el lookup sigue pagando cuatro subagentes que no necesita.",
+        "1": "Baja un poco la latencia pero empeora las respuestas complejas, y el lookup sigue haciendo 40 tool calls innecesarias.",
+        "3": "Solo ayuda con preguntas repetidas textualmente; el resto de los lookups sigue pasando por todo el pipeline."
+      },
+      "rule": "Escalá el esfuerzo a la consulta: el coordinador elige qué subagentes invocar, no siempre todos.",
+      "source_url": "https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification",
+      "source_quote": "Designing coordinator agents that analyze query requirements and dynamically select which subagents to invoke rather than always routing through the full pipeline",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en el PDF de la guía del examen (linkeado desde Skilljar); la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
+    },
+    {
+      "id": "o10-q23",
+      "objective": 10,
+      "pool": "practice",
+      "scenario": "Your research coordinator splits a due-diligence request into four independent workstreams: financial filings, litigation, press coverage and regulatory actions. Traces show it emits one Agent tool call per turn and waits for each report before launching the next; each subagent takes about 3 minutes, so reports take 12 minutes or more. No workstream uses another's output. The client now requires reports in under 5 minutes, and each workstream needs its own isolated context to stay within limits. The session never has more than one subagent running at a time. What should you change?",
+      "options": [
+        "Merge the four workstreams into one subagent that runs several searches in parallel inside a single shared context window.",
+        "Raise `CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS` so that the runtime is permitted to schedule more subagents at the same time.",
+        "Lower each subagent's `maxTurns` so that every workstream finishes sooner, accepting somewhat shallower findings from each of the four workstreams.",
+        "Have the coordinator emit all four Agent tool calls in a single response, so the subagents run concurrently instead of in turn."
+      ],
+      "correct": 3,
+      "why_correct": "Si las subtareas son independientes, en paralelo terminan en el tiempo de la más lenta y no en la suma. La forma de lograrlo es que el coordinador emita las cuatro llamadas a la tool `Agent` en UNA respuesta, no una por turno. Cada subagente conserva su contexto aislado.",
+      "why_wrong": {
+        "0": "Un solo contexto para cuatro frentes viola la restricción de aislamiento y lo puede desbordar.",
+        "1": "El límite por defecto es de 20 subagentes simultáneos y nunca corre más de uno a la vez: no es el cuello de botella.",
+        "2": "Recorta calidad para tapar un problema de estructura; serializados, igual quedan cerca de la suma de los tiempos."
+      },
+      "rule": "Independientes → todas las llamadas `Agent` en la misma respuesta del coordinador.",
+      "source_url": "https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification",
+      "source_quote": "Spawning parallel subagents by emitting multiple Task tool calls in a single coordinator response rather than across separate turns",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en el PDF de la guía del examen (linkeado desde Skilljar); la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
+      }
+    },
+    {
+      "id": "o10-q24",
+      "objective": 10,
+      "pool": "practice",
+      "scenario": "An extraction pipeline processes expense reports in three stages: extract line items, normalize currencies to USD using each report's date, then post totals to the ledger. To cut latency, an engineer started launching the three stage agents in parallel on each report. Since then, 6% of ledger postings contain unconverted amounts and the nightly reconciliation fails. Auditors require each stage's output to be stored as a separate record. Each report is independent of the others, and the nightly batch holds about 40,000 reports that must finish before 6 a.m. What is the most effective way to restore correctness while keeping throughput?",
+      "options": [
+        "Keep the stages parallel, but add a retry on the posting stage whenever the reconciliation job reports a currency mismatch.",
+        "Run the stages in sequence within each report, and get throughput by processing many independent reports in parallel.",
+        "Merge the three stages into a single agent call per report, so every step shares one context and cannot run out of order.",
+        "Keep the stages parallel and make the posting agent wait a fixed delay, so the normalization agent usually finishes first."
+      ],
+      "correct": 1,
+      "why_correct": "El paralelismo sirve para subtareas INDEPENDIENTES: terminan en el tiempo de la más lenta. Acá las etapas dependen una de otra (postear necesita montos normalizados), así que van en secuencia. Lo independiente son los reportes: paralelizás entre reportes y mantenés el throughput.",
+      "why_wrong": {
+        "0": "Reintenta después del daño: el posteo mal hecho ya ocurrió y la causa (correr sin la entrada) sigue.",
+        "2": "Casi: ordena los pasos y mantiene el throughput, pero pierde las etapas separadas que auditoría exige guardar por separado, y una llamada con tres tareas es menos precisa que tres llamadas enfocadas.",
+        "3": "\"Usualmente\" no es correcto: es una carrera con timing. Sigue fallando cuando la normalización tarda más."
+      },
+      "rule": "Paralelo entre cosas independientes; secuencia entre pasos dependientes.",
+      "source_url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "source_quote": "Parallelization: multiple subagents can run concurrently, so independent subtasks finish in the time of the slowest one rather than the sum of all of them.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Cita textual en agent-sdk/subagents (Parallelization). La opción C (una sola llamada por reporte) también restauraba corrección y throughput: agregué al escenario que auditoría exige guardar la salida de cada etapa por separado, para que quede una sola correcta. Ajusté why_wrong C."
+      }
+    },
+    {
+      "id": "o10-q25",
+      "objective": 10,
+      "pool": "practice",
+      "scenario": "Your CI review system has a coordinator and three subagents: a diff analyzer, a security scanner and a comment writer. To save tokens, the team wired them so that each subagent passes its output directly to the next one, and the coordinator only receives the comment writer's final summary. Last week the security scanner timed out on 14 PRs; the comment writer received nothing from it, posted \"no security issues found\", and two PRs containing hard-coded credentials were merged. Nobody noticed the timeouts until an audit. What change best addresses this?",
+      "options": [
+        "Route every subagent's result and error through the coordinator, which decides the next step and handles failures consistently.",
+        "Have each subagent append its status to a shared log file that the team reviews during a weekly audit of the pipeline.",
+        "Add automatic retries with exponential backoff inside the security scanner, so that timeouts are only rarely passed downstream to the writer.",
+        "Instruct the comment writer to say \"security scan unavailable\" whenever it receives an empty input from the scanner."
+      ],
+      "correct": 0,
+      "why_correct": "En hub-and-spoke, toda la comunicación entre subagentes pasa por el coordinador: eso da observabilidad, manejo de errores consistente y control del flujo de información. El coordinador habría visto el timeout y decidido reintentar, frenar el merge o escalar, en vez de que un \"vacío\" se convirtiera en \"sin problemas\".",
+      "why_wrong": {
+        "1": "Da visibilidad semanal, tarde: no cambia qué pasa en el momento del error ni quién decide.",
+        "2": "Baja la frecuencia de timeouts, pero cuando se agotan los reintentos el error sigue sin llegar a nadie que decida.",
+        "3": "Mejora el mensaje en un caso puntual; el error sigue sin pasar por el coordinador y el flujo sigue sin control."
+      },
+      "rule": "Multi-agente: los resultados y errores pasan por el coordinador. Subagentes hablando directo = errores invisibles.",
+      "source_url": "https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification",
+      "source_quote": "Routing all subagent communication through the coordinator for observability, consistent error handling, and controlled information flow",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual verificada en el PDF de la guía del examen (linkeado desde Skilljar); la correcta coincide con la doc, distractores revisados contra la doc (ninguno defendible); explicaciones en rioplatense; sin duplicados en mis archivos."
       }
     }
   ]

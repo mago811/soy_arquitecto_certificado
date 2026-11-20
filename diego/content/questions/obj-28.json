@@ -22,11 +22,11 @@
       "rule": "Output que crece con el input y se trunca → partí en llamadas chicas y mergeá en código.",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/increase-consistency",
       "source_quote": "Break down complex tasks into smaller, consistent subtasks. Each prompt then covers a single subtask, reducing inconsistency errors across scaled workflows.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "La doc pone subir `max_tokens` como primer remedio; el why ahora lo reconoce y justifica partir porque el output crece con el input (ya lo subieron dos veces). Techo de 128K en models overview."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "La doc pone subir `max_tokens` como primer remedio; el why ahora lo reconoce y justifica partir porque el output crece con el input (ya lo subieron dos veces). Techo de 128K en models overview. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "`max_tokens` tiene techo (128K en Opus 5.5 sincrónico). Pasado eso, partí.",
       "source_url": "https://platform.claude.com/docs/en/about-claude/models/overview",
       "source_quote": "Max output: Synchronous Messages API limit.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "Precisé la correcta: la doc publica 128K sincrónico y 300K solo en Batches con beta header; partir aplica si el output real no entra."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Precisé la correcta: la doc publica 128K sincrónico y 300K solo en Batches con beta header; partir aplica si el output real no entra. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "Antes de parsear, mirá `stop_reason`. `max_tokens` = truncado.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
       "source_quote": "Claude stopped because it reached the `max_tokens` limit specified in your request.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "handling-stop-reasons: definición de `max_tokens` textual; respuesta truncada sigue siendo respuesta normal."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "handling-stop-reasons: definición de `max_tokens` textual; respuesta truncada sigue siendo respuesta normal. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,11 @@
       "rule": "Con thinking, `max_tokens` = thinking + respuesta. Dejá margen.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
       "source_quote": "Thinking tokens count toward `max_tokens`, so set it high enough to leave room for both the thinking and the response text.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "thinking: tokens de thinking cuentan para `max_tokens`; Opus 5.5 con thinking siempre activo (prompting-claude-opus-5-5); error 400 por schema complejo confirmado en structured-outputs."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "thinking: tokens de thinking cuentan para `max_tokens`; Opus 5.5 con thinking siempre activo (prompting-claude-opus-5-5); error 400 por schema complejo confirmado en structured-outputs. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -134,11 +134,11 @@
       "rule": "Un poco corto y acotado → subí `max_tokens`. Partir es para cuando crece con el input.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "source_quote": "Retry with a higher `max_tokens` value to get the complete structured output.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "structured-outputs: 'Retry with a higher max_tokens'. Subir max_tokens como primer remedio, consistente con la doc. Header output-300k existe en models overview (para Batches)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "structured-outputs: 'Retry with a higher max_tokens'. Subir max_tokens como primer remedio, consistente con la doc. Header output-300k existe en models overview (para Batches). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -162,11 +162,151 @@
       "rule": "Partir + mismo schema + merge en código. No juntes todo en otra llamada gigante.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Explicit prompt chaining (breaking a task into sequential API calls) is still useful when you need to inspect intermediate outputs or enforce a specific pipeline structure.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual sobre prompt chaining. Coherente: partir ya está justificado; el fix es schema común + merge en código. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o28-q21",
+      "objective": 28,
+      "pool": "practice",
+      "scenario": "A developer-tools team built an internal service that asks Claude Opus 5.5, through the synchronous Messages API, to generate unit tests for a whole module in one request. The output is a forced `write_tests` tool call whose input is `{ \"tests\": [ { \"function\": ..., \"file\": ..., \"code\": ... } ] }`, and `max_tokens` is already set to 128000. For modules with more than about 70 exported functions, responses come back with `stop_reason: \"max_tokens\"` and an incomplete tool_use block, so nothing gets written. Developers trigger the service from their IDE and wait for the result, and module sizes keep growing every quarter. Which change addresses the root cause?",
+      "options": [
+        "Send these large modules through the Message Batches API with the `output-300k-2026-03-24` beta header, which allows up to 300k output tokens.",
+        "When `stop_reason` is `max_tokens`, append the partial tool_use as an assistant turn and ask Claude to continue from where it left off.",
+        "Add an instruction to keep each generated test under 15 lines and to skip edge cases, so a whole module fits within the 128K output limit.",
+        "Split the request into one call per group of related functions, each returning the same `tests` schema, and concatenate the arrays in code."
+      ],
+      "correct": 3,
+      "why_correct": "Ya están en el techo de salida del modelo en la API sincrónica y el output crece con el tamaño del módulo: seguir subiendo no es práctico. Partir por grupos de funciones, con el mismo schema en cada llamada, hace que cada respuesta entre cómoda y que el merge sea concatenar arrays.",
+      "why_wrong": {
+        "0": "Casi: el beta de 300k existe, pero solo en Batches, que es asincrónico; un dev esperando en el IDE no puede esperar un batch. Y con módulos que crecen, tarde o temprano también queda corto.",
+        "1": "Para un tool_use truncado, la doc dice reintentar con más `max_tokens`, y acá ya están en el máximo. Además, mandar el tool_use parcial como último turno de assistant es un prefill: en Claude 4.6 y posteriores eso devuelve un error 400.",
+        "2": "Recorta calidad para entrar en el límite y se vuelve a romper cuando el módulo crezca: trata el síntoma."
+      },
+      "rule": "Truncado en el techo y output que crece con el input → partir en llamadas chicas con el mismo schema y mergear en código.",
+      "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/increase-consistency",
+      "source_quote": "Break down complex tasks into smaller, consistent subtasks. Each prompt then covers a single subtask, reducing inconsistency errors across scaled workflows.",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "Cita textual en increase-consistency. 128K sync y beta output-300k-2026-03-24 solo en Batches confirmados (models overview + batch-processing, incluye Opus 5.5). Corregí why_wrong[1]: dejar el tool_use parcial como último turno de assistant es un prefill, que en Claude 4.6+ devuelve 400 (prompting best practices)."
+      }
+    },
+    {
+      "id": "o28-q22",
+      "objective": 28,
+      "pool": "practice",
+      "scenario": "A logistics company extracts line items from freight invoices with structured outputs (`output_config.format` with a JSON schema) and `max_tokens: 4096`. About 3% of documents fail with `JSONDecodeError` and are discarded as \"invalid model output.\" Every failing document is a long invoice with 400 to 900 line items; short invoices never fail. The pipeline reads `response.content[0].text` and parses it without looking at any other field of the response. The model and the schema were approved by the data team and cannot change this quarter. What should the team do first?",
+      "options": [
+        "Check `stop_reason`; when it is `max_tokens`, retry with a higher `max_tokens`, which still leaves ample room below the model's output ceiling.",
+        "Split every invoice into pages, extract the line items page by page with the same schema, and merge the arrays so no single response gets large.",
+        "Wrap the parse in a retry loop that resends the identical request up to three times, since the failures look intermittent across the batch.",
+        "Switch from JSON outputs to strict tool use, because strict mode guarantees that the tool input always matches the schema and parses cleanly."
+      ],
+      "correct": 0,
+      "why_correct": "Primero el diagnóstico: si `stop_reason` es `max_tokens`, la salida se cortó y por eso no parsea. Con 4096 están lejísimos del techo de 128K, así que subir `max_tokens` es el fix documentado y práctico. Partir la tarea tiene sentido cuando subir ya no alcanza.",
+      "why_wrong": {
+        "1": "Funcionaría, pero es sobreingeniería como primer paso: suma llamadas y un merge cuando el problema es un `max_tokens` bajo, no una salida imposible.",
+        "2": "No es transitorio: el mismo request se vuelve a cortar en el mismo lugar. Reintentar igual es tirar plata.",
+        "3": "Strict garantiza el schema cuando la respuesta termina; si se corta por `max_tokens`, la salida puede quedar incompleta igual."
+      },
+      "rule": "Primero mirá `stop_reason`. Lejos del techo → subí `max_tokens`. En el techo → partí la tarea.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "source_quote": "Retry with a higher `max_tokens` value to get the complete structured output.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
         "verdict": "ok",
-        "notes": "Cita textual sobre prompt chaining. Coherente: partir ya está justificado; el fix es schema común + merge en código."
+        "notes": "Cita textual en platform structured-outputs (max_tokens → salida incompleta; reintentar con más max_tokens). 4096 lejos del techo 128K (models overview). Strict no evita truncamiento."
+      }
+    },
+    {
+      "id": "o28-q23",
+      "objective": 28,
+      "pool": "practice",
+      "scenario": "A market-research firm runs a multi-agent system: eight search subagents each return structured findings with citations, and a final synthesis call to Claude Opus 5.5 (synchronous Messages API, `max_tokens: 128000`) rewrites all of them into one JSON report with 12 topic sections. Analysts wait on a live dashboard that must render the report within two minutes. On large projects with 60+ sources, the synthesis response ends with `stop_reason: \"max_tokens\"` and the last four sections missing. Every finding in the report must keep its citation. Which change is most effective?",
+      "options": [
+        "Move the synthesis call to the Message Batches API with the 300k output beta header, so the full report fits in a single response.",
+        "Generate each topic section in its own synthesis call with the same section schema, then assemble the sections into the final report in code.",
+        "Prefill the assistant turn with `{\"sections\": [` so Claude skips any preamble and spends its whole output budget on the report itself.",
+        "Instruct the synthesis call to compress each finding into one short sentence and drop secondary sources, so the whole report fits within 128K."
+      ],
+      "correct": 1,
+      "why_correct": "La síntesis ya está en el techo sincrónico de 128K y el reporte crece con la cantidad de fuentes. Una llamada por sección, con el mismo schema de sección, mantiene cada salida chica, se puede correr en paralelo para cumplir los dos minutos, y el ensamblado lo hace el código.",
+      "why_wrong": {
+        "0": "El beta de 300k existe, pero Batches es asincrónico (la mayoría de los batches termina en menos de una hora): no sirve para un dashboard que tiene que renderizar en dos minutos.",
+        "2": "El prefill no está soportado en Claude 4.6 y modelos posteriores; y aunque lo estuviera, el preámbulo no es lo que se come 128K.",
+        "3": "Choca con la restricción: perder fuentes y detalle de citas para entrar en el límite es recortar el producto."
+      },
+      "rule": "Reporte que crece con el input → generalo por partes y ensamblá en código.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "source_quote": "Explicit prompt chaining (breaking a task into sequential API calls) is still useful when you need to inspect intermediate outputs or enforce a specific pipeline structure.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en prompting best practices (prompt chaining). 128K sync y 300k solo en Batches confirmados (models overview + batch-processing: beta output-300k-2026-03-24 para Opus 5.5). Prefill no soportado desde 4.6 (confirmado, 400). Batches mayoría <1h → no sirve a 2 min."
+      }
+    },
+    {
+      "id": "o28-q24",
+      "objective": 28,
+      "pool": "practice",
+      "scenario": "A platform team runs a nightly security audit over 300 repositories. Each repo is sent in one Messages API request that returns a JSON findings report, and a dashboard shows the number of critical findings per repo. To stop parse failures, an engineer added a \"JSON repair\" library that closes any unterminated arrays and objects before parsing; parse errors dropped to zero. Two weeks later, a pentest found a critical injection flaw in a repo the dashboard had shown with 0 critical findings. That repo's log shows `stop_reason: \"max_tokens\"` on every nightly run, with about 128,000 output tokens each time. Which change addresses the root cause?",
+      "options": [
+        "Keep the repair library and validate the repaired JSON against the findings schema, so malformed or partial reports are caught before they ever reach the dashboard.",
+        "Enable strict tool use for the findings report, so the output is guaranteed to match the schema and no longer needs a repair step.",
+        "Instruct Claude to list critical findings first, so that if the response is cut off, only lower-severity findings are lost from the report.",
+        "Treat `stop_reason: \"max_tokens\"` as an incomplete result that is never published, and audit oversized repos with one call per package, merging findings in code."
+      ],
+      "correct": 3,
+      "why_correct": "El 'arreglo' escondió el truncamiento: cerrar llaves convierte una salida cortada en un JSON válido pero incompleto. Primero, `stop_reason: \"max_tokens\"` es un resultado incompleto y nunca se publica como 'sin hallazgos'. Y como ya está en ~128K, el fix estructural es partir por paquete y mergear.",
+      "why_wrong": {
+        "0": "El JSON reparado puede cumplir el schema perfectamente: un array de findings más corto es válido. Validar la forma no detecta que falta contenido.",
+        "1": "Strict asegura el schema de una respuesta completa; no evita que la salida se corte en `max_tokens`.",
+        "2": "Mitiga, pero el reporte sigue incompleto y se publica como si estuviera completo; y nada garantiza que el modelo ordene perfecto."
+      },
+      "rule": "`stop_reason: \"max_tokens\"` = incompleto. Nunca lo 'repares' y publiques: partí la tarea.",
+      "source_url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "source_quote": "The output might be incomplete and not match your schema.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en structured-outputs. max_tokens = incompleto; reparar JSON da schema válido con contenido faltante. Strict no evita el corte. Correcta D única."
+      }
+    },
+    {
+      "id": "o28-q25",
+      "objective": 28,
+      "pool": "practice",
+      "scenario": "A team runs a blocking pre-merge review: a GitHub Actions job calls Claude Opus 5.5 through the synchronous Messages API and must finish before the PR can merge. Telemetry over 2,000 PRs shows that review output grows roughly linearly with diff size, at about 0.4 output tokens per input token. The job currently sets `max_tokens: 64000`, and the largest diffs (about 470k input tokens) come back truncated. One engineer proposes raising `max_tokens` to 128000; another proposes turning thinking off to free output tokens for the review. Which approach scales to the team's largest PRs?",
+      "options": [
+        "Raise `max_tokens` to 128000, the model's maximum output on the synchronous API, which removes truncation for every PR in the telemetry.",
+        "Disable thinking on these requests, so that the whole `max_tokens` budget goes to the review text instead of being shared with thinking.",
+        "Split large diffs into per-file review calls within the same job, each with a moderate `max_tokens`, and merge the findings in code.",
+        "Move the review to the Message Batches API with the 300k output beta header, and post the findings to the PR when the batch finishes."
+      ],
+      "correct": 2,
+      "why_correct": "Con 0,4 tokens de salida por token de entrada, un diff de 470k necesita unos 188k de salida: más que el techo de 128K de la API sincrónica. Ningún `max_tokens` alcanza; partir por archivo mantiene cada salida chica y el job sigue siendo sincrónico.",
+      "why_wrong": {
+        "0": "Ayuda con los PR medianos, pero 188k > 128K: los más grandes se siguen cortando. Subir hasta el techo no escala con una salida que crece con el input.",
+        "1": "En Claude Opus 5.5 el thinking está siempre activo y el adaptive thinking es el único modo: no se puede apagar.",
+        "3": "Es un check bloqueante pre-merge; Batches es asincrónico y puede tardar hasta 24 horas. Sirve para análisis nocturnos, no para bloquear un merge."
+      },
+      "rule": "Salida que crece con el input y supera el techo → partir. Subir `max_tokens` solo posterga el problema.",
+      "source_url": "https://platform.claude.com/docs/en/about-claude/models/overview",
+      "source_quote": "Max output: Synchronous Messages API limit.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en models overview (Max output: Synchronous Messages API limit; 128K). Opus 5.5 thinking \"Adaptive (always on)\" confirmado → B falso. Batches hasta 24h, no sirve como gate. 188k > 128K ok."
       }
     }
   ]

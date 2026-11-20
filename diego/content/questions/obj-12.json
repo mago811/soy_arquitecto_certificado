@@ -22,11 +22,11 @@
       "rule": "Formato que no sale con descripciones → mostrá ejemplos de entrada/salida.",
       "source_url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/increase-consistency",
       "source_quote": "Provide examples of the output you want. This is more effective than abstract instructions.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en increase-consistency; 3–5 ejemplos y `<examples>` en best practices."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en increase-consistency; 3–5 ejemplos y `<examples>` en best practices. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "Feedback útil = caso concreto + qué hizo + qué esperabas + cómo verificarlo.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "If you name the file, describe the symptom, and say what \"fixed\" looks like up front, you usually save yourself a round of corrections later.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en best-practices."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en best-practices. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "Dos correcciones fallidas → `/clear` + un prompt con TODOS los casos juntos.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "If you've corrected the same thing twice and it's still wrong, a third correction mostly adds to a conversation that already contains two failed attempts for Claude to keep re-reading.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "why_correct afirmaba que juntar casos 'deja ver que son el mismo problema' (no está en la doc); reformulado a 'un prompt nuevo que sume lo aprendido' (textual)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "why_correct afirmaba que juntar casos 'deja ver que son el mismo problema' (no está en la doc); reformulado a 'un prompt nuevo que sume lo aprendido' (textual). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,11 @@
       "rule": "Iterar rápido = darle un check pass/fail (tests, diff contra fixture) para que cierre el ciclo solo.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "If you give it something that comes back pass or fail, Claude can close that loop itself.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "best-practices: pass/fail check, 'A script that diffs output against a fixture'."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "best-practices: pass/fail check, 'A script that diffs output against a fixture'. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -134,11 +134,11 @@
       "rule": "Lote grande → probá con pocos, ajustá el prompt, después escalá.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "Try it on three files first, see what goes wrong, fix the prompt, then run the rest.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual (try it on three files first)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual (try it on three files first). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -162,11 +162,11 @@
       "rule": "Si tenés el ejemplo (archivo, captura, salida), dáselo; no lo describas.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "If you already have the thing Claude needs, hand it over instead of describing it",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "best-practices: 'hand it over' + pegar screenshot del diseño."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "best-practices: 'hand it over' + pegar screenshot del diseño. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -190,11 +190,11 @@
       "rule": "Refinamiento auditable por API → chaining: borrador, revisión, refinamiento en llamadas separadas.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "The most common chaining pattern is self-correction: generate a draft → have Claude review it against criteria → have Claude refine based on the review.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Patrón self-correction de chaining, cita textual."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Patrón self-correction de chaining, cita textual. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -218,11 +218,11 @@
       "rule": "En cada vuelta, pedí evidencia (comando + salida), no un \"listo\".",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "Whichever option you use, ask Claude for evidence: the command it ran and its output, or the screenshot.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual sobre pedir evidencia."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual sobre pedir evidencia. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -246,11 +246,11 @@
       "rule": "Ejemplos que sesgan → 3–5 diversos que cubran casos distintos.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Include 3–5 examples for best results. You can also ask Claude to evaluate your examples for relevance and diversity, or to generate additional ones based on your initial set.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual 3–5 ejemplos + evaluar relevancia/diversidad."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual 3–5 ejemplos + evaluar relevancia/diversidad. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -274,11 +274,151 @@
       "rule": "Feedback vago cambia un default por otro: nombrá lo concreto y extendé la lista en cada vuelta.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5-5",
       "source_quote": "It responds well to instructions that name specific patterns to avoid, as in the following example. Work iteratively: check which styles the first result used instead, and extend the list if needed.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Prompting Opus 5.5, sección Frontend design defaults: cita textual. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o12-q21",
+      "objective": 12,
+      "pool": "practice",
+      "scenario": "A logistics company uses Claude Code to write `normalize_address()`, which turns free-text shipping addresses from a legacy CRM into a structured record (`street`, `unit`, `city`, `postal_code`). Over three rounds the developer has refined a prose description of the rules (\"units can appear before or after the street, 'Apt', '#' and 'Unit' all mean the same thing, floors are not units\"). Each round fixes some cases and breaks others: on a 200-row sample, 31 rows still come out wrong, mostly `4B 120 Main St` style inputs and `Floor 3, Suite 300` inputs. The developer can state exactly what the correct output for each of those inputs should be, but keeps struggling to describe the rule in words. What is the most effective next step?",
+      "options": [
+        "Rewrite the prose description as a numbered list of rules and prefix the ambiguous ones with IMPORTANT so Claude weighs them more heavily",
+        "Ask Claude to interview the developer about address formats until it can write a SPEC.md, then implement from that spec in a fresh session",
+        "Give Claude two or three failing raw inputs, each paired with the exact structured output expected, and have it make the function match",
+        "Raise the session effort level to `high` so Claude reasons more carefully about the ambiguous address patterns before rewriting the function"
+      ],
+      "correct": 2,
+      "why_correct": "La guía del examen lo dice clarito: cuando la prosa se interpreta de forma inconsistente, lo más efectivo son ejemplos concretos de entrada y salida. Acá el dev SABE la salida correcta de cada caso pero no logra verbalizar la regla: es exactamente el caso para 2–3 pares `input → output`.",
+      "why_wrong": {
+        "0": "Reordenar la prosa y meter `IMPORTANT` es seguir con descripciones, que es justo lo que viene fallando hace tres vueltas. El problema no es el énfasis, es que la regla es difícil de describir.",
+        "1": "El interview pattern sirve cuando el dev todavía no pensó el tema y hay consideraciones que no anticipó. Acá el dev ya sabe exactamente qué quiere: lo que falta es comunicarlo, no descubrirlo.",
+        "3": "El effort controla cuánto piensa Claude, pero no le da información que no tiene. Sin ver los casos concretos, va a seguir adivinando la regla."
+      },
+      "rule": "Si la prosa se interpreta distinto cada vez y vos sabés la salida correcta: 2–3 ejemplos concretos de entrada/salida.",
+      "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
+      "source_quote": "Concrete input/output examples as the most effective way to communicate expected transformations when prose descriptions are interpreted inconsistently",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
         "verdict": "ok",
-        "notes": "Prompting Opus 5.5, sección Frontend design defaults: cita textual."
+        "notes": "Cita textual en la Exam Guide (TS 3.5). Correcta = ejemplos input/output; interview, IMPORTANT y effort no aportan la info faltante."
+      }
+    },
+    {
+      "id": "o12-q22",
+      "objective": 12,
+      "pool": "practice",
+      "scenario": "A fintech team asks Claude Code to write a migration script that copies 2.1 million rows from `users_v1` into the new `customers` table. The first dry run crashes on rows where `middle_name` is NULL; after the developer replies \"handle nulls better\", the script stops crashing but now writes the literal string `\"None\"` into `middle_name` and drops rows whose `phone` is an empty string. The developer replies \"still wrong with nulls, please be careful\" and gets yet another variation. The migration must be byte-accurate because an auditor will compare both tables, and the team wants Claude to keep iterating on its own instead of the developer re-checking each version by hand. Which change addresses the root cause of the stalled iteration?",
+      "options": [
+        "Add a test file with the problem rows as inputs and the exact expected `customers` rows as outputs, and have Claude run it until it passes",
+        "Ask Claude to wrap each row conversion in a try/except block that logs the failing row id and skips it, so the migration completes and the auditor gets a list",
+        "Add a line to the project CLAUDE.md saying 'Always handle NULL and empty values correctly in migrations' so every future session applies it",
+        "Tell Claude to think step by step and be thorough about NULL handling, and paste the full stack trace of the original crash into the next message"
+      ],
+      "correct": 0,
+      "why_correct": "El feedback vago (\"handle nulls better\") no le dice a Claude qué es \"bien\". La guía recomienda casos de prueba específicos con input de ejemplo y output esperado para arreglar edge cases (cita justo los nulls en scripts de migración). Y como es un test, Claude puede correrlo y cerrar el loop solo.",
+      "why_wrong": {
+        "1": "El try/except trata el síntoma: la migración termina, pero las filas problemáticas quedan afuera o mal. Con un auditor comparando tablas, saltear filas no es un arreglo.",
+        "2": "Una línea genérica en CLAUDE.md sigue siendo una instrucción vaga: no define qué valor esperás para NULL ni para string vacío. Además no le da a Claude nada que pueda correr para verificar.",
+        "3": "`think step by step` y `be thorough` son texto común, no llaves mágicas, y el stack trace solo explica el primer crash. Lo que falta es la definición concreta de la salida correcta."
+      },
+      "rule": "Edge case que no sale con feedback vago → test con input de ejemplo y output esperado, y que Claude lo corra.",
+      "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
+      "source_quote": "Providing specific test cases with example input and expected output to fix edge case handling (e.g., null values in migration scripts)",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la Exam Guide (TS 3.5, nulls en migraciones). Distractores (try/except, CLAUDE.md vago, think step by step) coherentes con best-practices."
+      }
+    },
+    {
+      "id": "o12-q23",
+      "objective": 12,
+      "pool": "practice",
+      "scenario": "A developer is refining a sliding-window rate limiter that Claude Code wrote for a public API. Review found three problems: the window key is computed from the server's local time instead of UTC, the `Retry-After` header is derived from that same window boundary, and the Redis TTL is set from the window length that the key function returns. For the last hour the developer has sent one fix per message. Each fix passes its own test but breaks another: correcting the key to UTC made `Retry-After` off by the timezone offset, and fixing that changed the TTL. The test suite exists and runs in 40 seconds. What should the developer do now?",
+      "options": [
+        "Keep fixing one issue per message, but ask Claude to run the whole test suite after each fix and show the output before moving to the next issue",
+        "Send one message describing all three problems, how they depend on the same window boundary, and asking for one coordinated fix",
+        "Spawn three subagents, one per problem, so each fix is developed in an isolated context and the main session merges the three resulting diffs",
+        "Add a CLAUDE.md instruction telling Claude to consider side effects on related code before every change it makes to the rate limiter module"
+      ],
+      "correct": 1,
+      "why_correct": "Los tres problemas interactúan: comparten el mismo límite de ventana. La guía distingue: problemas que interactúan van todos juntos en un mensaje detallado; los independientes, de a uno. Mandarlos juntos permite un fix coordinado en vez de un ping-pong.",
+      "why_wrong": {
+        "0": "Correr la suite entera después de cada fix es buena práctica, pero sigue siendo iteración secuencial sobre problemas que dependen entre sí. Vas a detectar antes la rotura, no evitarla.",
+        "2": "Aislar cada fix en su propio subagente es lo contrario de lo que pide el caso: cada uno arreglaría su parte sin ver las otras dos, y el merge reproduciría el conflicto.",
+        "3": "Una instrucción genérica sobre \"efectos colaterales\" no le explica a Claude cuáles son las dependencias concretas. Es guidance vaga para un problema que necesita información específica."
+      },
+      "rule": "Problemas que interactúan → todos juntos en un mensaje detallado; independientes → de a uno.",
+      "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
+      "source_quote": "Addressing multiple interacting issues in a single detailed message when fixes interact, versus sequential iteration for independent issues",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la Exam Guide. Problemas que interactúan → un mensaje; distractores secuencial/subagentes/CLAUDE.md no defendibles."
+      }
+    },
+    {
+      "id": "o12-q24",
+      "objective": 12,
+      "pool": "practice",
+      "scenario": "Last quarter a backend developer asked Claude Code to \"add caching to the pricing service\". Claude built a clean in-memory LRU cache, the tests passed, and two weeks later production showed stale prices because the service runs on six pods and nobody had considered invalidation across instances. Now the same developer must add idempotency keys to the payments API, another domain they have never worked in. They suspect there are design questions (key scope, retention window, what happens on a concurrent retry) they have not even thought of. They want to avoid another round of rework after release. What is the most effective way to start?",
+      "options": [
+        "Start in plan mode so Claude explores the payments code and presents an implementation plan for approval before it edits any files",
+        "Prompt with 'be ambitious: handle the edge cases and the natural follow-on work' so Claude builds a fuller version than the smallest one that works",
+        "Point Claude at the pricing cache implementation with `@` and ask it to follow the same structure, since that code is already reviewed and tested",
+        "Ask Claude to interview the developer about the feature until it can write a spec to SPEC.md, then build from that spec in a fresh session"
+      ],
+      "correct": 3,
+      "why_correct": "Es el interview pattern: que Claude haga preguntas para sacar a la luz consideraciones que el dev no anticipó, antes de implementar, en un dominio que no conoce. La guía da como ejemplo justo la invalidación de caché y los modos de falla. Después, sesión nueva con el SPEC.md como definición de \"hecho\".",
+      "why_wrong": {
+        "0": "Plan mode es casi correcto: explora y propone antes de editar. Pero el plan sale de lo que Claude lee en el código, no de preguntas al dev sobre decisiones que no están en el repo (alcance de la key, retención). El problema de la vez pasada fue justamente una decisión que nadie planteó.",
+        "1": "`be ambitious` le cuenta a Claude el alcance que querés, pero no resuelve que haya decisiones de diseño que nadie tomó. Claude elegiría por su cuenta sin consultar.",
+        "2": "Usar un archivo como patrón sirve para copiar convenciones, pero esa implementación de caché es justamente la que falló en producción. Además idempotencia es otro dominio con otras decisiones."
+      },
+      "rule": "Dominio que no conocés y decisiones que no anticipaste → interview pattern antes de implementar.",
+      "source_url": "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf",
+      "source_quote": "Using the interview pattern to surface design considerations (e.g., cache invalidation strategies, failure modes) before implementing solutions in unfamiliar domains",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en la Exam Guide; best-practices confirma el patrón 'interview me until you could write the spec ... SPEC.md'. Plan mode como casi-correcta bien justificado."
+      }
+    },
+    {
+      "id": "o12-q25",
+      "objective": 12,
+      "pool": "practice",
+      "scenario": "On her Windows laptop, a developer is working in a long Claude Code session on a CSV importer. She has already corrected the same issue twice: Claude keeps parsing `03/04/2026` as March 4 when the supplier files use day/month order. Each time Claude acknowledges the correction, edits `parse_row()`, and the next run of `python .\\import_test.py` still shows dates swapped in a different code path. The conversation now contains both failed attempts, several large diffs, and an unrelated detour about logging. She is about to type a third, longer correction with the rule in capital letters. What does the Claude Code guidance recommend instead?",
+      "options": [
+        "Run `/compact` to summarize the conversation so the failed attempts take less space, then send the third correction in capital letters",
+        "Send the third correction, but this time paste the full output of `import_test.py` and ask Claude to explain its reasoning before editing",
+        "Run `/clear` and start over with one new prompt that folds in what she learned: the day/month rule, the code paths, the test",
+        "Press `Esc` twice to rewind to before the first correction and send the same original prompt again so Claude starts from a clean point"
+      ],
+      "correct": 2,
+      "why_correct": "La doc de best practices es explícita: si corregiste lo mismo dos veces y sigue mal, una tercera corrección se suma a una conversación que ya tiene dos intentos fallidos que Claude relee. `/clear` más un prompt nuevo que incluya lo aprendido funciona mejor casi siempre.",
+      "why_wrong": {
+        "0": "`/compact` resume pero los intentos fallidos quedan representados en el resumen. Y las mayúsculas no arreglan nada: el problema es la conversación contaminada, no el énfasis.",
+        "1": "Pegar la salida completa ayuda, pero sigue siendo la tercera corrección sobre el mismo historial con dos fallos. La guía dice justamente no ir por la tercera.",
+        "3": "Volver atrás y mandar el MISMO prompt original repite la causa: ese prompt no tenía la regla de día/mes. Lo valioso es reescribirlo con lo aprendido."
+      },
+      "rule": "Dos correcciones fallidas → `/clear` + un prompt nuevo con lo aprendido, no una tercera corrección.",
+      "source_url": "https://code.claude.com/docs/en/best-practices",
+      "source_quote": "If you've corrected the same thing twice and it's still wrong, a third correction mostly adds to a conversation that already contains two failed attempts for Claude to keep re-reading.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Cita textual en best-practices (sección /clear). /compact, rewind con el mismo prompt y tercera corrección quedan descartados por la doc."
       }
     }
   ]

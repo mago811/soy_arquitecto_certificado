@@ -1,145 +1,313 @@
 {
- "objective": 16,
- "questions": [
-  {
-   "id": "o16-s01",
-   "objective": 16,
-   "pool": "sim",
-   "scenario": "Una empresa de energía tiene en el `.claude/settings.json` commiteado un deny de `Read(./secrets/**)`. En una auditoría descubren que Claude corrió `python scripts/diagnostico.py`, un script del repo que abre `secrets/db.json` y vuelca su contenido a la consola. Compliance exige que ningún proceso lanzado desde Claude Code pueda leer esa carpeta, sea cual sea el comando. ¿Qué agregan?",
-   "options": [
-    "Un deny de `Bash(python *)`, que bloquea cualquier script capaz de leer `secrets/` por su cuenta.",
-    "Una línea en CLAUDE.md: \"nunca ejecutes scripts que lean secrets/\", ya que los deny cubren las tools built-in.",
-    "El sandbox, que aplica la restricción a nivel sistema operativo para los comandos y sus procesos hijos.",
-    "Un deny de `Edit(./secrets/**)`, porque Read cubre solo la tool Read y Edit cubre también los subprocesos."
-   ],
-   "correct": 2,
-   "why_correct": "Los deny de Read y Edit cubren las tools de archivos y los comandos que Claude Code reconoce, pero no a un script que abre archivos por su cuenta. Para que ningún proceso pueda acceder a un path, la doc indica activar el sandbox, que aplica a nivel sistema operativo.",
-   "why_wrong": {
-    "0": "Bloquea Python, pero no Node, Ruby ni cualquier otro programa. No cumple \"sea cual sea el comando\".",
-    "1": "CLAUDE.md es guía, no enforcement. Compliance pide una garantía.",
-    "3": "Edit tampoco cubre subprocesos que abren archivos solos. Ese límite aplica igual a Read y a Edit."
-   },
-   "rule": "Deny de Read/Edit no frena a un script que abre archivos solo: para eso, sandbox.",
-   "source_url": "https://code.claude.com/docs/en/permissions",
-   "source_quote": "For OS-level enforcement that blocks all processes from accessing a path, enable the sandbox.",
-   "status": "verificada",
-   "verification": {
-    "date": "2026-11-13",
-    "verdict": "ok",
-    "notes": "Respaldo textual en permissions: los deny de Read/Edit no cubren subprocesos que abren archivos; sandbox para enforcement a nivel SO."
-   }
-  },
-  {
-   "id": "o16-s02",
-   "objective": 16,
-   "pool": "sim",
-   "scenario": "En una software factory, el `.claude/settings.json` del repo tiene `\"deny\": [\"Bash(git push *)\"]`. El equipo de releases escribió un hook `PreToolUse` que devuelve `\"allow\"` cuando el comando es `git push origin release/...`, para que Claude pueda publicar ramas de release. El hook corre y devuelve allow, pero el push sigue bloqueado. ¿Qué tienen que cambiar?",
-   "options": [
-    "La regla deny: el allow de un `PreToolUse` no saltea un deny; hay que acotarla para que no matchee esos push.",
-    "El hook: tiene que salir con código 0 en lugar de devolver JSON, porque el exit 0 aprueba la llamada.",
-    "La ubicación del hook: registrado en `~/.claude/settings.json`, su allow tiene prioridad sobre el deny del proyecto.",
-    "Nada en settings: agregar al CLAUDE.md que los push a `release/` están permitidos, y el modelo deja de bloquearlos."
-   ],
-   "correct": 0,
-   "why_correct": "Las decisiones de un hook `PreToolUse` no saltean las reglas de permisos: un deny que matchea bloquea aunque el hook diga allow. Si esos push tienen que pasar, hay que cambiar la regla deny (por ejemplo, acotarla a las ramas protegidas).",
-   "why_wrong": {
-    "1": "Un exit 0 no aprueba nada: la llamada sigue por el flujo normal de permisos y el deny la bloquea igual.",
-    "2": "Un deny en cualquier nivel no lo revierte nada de otro nivel. Mover el hook no cambia la precedencia.",
-    "3": "El bloqueo no lo hace el modelo, lo hace Claude Code con la regla deny. CLAUDE.md no lo cambia."
-   },
-   "rule": "Deny gana siempre: ni un allow de hook ni un allow de otro nivel lo revierten.",
-   "source_url": "https://code.claude.com/docs/en/permissions",
-   "source_quote": "PreToolUse hook decisions don't bypass permission rules.",
-   "status": "verificada",
-   "verification": {
-    "date": "2026-11-13",
-    "verdict": "ok",
-    "notes": "Respaldo directo en permissions: 'a matching deny rule blocks the call... even when the hook returned allow'. Acotar el deny es la única salida dentro de la regla."
-   }
-  },
-  {
-   "id": "o16-s03",
-   "objective": 16,
-   "pool": "sim",
-   "scenario": "Lucía trabaja en una consultora, en 8 repos de distintos clientes. Tiene un procedimiento propio de 10 pasos para preparar su standup (revisar commits, PRs abiertos, armar el resumen) que hoy pega a mano en el chat. Quiere invocarlo con `/standup` en cualquier repo, sin tocar los repos de los clientes y sin que ocupe contexto cuando no lo usa. ¿Dónde lo pone?",
-   "options": [
-    "En `~/.claude/CLAUDE.md`, que es personal y se carga en todos sus proyectos sin tocar ningún repo.",
-    "En `.claude/skills/standup/SKILL.md` de cada repo, sumando esa ruta al `.gitignore` de cada cliente.",
-    "En `~/.claude/rules/standup.md` con `paths: [\"**/*\"]`, para que solo se cargue cuando toca archivos.",
-    "En `~/.claude/skills/standup/SKILL.md`, una skill personal disponible en todos sus proyectos."
-   ],
-   "correct": 3,
-   "why_correct": "Un procedimiento de varios pasos que pegás seguido es una skill: su contenido se carga solo cuando se usa. En `~/.claude/skills/` es personal y vale para todos tus proyectos, sin tocar los repos de los clientes.",
-   "why_wrong": {
-    "0": "CLAUDE.md se carga en cada sesión: ocuparía contexto siempre. Y no crea `/standup`.",
-    "1": "Toca los repos de los clientes (y su `.gitignore`), justo lo que quiere evitar.",
-    "2": "Una regla con `paths: [\"**/*\"]` se carga en cuanto toca cualquier archivo, y no crea un comando `/standup`."
-   },
-   "rule": "Procedimiento personal, en todos tus repos, invocable → `~/.claude/skills/`.",
-   "source_url": "https://code.claude.com/docs/en/skills",
-   "source_quote": "Create a skill when you keep pasting the same instructions, checklist, or multi-step procedure into chat",
-   "status": "verificada",
-   "verification": {
-    "date": "2026-11-13",
-    "verdict": "ok",
-    "notes": "Cita textual en skills; ~/.claude/skills es personal y vale en todos los proyectos."
-   }
-  },
-  {
-   "id": "o16-s04",
-   "objective": 16,
-   "pool": "sim",
-   "scenario": "Una empresa con 400 devs y unos 300 repos quiere que Claude, en todas las máquinas, siga la guía de estilo corporativa: cómo nombrar servicios y qué encabezado de licencia usar. Es una guía, no un bloqueo de herramientas. Ya vieron que los devs excluyen con `claudeMdExcludes` los CLAUDE.md que no les gustan, y esta guía no tiene que poder excluirse así. ¿Qué usan?",
-   "options": [
-    "Un `deny` en managed settings con las reglas de estilo, que ningún dev puede sobrescribir.",
-    "Un CLAUDE.md gestionado (managed policy) que IT despliega y `claudeMdExcludes` no excluye.",
-    "Un CLAUDE.md en la raíz de cada repo, más un hook que falle si alguien lo borra o lo edita.",
-    "Un `~/.claude/CLAUDE.md` copiado a cada máquina con el script de onboarding de la empresa."
-   ],
-   "correct": 1,
-   "why_correct": "Para guía a nivel organización existe el CLAUDE.md gestionado, que despliega IT en una ruta del sistema. Los devs pueden excluir otros CLAUDE.md con `claudeMdExcludes`, pero no ese.",
-   "why_wrong": {
-    "0": "Los deny bloquean tools. No sirven para expresar \"nombrá los servicios así\": es guía, no permiso.",
-    "2": "Son 300 repos para mantener, y un CLAUDE.md de proyecto sí se puede excluir con `claudeMdExcludes`.",
-    "3": "Es un archivo del usuario: cada dev lo puede editar o borrar. No hay control central."
-   },
-   "rule": "Guía para toda la organización, sin opción de excluirla → CLAUDE.md gestionado. Bloqueo → managed settings.",
-   "source_url": "https://code.claude.com/docs/en/memory",
-   "source_quote": "Developers can exclude other CLAUDE.md files with the claudeMdExcludes setting, but not this one.",
-   "status": "verificada",
-   "verification": {
-    "date": "2026-11-13",
-    "verdict": "ok",
-    "notes": "Cita textual en memory: el CLAUDE.md gestionado no se puede excluir con claudeMdExcludes."
-   }
-  },
-  {
-   "id": "o16-s05",
-   "objective": 16,
-   "pool": "sim",
-   "scenario": "En el monorepo de una agencia crearon `.claude/rules/terraform.md` con el frontmatter `globs: [\"infra/**/*.tf\"]`. La idea era que esas 80 líneas de convenciones de Terraform se cargaran solo al trabajar en `infra/`. Notan que están en contexto en todas las sesiones, incluso cuando trabajan en el frontend, y Claude Code no mostró ningún error. ¿Qué corrigen?",
-   "options": [
-    "Dejar `globs` y correr `/reload-skills`, porque las reglas nuevas recién se registran con ese comando.",
-    "Pasar las convenciones al final del CLAUDE.md raíz, bajo un título que diga \"Solo para infra/\".",
-    "Cambiar `globs` por `paths`: es el único campo que se lee de una regla, y los demás se ignoran sin error.",
-    "Convertir la regla en una skill con `disable-model-invocation: true`, que se carga sola al tocar archivos `.tf`."
-   ],
-   "correct": 2,
-   "why_correct": "De una regla, Claude Code solo lee `paths`; cualquier otro campo se ignora sin error. Una regla sin `paths` se carga al arrancar, como `.claude/CLAUDE.md`. Con `paths: [\"infra/**/*.tf\"]` se carga solo al trabajar con esos archivos.",
-   "why_wrong": {
-    "0": "`/reload-skills` es para skills. Y la regla ya se está cargando: el problema es que se carga siempre.",
-    "1": "El CLAUDE.md raíz se carga en cada sesión: el título no evita nada.",
-    "3": "Con `disable-model-invocation: true`, la skill solo se carga cuando VOS la invocás; no se carga sola al tocar archivos."
-   },
-   "rule": "Regla acotada por archivos → frontmatter `paths`. Otro nombre de campo = regla que se carga siempre.",
-   "source_url": "https://code.claude.com/docs/en/memory",
-   "source_quote": "paths is the only field Claude Code reads from a rule; any other field is ignored without an error.",
-   "status": "verificada",
-   "verification": {
-    "date": "2026-11-13",
-    "verdict": "ok",
-    "notes": "Cita textual en memory: paths es el único campo que se lee de una regla."
-   }
-  }
- ]
+  "objective": 16,
+  "questions": [
+    {
+      "id": "o16-s01",
+      "objective": 16,
+      "pool": "sim",
+      "scenario": "Una empresa de energía tiene en el `.claude/settings.json` commiteado un deny de `Read(./secrets/**)`. En una auditoría descubren que Claude corrió `python scripts/diagnostico.py`, un script del repo que abre `secrets/db.json` y vuelca su contenido a la consola. Compliance exige que ningún proceso lanzado desde Claude Code pueda leer esa carpeta, sea cual sea el comando. ¿Qué agregan?",
+      "options": [
+        "Un deny de `Bash(python *)`, que bloquea cualquier script capaz de leer `secrets/` por su cuenta.",
+        "Una línea en CLAUDE.md: \"nunca ejecutes scripts que lean secrets/\", ya que los deny cubren las tools built-in.",
+        "El sandbox, que aplica la restricción a nivel sistema operativo para los comandos y sus procesos hijos.",
+        "Un deny de `Edit(./secrets/**)`, porque Read cubre solo la tool Read y Edit cubre también los subprocesos."
+      ],
+      "correct": 2,
+      "why_correct": "Los deny de Read y Edit cubren las tools de archivos y los comandos que Claude Code reconoce, pero no a un script que abre archivos por su cuenta. Para que ningún proceso pueda acceder a un path, la doc indica activar el sandbox, que aplica a nivel sistema operativo.",
+      "why_wrong": {
+        "0": "Bloquea Python, pero no Node, Ruby ni cualquier otro programa. No cumple \"sea cual sea el comando\".",
+        "1": "CLAUDE.md es guía, no enforcement. Compliance pide una garantía.",
+        "3": "Edit tampoco cubre subprocesos que abren archivos solos. Ese límite aplica igual a Read y a Edit."
+      },
+      "rule": "Deny de Read/Edit no frena a un script que abre archivos solo: para eso, sandbox.",
+      "source_url": "https://code.claude.com/docs/en/permissions",
+      "source_quote": "For OS-level enforcement that blocks all processes from accessing a path, enable the sandbox.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Respaldo textual en permissions: los deny de Read/Edit no cubren subprocesos que abren archivos; sandbox para enforcement a nivel SO. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o16-s02",
+      "objective": 16,
+      "pool": "sim",
+      "scenario": "En una software factory, el `.claude/settings.json` del repo tiene `\"deny\": [\"Bash(git push *)\"]`. El equipo de releases escribió un hook `PreToolUse` que devuelve `\"allow\"` cuando el comando es `git push origin release/...`, para que Claude pueda publicar ramas de release. El hook corre y devuelve allow, pero el push sigue bloqueado. ¿Qué tienen que cambiar?",
+      "options": [
+        "La regla deny: el allow de un `PreToolUse` no saltea un deny; hay que acotarla para que no matchee esos push.",
+        "El hook: tiene que salir con código 0 en lugar de devolver JSON, porque el exit 0 aprueba la llamada.",
+        "La ubicación del hook: registrado en `~/.claude/settings.json`, su allow tiene prioridad sobre el deny del proyecto.",
+        "Nada en settings: agregar al CLAUDE.md que los push a `release/` están permitidos, y el modelo deja de bloquearlos."
+      ],
+      "correct": 0,
+      "why_correct": "Las decisiones de un hook `PreToolUse` no saltean las reglas de permisos: un deny que matchea bloquea aunque el hook diga allow. Si esos push tienen que pasar, hay que cambiar la regla deny (por ejemplo, acotarla a las ramas protegidas).",
+      "why_wrong": {
+        "1": "Un exit 0 no aprueba nada: la llamada sigue por el flujo normal de permisos y el deny la bloquea igual.",
+        "2": "Un deny en cualquier nivel no lo revierte nada de otro nivel. Mover el hook no cambia la precedencia.",
+        "3": "El bloqueo no lo hace el modelo, lo hace Claude Code con la regla deny. CLAUDE.md no lo cambia."
+      },
+      "rule": "Deny gana siempre: ni un allow de hook ni un allow de otro nivel lo revierten.",
+      "source_url": "https://code.claude.com/docs/en/permissions",
+      "source_quote": "PreToolUse hook decisions don't bypass permission rules.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Respaldo directo en permissions: 'a matching deny rule blocks the call... even when the hook returned allow'. Acotar el deny es la única salida dentro de la regla. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o16-s03",
+      "objective": 16,
+      "pool": "sim",
+      "scenario": "Lucía trabaja en una consultora, en 8 repos de distintos clientes. Tiene un procedimiento propio de 10 pasos para preparar su standup (revisar commits, PRs abiertos, armar el resumen) que hoy pega a mano en el chat. Quiere invocarlo con `/standup` en cualquier repo, sin tocar los repos de los clientes y sin que ocupe contexto cuando no lo usa. ¿Dónde lo pone?",
+      "options": [
+        "En `~/.claude/CLAUDE.md`, que es personal y se carga en todos sus proyectos sin tocar ningún repo.",
+        "En `.claude/skills/standup/SKILL.md` de cada repo, sumando esa ruta al `.gitignore` de cada cliente.",
+        "En `~/.claude/rules/standup.md` con `paths: [\"**/*\"]`, para que solo se cargue cuando toca archivos.",
+        "En `~/.claude/skills/standup/SKILL.md`, una skill personal disponible en todos sus proyectos."
+      ],
+      "correct": 3,
+      "why_correct": "Un procedimiento de varios pasos que pegás seguido es una skill: su contenido se carga solo cuando se usa. En `~/.claude/skills/` es personal y vale para todos tus proyectos, sin tocar los repos de los clientes.",
+      "why_wrong": {
+        "0": "CLAUDE.md se carga en cada sesión: ocuparía contexto siempre. Y no crea `/standup`.",
+        "1": "Toca los repos de los clientes (y su `.gitignore`), justo lo que quiere evitar.",
+        "2": "Una regla con `paths: [\"**/*\"]` se carga en cuanto toca cualquier archivo, y no crea un comando `/standup`."
+      },
+      "rule": "Procedimiento personal, en todos tus repos, invocable → `~/.claude/skills/`.",
+      "source_url": "https://code.claude.com/docs/en/skills",
+      "source_quote": "Create a skill when you keep pasting the same instructions, checklist, or multi-step procedure into chat",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en skills; ~/.claude/skills es personal y vale en todos los proyectos. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o16-s04",
+      "objective": 16,
+      "pool": "sim",
+      "scenario": "Una empresa con 400 devs y unos 300 repos quiere que Claude, en todas las máquinas, siga la guía de estilo corporativa: cómo nombrar servicios y qué encabezado de licencia usar. Es una guía, no un bloqueo de herramientas. Ya vieron que los devs excluyen con `claudeMdExcludes` los CLAUDE.md que no les gustan, y esta guía no tiene que poder excluirse así. ¿Qué usan?",
+      "options": [
+        "Un `deny` en managed settings con las reglas de estilo, que ningún dev puede sobrescribir.",
+        "Un CLAUDE.md gestionado (managed policy) que IT despliega y `claudeMdExcludes` no excluye.",
+        "Un CLAUDE.md en la raíz de cada repo, más un hook que falle si alguien lo borra o lo edita.",
+        "Un `~/.claude/CLAUDE.md` copiado a cada máquina con el script de onboarding de la empresa."
+      ],
+      "correct": 1,
+      "why_correct": "Para guía a nivel organización existe el CLAUDE.md gestionado, que despliega IT en una ruta del sistema. Los devs pueden excluir otros CLAUDE.md con `claudeMdExcludes`, pero no ese.",
+      "why_wrong": {
+        "0": "Los deny bloquean tools. No sirven para expresar \"nombrá los servicios así\": es guía, no permiso.",
+        "2": "Son 300 repos para mantener, y un CLAUDE.md de proyecto sí se puede excluir con `claudeMdExcludes`.",
+        "3": "Es un archivo del usuario: cada dev lo puede editar o borrar. No hay control central."
+      },
+      "rule": "Guía para toda la organización, sin opción de excluirla → CLAUDE.md gestionado. Bloqueo → managed settings.",
+      "source_url": "https://code.claude.com/docs/en/memory",
+      "source_quote": "Developers can exclude other CLAUDE.md files with the claudeMdExcludes setting, but not this one.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en memory: el CLAUDE.md gestionado no se puede excluir con claudeMdExcludes. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o16-s05",
+      "objective": 16,
+      "pool": "sim",
+      "scenario": "En el monorepo de una agencia crearon `.claude/rules/terraform.md` con el frontmatter `globs: [\"infra/**/*.tf\"]`. La idea era que esas 80 líneas de convenciones de Terraform se cargaran solo al trabajar en `infra/`. Notan que están en contexto en todas las sesiones, incluso cuando trabajan en el frontend, y Claude Code no mostró ningún error. ¿Qué corrigen?",
+      "options": [
+        "Dejar `globs` y correr `/reload-skills`, porque las reglas nuevas recién se registran con ese comando.",
+        "Pasar las convenciones al final del CLAUDE.md raíz, bajo un título que diga \"Solo para infra/\".",
+        "Cambiar `globs` por `paths`: es el único campo que se lee de una regla, y los demás se ignoran sin error.",
+        "Convertir la regla en una skill con `disable-model-invocation: true`, que se carga sola al tocar archivos `.tf`."
+      ],
+      "correct": 2,
+      "why_correct": "De una regla, Claude Code solo lee `paths`; cualquier otro campo se ignora sin error. Una regla sin `paths` se carga al arrancar, como `.claude/CLAUDE.md`. Con `paths: [\"infra/**/*.tf\"]` se carga solo al trabajar con esos archivos.",
+      "why_wrong": {
+        "0": "`/reload-skills` es para skills. Y la regla ya se está cargando: el problema es que se carga siempre.",
+        "1": "El CLAUDE.md raíz se carga en cada sesión: el título no evita nada.",
+        "3": "Con `disable-model-invocation: true`, la skill solo se carga cuando VOS la invocás; no se carga sola al tocar archivos."
+      },
+      "rule": "Regla acotada por archivos → frontmatter `paths`. Otro nombre de campo = regla que se carga siempre.",
+      "source_url": "https://code.claude.com/docs/en/memory",
+      "source_quote": "paths is the only field Claude Code reads from a rule; any other field is ignored without an error.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en memory: paths es el único campo que se lee de una regla. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o16-s21",
+      "objective": 16,
+      "pool": "sim",
+      "scenario": "A consulting firm with 300 engineers working across roughly 200 client repositories had an incident: during a debugging session, Claude Code posted part of a client's source to a public paste site. Security added `Never send code to external paste or upload sites` to a managed CLAUDE.md deployed through MDM, but a red-team test still got Claude to call `WebFetch` against `paste.example.net`. The control must apply on every machine and in every repository, including repositories created next month, and individual engineers must not be able to opt out. Which mechanism should security use?",
+      "options": [
+        "Managed settings with a `permissions.deny` rule for `WebFetch(domain:paste.example.net)`, which no user or project file can override.",
+        "A deny rule for `WebFetch(domain:paste.example.net)` committed to `.claude/settings.json` in each of the 200 client repositories.",
+        "The same deny rule in each engineer's `~/.claude/settings.json`, installed on every laptop by the onboarding script.",
+        "Keep the managed CLAUDE.md but restate the rule as a numbered policy marked IMPORTANT, since developers can't exclude that file."
+      ],
+      "correct": 0,
+      "why_correct": "Hace falta enforcement (deny), con alcance de organización (managed). Los managed settings vienen de la consola de admin, MDM o un `managed-settings.json`, y ningún archivo personal los puede pisar: según la doc, son el único lugar para la política de un equipo de seguridad. Ojo: un deny de `WebFetch` no frena un `curl` al mismo dominio salvo que el sandbox esté activo.",
+      "why_wrong": {
+        "1": "El deny de proyecto se aplica, pero solo en esos 200 repos: no cubre los repos nuevos ni los personales, y cada repo puede cambiar su archivo.",
+        "2": "`~/.claude/settings.json` es del propio usuario: lo puede editar o borrar, así que se puede excluir.",
+        "3": "Casi: es verdad que el CLAUDE.md managed no se puede excluir, pero sigue siendo guidance. La doc dice que lo uses para orientar y que hagas cumplir con managed settings como `permissions.deny`."
+      },
+      "rule": "Política de seguridad para toda la org → managed settings (`permissions.deny`). El CLAUDE.md managed solo orienta.",
+      "source_url": "https://code.claude.com/docs/en/best-practices",
+      "source_quote": "They come from the admin console, MDM, or a managed-settings.json file, and no personal settings file can override them, which makes them the only place for a security team's policy.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "best-practices + memory: managed settings no se pueden pisar y son el lugar para la política; el CLAUDE.md managed es guidance, enforce con permissions.deny. Cita textual."
+      }
+    },
+    {
+      "id": "o16-s22",
+      "objective": 16,
+      "pool": "sim",
+      "scenario": "A team's CLAUDE.md lists `pnpm tsc --noEmit` and says `Always typecheck before you finish`. In unattended cloud sessions, Claude sometimes ends its turn with a summary saying the work is done while the typecheck is red, and the PR fails CI the next morning. One engineer proposes `/goal typecheck passes` for those sessions; another proposes a `PostToolUse` hook that runs `tsc` after every edit. The team wants Claude Code itself to refuse to let the turn end until the typecheck passes, independent of any model's judgment. Which mechanism is correct?",
+      "options": [
+        "Use `/goal typecheck passes and lint is clean`, which re-checks the condition after every turn and sends Claude back to work.",
+        "A `PostToolUse` hook on `Edit|Write` that runs `pnpm tsc --noEmit` after every edit and prints the compiler errors.",
+        "A `Stop` hook running `pnpm tsc --noEmit 1>&2 || exit 2`, so a failing typecheck blocks the stop and the errors reach Claude.",
+        "Move the instruction into a skill with `disable-model-invocation: true`, so the typecheck runs only through an explicit `/typecheck`."
+      ],
+      "correct": 2,
+      "why_correct": "Un `Stop` hook corre cada vez que Claude intenta terminar el turno, y si sale con código 2 lo manda de vuelta a trabajar; lo que imprime en stderr le llega como motivo. Lo aplica el harness, así que el turno no termina hasta que pase el typecheck (o se llegue al límite de bloqueos).",
+      "why_wrong": {
+        "0": "Casi: `/goal` sí manda a Claude de vuelta, pero la condición la evalúa otro modelo contra la conversación. La doc lo pone del lado no determinístico.",
+        "1": "Corre `tsc`, pero cuando la tool ya se ejecutó, y no impide que Claude termine el turno con el typecheck en rojo.",
+        "3": "No automatiza nada: depende de que alguien escriba `/typecheck`, en sesiones que justamente son desatendidas."
+      },
+      "rule": "\"No terminés hasta que X pase\" → `Stop` hook con exit 2. `/goal` es un modelo juzgando.",
+      "source_url": "https://code.claude.com/docs/en/best-practices",
+      "source_quote": "This one is enforced by Claude Code (the harness), so the turn doesn't end until the typecheck passes or the block limit is reached.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "best-practices: /goal lo chequea otro modelo; Stop hook con exit 2 lo aplica el harness hasta el límite de bloqueos. Cita textual."
+      }
+    },
+    {
+      "id": "o16-s23",
+      "objective": 16,
+      "pool": "sim",
+      "scenario": "A team uses a `PreToolUse` hook on `Bash` that inspects `git commit` calls to stop commits containing secrets. To avoid maintaining regexes, they configured it as `\"type\": \"prompt\"`, asking a model whether the staged diff contains credentials. A quarterly audit found two commits with live API keys: in one, the model judged the key to be a placeholder; in the other, the hook timed out during an API slowdown and the commit went through. Security wants commits blocked whenever a secret is present and also whenever the scanner itself cannot run. What should they change?",
+      "options": [
+        "Keep the `prompt` hook and add `onFailure: \"block\"`, so timeouts no longer let commits through when the evaluating model is slow.",
+        "Switch to an `agent` hook, so the verifier can read the staged files with tools and reach a more reliable decision on each commit.",
+        "Add `Never commit secrets; run the scanner first` to CLAUDE.md as a backup for the cases where the hook misses a key.",
+        "Use a `command` hook that runs a deterministic secret scanner and exits 2 on findings, with `onFailure: \"block\"` set on it."
+      ],
+      "correct": 3,
+      "why_correct": "Un hook `prompt` o `agent` le pide a OTRO modelo que decida, así que tampoco es determinístico: así pasó el primer key. Para enforcement real, la doc dice usar un hook `command`, `http` o `mcp_tool`, y agregar `onFailure: \"block\"` si la acción también tiene que frenarse cuando el hook falla o se cuelga, que fue el segundo caso.",
+      "why_wrong": {
+        "0": "Casi: apunta al timeout, pero `onFailure` no es un campo de los hooks `prompt`: la doc lo documenta solo para hooks `command`, `http` y `mcp_tool` (los `prompt`/`agent` suman solo `prompt` y `model`). Y aunque existiera, la decisión seguiría siendo de un modelo, que es como pasó el key \"placeholder\".",
+        "1": "Un `agent` hook sigue siendo un modelo decidiendo, con más herramientas: no lo vuelve determinístico.",
+        "2": "Guidance como respaldo de un control de seguridad: no agrega ninguna garantía."
+      },
+      "rule": "Enforcement real = hook `command`/`http`/`mcp_tool` + `onFailure: \"block\"`. Los hooks `prompt`/`agent` son juicio de modelo.",
+      "source_url": "https://code.claude.com/docs/en/best-practices",
+      "source_quote": "For real enforcement, use a command, http, or mcp_tool hook, and add onFailure: \"block\" if the action should also be stopped when the hook itself crashes or times out.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "corregida",
+        "notes": "best-practices + hooks: correcta confirmada (command hook determinístico + onFailure:block; onFailure solo existe para command/http/mcp_tool, no está en los campos comunes ni en los de prompt/agent). Cita textual. Corregí why_wrong[0]: decía que onFailure 'tapa el timeout' en un hook prompt; la doc no documenta ese campo para hooks prompt."
+      }
+    },
+    {
+      "id": "o16-s24",
+      "objective": 16,
+      "pool": "sim",
+      "scenario": "A team runs Claude Code in CI on Linux runners to debug failing integration tests. The repo's `.claude/settings.json` has `\"deny\": [\"Read(./.env.ci)\"]` because that file holds production-like credentials. A log review shows Claude couldn't open `.env.ci` with `Read` or `cat`, but it then ran `python scripts/print_config.py`, an existing helper that loads and prints every variable from `.env.ci`, and the credentials ended up in the job log. The team needs an OS-level guarantee for shell commands, and the helper script must stay usable for other files. What should they add?",
+      "options": [
+        "Enable the sandbox and turn off its unsandboxed retry, so shell commands are confined and the `Read` deny rule applies to them.",
+        "Add `Bash(python *)` to `deny`, so no Python process can start that could read the protected file indirectly.",
+        "Add a `PostToolUse` hook on `Bash` that scrubs anything resembling a credential from the command output.",
+        "Add `Edit(./.env.ci)` and `Write(./.env.ci)` deny rules next to `Read`, which together also cover reads made by any child processes."
+      ],
+      "correct": 0,
+      "why_correct": "Las reglas `Read` cubren la tool `Read` y los comandos comunes de lectura como `cat`, pero no los subprocesos que abren archivos por su cuenta, como un script de Python. Para enforcement a nivel de sistema operativo, la doc dice: activá el sandbox y apagá el reintento fuera del sandbox. El sandbox además toma tus reglas `Read` deny.",
+      "why_wrong": {
+        "1": "Casi: frena este caso, pero deja inutilizable el helper (que tenía que seguir andando) y no cubre `node` ni cualquier otro intérprete.",
+        "2": "Trata el síntoma después de que el script ya leyó el archivo, y depende de detectar patrones: no es una garantía.",
+        "3": "Esas reglas son para editar y escribir; no cubren lecturas de subprocesos. La doc dice que ninguna regla de archivo alcanza a scripts que abren archivos por su cuenta."
+      },
+      "rule": "Deny rules de archivos ≠ subprocesos. Para garantía real en la shell: sandbox, con el reintento fuera del sandbox apagado.",
+      "source_url": "https://code.claude.com/docs/en/permissions",
+      "source_quote": "They also don't apply to arbitrary subprocesses that read or write files indirectly, like a Python or Node script that opens files itself. For OS-level enforcement on sandboxed shell commands, enable the sandbox and turn off the unsandboxed retry.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "permissions: Read/Edit deny no alcanzan subprocesos (Python/Node); sandbox + apagar el reintento fuera del sandbox; best-practices: el sandbox toma las reglas Read deny. Cita textual."
+      }
+    },
+    {
+      "id": "o16-s25",
+      "objective": 16,
+      "pool": "sim",
+      "scenario": "A developer on Windows works in his team's API repository, whose committed `.claude/settings.json` holds the team's shared permission rules. He runs `docker compose up -d` dozens of times a day and is tired of approving it. He opened a PR adding `Bash(docker compose up *)` to the shared `allow` list; reviewers rejected it because the rest of the team wants to keep that prompt. He wants the approval only for himself, only in this repository, and without committing anything. Claude Code can run the command through either its `Bash` or `PowerShell` tool on his machine. What should he do?",
+      "options": [
+        "Add both rules to `allow` in `$HOME\\.claude\\settings.json`, which only he uses and which outranks the committed project settings.",
+        "Write `You may run docker compose up without asking me` in a gitignored `CLAUDE.local.md` at the root of the repository.",
+        "Add `Bash(docker compose up *)` and `PowerShell(docker compose up *)` to `allow` in the repo's `.claude/settings.local.json`.",
+        "Launch each session through a PowerShell profile function that runs `claude --allowedTools \"Bash(docker compose up *)\"`."
+      ],
+      "correct": 2,
+      "why_correct": "Para cambiar un setting solo para vos, en un solo proyecto, sin tocarlo para el equipo, la doc indica `.claude/settings.local.json` dentro del proyecto. Claude Code lo aplica encima del `.claude/settings.json` commiteado y lo mantiene fuera de git cuando lo crea él; si lo creás a mano, lo agregás a `.gitignore`. Las dos reglas cubren las dos tools de shell de Windows.",
+      "why_wrong": {
+        "0": "`~/.claude/settings.json` aplica a TODOS sus proyectos, no solo a este, y en precedencia está por debajo de los settings de proyecto.",
+        "1": "`CLAUDE.local.md` es guidance: cambia lo que Claude intenta, no lo que Claude Code permite. El prompt de permiso seguiría apareciendo.",
+        "3": "Le aplica a cualquier repo donde use esa función, solo cubre la tool `Bash` y depende de acordarse de arrancar así."
+      },
+      "rule": "Personal + este repo + sin commit → `.claude/settings.local.json`. Personal + todos los repos → `~/.claude/settings.json`.",
+      "source_url": "https://code.claude.com/docs/en/settings",
+      "source_quote": "To change a setting for yourself in one project without changing it for your teammates, save it in .claude/settings.local.json inside the project.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "settings: .claude/settings.local.json para un setting personal en un proyecto; permissions: PowerShell(...) usa la misma forma que Bash; ~/.claude aplica a todos los repos y está debajo del proyecto. Cita textual."
+      }
+    },
+    {
+      "id": "o16-s26",
+      "objective": 16,
+      "pool": "sim",
+      "scenario": "A platform team wants Claude to push release branches without prompting but keep a confirmation for every other push. The committed `.claude/settings.json` has `\"ask\": [\"Bash(git push *)\"]`. They added `\"allow\": [\"Bash(git push origin release/*)\"]`, and when that still prompted, they wrote a `PreToolUse` hook that returns `permissionDecision: \"allow\"` for pushes to `release/*`. Pushes to release branches still prompt every time, and pushes elsewhere prompt as intended. The team wants one consistent setup, checked into the repo, for all 12 developers. Which change achieves the goal?",
+      "options": [
+        "Move the specific `allow` rule above the `ask` rule in the file, since Claude Code evaluates permission rules from top to bottom.",
+        "Move the `allow` rule into `.claude/settings.local.json`, which has higher precedence than the shared project settings file.",
+        "Keep both rules and make the hook exit 0 instead of returning JSON, so Claude Code treats the push as approved by the hook.",
+        "Remove the broad `ask` rule and let the `PreToolUse` hook return `ask` for other pushes and `allow` for pushes to `release/*`."
+      ],
+      "correct": 3,
+      "why_correct": "Las reglas se evalúan en orden fijo: deny, después ask, después allow; la especificidad no cambia ese orden, así que el `ask` amplio gana siempre. Y una decisión de un `PreToolUse` hook no saltea las reglas: si matchea un `ask`, igual pregunta aunque el hook diga `allow`. Sacando el `ask` amplio, el hook decide los dos casos.",
+      "why_wrong": {
+        "0": "El orden no es el del archivo: siempre es deny → ask → allow, sin importar dónde esté escrita cada regla.",
+        "1": "Las listas de permisos de los distintos archivos se combinan, y el `ask` sigue matcheando primero. La precedencia de archivos no cambia el orden deny → ask → allow.",
+        "2": "Un exit 0 de un `PreToolUse` hook no aprueba nada: la llamada sigue el flujo normal de permisos, y el `ask` vuelve a preguntar."
+      },
+      "rule": "deny → ask → allow, siempre. Un hook `allow` no le gana a una regla `ask` o `deny`.",
+      "source_url": "https://code.claude.com/docs/en/permissions",
+      "source_quote": "PreToolUse hook decisions don't bypass permission rules. Claude Code evaluates deny and ask rules regardless of what a PreToolUse hook returns: a matching deny rule blocks the call, and a matching ask rule still prompts even when the hook returned \"allow\" or \"ask\".",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "permissions: los hooks PreToolUse no saltean ask/deny; orden deny->ask->allow sin importar archivo ni orden. Cita textual."
+      }
+    }
+  ]
 }

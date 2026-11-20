@@ -60,7 +60,7 @@ test("ok", () => {});
 
 Fijate: en `src/` no hay ningún `eval(`. La ejecución dinámica está en `templates/` y usa `new Function`.
 
-Creamos `.claude\agents\` ANTES de abrir Claude Code: si la carpeta de agentes no existía al empezar la sesión, hay que reiniciar para que cargue.
+Creamos `.claude\agents\` ANTES de abrir Claude Code para arrancar prolijos. Claude Code vigila esa carpeta y toma un agente nuevo en pocos segundos, sin reiniciar.
 
 ### 1. Definí el subagente auditor (5 min)
 
@@ -132,6 +132,6 @@ En cada corrida, mirá la sección **NO CUBIERTO**. Con eso el coordinador (vos 
 
 ## Si algo falla
 
-- **El subagente no aparece:** revisá que el archivo esté en `.claude\agents\auditor.md` (con `Get-ChildItem .claude\agents`) y tenga `name` y `description` en el frontmatter. Si creaste la carpeta con la sesión abierta, reiniciá Claude Code.
+- **El subagente no aparece:** revisá que el archivo esté en `.claude\agents\auditor.md` (con `Get-ChildItem .claude\agents`) y tenga `name` y `description` en el frontmatter. Si igual no lo encuentra, reiniciá Claude Code y probá de nuevo (es lo que indica la doc).
 - **Claude no delega y lo hace él mismo:** nombrá al subagente explícitamente ("Usá el subagente auditor…") o usá @-mention.
 - **En el paso 2 igual lo encontró:** el modelo a veces se sale del guion. Hacé el guion todavía más cerrado y compará cuántas veces lo encuentra en 2–3 corridas.

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getObjectives, questionById, objectiveTitle } from "@/lib/content";
 import { allAnswers } from "@/lib/progress";
+import { Md } from "@/components/Md";
 
 const L = ["A", "B", "C", "D"];
 
@@ -40,11 +41,11 @@ export default async function Errores({ searchParams }: { searchParams: Promise<
                 <p className="text-xs text-muted">
                   Obj. {q.objective} · {w.day.slice(8, 10)}/{w.day.slice(5, 7)} · {w.mode === "sim" ? "simulacro" : w.mode === "review" ? "repaso" : "práctica"}
                 </p>
-                <p className="mt-1 whitespace-pre-line">{q.scenario}</p>
-                <p className="mt-2 text-bad">Elegiste: {w.chosen < 0 ? "sin responder" : `${L[w.chosen]}. ${q.options[w.chosen]}`}</p>
-                <p className="text-ok">Correcta: {L[q.correct]}. {q.options[q.correct]}</p>
-                <p className="mt-2">{q.why_correct}</p>
-                <p className="mt-2 rounded-lg bg-accent-soft p-2 font-semibold">📌 {q.rule}</p>
+                <p className="mt-1 whitespace-pre-line"><Md text={q.scenario} /></p>
+                <p className="mt-2 text-bad">Elegiste: {w.chosen < 0 ? "sin responder" : <>{L[w.chosen]}. <Md text={q.options[w.chosen]} /></>}</p>
+                <p className="text-ok">Correcta: {L[q.correct]}. <Md text={q.options[q.correct]} /></p>
+                <p className="mt-2"><Md text={q.why_correct} /></p>
+                <p className="mt-2 rounded-lg bg-accent-soft p-2 font-semibold">📌 <Md text={q.rule} /></p>
                 <a href={q.source_url} target="_blank" rel="noreferrer" className="mt-1 inline-block text-accent underline">Fuente oficial</a>
               </li>
             );

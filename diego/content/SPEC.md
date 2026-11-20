@@ -90,7 +90,7 @@ El banco original (en español, escenarios de un párrafo) quedó **reemplazado*
 
 **Idioma.** `scenario` y `options` en **inglés**, tal como en el examen. `why_correct`, `why_wrong` y `rule` en **español rioplatense** (nombres técnicos en inglés y entre backticks), porque son para que Diego entienda. `source_quote` sigue siendo textual en inglés.
 
-**Ids y archivos.** Las preguntas nuevas se escriben primero en `content/questions-en/obj-XX.json` (staging, la app no lo lee) con el mismo formato de siempre. Ids: práctica `oXX-q21`, `oXX-q22`…; simulacro `oXX-s21`, `oXX-s22`… (desde 21 para no chocar con las viejas). Después se mueven a `questions/obj-XX.json` y `questions/sim-obj-XX.json` y las viejas pasan a `descartada`.
+**Ids y archivos.** Las preguntas nuevas se generaron primero en `content/questions-en/obj-XX.json` (staging, la app no lo lee; se integró con `npx tsx scripts/merge-en.ts` y se borró). Para tandas futuras, mismo circuito. Ids: práctica `oXX-q21`, `oXX-q22`…; simulacro `oXX-s21`, `oXX-s22`… (desde 21 para no chocar con las viejas). Después se mueven a `questions/obj-XX.json` y `questions/sim-obj-XX.json` y las viejas pasan a `descartada`.
 
 **Anclar en los 6 escenarios oficiales del examen.** Cada pregunta transcurre en uno de estos contextos (variá entre ellos según lo que pida el objetivo):
 1. Customer Support Resolution Agent (agente con tools de pedidos/reembolsos, escalamiento a humanos, políticas).

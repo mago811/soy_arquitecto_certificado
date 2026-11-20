@@ -22,11 +22,11 @@
       "rule": "Sesión larga que empieza a hablar de \"patrones típicos\" → archivo de notas con los hallazgos, que se consulta.",
       "source_url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
       "source_quote": "Structured note-taking, or agentic memory, is a technique where the agent regularly writes notes persisted to memory outside of the context window. These notes get pulled back into the context window at later times.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "Cita textual (structured note-taking, NOTES.md) en el post de context engineering. Se cambió 'scratchpad' (término de la guía) por 'archivo de notas' en la regla."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual (structured note-taking, NOTES.md) en el post de context engineering. Se cambió 'scratchpad' (término de la guía) por 'archivo de notas' en la regla. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -50,11 +50,11 @@
       "rule": "Búsqueda amplia con mucha salida que no vas a volver a mirar → subagente, vuelve solo el resumen.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "By delegating these to a subagent, the verbose output stays in the subagent's context while only the relevant summary returns to your main conversation.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en sub-agents; /btw sin acceso a tools confirmado en interactive-mode."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en sub-agents; /btw sin acceso a tools confirmado en interactive-mode. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -78,11 +78,11 @@
       "rule": "Seguir la misma línea de trabajo con menos ruido → `/compact <foco>`. Tarea no relacionada → `/clear`.",
       "source_url": "https://code.claude.com/docs/en/context-window",
       "source_quote": "The summary keeps what you choose instead of what the automatic pass guesses is important.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en context-window (Compact with a focus, antes de una tarea larga). /context solo visualiza, /autocompact cambia el umbral, /clear empieza vacío (commands)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en context-window (Compact with a focus, antes de una tarea larga). /context solo visualiza, /autocompact cambia el umbral, /clear empieza vacío (commands). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -106,11 +106,11 @@
       "rule": "Tarea nueva sin relación → `/clear [nombre]`; para volver, `/resume`.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "It costs nothing, and it means the next task doesn't keep paying for the previous one's history.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en best-practices; /clear [name] etiqueta la conversación anterior para /resume (commands); /usage marca long context; /compact es un request grande (best-practices)."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en best-practices; /clear [name] etiqueta la conversación anterior para /resume (commands); /usage marca long context; /compact es un request grande (best-practices). · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -134,11 +134,11 @@
       "rule": "Instrucción que tiene que sobrevivir a la compactación → `CLAUDE.md` de la raíz, no el chat.",
       "source_url": "https://code.claude.com/docs/en/memory",
       "source_quote": "Project-root CLAUDE.md survives compaction: after `/compact`, Claude re-reads it from disk and re-injects it into the session.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en memory; context-window confirma que las reglas con paths: se resumen y se recargan on demand."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en memory; context-window confirma que las reglas con paths: se resumen y se recargan on demand. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -162,11 +162,11 @@
       "rule": "Necesitás retomar al subagente → `general-purpose` o custom (Explore y Plan son one-shot).",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "The built-in Explore and Plan agents are one-shot and return no agent ID, so Claude can't resume them.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en sub-agents; los subagentes retomados conservan historial completo."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en sub-agents; los subagentes retomados conservan historial completo. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -190,11 +190,11 @@
       "rule": "Subagente que debe acumular conocimiento del repo para el equipo → `memory: project`.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "`project` is the recommended default scope. It makes subagent knowledge shareable via version control.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual; rutas de memory user/local confirmadas en sub-agents."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual; rutas de memory user/local confirmadas en sub-agents. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -218,11 +218,11 @@
       "rule": "Trabajo de varios días → estado en archivos (JSON + notas + git), no en la conversación.",
       "source_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "source_quote": "Claude’s latest models are extremely effective at discovering state from the local filesystem.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "corregida",
-        "notes": "Cita textual en prompting best practices (multi-context window: progress.txt, tests.json, git). Se corrigió el distractor 3: /autocompact se guarda en user settings, no es 'solo la sesión actual'."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en prompting best practices (multi-context window: progress.txt, tests.json, git). Se corrigió el distractor 3: /autocompact se guarda en user settings, no es 'solo la sesión actual'. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -246,11 +246,11 @@
       "rule": "Subagentes que devuelven informes enormes → pedí resúmenes cortos de vuelta.",
       "source_url": "https://code.claude.com/docs/en/best-practices",
       "source_quote": "Ask for short summaries back, so twenty results don't fill your context anyway.",
-      "status": "verificada",
+      "status": "descartada",
       "verification": {
-        "date": "2026-11-13",
-        "verdict": "ok",
-        "notes": "Cita textual en best-practices."
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en best-practices. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
       }
     },
     {
@@ -274,11 +274,151 @@
       "rule": "Subagente de la fase siguiente → resumen de hallazgos previos dentro del prompt de delegación.",
       "source_url": "https://code.claude.com/docs/en/sub-agents",
       "source_quote": "It doesn't see your conversation history, the skills you've already invoked, or the files Claude has already read.",
+      "status": "descartada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "descartada",
+        "notes": "Cita textual en sub-agents (ventana fresca salvo fork); maxTurns y model: opus existen. · Reemplazada por el banco v2 (inglés, estilo examen) el 2026-11-20."
+      }
+    },
+    {
+      "id": "o20-q21",
+      "objective": 20,
+      "pool": "practice",
+      "scenario": "A payments team uses Claude Code for long exploration sessions in a large monorepo. Their security rule 'Never log card numbers, CVV, or full PAN; use the masked `last4` field' lives in `.claude/rules/payments-logging.md` with `paths: [\"src/payments/**\"]`. Early in a three-hour session Claude read several payments files and followed the rule. After automatic compaction, while answering design questions and drafting a logging helper in `src/shared/telemetry/`, Claude proposed logging `card.number`. `/context` shows the rule is no longer loaded. The security lead wants the rule in force for the whole session, including after compaction and in files outside `src/payments/`. What should the team do?",
+      "options": [
+        "Run `/compact focus on the payments logging rule` before each long task so the summary keeps the rule text intact.",
+        "Drop the `paths:` frontmatter or move the rule into the project-root CLAUDE.md, which is re-injected from disk after compaction.",
+        "Add a nested `src/payments/CLAUDE.md` containing the same rule, since nested CLAUDE.md files persist across compaction.",
+        "Lower the auto-compact window with `/autocompact` so compaction runs earlier and the rule is still recent when it is summarized."
+      ],
+      "correct": 1,
+      "why_correct": "Las reglas con `paths:` entran al historial cuando Claude toca un archivo que las dispara, así que la compactación las resume junto con todo lo demás. La doc lo dice directo: si una regla tiene que sobrevivir a la compactación, sacale el `paths:` o movela al CLAUDE.md raíz, que se re-inyecta desde disco.",
+      "why_wrong": {
+        "0": "El foco del resumen ayuda, pero sigue siendo un resumen: no garantiza la regla textual, y hay que acordarse cada vez.",
+        "2": "Los CLAUDE.md anidados se comportan igual que las reglas con `paths:`: se recargan bajo demanda, no después de compactar.",
+        "3": "Cambia cuándo compacta, no qué sobrevive; la regla igual se resume."
+      },
+      "rule": "¿Tiene que sobrevivir a la compactación? CLAUDE.md raíz o regla sin `paths:`. Lo condicional se recarga solo al tocar el archivo.",
+      "source_url": "https://code.claude.com/docs/en/context-window",
+      "source_quote": "Path-scoped rules and nested CLAUDE.md files load into message history when Claude reads, writes, or edits their trigger file, so compaction summarizes them away with everything else. If a rule must persist across compaction, drop the `paths:` frontmatter or move it to the project-root CLAUDE.md.",
       "status": "verificada",
       "verification": {
-        "date": "2026-11-13",
+        "date": "2026-11-20",
         "verdict": "ok",
-        "notes": "Cita textual en sub-agents (ventana fresca salvo fork); maxTurns y model: opus existen."
+        "notes": "Revisada contra https://code.claude.com/docs/en/context-window. Context window: reglas con paths y CLAUDE.md anidados se resumen al compactar; sacar paths o mover al CLAUDE.md raíz. Cita textual; /autocompact existe. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
+    },
+    {
+      "id": "o20-q22",
+      "objective": 20,
+      "pool": "practice",
+      "scenario": "A developer at a tax-software company, working in PowerShell on Windows, is planning the removal of a legacy `TaxCalculator` class from a 2,400-file monorepo with Claude Code. She asked Claude to find every caller; Claude ran broad searches and read about 60 files in the main conversation. Since then, Claude's answers about the removal plan have become generic ('typical patterns are...') instead of naming the specific classes it found, and `/context` shows messages filling most of the window. She still needs to map three more legacy classes the same way and then spend two hours refining the plan in this session. What approach best keeps the main conversation coherent for the remaining exploration?",
+      "options": [
+        "Keep exploring in the main conversation and run `/compact focus on callers` after each class has been fully mapped.",
+        "Run `/clear` before mapping each class so that every new search starts from an empty main conversation.",
+        "Switch to a 1M-token model variant so the remaining searches and file reads fit without compaction for the rest of the session.",
+        "Delegate each class search to the Explore subagent and ask for a short summary of the callers with file paths and line references."
+      ],
+      "correct": 3,
+      "why_correct": "Explore busca y analiza el código en su propio contexto y devuelve solo el resumen, así los resultados de exploración no inundan la conversación principal. Es el patrón para las tres clases que faltan: el hilo principal queda para el plan.",
+      "why_wrong": {
+        "0": "Casi: ayuda a recortar después del daño, pero cada búsqueda vuelve a llenar el hilo y cada `/compact` resume (y puede perder) detalles del plan.",
+        "1": "`/clear` borra también el plan y las decisiones que necesita para las dos horas siguientes.",
+        "2": "Más ventana no evita la degradación: con más tokens baja la precisión del recuerdo; el problema es el contenido verboso en el hilo."
+      },
+      "rule": "Exploración verbosa → subagente (Explore) que devuelve resumen. El hilo principal guarda el entendimiento de alto nivel.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "Claude delegates to Explore when it needs to search or understand a codebase without making changes. This keeps exploration results out of your main conversation context.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://code.claude.com/docs/en/sub-agents. Sub-agents: Explore mantiene la exploración fuera del contexto principal. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
+    },
+    {
+      "id": "o20-q23",
+      "objective": 20,
+      "pool": "practice",
+      "scenario": "A platform team asks Claude Code to audit 12 microservices for retry and timeout configuration before a migration. Claude spawns 12 subagents in parallel, one per service. Each returns a detailed report of about 6,000 tokens with config excerpts and reasoning, so roughly 72,000 tokens land in the main conversation at once. Afterwards the main session compacts, and its cross-service comparison misses three services entirely. The team wants to keep the parallel exploration but have the main conversation stay focused on comparing services, while the full details remain available for later review. Which change is most effective?",
+      "options": [
+        "Have each subagent write its full report to a file and return only a short summary with the file path to the main conversation.",
+        "Limit the run to three subagents at a time so fewer reports land in the main conversation at the same moment.",
+        "Use forked subagents so each one already shares the main context and therefore needs to explain less in its report.",
+        "Set `model: haiku` on the audit subagents so their reports are cheaper to generate and return to the main conversation."
+      ],
+      "correct": 0,
+      "why_correct": "Cuando muchos subagentes devuelven resultados detallados, consumen mucho contexto del hilo principal. La doc recomienda pedir resúmenes cortos para que veinte resultados no llenen tu contexto. Guardar el detalle en archivos mantiene todo disponible para revisar sin cargar el hilo.",
+      "why_wrong": {
+        "1": "Baja el pico pero el total que llega al hilo es el mismo: 72k tokens igual.",
+        "2": "Un fork hereda la conversación, pero su resultado igual vuelve al hilo principal; no achica los reportes.",
+        "3": "`haiku` baja el costo, no el largo de lo que vuelve; el contexto se llena igual."
+      },
+      "rule": "Subagentes en paralelo → resúmenes cortos de vuelta; el detalle a archivos (scratchpad).",
+      "source_url": "https://code.claude.com/docs/en/best-practices",
+      "source_quote": "Ask for short summaries back, so twenty results don't fill your context anyway.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://code.claude.com/docs/en/best-practices. Best practices: pedir resúmenes cortos a los subagentes. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
+    },
+    {
+      "id": "o20-q24",
+      "objective": 20,
+      "pool": "practice",
+      "scenario": "A team of four engineers at a logistics company is reverse-engineering an undocumented routing engine with Claude Code over two weeks. Each engineer starts fresh sessions every morning, and every session spends 20–25 minutes rediscovering the same entry points, the same misleading legacy module, and the same queue topology. They already created a custom `routing-explorer` subagent. They want what one engineer's sessions learn about the codebase to be reused by later sessions, including teammates' sessions, and reviewed like any other change. What is the best configuration?",
+      "options": [
+        "Add `memory: user` to the `routing-explorer` subagent so its notes persist across conversations for whoever runs it.",
+        "Have each engineer reopen yesterday's session with `claude --continue` so all earlier file reads stay in context.",
+        "Add `memory: project` to the `routing-explorer` subagent and ask it to check and update its memory around each task.",
+        "Paste the previous day's full transcript into the project CLAUDE.md so that every session loads the complete exploration history."
+      ],
+      "correct": 2,
+      "why_correct": "El campo `memory` le da al subagente un directorio persistente que sobrevive entre conversaciones. El scope `project` es el recomendado y hace que ese conocimiento se comparta por control de versiones: lo ven los compañeros y se revisa como cualquier cambio.",
+      "why_wrong": {
+        "0": "Casi: `user` también persiste, pero queda en la máquina de cada uno; no se comparte con el equipo ni pasa por revisión.",
+        "1": "Sirve para una persona y un día, pero arrastra el contexto viejo y no llega a los compañeros.",
+        "3": "Mete miles de tokens de ruido en cada sesión de todos; CLAUDE.md es para instrucciones, no para transcripts."
+      },
+      "rule": "Conocimiento del subagente para el equipo → `memory: project` (se versiona). `user` = solo vos.",
+      "source_url": "https://code.claude.com/docs/en/sub-agents",
+      "source_quote": "`project` is the recommended default scope. It makes subagent knowledge shareable via version control.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://code.claude.com/docs/en/sub-agents. Sub-agents: memory project recomendado y compartible por control de versiones; user en ~/.claude. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
+      }
+    },
+    {
+      "id": "o20-q25",
+      "objective": 20,
+      "pool": "practice",
+      "scenario": "A developer has spent two hours with Claude Code mapping an authentication module: Claude ran many searches, read long log files, and together they agreed on three invariants and several design decisions. `/context` now shows about 85% usage. Next she will start a long task implementing changes in the billing module, which depends on those invariants and decisions. An earlier automatic compaction in another session kept log details and dropped decisions she cared about. She wants to keep the invariants and decisions, drop the exploration noise, and stay in this session. What should she do right now?",
+      "options": [
+        "Run `/clear` and paste the three invariants into the first prompt of the new billing conversation before starting the task.",
+        "Run `/autocompact` with a higher token count so the automatic pass waits longer and keeps more of the auth discussion intact.",
+        "Run `/context` to see which categories are largest, then let automatic compaction trigger naturally during the billing work.",
+        "Run `/compact` with focus instructions to keep the auth invariants and design decisions, before starting the billing task."
+      ],
+      "correct": 3,
+      "why_correct": "La doc recomienda compactar con foco antes de una tarea nueva y larga: el resumen guarda lo que vos elegís en vez de lo que adivina la pasada automática. Es exactamente lo que necesita: conservar invariantes y decisiones y tirar el ruido de la exploración.",
+      "why_wrong": {
+        "0": "Funciona a medias: conserva los tres invariantes pero pierde las demás decisiones, y depende de que ella las reescriba a mano.",
+        "1": "Postergar la compactación no cambia qué se conserva; cuando corra, la pasada automática vuelve a adivinar.",
+        "2": "`/context` solo diagnostica; dejar que compacte sola repite el problema que ya vio."
+      },
+      "rule": "Antes de una tarea larga nueva: `/compact` con foco en lo que querés conservar.",
+      "source_url": "https://code.claude.com/docs/en/context-window",
+      "source_quote": "Compact with a focus: run `/compact` with instructions, like `/compact focus on the auth bug fix`, before starting a long new task. The summary keeps what you choose instead of what the automatic pass guesses is important.",
+      "status": "verificada",
+      "verification": {
+        "date": "2026-11-20",
+        "verdict": "ok",
+        "notes": "Revisada contra https://code.claude.com/docs/en/context-window. Context window: /compact con foco antes de una tarea larga. Cita textual. Explicaciones en español, distractores no defendibles, largos parejos."
       }
     }
   ]
