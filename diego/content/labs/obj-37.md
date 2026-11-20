@@ -22,7 +22,10 @@ Un flujo de reembolso con dos tools: `buscar_cliente(email)` → `customer_id`, 
 1. Forzar mal la tool dependiente y ver el ID inventado.
 2. Armar el loop correcto (requests sucesivos con `tool_result`).
 3. Forzar cada paso en su request.
-4. Jugar con `disable_parallel_tool_use` y romper el formato de `tool_result`.
+4. Manejar un lote donde la tool dependiente llega junto con su prerrequisito.
+5. Proteger el orden en código cuando el modelo no acepta forzar.
+
+(El formato de los `tool_result` en paralelo y `disable_parallel_tool_use` los practicaste en el lab del objetivo 1; el 400 de forzar en un modelo que no lo acepta, en el del objetivo 27. Acá no se repiten.)
 
 Modelo: `claude-haiku-5-5` (acepta `tool_choice` `any`/`tool`).
 
@@ -121,40 +124,100 @@ while True:
 
 Esperás: primero `buscar_cliente`, después `emitir_reembolso` con `cus_8F3K2`, después `end_turn`. El dato pasó de una tool a la otra **por el `tool_result`**.
 
-5. **Forzar cada paso en su request.** Copiá `b_loop.py` a `c_pasos.py` y hacé que el `tool_choice` dependa de la vuelta:
+5. **Forzar cada paso en su request.** Creá `c_pasos.py`, donde el `tool_choice` depende de la vuelta:
 
 ```python
+import anthropic
+from base import TOOLS, ejecutar
+
+client = anthropic.Anthropic()
 PASOS = [{"type": "tool", "name": "buscar_cliente"},
          {"type": "tool", "name": "emitir_reembolso"},
          {"type": "auto"}]
-# ...dentro del while, con un contador i:
-#     tool_choice=PASOS[min(i, 2)]
+messages = [{"role": "user", "content": "Reembolsá $500 a ana@x.com"}]
+for i, choice in enumerate(PASOS):
+    r = client.messages.create(model="claude-haiku-5-5", max_tokens=2048,
+                               tools=TOOLS, tool_choice=choice, messages=messages)
+    print(f"vuelta {i} tool_choice={choice['type']} stop_reason={r.stop_reason}")
+    if r.stop_reason != "tool_use":
+        print(next((b.text for b in r.content if b.type == "text"), ""))
+        break
+    messages.append({"role": "assistant", "content": r.content})
+    resultados = []
+    for b in r.content:
+        if b.type == "tool_use":
+            out = ejecutar(b.name, b.input)
+            print(f"  {b.name}({b.input}) -> {out}")
+            resultados.append({"type": "tool_result", "tool_use_id": b.id, "content": out,
+                               "is_error": out.startswith("ERROR")})
+    messages.append({"role": "user", "content": resultados})
 ```
 
-Ahora el orden está garantizado **y** cada tool recibe el dato correcto, porque cada forzado ocurre después de que llegó el `tool_result` previo.
+```powershell
+python c_pasos.py
+```
 
-6. **Paralelo y `disable_parallel_tool_use`.** Cambiá el mensaje en `b_loop.py` a "Reembolsá $500 a ana@x.com y $200 a ana@x.com". Si Claude manda varias tools juntas, fijate que tu loop devuelve **todos** los `tool_result` en **un solo** mensaje `user`. Después agregá en `create(...)`:
+Ahora el orden está garantizado **y** cada tool recibe el dato correcto, porque cada forzado ocurre después de que llegó el `tool_result` previo. Compará con `a_mal.py`: mismo forzado de `emitir_reembolso`, pero en la vuelta correcta.
+
+6. **Lote con dependencia: ejecutar en orden y cortar.** Claude puede mandar `buscar_cliente` y `emitir_reembolso` en la misma respuesta (con un `customer_id` adivinado en la segunda). No hace falta esperar a que pase: simulalo con un lote armado a mano. Creá `d_lote.py`:
 
 ```python
-    tool_choice={"type": "auto", "disable_parallel_tool_use": True},
+from base import ejecutar
+
+# Lote como el que podría venir en un solo turno: la 2da depende de la 1ra
+lote = [
+    {"id": "toolu_A", "name": "buscar_cliente", "input": {"email": "nadie@x.com"}},
+    {"id": "toolu_B", "name": "emitir_reembolso", "input": {"customer_id": "cus_ADIVINADO", "monto": 500}},
+]
+
+resultados, fallo = [], False
+for b in lote:
+    if fallo:
+        resultados.append({"type": "tool_result", "tool_use_id": b["id"], "is_error": True,
+                           "content": "No se ejecutó: falló una llamada anterior del mismo lote."})
+        continue
+    out = ejecutar(b["name"], b["input"])
+    resultados.append({"type": "tool_result", "tool_use_id": b["id"], "content": out,
+                       "is_error": out.startswith("ERROR")})
+    fallo = out.startswith("ERROR")
+
+for r in resultados:
+    print(r)
 ```
 
-Ahora sale **a lo sumo una** tool por respuesta. (Ponerlo como parámetro top-level de `create` no es válido: va **dentro** de `tool_choice`.)
+```powershell
+python d_lote.py
+```
 
-7. **Rompelo: formato de `tool_result`.** En `b_loop.py`, reemplazá la línea del `append` de resultados por:
+Fijate: `emitir_reembolso` **no corrió**, pero igual tiene su `tool_result` con `is_error: true`. Esa es la estrategia de la doc para tools con orden: correr el lote en secuencia, frenar en el primer fallo y devolver `is_error: true` para lo que no corriste. Para que estos lotes aparezcan menos, la doc propone agregar al system prompt: "Only batch tool calls that are independent of each other." Agregalo en `b_loop.py` (`system="Only batch tool calls that are independent of each other."` dentro de `create(...)`) y volvé a correrlo.
+
+7. **Sin forzado: proteger el orden en código.** En un modelo que no acepta `any`/`tool` (por ejemplo `claude-sonnet-5-5`), el orden no lo podés fijar con `tool_choice`. Copiá `b_loop.py` a `e_guardia.py`, cambiá el modelo a `claude-sonnet-5-5` y reemplazá el `for` de ejecución por este, que solo acepta un `customer_id` que haya salido de un `buscar_cliente` anterior:
 
 ```python
-    messages.append({"role": "user", "content": [{"type": "text", "text": "acá van"}] + resultados})
+    resultados = []
+    for b in r.content:
+        if b.type != "tool_use":
+            continue
+        if b.name == "emitir_reembolso" and b.input.get("customer_id") not in ids_vistos:
+            out = "ERROR: customer_id sin buscar_cliente previo. Llamá buscar_cliente primero."
+        else:
+            out = ejecutar(b.name, b.input)
+            if b.name == "buscar_cliente" and not out.startswith("ERROR"):
+                ids_vistos.add(json.loads(out)["customer_id"])
+        print(f"  {b.name}({b.input}) -> {out}")
+        resultados.append({"type": "tool_result", "tool_use_id": b.id, "content": out,
+                           "is_error": out.startswith("ERROR")})
 ```
 
-La doc dice que los `tool_result` tienen que ir **primero** en el `content` y que el texto va después de todos. Mirá qué responde la API: sea un error o no, ese formato viola la regla documentada. Volvé a dejarlo bien.
+Agregá `import json` arriba de todo en `e_guardia.py` y la línea `ids_vistos = set()` justo antes del `while True:` (así recuerda los ids entre vueltas). Corrélo con `python e_guardia.py`. Lo normal es que Claude llame primero `buscar_cliente` (por la descripción), y si alguna vez no lo hace, la guardia le devuelve `is_error` y Claude reintenta en orden. Esto es el patrón de la doc para estos modelos: `auto` + prompting ("Prompting still influences which tool auto picks") + validación en tu código.
 
 ## Cómo sabés que salió bien
 
 - `a_mal.py` muestra un `customer_id` que no salió de ningún lado.
 - `b_loop.py` imprime `buscar_cliente` → `emitir_reembolso(cus_8F3K2, 500)` → `end_turn`.
-- Con `disable_parallel_tool_use` dentro de `tool_choice`, nunca hay dos `tool_use` en la misma respuesta.
-- Sabés explicar por qué el texto va **después** de los `tool_result` en el mensaje `user`.
+- `c_pasos.py` imprime vuelta 0 `buscar_cliente`, vuelta 1 `emitir_reembolso` con `cus_8F3K2`, vuelta 2 `end_turn`.
+- `d_lote.py` muestra dos `tool_result`: el de `buscar_cliente` con el error y el de `emitir_reembolso` con `is_error: True` sin haberse ejecutado.
+- `e_guardia.py` nunca ejecuta `emitir_reembolso` con un `customer_id` que no salió de `buscar_cliente`.
 
 ## Si algo falla
 
