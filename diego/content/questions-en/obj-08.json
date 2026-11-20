@@ -55,7 +55,7 @@
       "pool": "practice",
       "scenario": "At an insurance company, the claims-engine repo must start every Claude Code session in plan mode, so the team committed `\"defaultMode\": \"plan\"` under `permissions` in `.claude/settings.json`. Developers who use Claude Code in Windows Terminal start in plan mode as expected. The 14 developers who work in the VS Code extension still see new conversations start in Auto; most of them picked Auto from the mode indicator weeks ago. A platform engineer proposes copying the same `defaultMode` into each developer's `~/.claude/settings.json` as the fix. Which change makes new VS Code conversations start in plan mode for those developers?",
       "options": [
-        "Set `claudeCode.initialPermissionMode` to `plan` in each developer's VS Code user settings, since the extension checks it before anything else.",
+        "Set `claudeCode.initialPermissionMode` to `plan` in each developer's VS Code user settings, since the extension checks it first.",
         "Copy `defaultMode: plan` into each `~/.claude/settings.json`; the extension falls back to user settings when it ignores the project file.",
         "Move `defaultMode: plan` into `.claude/settings.local.json`, which has higher precedence than the shared project settings file.",
         "Ask developers to pick Plan once from the mode indicator, so the extension remembers it for every new conversation in that folder."
@@ -103,10 +103,10 @@
       "pool": "practice",
       "scenario": "A health-tech team needs per-tenant rate limiting on its public API, but the requirements were never written down. A developer spent a three-hour Claude Code session brainstorming: per-user versus per-key limits, burst handling, and what to return over the limit. Several ideas were proposed and rejected along the way, including a Redis token bucket the team vetoed. In the same session she then asked Claude to implement the design. The resulting PR reintroduced the vetoed Redis bucket and missed two edge cases agreed on early in the conversation. The agreed decisions exist only in her notes, not in the repo. What is the most effective next step?",
       "options": [
-        "Run `/compact keep the agreed rate-limit decisions` and ask the same session to fix the PR according to those decisions.",
+        "Run `/compact keep the agreed rate-limit decisions`, then ask the same session to fix the open PR according to those decisions.",
         "Have Claude write the agreed decisions to `SPEC.md`, then start a fresh session that builds from that spec as its definition of done.",
         "Add the vetoed approaches to the project CLAUDE.md under a `Never use` heading so every future session avoids them.",
-        "Switch the same session to plan mode, ask for a new plan that respects the decisions, and approve it before any editing."
+        "Switch the same session to plan mode, ask for a new plan that respects every agreed decision, and approve it before any editing."
       ],
       "correct": 1,
       "why_correct": "El problema es el contexto: la conversación tiene mezcladas las ideas aceptadas con las vetadas. El flujo multi-fase de la doc lo resuelve: lo acordado queda escrito en `SPEC.md` y se construye en una sesión nueva, con contexto limpio y una definición de \"hecho\" por escrito. Ese mismo archivo después le sirve al reviewer.",
@@ -153,7 +153,7 @@
       "options": [
         "Have a subagent review the diff against `SPEC.md`, checking each requirement and edge case for tests, and report only correctness gaps, skipping style.",
         "Keep the review in the implementing session but raise the effort to `xhigh` and ask it to list every issue it can find, however small.",
-        "Ask the implementing session to re-read `SPEC.md` through an `@SPEC.md` mention and then review its own diff for style and correctness together.",
+        "Ask the implementing session to re-read `SPEC.md` through an `@SPEC.md` mention and then review its own diff for style and for correctness together.",
         "Run `/code-review` in the implementing session with no extra prompt, since its fresh reviewer automatically checks the diff against any spec file."
       ],
       "correct": 0,
@@ -178,7 +178,7 @@
         "Keep one job but switch to `--permission-mode bypassPermissions`, and add a `Stop` hook that fails the run whenever the tests don't pass.",
         "Keep plan mode and add `--max-turns 40`, since the run stops after planning when it runs out of turns before it can start implementing.",
         "Run one job in `--permission-mode auto` with `don't edit until a human approves the plan` in the prompt, letting the classifier hold edits.",
-        "Split it: a plan-mode job posts the plan for review, a protected step records human approval, and a second job implements it with `acceptEdits`."
+        "Split it: a plan-mode job posts the plan for review, a protected step records human approval, and a second job implements with `acceptEdits`."
       ],
       "correct": 3,
       "why_correct": "Plan mode mantiene sus bloqueos donde no hay terminal interactiva, incluido `claude -p`: dentro de esa corrida no hay forma de aprobar el plan, por eso nunca edita (aunque `Edit` esté en `--allowedTools`). La aprobación humana tiene que ir ENTRE dos corridas: una planifica, una persona aprueba con registro, y otra implementa con un modo que permita editar.",
@@ -200,7 +200,7 @@
       "scenario": "A team plans every schema change with Claude Code. A developer on Windows is reviewing a seven-step plan Claude proposed for splitting the `orders` table. Halfway through, she realizes the plan assumes the wrong ownership model, and she wants to leave plan mode entirely to discuss the design with a colleague in a normal conversation before any planning resumes. At the approval prompt she presses `Shift+Tab`, the shortcut she always uses to cycle modes, and Claude immediately starts generating migration files. The team now wants its runbook to say how to leave plan mode from the approval prompt without approving anything. What should the runbook say?",
       "options": [
         "Choose 'No, keep planning' at the prompt; that option exits plan mode and returns the session to its previous mode without approving.",
-        "Press `Esc` first to dismiss the approval prompt, then press `Shift+Tab`; at the prompt itself, `Shift+Tab` approves the plan.",
+        "Press `Esc` first to dismiss the approval prompt, then `Shift+Tab`; at the prompt itself, `Shift+Tab` approves the plan.",
         "Press `Ctrl+G` to open the plan in the editor, delete its contents and save, which cancels the plan and leaves plan mode.",
         "Type `/plan` again at the approval prompt, which toggles plan mode off and discards the current plan without approving it."
       ],

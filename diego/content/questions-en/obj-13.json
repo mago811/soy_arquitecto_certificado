@@ -32,7 +32,7 @@
       "scenario": "A team built a `/review-pr` skill whose frontmatter has `allowed-tools: Read Grep Glob` and whose body says `review the diff; do not modify files`. Twice this month the review also edited files to \"fix\" its own findings, leaving surprise changes in developers' working trees on their Windows machines. The team wants a reviewer that structurally cannot edit, invoked from the main session after implementation, and it doesn't want to change anyone's global permissions or how they launch Claude Code. What is the most effective change?",
       "options": [
         "Keep the skill and add `disable-model-invocation: true`, so the reviewer only runs when a developer explicitly types `/review-pr`.",
-        "Keep the skill but move the `do not modify files` sentence to the top of `SKILL.md`, marked IMPORTANT, so it is never overlooked.",
+        "Keep the skill but move the `do not modify files` sentence to the very top of `SKILL.md`, marked IMPORTANT, so Claude can never overlook it.",
         "Define a subagent in `.claude/agents/reviewer.md` with `tools: Read, Grep, Glob`, because `allowed-tools` pre-approves but doesn't restrict.",
         "Add `--allowedTools \"Read,Grep,Glob\"` to how developers launch Claude Code, so every other tool is unavailable during reviews."
       ],
@@ -154,7 +154,7 @@
         "Pipe the diff in with `git diff origin/main...HEAD |` and remove Bash entirely with `--disallowedTools \"Bash\"`, keeping read tools.",
         "Add more scoped deny rules, such as `Bash(git -C *)` and `Bash(git -c *)`, until every commit and push variant is covered.",
         "Add a `PostToolUse` hook on `Bash` that runs `git reset --hard` whenever a command has changed the working tree.",
-        "Add `Never commit or push; you are a read-only reviewer` with `--append-system-prompt`, keeping the existing deny list."
+        "Add `Never commit or push; you are a read-only reviewer` with `--append-system-prompt`, keeping the existing deny list exactly as it is."
       ],
       "correct": 0,
       "why_correct": "Un nombre de tool sin scope en `--disallowedTools` (como `\"Bash\"`) saca la tool del contexto de Claude. Una regla con scope, como `Bash(git push *)`, deja la tool disponible y solo deniega las llamadas que matchean tal como están escritas, por eso `git -c ... push` pasó. Pipear el diff hace que Claude no necesite Bash para leerlo.",

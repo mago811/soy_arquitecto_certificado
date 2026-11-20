@@ -21,7 +21,7 @@
       },
       "rule": "CI: `dontAsk` + `--allowedTools` exacto + `--max-turns`. Bypass solo en contenedores aislados y nunca como root.",
       "source_url": "https://code.claude.com/docs/en/permission-modes",
-      "source_quote": "Use this mode for CI pipelines or restricted environments where you pre-define what Claude may do; the session never waits for input.",
+      "source_quote": "Use this mode for CI pipelines or restricted environments where you pre-define what Claude may do.",
       "status": "no_verificado",
       "verification": null
     },
@@ -33,7 +33,7 @@
       "options": [
         "Change the rule to `Bash(npm run test *)`, with a space before `*`, so it matches `npm run test` with or without arguments only.",
         "Change the rule to `Bash(npm run test)`, which matches that exact command plus any argument list appended after it.",
-        "Keep the rule and add `don't run publish scripts` to the prompt, since `dontAsk` already denies anything risky.",
+        "Keep the rule and add `don't run publish scripts` to the prompt, since `dontAsk` mode already denies anything risky on its own.",
         "Switch to `--permission-mode acceptEdits`, which auto-approves only filesystem commands and blocks package scripts."
       ],
       "correct": 0,
@@ -125,12 +125,12 @@
       "id": "o11-s21",
       "objective": 11,
       "pool": "sim",
-      "scenario": "A research team runs a three-stage pipeline with Claude Code in CI. Stage 1 starts a session with `claude -p \"...\" --output-format json --max-budget-usd 2.00` and saves its `session_id`. Stages 2 and 3 each run `claude -p --resume $SESSION_ID \"...\" --max-budget-usd 2.00 --output-format json`. Finance set a hard ceiling of $2.00 for the whole pipeline. The last stage regularly reports `total_cost_usd` around 5.40, yet no stage ever ends with `error_max_budget_usd`. Which explanation and fix are correct?",
+      "scenario": "A research team runs a three-stage pipeline with Claude Code in CI. Stage 1 starts a session with `claude -p \"...\" --output-format json --max-budget-usd 2.00` and saves its `session_id`. Stages 2 and 3 each run `claude -p --resume $SESSION_ID \"...\" --max-budget-usd 2.00 --output-format json`. Finance set a hard ceiling of $2.00 for the whole pipeline. The last stage regularly reports `total_cost_usd` around 5.40, yet no stage ever ends with `error_max_budget_usd`. The pipeline runs about 40 times a week, so the overrun adds up quickly. Which explanation and fix are correct?",
       "options": [
         "The cap only counts the main conversation and excludes subagents, so add `--max-turns` to each stage to bound the subagents' spend.",
         "Restored totals from earlier runs don't count toward a resumed run's cap; give each stage only the budget left after the last `total_cost_usd`.",
         "`total_cost_usd` double-counts cached tokens on resume, so ignore it and reconcile spend from the usage dashboard at month end.",
-        "Each stage overshoots its cap by one response, so lower every stage to `--max-budget-usd 0.60` so three overshoots stay under $2.00."
+        "Each stage overshoots its cap by one response, so lower every stage to `--max-budget-usd 0.60` so that three overshoots still stay under $2.00."
       ],
       "correct": 1,
       "why_correct": "Al volver a una conversación con `--continue` o `--resume`, los totales restaurados de corridas anteriores NO cuentan para el cap de la corrida nueva: cada etapa tiene $2 propios. En cambio, `total_cost_usd` informa el total de toda la conversación, por eso ves ~5,40. El fix es pasarle a cada etapa solo lo que queda del presupuesto, calculado con el `total_cost_usd` anterior.",
@@ -199,9 +199,9 @@
       "pool": "sim",
       "scenario": "A release pipeline on a Windows build agent runs `$out = claude -p \"Draft release notes from the merged PRs\" --output-format json` in PowerShell and treats the step as failed only if anything was written to stderr. Last Tuesday the API key in the agent's environment had expired. Stderr was empty, the step passed, and the release notes published to the customer portal contained an authentication error message instead of notes. The team wants the pipeline to stop whenever the Claude run itself fails, without adding a manual check. What should they change?",
       "options": [
-        "Branch on `$LASTEXITCODE` and check the parsed JSON's `is_error`, since failures inside the run are printed as the result on stdout.",
+        "Branch on `$LASTEXITCODE` and the parsed JSON's `is_error`, since failures inside the run are printed as the result on stdout.",
         "Redirect stdout into stderr with `2>&1` so authentication failures reach the stderr check that already gates the pipeline.",
-        "Add `--verbose`, which makes Claude Code write in-run failures such as missing authentication to stderr instead of stdout.",
+        "Add `--verbose`, which makes Claude Code write in-run failures such as missing authentication to stderr rather than to stdout.",
         "Add a `Stop` hook that exits 2 when the response mentions authentication, so the run retries until a valid key is present."
       ],
       "correct": 0,
@@ -221,11 +221,11 @@
       "id": "o11-s25",
       "objective": 11,
       "pool": "sim",
-      "scenario": "A security team runs `claude -p` in CI with `--permission-mode dontAsk --allowedTools \"Read,Grep,Glob,Bash(npm test *)\" --output-format stream-json --verbose` to triage flaky tests. They need the job to fail, and to alert, whenever Claude tried anything outside the allowlist, such as `curl` or editing a file. In a test where Claude was deliberately nudged to call `curl`, the job still exited 0 and printed a normal summary of the flaky tests. Which approach meets the requirement reliably?",
+      "scenario": "A security team runs `claude -p` in CI with `--permission-mode dontAsk --allowedTools \"Read,Grep,Glob,Bash(npm test *)\" --output-format stream-json --verbose` to triage flaky tests. They need the job to fail, and to alert, whenever Claude tried anything outside the allowlist, such as `curl` or editing a file. In a test where Claude was deliberately nudged to call `curl`, the job still exited 0 and printed a normal summary of the flaky tests. The allowlist itself is reviewed monthly and must not change. Which approach meets the requirement reliably?",
       "options": [
         "Treat a non-zero exit code as the signal, since a denied tool call in `dontAsk` mode ends the run with an error status.",
         "Fail the job when the final `result` message's `permission_denials` list is not empty, or when `permission_denied` events appear.",
-        "Switch to `--output-format text` and search the summary for the words `denied` or `permission` before marking the job passed.",
+        "Switch to `--output-format text` and search the final summary for the words `denied` or `permission` before marking the job as passed.",
         "Add `--permission-prompts none`, which turns every denied call into a fatal error so the job exits on the first denial."
       ],
       "correct": 1,

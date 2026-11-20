@@ -103,7 +103,7 @@
       "pool": "practice",
       "scenario": "In a platform repo, `.claude/rules/terraform.md` starts with frontmatter meant to scope it to `infra/**/*.tf`. Developers notice its 70 lines of Terraform conventions appear in every session, even sessions that only touch the React app, and Claude sometimes applies Terraform naming rules to TypeScript. The frontmatter was copied from a wiki: the line after `paths:` is `- \"infra/**/*.tf\"`, indented with a tab character instead of spaces, which YAML does not allow. No other rule files are affected. Which explanation and next step are correct?",
       "options": [
-        "`paths` only works for rules stored in a subfolder named after the directory, so move the file to `.claude/rules/infra/terraform.md`.",
+        "`paths` only works for rules stored in a subfolder named after the matching directory, so move this file into `.claude/rules/infra/terraform.md`.",
         "The YAML doesn't parse, so Claude Code ignores the frontmatter and loads the rule unscoped; fix the indentation and check with `claude --debug`.",
         "Path-scoped rules always load at launch and only gain priority for matching files, so move these conventions into a skill instead.",
         "Rule frontmatter is ignored unless it also declares `name` and `description`, so add both fields above `paths` and reload."
@@ -202,7 +202,7 @@
         "Enable the sandbox and turn off its unsandboxed retry, so shell commands are confined and the `Read` deny rule applies to them.",
         "Add `Bash(python *)` to `deny`, so no Python process can start that could read the protected file indirectly.",
         "Add a `PostToolUse` hook on `Bash` that scrubs anything resembling a credential from the command output.",
-        "Add `Edit(./.env.ci)` and `Write(./.env.ci)` deny rules next to `Read`, which together also cover reads by child processes."
+        "Add `Edit(./.env.ci)` and `Write(./.env.ci)` deny rules next to `Read`, which together also cover reads made by any child processes."
       ],
       "correct": 0,
       "why_correct": "Las reglas `Read` cubren la tool `Read` y los comandos comunes de lectura como `cat`, pero no los subprocesos que abren archivos por su cuenta, como un script de Python. Para enforcement a nivel de sistema operativo, la doc dice: activá el sandbox y apagá el reintento fuera del sandbox. El sandbox además toma tus reglas `Read` deny.",
@@ -245,7 +245,7 @@
       "id": "o16-s26",
       "objective": 16,
       "pool": "sim",
-      "scenario": "A platform team wants Claude to push release branches without prompting but keep a confirmation for every other push. The committed `.claude/settings.json` has `\"ask\": [\"Bash(git push *)\"]`. They added `\"allow\": [\"Bash(git push origin release/*)\"]`, and when that still prompted, they wrote a `PreToolUse` hook that returns `permissionDecision: \"allow\"` for pushes to `release/*`. Pushes to release branches still prompt every time, and pushes elsewhere prompt as intended. Which change achieves the goal?",
+      "scenario": "A platform team wants Claude to push release branches without prompting but keep a confirmation for every other push. The committed `.claude/settings.json` has `\"ask\": [\"Bash(git push *)\"]`. They added `\"allow\": [\"Bash(git push origin release/*)\"]`, and when that still prompted, they wrote a `PreToolUse` hook that returns `permissionDecision: \"allow\"` for pushes to `release/*`. Pushes to release branches still prompt every time, and pushes elsewhere prompt as intended. The team wants one consistent setup, checked into the repo, for all 12 developers. Which change achieves the goal?",
       "options": [
         "Move the specific `allow` rule above the `ask` rule in the file, since Claude Code evaluates permission rules from top to bottom.",
         "Move the `allow` rule into `.claude/settings.local.json`, which has higher precedence than the shared project settings file.",

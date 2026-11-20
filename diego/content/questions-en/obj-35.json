@@ -77,7 +77,7 @@
       "id": "o35-q24",
       "objective": 35,
       "pool": "practice",
-      "scenario": "A developer on Windows wants to add a local stdio MCP server for Postgres that reads its connection string from `DB_URL`. In PowerShell they run: `claude mcp add --env DB_URL=$env:STAGING_DB_URL pgtools -- npx -y @acme/pg-mcp --readonly`. The CLI rejects the command, complaining about an invalid `KEY=value` pair, and nothing is saved. A teammate suggests the `--` separator is misplaced. The developer wants the server to start with `--readonly` and with `DB_URL` in its environment. Which command works?",
+      "scenario": "A developer on Windows wants to add a local stdio MCP server for Postgres that reads its connection string from `DB_URL`. In PowerShell they run: `claude mcp add --env DB_URL=$env:STAGING_DB_URL pgtools -- npx -y @acme/pg-mcp --readonly`. The CLI rejects the command, complaining about an invalid `KEY=value` pair, and nothing is saved. A teammate suggests the `--` separator is misplaced. The server must stay private to this developer and only load in the current repository, so local scope (the default) is fine. The developer wants the server to start with `--readonly` and with `DB_URL` in its environment. Which command works?",
       "options": [
         "`claude mcp add --env DB_URL=$env:STAGING_DB_URL pgtools npx -y @acme/pg-mcp --readonly`, removing the `--` so the CLI parses the server name and command in order.",
         "`claude mcp add-json pgtools '{\"command\":\"npx\",\"args\":[\"-y\",\"@acme/pg-mcp\"],\"readonly\":true}'`, since JSON avoids CLI parsing of flags and env values.",
@@ -101,7 +101,7 @@
       "id": "o35-q25",
       "objective": 35,
       "pool": "practice",
-      "scenario": "A developer at a payments company follows the vendor's setup guide and runs `claude mcp add --transport http ledger https://mcp.ledger.example.com --header \"Authorization: Bearer YOUR_API_KEY\"`, forgetting to replace the placeholder. The CLI prints `Added HTTP MCP server ledger`. They start Claude Code and ask it to reconcile yesterday's transactions; Claude answers by reading CSV exports with Read and never mentions the ledger. The developer assumes the server works because the add command succeeded. What should they do first?",
+      "scenario": "A developer at a payments company follows the vendor's setup guide and runs `claude mcp add --transport http ledger https://mcp.ledger.example.com --header \"Authorization: Bearer YOUR_API_KEY\"`, forgetting to replace the placeholder. The CLI prints `Added HTTP MCP server ledger`. They start Claude Code and ask it to reconcile yesterday's transactions; Claude answers by reading CSV exports with Read and never mentions the ledger. The developer assumes the server works because the add command succeeded. Two teammates who set up the same server last week say it works for them. What should they do first?",
       "options": [
         "Remove and re-add the server with `--scope project`, because servers added at the default local scope don't load until the project approves them.",
         "Increase `MCP_TIMEOUT`, because remote HTTP servers often take longer than the default startup timeout and Claude starts working before the tools arrive.",

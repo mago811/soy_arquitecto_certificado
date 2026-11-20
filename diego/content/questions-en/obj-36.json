@@ -29,7 +29,7 @@
       "id": "o36-q22",
       "objective": 36,
       "pool": "practice",
-      "scenario": "An insurance company's support agent has an `escalate_case` tool with parameters `case_id` and `severity` (`\"low\" | \"medium\" | \"high\"`, required). The tool description says \"Escalates a case.\" and `severity` has no description. In development, 9% of calls omitted `severity`, so a developer enabled strict tool use; now every call includes it, but 41% of escalations for minor billing typos are marked `high`, flooding the on-call queue. The model cannot be changed. Which change addresses the root cause?",
+      "scenario": "An insurance company's support agent has an `escalate_case` tool with parameters `case_id` and `severity` (`\"low\" | \"medium\" | \"high\"`, required). The tool description says \"Escalates a case.\" and `severity` has no description. In development, 9% of calls omitted `severity`, so a developer enabled strict tool use; now every call includes it, but 41% of escalations for minor billing typos are marked `high`, flooding the on-call queue. The on-call team says real high-severity cases are about 3% of escalations. The model cannot be changed. Which change addresses the root cause?",
       "options": [
         "Keep strict tool use and add `\"default\": \"low\"` to the `severity` property in the schema, so that unclear cases are assigned the least disruptive value.",
         "Expand the tool and parameter descriptions to define what each severity level means, with concrete criteria and examples of cases that belong in each one.",
@@ -53,7 +53,7 @@
       "id": "o36-q23",
       "objective": 36,
       "pool": "practice",
-      "scenario": "An online retailer's support agent first calls `search_orders(email)`, which returns objects like `{\"order_number\": \"A-48213\", \"order_uuid\": \"5f2c…\", \"status\": \"shipped\"}`. It then calls `cancel_order(order_id)` when customers ask to cancel. The `cancel_order` description is \"Cancels an order.\" and `order_id` is described as \"The order ID.\" Logs show 35% of cancellations fail with `order not found`, because Claude passes the customer-facing `A-48213` instead of the UUID. The API cannot change this sprint. What is the best fix?",
+      "scenario": "An online retailer's support agent first calls `search_orders(email)`, which returns objects like `{\"order_number\": \"A-48213\", \"order_uuid\": \"5f2c…\", \"status\": \"shipped\"}`. It then calls `cancel_order(order_id)` when customers ask to cancel. The `cancel_order` description is \"Cancels an order.\" and `order_id` is described as \"The order ID.\" Logs show 35% of cancellations fail with `order not found`, because Claude passes the customer-facing `A-48213` instead of the UUID. Every failed cancellation means a manual follow-up by a human agent. The API cannot change this sprint. What is the best fix?",
       "options": [
         "Describe `order_id` as the `order_uuid` field returned by `search_orders`, not the customer-facing `order_number`, and say in the tool description it must follow a search.",
         "Add an `input_examples` entry to `cancel_order` with a sample UUID, so Claude learns from the example that the parameter is a UUID rather than an order number.",
